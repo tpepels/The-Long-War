@@ -10,12 +10,7 @@ from statistics import mean, stdev
 from typing import Any, Callable, Iterable
 
 from .cards import card_index, validate_card_data
-from .decks import (
-    MINIMUM_DECK_SIZE,
-    MINIMUM_FORCE_COUNT,
-    MINIMUM_PRINTED_NAME_COUNT,
-    validate_deck_definition,
-)
+from .decks import MINIMUM_DECK_SIZE, validate_deck_definition
 from .game.engine import GameEngine
 from .parallelism import DEFAULT_WORKERS
 from .protocol import AgentKind, CardField, CardType, DesignField, PLAYER_COUNT
@@ -100,11 +95,11 @@ def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
         # removing the card-specific trigger or continuous effect.
         result[CardField.DESIGN_RULES] = {}
     elif card_type == CardType.STRATAGEM:
-        # Preserve the paid public one-per-Battle slot while removing all
+        # Preserve the paid hidden one-per-Battle slot while removing all
         # card-specific payoff. design_rules is already the canonical empty
         # mechanics schema for this baseline.
         result[CardField.TEXT] = (
-            "Experimental matched baseline. Play this face-up in your "
+            "Experimental matched baseline. Set this face-down in your "
             "**Stratagem** area. It has no continuing effect."
         )
     else:
@@ -173,10 +168,10 @@ def generate_context_decks(
     seed: int,
     required_cards: Iterable[str] = (),
 ) -> list[list[str]]:
-    """Generate legal canonical-size contexts for an expandable card pool.
+    """Generate legal minimum-size contexts for an expandable card pool.
 
     Required cards appear in every context. Remaining slots rotate pool
-    coverage while always satisfying canonical Force/printed-Name minimums.
+    coverage. Current deck construction has no Force or printed-Name minimum.
     """
     if count <= 0:
         raise ValueError("count must be positive")
@@ -195,15 +190,6 @@ def generate_context_decks(
             f"At most {deck_size} distinct cards can be required in a deck context"
         )
 
-    required_forces = sum(meta[card_id][CardField.TYPE] == CardType.FORCE for card_id in required)
-    required_names = sum(meta[card_id][CardField.TYPE] == CardType.NAME for card_id in required)
-    force_needed = max(0, MINIMUM_FORCE_COUNT - required_forces)
-    name_needed = max(0, MINIMUM_PRINTED_NAME_COUNT - required_names)
-    if len(required) + force_needed + name_needed > deck_size:
-        raise ValueError(
-            "Required cards leave too few slots to satisfy canonical Force/Name minimums"
-        )
-
     rng = random.Random(seed)
     uncovered = set(all_ids) - set(required)
     contexts: list[list[str]] = []
@@ -217,22 +203,6 @@ def generate_context_decks(
 
     for _context_index in range(count):
         deck = list(required)
-
-        force_candidates = [
-            card_id
-            for card_id in all_ids
-            if meta[card_id][CardField.TYPE] == CardType.FORCE and card_id not in deck
-        ]
-        for card_id in ordered_candidates(force_candidates)[:force_needed]:
-            deck.append(card_id)
-
-        name_candidates = [
-            card_id
-            for card_id in all_ids
-            if meta[card_id][CardField.TYPE] == CardType.NAME and card_id not in deck
-        ]
-        for card_id in ordered_candidates(name_candidates)[:name_needed]:
-            deck.append(card_id)
 
         remaining = [card_id for card_id in all_ids if card_id not in deck]
         for card_id in ordered_candidates(remaining):
