@@ -14,7 +14,7 @@ from longwar.belief import (
 from longwar.cards import load_card_file
 from longwar.decks import validate_deck_definition
 from longwar.game import Front, GameEngine, Position, Rank
-from longwar.game.model import NarrativeState, StratagemState
+from longwar.game.model import Front, NarrativeState, StratagemState
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -104,6 +104,46 @@ def test_belief_sample_preserves_all_public_zones() -> None:
         == "stratagem"
     )
     assert sampled.players[opponent].discard == state.players[opponent].discard
+
+
+def test_hidden_stratagem_belief_respects_public_choice_shape() -> None:
+    engine, _reference, state = setup()
+    sampler = BeliefSampler(engine)
+
+    chosen_front = StratagemState(
+        "no-step-back",
+        fronts=(Front.SECOND,),
+    )
+    assert sampler._hidden_stratagem_choice_compatible(
+        "no-step-back",
+        chosen_front,
+    )
+    assert not sampler._hidden_stratagem_choice_compatible(
+        "the-battle-turned-east",
+        chosen_front,
+    )
+    assert not sampler._hidden_stratagem_choice_compatible(
+        "the-ground-was-held",
+        chosen_front,
+    )
+
+    direction = StratagemState(
+        "the-battle-turned-east",
+        direction="left",
+    )
+    assert sampler._hidden_stratagem_choice_compatible(
+        "the-battle-turned-east",
+        direction,
+    )
+    # A zero-target wheel exposes only the same public direction choice.
+    assert sampler._hidden_stratagem_choice_compatible(
+        "the-line-wheeled",
+        direction,
+    )
+    assert not sampler._hidden_stratagem_choice_compatible(
+        "no-step-back",
+        direction,
+    )
 
 
 def test_belief_sampler_reports_no_hidden_narrative_or_stratagem_zones() -> None:
