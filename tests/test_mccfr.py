@@ -210,6 +210,7 @@ def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
     policy = trainer.policy_payload()
 
     assert summary.information_sets > 0
+    assert policy["schema_version"] == MCCFR_POLICY_SCHEMA_VERSION
     assert policy["algorithm"] == "depth_limited_external_sampling_mccfr"
     assert policy["infosets"]
 
