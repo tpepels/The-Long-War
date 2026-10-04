@@ -263,6 +263,39 @@ def test_stratagem_action_is_paid_and_hidden_from_opponent() -> None:
     assert opponent_view["last_action"]["card_id"] is None
     assert opponent_view["last_action"]["hidden"] is True
 
+def test_hidden_stratagem_exposes_public_front_choice_but_not_identity() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
+    active = session.state.active_player
+    opponent = 1 - active
+
+    stratagem_id = "no-step-back"
+    session.state.players[active].hand[:] = [stratagem_id]
+    session.state.players[active].command = 20
+    session.state.pending_draw_discard_for = None
+
+    owner_view = session.snapshot(active)
+    action = next(
+        item
+        for item in owner_view["legal_actions"]
+        if item["kind"] == "PlayStratagem"
+        and item["card_id"] == stratagem_id
+    )
+    session.act(action["key"], active)
+
+    stored = session.state.stratagems[active]
+    assert stored is not None
+    assert stored.fronts
+
+    opponent_view = session.snapshot(opponent)
+    public = opponent_view["stratagems"][active]
+    assert public["card_id"] is None
+    assert public["hidden"] is True
+    assert public["revealed"] is False
+    assert public["fronts"] == [int(front) for front in stored.fronts]
+
+
 def test_standard_browser_session_exposes_cycle_and_endturn_but_no_draw_action() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
