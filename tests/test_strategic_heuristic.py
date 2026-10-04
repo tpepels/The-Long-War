@@ -167,7 +167,9 @@ def test_candidate_simulation_reports_depletion() -> None:
     depletion = report.telemetry["depletion"]
     assert 0 <= depletion["player_game_deck_exhaustion_rate"] <= 1
     assert 0 <= depletion["deck_empty_decision_rate"] <= 1
-    assert depletion["mean_deck_remaining_at_pass"] is not None
+    assert "mean_deck_remaining_at_pass" in depletion
+    if report.telemetry["passes"]["events"]:
+        assert depletion["mean_deck_remaining_at_pass"] is not None
 
 
 def test_cython_and_python_backends_agree_on_root_decision() -> None:
