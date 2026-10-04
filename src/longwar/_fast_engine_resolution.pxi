@@ -308,7 +308,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         if (state.resolution_lost_mask[0] & ENCIRCLEMENT_RIGHT_MASK) == ENCIRCLEMENT_RIGHT_MASK:
             state.resolution_drive_mask[0] |= <uint8_t>(1 << ENCIRCLEMENT_RIGHT_TARGET_FRONT)
 
-    # Preserve the effective Front outcomes before retreat/cleanup clears the
+    # Preserve the effective Front outcomes before resolution clears the
     # live resolution masks. These can differ from the raw Strength comparison
     # because Stratagems such as The Ground Was Held and The Center Must Hold
     # replace tied or per-Front results.
