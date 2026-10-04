@@ -8,7 +8,7 @@ from pathlib import Path
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.game.engine import all_positions
-from longwar.game.actions import EffectChoice, Maneuver, Pass, PlayForce, PlayName
+from longwar.game.actions import EndTurn, EffectChoice, Maneuver, Pass, PlayForce, PlayName
 from longwar.game.model import (
     ConstraintKind,
     Front,
@@ -632,6 +632,7 @@ def test_discarded_without_play_ignores_battle_cleanup_cards() -> None:
 def test_native_active_constraint_is_counted_and_measures_narrowing() -> None:
     engine, deck = setup()
     state = engine.new_game(deck, deck, seed=613, first_player=0, opening_bonus=False)
+    state.battle = 3
     source = _position(Front.FIRST)
     slot = state.slot(0, source)
     slot.force = "the-fifty-men"
@@ -653,8 +654,14 @@ def test_native_active_constraint_is_counted_and_measures_narrowing() -> None:
     progression.start_game(engine, state)
 
     legal = engine.legal_actions(state)
-    assert legal and all(isinstance(action, Maneuver) for action in legal)
-    progression.before_action(engine, state, 0, legal[0], legal)
+    maneuvers = [action for action in legal if isinstance(action, Maneuver)]
+    assert maneuvers
+    assert EndTurn() in legal
+    assert all(
+        isinstance(action, (Maneuver, EndTurn))
+        for action in legal
+    )
+    progression.before_action(engine, state, 0, maneuvers[0], legal)
     choice = progression.summary()["mechanical_choice"]
 
     assert choice["constraint_active_decisions"] == 1
@@ -890,9 +897,9 @@ def test_low_command_telemetry_records_simultaneous_collapse_termination() -> No
     telemetry = Telemetry()
     telemetry.start_game(state, engine)
 
-    for _ in range(2):
+    for action in (Pass(), EndTurn(), EndTurn()):
         actor = state.active_player
-        action = Pass()
+        assert action in engine.legal_actions(state)
         before = telemetry.before_action(
             engine,
             state,
