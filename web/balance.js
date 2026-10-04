@@ -77,38 +77,6 @@ function grade(row) {
   return `<span class="grade grade-${row.balance_level}" title="${esc(row.balance_direction)}">${esc(row.balance_label)}</span>`;
 }
 
-function annotateMechanicsCoverage(lab, cardData) {
-  const meta = new Map((cardData?.cards || []).map((card) => [card.id, card]));
-  const pending = [];
-  for (const row of lab.health?.cards || []) {
-    const card = meta.get(row.id);
-    if (card?.engine_sync !== "pending-compulsion-mechanics") continue;
-    row.mechanics_implemented = false;
-    row.engine_sync = card.engine_sync;
-    row.balance_level = "mechanics_pending";
-    row.balance_label = "Mechanics pending";
-    row.balance_direction = "unimplemented";
-    row.balance_evidence_source = "engine_pending";
-    row.flags = [];
-    pending.push(row);
-  }
-  lab.mechanics_pending_cards = pending;
-  lab.mechanics_implemented_cards = (cardData?.cards || []).length - pending.length;
-
-  const summary = lab.health?.summary;
-  if (summary) {
-    const rows = lab.health.cards || [];
-    summary.cards_mechanics_pending = pending.length;
-    summary.flags_high = rows.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "high").length;
-    summary.flags_watch = rows.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "watch").length;
-    summary.flags_diagnostic = rows.flatMap((row) => row.flags || []).filter((flag) => flag.severity === "diagnostic").length;
-    summary.card_levels = rows.reduce((counts, row) => {
-      counts[row.balance_level] = (counts[row.balance_level] || 0) + 1;
-      return counts;
-    }, {});
-  }
-}
-
 function signedPct(value) {
   if (value == null) return "—";
   return (Number(value) >= 0 ? "+" : "") + pct(value);
@@ -159,11 +127,6 @@ function renderOverview(lab) {
       `${s.cards_observed ?? s.cards_analyzed} observed · ${s.cards_unobserved ?? 0} unobserved · ${s.flags_high} high · ${s.flags_watch} watch`
     ),
     metric(
-      "Executable mechanics",
-      `${lab.mechanics_implemented_cards ?? s.cards_analyzed}/${s.cards_analyzed}`,
-      `${(lab.mechanics_pending_cards || []).length} approved compulsion cards pending native implementation`
-    ),
-    metric(
       "Progression coverage",
       progressionProfileCount ? `${progressionProfileCount}/6` : (progression ? "1/6" : "—"),
       progressionProfileCount ? "canonical reference-deck profiles" : (progression ? "single current progression profile" : "progression not generated")
@@ -196,16 +159,6 @@ function renderAttention(lab) {
   const suite = lab.mccfr_suite;
   const targeted = lab.targeted_counterfactual;
   const items = [];
-
-  const mechanicsPending = lab.mechanics_pending_cards || [];
-  if (mechanicsPending.length) {
-    items.push(attentionItem(
-      "pending",
-      "Approved compulsion mechanics are not executable yet",
-      mechanicsPending.map((row) => `<b>${esc(row.title)}</b>`).join(", ") +
-        ". Their balance status is suppressed until the native engine implements the approved necessity/compulsion rules."
-    ));
-  }
 
   if ((lab.stale_evidence || []).length) {
     items.push(attentionItem(
@@ -478,7 +431,6 @@ function renderCards(lab) {
             <dl>
               <div><dt>Observed</dt><dd>${row.observed === false ? "No self-play exposure" : "Yes"}</dd></div>
               <div><dt>Final status source</dt><dd>${esc((row.balance_evidence_source || "observational").replaceAll("_", " "))}</dd></div>
-              <div><dt>Engine sync</dt><dd>${esc(row.engine_sync || "implemented / no known pending marker")}</dd></div>
               <div><dt>Heuristic screen</dt><dd>${causal ? `${signedPct(causal.delta_win_probability)} · ${interval(causal.ci95)} · ${causal.samples ?? 0} resolved pairs` : "—"}</dd></div>
               <div><dt>Strategic validation</dt><dd>${online ? `${esc(online.confirmation.replaceAll("_", " "))} · ${signedPct(online.online.effect)} · ${online.online.samples ?? 0} resolved pairs` : "not targeted"}</dd></div>
               <div><dt>Structural dead turns</dt><dd>${pct(row.structural_unplayable_turn_rate)}</dd></div>
@@ -1532,7 +1484,6 @@ async function main() {
     throw new Error("Balance Lab data uses an unsupported schema. Regenerate the Lab artifacts.");
   }
   const cardData = cardsResponse.ok ? await cardsResponse.json() : { cards: [] };
-  annotateMechanicsCoverage(lab, cardData);
 
   renderAttention(lab);
   renderOverview(lab);
