@@ -4,26 +4,27 @@
 # Variations belong in *_ARGS or the underlying runner, not new targets.
 
 WORKERS ?= 8
-PYTEST ?= python -m pytest -n $(WORKERS)
+PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python)
+PYTEST ?= $(PYTHON) -m pytest -n $(WORKERS)
 
 install:
-	python -m pip install -e '.[dev]'
+	$(PYTHON) -m pip install -e '.[dev]'
 
 # Required after changing .pyx/.pxi files.
 native-build:
-	python tools/build_native_protocol.py
-	python tools/build_heuristic_weights.py
-	python tools/build_native_fingerprint.py
-	python setup.py build_ext --inplace
-	python -c 'from longwar.native_search import ismcts_backend; ismcts_backend(); print("Native source/binary fingerprint: OK")'
+	$(PYTHON) tools/build_native_protocol.py
+	$(PYTHON) tools/build_heuristic_weights.py
+	$(PYTHON) tools/build_native_fingerprint.py
+	$(PYTHON) setup.py build_ext --inplace
+	$(PYTHON) -c 'from longwar.native_search import ismcts_backend; ismcts_backend(); print("Native source/binary fingerprint: OK")'
 
 browser-build:
-	python tools/build_native_protocol.py --check
-	python tools/build_heuristic_weights.py --check
-	python tools/build_browser_runtime.py
+	$(PYTHON) tools/build_native_protocol.py --check
+	$(PYTHON) tools/build_heuristic_weights.py --check
+	$(PYTHON) tools/build_browser_runtime.py
 
 web-protocol:
-	python tools/build_web_protocol.py
+	$(PYTHON) tools/build_web_protocol.py
 
 test:
 	$(PYTEST) -q --durations=10
@@ -35,62 +36,62 @@ test-integration:
 	$(PYTEST) -q -m integration --durations=10
 
 browser-parity:
-	@python tools/build_native_protocol.py --check
-	@python tools/build_heuristic_weights.py --check
-	@python tools/build_web_protocol.py --check
+	@$(PYTHON) tools/build_native_protocol.py --check
+	@$(PYTHON) tools/build_heuristic_weights.py --check
+	@$(PYTHON) tools/build_web_protocol.py --check
 	@mkdir -p artifacts/logs
 	@echo "Browser/native parity..."
 	@rm -f artifacts/logs/browser-parity.log
 	@{ \
-		python tools/check_web_static.py && \
-		python tools/build_pages.py && \
-		python tools/check_web_static.py --dist dist && \
-		python tools/build_browser_contract.py --output artifacts/browser-engine-contract.json && \
+		$(PYTHON) tools/check_web_static.py && \
+		$(PYTHON) tools/build_pages.py && \
+		$(PYTHON) tools/check_web_static.py --dist dist && \
+		$(PYTHON) tools/build_browser_contract.py --output artifacts/browser-engine-contract.json && \
 		node tools/check_browser_engine.mjs --contract artifacts/browser-engine-contract.json; \
 	} > artifacts/logs/browser-parity.log 2>&1 || { \
 		echo "Browser/native parity: FAILED"; \
-		python -c 'from pathlib import Path; p=Path("artifacts/logs/browser-parity.log"); lines=p.read_text(errors="replace").splitlines()[-60:]; print("\n".join((line[:500] + ("..." if len(line) > 500 else "")) for line in lines))'; \
+		$(PYTHON) -c 'from pathlib import Path; p=Path("artifacts/logs/browser-parity.log"); lines=p.read_text(errors="replace").splitlines()[-60:]; print("\n".join((line[:500] + ("..." if len(line) > 500 else "")) for line in lines))'; \
 		exit 1; \
 	}
 	@echo "Browser/native parity: OK (log: artifacts/logs/browser-parity.log)"
 
 verify:
 	$(MAKE) native-build
-	python tools/build_native_protocol.py --check
-	python tools/build_heuristic_weights.py --check
-	python tools/build_web_protocol.py --check
-	python -m ruff check src tools tests --select F821,F822,F823
-	python tools/run_experiments.py validate-data
+	$(PYTHON) tools/build_native_protocol.py --check
+	$(PYTHON) tools/build_heuristic_weights.py --check
+	$(PYTHON) tools/build_web_protocol.py --check
+	$(PYTHON) -m ruff check src tools tests --select F821,F822,F823
+	$(PYTHON) tools/run_experiments.py validate-data
 	$(MAKE) test-fast
 	$(MAKE) browser-parity
 
 verify-algorithms:
 	$(PYTEST) -q --tb=short -m "algorithm"
-	python tools/run_experiments.py validate
+	$(PYTHON) tools/run_experiments.py validate
 
 SIMULATE_ARGS ?= --games 25 --seed 99 --jobs $(WORKERS) --agent-a heuristic --agent-b heuristic
 simulate:
-	python tools/simulate.py $(SIMULATE_ARGS)
+	$(PYTHON) tools/simulate.py $(SIMULATE_ARGS)
 
 # Canonical Balance Lab: planning-capable ISMCTS evidence, generated locally
 # and committed for GitHub Pages. Override BALANCE_ARGS for larger/special runs.
 BALANCE_PRESET ?= quick
 BALANCE_ARGS ?= --agent ismcts --games 24 --jobs $(WORKERS) --publish-lab --skip-card-screen
 balance:
-	python tools/run_experiments.py balance --preset $(BALANCE_PRESET) $(BALANCE_ARGS)
+	$(PYTHON) tools/run_experiments.py balance --preset $(BALANCE_PRESET) $(BALANCE_ARGS)
 
 EXPERIMENT ?= strength-bench
 EXPERIMENT_ARGS ?=
 experiments: verify-algorithms
 	systemd-inhibit --what=sleep:idle:handle-lid-switch --why="The Long War experiments" --mode=block \
-		python tools/run_experiments.py $(EXPERIMENT) $(EXPERIMENT_ARGS)
+		$(PYTHON) tools/run_experiments.py $(EXPERIMENT) $(EXPERIMENT_ARGS)
 
 FULL_LAB_ARGS ?=
 full-lab:
 	systemd-inhibit --what=sleep:idle:handle-lid-switch --why="The Long War full Balance Lab" --mode=block \
-		python tools/full_lab.py $(FULL_LAB_ARGS)
+		$(PYTHON) tools/full_lab.py $(FULL_LAB_ARGS)
 
 pages:
-	python tools/build_web_protocol.py --check
-	python tools/build_pages.py
-	python tools/build_rulebook_pdf.py
+	$(PYTHON) tools/build_web_protocol.py --check
+	$(PYTHON) tools/build_pages.py
+	$(PYTHON) tools/build_rulebook_pdf.py
