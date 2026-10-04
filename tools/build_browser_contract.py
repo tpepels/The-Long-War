@@ -222,7 +222,7 @@ def trace_scenario(
     }
 
 
-def both_players_pass_scenario(
+def closing_sequence_scenario(
     engine: GameEngine,
     deck: list[str],
 ) -> dict[str, object]:
@@ -233,14 +233,18 @@ def both_players_pass_scenario(
         first_player=0,
         opening_bonus=False,
     )
-    state.operations_this_battle[:] = [1, 1]
 
-    if len(state.players[1].hand) >= engine.hand_limit:
-        card = state.players[1].hand.pop()
-        state.players[1].deck.append(card)
+    # Build a minimal legal forced-Pass state. Pass is no longer voluntary:
+    # the initiating player must have no legal Action. Empty hidden zones also
+    # keep the two closing turns focused on EndTurn rather than mandatory draw
+    # or card-play choices.
+    for player in state.players:
+        player.hand.clear()
+        player.deck.clear()
+        player.discard.clear()
 
     scenario = {
-        "name": "both-players-pass",
+        "name": "pass-closing-sequence",
         "initial": project_state(state),
         "steps": [],
     }
@@ -252,12 +256,13 @@ def both_players_pass_scenario(
     )
     scenario["steps"].append(record_step(engine, state, first))
 
-    second = next(
-        action
-        for action in engine.legal_actions(state)
-        if isinstance(action, Pass)
-    )
-    scenario["steps"].append(record_step(engine, state, second))
+    for _ in range(engine.rules.closing_turns_after_pass):
+        end_turn = next(
+            action
+            for action in engine.legal_actions(state)
+            if isinstance(action, EndTurn)
+        )
+        scenario["steps"].append(record_step(engine, state, end_turn))
 
     # Native transitions recorded above are the expected browser behavior.
     # Do not restate Pass semantics here as a second rules test.
@@ -464,7 +469,7 @@ def main() -> None:
         "game_fingerprint": current_game_fingerprint(),
         "scenarios": [
             trace_scenario(engine, deck),
-            both_players_pass_scenario(engine, deck),
+            closing_sequence_scenario(engine, deck),
             *narrative_limit_scenarios(engine, deck),
         ],
         "sessions": [
