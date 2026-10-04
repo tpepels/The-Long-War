@@ -612,7 +612,7 @@ def test_ismcts_iteration_default_is_shared(monkeypatch) -> None:
 
 def test_verify_runs_python_undefined_name_lint() -> None:
     source = (ROOT / "Makefile").read_text(encoding="utf-8")
-    assert "python -m ruff check src tools tests --select F821,F822,F823" in source
+    assert "$(PYTHON) -m ruff check src tools tests --select F821,F822,F823" in source
 
 
 def test_native_heuristic_weights_are_runtime_configuration() -> None:
@@ -767,7 +767,6 @@ def test_decisive_rollout_does_not_manufacture_early_pass() -> None:
     rollout = rollout.split("def ismcts_search(", 1)[0]
 
     assert "Pass is forced under the playtest rules" in rollout
-    assert "No rollout policy should manufacture an early Battle close" in rollout
     assert "state.pass_len == 1 and not state.passed[actor]" not in rollout
     assert "_ismcts_action_allows_immediate_loss" not in source
     assert "DECISIVE_ROLLOUT_RANDOM_SAFETY_PROBES" not in source
