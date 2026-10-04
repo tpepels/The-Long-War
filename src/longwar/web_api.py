@@ -538,6 +538,7 @@ class PlaySession:
         ):
             result["card_id"] = None
             result["hidden"] = True
+            result["label"] = self.last_action["public_label"]
         return result
 
     def _action_view(self, action: Action) -> dict[str, Any]:
@@ -775,8 +776,6 @@ class PlaySession:
                 )
             return f"{prefix} plays the {form} {title}{detail}."
         if isinstance(action, PlayStratagem):
-            if not private:
-                return f"{prefix} sets a face-down Stratagem."
             detail = ""
             if action.fronts:
                 detail = " choosing " + ", ".join(
@@ -789,6 +788,8 @@ class PlaySession:
                     self._target_label(target)
                     for target in action.targets
                 )
+            if not private:
+                return f"{prefix} sets a face-down Stratagem{detail}."
             return (
                 f"{prefix} sets "
                 f"{self.cards[action.card_id]['title']} as their Stratagem"
