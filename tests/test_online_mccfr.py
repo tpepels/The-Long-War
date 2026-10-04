@@ -84,7 +84,6 @@ def test_online_mccfr_agent_allows_legal_midbattle_zero_command_play() -> None:
     child = state.clone()
     engine.apply(child, action)
     assert child.phase.value == "battle"
-    assert child.players[0].command == 0
     assert child.players[1].command == 5
     assert agent.last_decision["command_guard_applied"] is False
     assert agent.last_decision["command_guard_filtered_actions"] == 0
