@@ -10,6 +10,7 @@ from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Discard, EndTurn, Front, GameEngine, Pass, PlayBond, Position, Rank
 from longwar.native_engine import create_heuristic_evaluator
+from longwar.heuristics import StrategicEvaluator
 from longwar.rules import GameRules
 
 
@@ -348,7 +349,7 @@ def test_complete_named_formation_is_distinguished_from_force_plus_name() -> Non
     )
 
 
-def test_heuristic_penalizes_rear_named_formation_that_would_be_driven_off() -> None:
+def test_heuristic_does_not_assume_lost_front_auto_retreat() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=12, exploration=0.0)
 
@@ -384,10 +385,8 @@ def test_heuristic_penalizes_rear_named_formation_that_would_be_driven_off() -> 
         engine.front_strength(frontline, 0, Front.FIRST)
         == engine.front_strength(rear, 0, Front.FIRST)
     )
-    assert agent.evaluate(engine, frontline, 0) > agent.evaluate(
-        engine,
-        rear,
-        0,
+    assert agent.evaluate(engine, frontline, 0) == pytest.approx(
+        agent.evaluate(engine, rear, 0)
     )
 
 
@@ -496,9 +495,9 @@ def test_heuristic_values_fresh_battle_initiative() -> None:
     )
 
 
-def test_persistent_incomplete_formation_is_progress_not_cleanup_liability() -> None:
+def test_persistent_incomplete_formation_is_strategic_progress() -> None:
     engine, state = engine_and_state()
-    agent = HeuristicAgent(seed=22, exploration=0.0)
+    evaluator = StrategicEvaluator()
 
     for player in state.players:
         player.hand = []
@@ -521,10 +520,10 @@ def test_persistent_incomplete_formation_is_progress_not_cleanup_liability() -> 
     enemy_slot.bond = "followed"
     enemy_slot.name = "namar"
 
-    assert agent.evaluate(engine, own_progress, 0) > agent.evaluate(
-        engine,
-        enemy_progress,
-        0,
+    assert evaluator._strategic_state_value(
+        engine, own_progress, 0
+    ) > evaluator._strategic_state_value(
+        engine, enemy_progress, 0
     )
 
 def test_first_pass_score_includes_opponent_normal_draw() -> None:
