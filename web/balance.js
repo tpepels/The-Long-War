@@ -687,16 +687,26 @@ function renderCommandExperiment(lab) {
     const games = sum(deckProfiles, (deck) => deck.games);
     const censored = sum(deckProfiles, (deck) => deck.censored_games);
     const firstSignalCommand = weighted(deckProfiles, (deck) => {
-      const d = deck.progression?.resources?.command_at_first_signal;
+      const d = deck.progression?.resources?.command_at_pass
+        || deck.progression?.resources?.command_at_first_signal;
       return { value: d?.mean, weight: d?.count };
     });
     const commandBeforeCollapse = weighted(deckProfiles, (deck) => {
       const d = deck.progression?.resources?.command_before_collapse;
       return { value: d?.mean, weight: d?.count };
     });
-    const firstSignalCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_at_first_signal?.count);
-    const passZero = sum(deckProfiles, (deck) => deck.progression?.resources?.first_signal_command_buckets?.["0"]);
-    const passFourPlus = sum(deckProfiles, (deck) => deck.progression?.resources?.first_signal_command_buckets?.["4+"]);
+    const firstSignalCount = sum(deckProfiles, (deck) =>
+      (deck.progression?.resources?.command_at_pass
+        || deck.progression?.resources?.command_at_first_signal)?.count
+    );
+    const passZero = sum(deckProfiles, (deck) =>
+      (deck.progression?.resources?.pass_command_buckets
+        || deck.progression?.resources?.first_signal_command_buckets)?.["0"]
+    );
+    const passFourPlus = sum(deckProfiles, (deck) =>
+      (deck.progression?.resources?.pass_command_buckets
+        || deck.progression?.resources?.first_signal_command_buckets)?.["4+"]
+    );
     const collapseCount = sum(deckProfiles, (deck) => deck.progression?.resources?.command_before_collapse?.count);
     const matches = sum(deckProfiles, (deck) => deck.progression?.match_length?.matches);
     const reach3 = sum(deckProfiles, (deck) => deck.progression?.match_length?.battle_reach?.["3"]?.matches);
@@ -1149,7 +1159,11 @@ function renderProgression(lab) {
   const zeroRate = commandDist.count ? (commandBuckets["0"] || 0) / commandDist.count : null;
   document.getElementById("progression-resources").innerHTML = [
     progressionMetric("Command at Battle end", commandDist, "median per player-Battle"),
-    progressionMetric("Command at Pass", resources.command_at_first_signal, "median passer"),
+    progressionMetric(
+          "Command at Pass",
+          resources.command_at_pass || resources.command_at_first_signal,
+          "median passer"
+        ),
     metric("Ends at 0 Command", pct(zeroRate), `${commandBuckets["0"] || 0} player-Battles`),
     metric("Free Maneuvers", resources.free_maneuvers ?? 0, "actual zero-Command Maneuvers"),
     metric("Discounted actions", resources.discount_actions ?? 0, `${resources.discount_command_saved ?? 0} Command saved`),
@@ -1162,7 +1176,11 @@ function renderProgression(lab) {
     metric("Free Actions", resources.free_operations ?? 0, "zero-Command card plays or Maneuvers"),
     metric("Collapse-point Battle starts", lowCommand.collapse_point_battle_starts ?? 0, "at least one side begins at or below the configured Collapse threshold"),
     metric("Both at Collapse point", lowCommand.both_at_collapse_point_battle_starts ?? 0, "both sides begin at or below the configured Collapse threshold"),
-    metric("Passes at 0 Command", resources.first_signal_command_buckets?.["0"] ?? 0, "forced Pass events at the Collapse threshold"),
+    metric(
+          "Passes at 0 Command",
+          (resources.pass_command_buckets || resources.first_signal_command_buckets)?.["0"] ?? 0,
+          "forced Pass events at the Collapse threshold"
+        ),
     metric("No paid Action", lowCommand.battles_with_no_paid_operation ?? 0, "Battles with no Command-paying card play or Maneuver"),
     metric("No in-Battle board change", lowCommand.battles_with_no_board_change ?? 0, "board unchanged between first and final decision state"),
   ].join("");
@@ -1254,13 +1272,11 @@ function renderProgression(lab) {
     `).join("")
     : '<tr><td colspan="8" class="muted">No Hero plays observed.</td></tr>';
 
-  const firstSignal = contest.first_signal_outcomes || {};
+  const passOutcomes = contest.pass_outcomes || contest.first_signal_outcomes || {};
   const passRows = [
-    ["Already ahead", firstSignal.ahead],
-    ["Tied", firstSignal.tied],
-    ["Behind", firstSignal.behind],
-    ["Playable alternatives", firstSignal.with_playable_alternatives],
-    ["No alternative", firstSignal.no_alternative],
+    ["Already ahead", passOutcomes.ahead],
+    ["Tied", passOutcomes.tied],
+    ["Behind", passOutcomes.behind],
   ];
   const cardLifecycle = Object.entries(p.cards || {})
     .sort((a, b) =>
