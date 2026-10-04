@@ -284,6 +284,11 @@ def build_playability_report(
                 card_totals["draws"],
             ),
         },
+        "passes": {
+            "events": pass_events,
+            "mean_passes_per_battle": _ratio(pass_events, battles),
+        },
+        # Compatibility section for pre-overhaul playability artifacts.
         "battle_end_signals": {
             "events": signal_events,
             "mean_signals_per_battle": _ratio(signal_events, battles),
@@ -376,8 +381,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"{_pct(hand['card_play_rate_per_draw'])} |"
         ),
         (
-            f"| First signal share | "
-            f"{_pct(report['battle_end_signals']['first_signal_share'])} |"
+            f"| Passes per Battle | "
+            f"{_num(report['passes']['mean_passes_per_battle'])} |"
         ),
         (
             f"| Mean legal candidates per heuristic decision | "

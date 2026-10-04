@@ -253,6 +253,11 @@ class HumanFlowDiagnostics:
                 self.decisions,
             ),
             "longest_no_playable_force_streak": self.longest_no_force_streak,
+            "mean_first_force_action": self._ratio(
+                sum(self.first_force_operations),
+                len(self.first_force_operations),
+            ),
+            # Compatibility alias for pre-overhaul artifact readers.
             "mean_first_force_operation": self._ratio(
                 sum(self.first_force_operations),
                 len(self.first_force_operations),
@@ -277,6 +282,15 @@ class HumanFlowDiagnostics:
                 self.player_battles,
             ),
             "pass_events": self.pass_events,
+            "mean_hand_size_at_pass": self._ratio(
+                self.signal_hand_total,
+                self.pass_events,
+            ),
+            "mean_actions_before_pass": self._ratio(
+                self.signal_operations_total,
+                self.pass_events,
+            ),
+            # Compatibility aliases for historical signal-era artifacts.
             "signal_events": self.pass_events,
             "first_signal_events": self.first_signal_events,
             "early_first_signal_events": self.early_first_signal_events,
@@ -284,16 +298,8 @@ class HumanFlowDiagnostics:
                 self.early_first_signal_events,
                 self.first_signal_events,
             ),
-            "mean_hand_size_at_pass": self._ratio(
-                self.signal_hand_total,
-                self.pass_events,
-            ),
             "mean_hand_size_at_signal": self._ratio(
                 self.signal_hand_total,
-                self.pass_events,
-            ),
-            "mean_actions_before_pass": self._ratio(
-                self.signal_operations_total,
                 self.pass_events,
             ),
             "mean_operations_before_signal": self._ratio(

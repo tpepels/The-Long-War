@@ -638,14 +638,31 @@ class ProgressionTelemetry:
         view.setdefault("simulation_game_index", None)
         view.setdefault("seed", None)
         view.setdefault("first_player", None)
-        view.setdefault("operation_trace", [])
+        if "actions_taken" not in view:
+            view["actions_taken"] = view.get("operations_taken", [0, 0])
+        view.setdefault("operations_taken", view["actions_taken"])
+        if "action_trace" not in view:
+            view["action_trace"] = view.get("operation_trace", [])
+        view.setdefault("operation_trace", view["action_trace"])
+        if "paid_actions" not in view:
+            view["paid_actions"] = view.get("paid_operations", 0)
+        view.setdefault("paid_operations", view["paid_actions"])
+        if "free_actions" not in view:
+            view["free_actions"] = view.get("free_operations", 0)
+        view.setdefault("free_operations", view["free_actions"])
+        if "paid_card_actions" not in view:
+            view["paid_card_actions"] = view.get("paid_card_operations", 0)
+        view.setdefault("paid_card_operations", view["paid_card_actions"])
+        if "free_card_actions" not in view:
+            view["free_card_actions"] = view.get("free_card_operations", 0)
+        view.setdefault("free_card_operations", view["free_card_actions"])
         view.setdefault("pass_diagnostics", [])
-        view.setdefault("paid_card_operations", 0)
-        view.setdefault("free_card_operations", 0)
         view.setdefault("paid_maneuvers", 0)
         view.setdefault("effect_choices", 0)
         view.setdefault("forced_effect_choices", 0)
-        view.setdefault("no_paid_operation", None)
+        if "no_paid_action" not in view:
+            view["no_paid_action"] = view.get("no_paid_operation")
+        view.setdefault("no_paid_operation", view["no_paid_action"])
         view.setdefault("board_changed", None)
         view.setdefault("board_changed_during_battle", None)
         view.setdefault("board_changed_during_resolution", None)
@@ -817,8 +834,12 @@ class ProgressionTelemetry:
                     all(value <= threshold for value in row["command_start"])
                     for row in diagnostic_rows
                 ),
+                "battles_with_no_paid_action": sum(
+                    bool(row.get("no_paid_action", row.get("no_paid_operation")))
+                    for row in diagnostic_rows
+                ),
                 "battles_with_no_paid_operation": sum(
-                    bool(row.get("no_paid_operation"))
+                    bool(row.get("no_paid_action", row.get("no_paid_operation")))
                     for row in diagnostic_rows
                 ),
                 "battles_with_no_board_change": sum(
@@ -857,8 +878,12 @@ class ProgressionTelemetry:
                     all(value <= threshold for value in row["command_start"])
                     for row in game_rows
                 ),
+                "battles_with_no_paid_action": sum(
+                    bool(row.get("no_paid_action", row.get("no_paid_operation")))
+                    for row in game_rows
+                ),
                 "battles_with_no_paid_operation": sum(
-                    bool(row.get("no_paid_operation"))
+                    bool(row.get("no_paid_action", row.get("no_paid_operation")))
                     for row in game_rows
                 ),
                 "battles_with_no_board_change": sum(
@@ -922,6 +947,10 @@ class ProgressionTelemetry:
                 bool(row.get("no_paid_operation"))
                 for row in stall_rows
             ),
+            "battles_with_no_paid_operation": sum(
+                bool(row.get("no_paid_action", row.get("no_paid_operation")))
+                for row in stall_rows
+            ),
             "battles_with_no_board_change": sum(
                 row.get("board_changed") is False
                 for row in stall_rows
@@ -968,18 +997,25 @@ class ProgressionTelemetry:
                         "command_before_collapse",
                         "command_after_recovery",
                         "collapse_comparison",
+                        "actions_taken",
                         "operations_taken",
+                        "action_trace",
                         "operation_trace",
                         "actions",
                         "cards_played",
                         "maneuvers",
+                        "paid_actions",
                         "paid_operations",
+                        "free_actions",
                         "free_operations",
+                        "paid_card_actions",
                         "paid_card_operations",
+                        "free_card_actions",
                         "free_card_operations",
                         "paid_maneuvers",
                         "effect_choices",
                         "forced_effect_choices",
+                        "no_paid_action",
                         "no_paid_operation",
                         "pass_diagnostics",
                         "hand_remaining",
@@ -1091,6 +1127,7 @@ class ProgressionTelemetry:
                 for battle, counts in sorted(self._command_spend_by_battle.items())
             },
             "command_gained_or_refunded": self._command_gained,
+            "free_actions": self._free_operations,
             "free_operations": self._free_operations,
             "free_maneuvers": self._free_maneuvers,
             "discount_actions": self._discount_actions,
@@ -1104,6 +1141,7 @@ class ProgressionTelemetry:
                         counts.get("nominal_command_gain", 0)
                     ),
                     "discount_saved": int(counts.get("discount_saved", 0)),
+                    "free_actions": int(counts.get("free_operations", 0)),
                     "free_operations": int(counts.get("free_operations", 0)),
                     "front_loss_command_avoided": int(
                         counts.get("front_loss_command_avoided", 0)
@@ -1325,7 +1363,11 @@ class ProgressionTelemetry:
             "constraint_forced_maneuver_decisions": self._constraint_forced_maneuver_decisions,
             "constraint_forced_front_decisions": self._constraint_forced_front_decisions,
             "constraint_carried_between_battles": self._constraint_carried_between_battles,
+            "constraint_future_actions_affected": self._constraint_future_operations_affected,
             "constraint_future_operations_affected": self._constraint_future_operations_affected,
+            "pass_mechanical_categories": dict(sorted(Counter(
+                row["mechanical_category"] for row in self._signal_contexts
+            ).items())),
             "signal_mechanical_categories": dict(sorted(Counter(
                 row["mechanical_category"] for row in self._signal_contexts
             ).items())),
@@ -1461,14 +1503,15 @@ class ProgressionTelemetry:
                     "Censored matches count as having reached their current Battle but not as having resolved it."
                 ),
                 "command_gained_or_refunded": (
-                    "Command gained after an operation beyond its actual paid cost. "
+                    "Command gained after an Action beyond its actual paid cost. "
                     "Between-Battle recovery is excluded and remains visible in the Battle-indexed trajectory."
                 ),
                 "command_by_source": (
                     "Source-attributed real-transition events. command_gained is the realized "
                     "increase after the Command cap; nominal_command_gain is the authored amount; "
-                    "discount_saved is Command not paid; free_operations is a compatibility "
-                    "key for zero-Command Actions; front_loss_command_avoided is the Front-loss "
+                    "discount_saved is Command not paid; free_actions is the current key for "
+                    "zero-Command Actions and free_operations is its compatibility alias; "
+                    "front_loss_command_avoided is the Front-loss "
                     "penalty prevented. "
                     "The current card schema has no distinct refund primitive, so command_refunded "
                     "is explicitly 0 and authored regain effects are included in command_gained."
@@ -1756,6 +1799,10 @@ class ProgressionTelemetry:
                 is_operation = isinstance(action, OPERATION_ACTIONS)
                 trace.update({
                     "command_cost": actual_cost,
+                    "paid_action": is_operation and actual_cost > 0,
+                    "free_action": is_operation and actual_cost == 0,
+                    "card_action": isinstance(action, CARD_ACTIONS),
+                    # Compatibility aliases for pre-overhaul traces.
                     "paid_operation": is_operation and actual_cost > 0,
                     "free_operation": is_operation and actual_cost == 0,
                     "card_operation": isinstance(action, CARD_ACTIONS),
@@ -2065,6 +2112,13 @@ class ProgressionTelemetry:
             "first_player": self._first_player,
             "battle": int(before.battle),
             "actions": len(rows),
+            "actions_taken": [
+                int(value)
+                for value in snapshot.get(
+                    "operations",
+                    before.operations_this_battle,
+                )
+            ],
             "operations_taken": [
                 int(value)
                 for value in snapshot.get(
@@ -2072,16 +2126,31 @@ class ProgressionTelemetry:
                     before.operations_this_battle,
                 )
             ],
+            "action_trace": list(self._battle_operation_trace),
             "operation_trace": list(self._battle_operation_trace),
             "maneuvers": self._battle_events["maneuvers"],
+            "paid_actions": self._battle_events["paid_operations"],
             "paid_operations": self._battle_events["paid_operations"],
+            "free_actions": self._battle_events["free_operations"],
             "free_operations": self._battle_events["free_operations"],
+            "paid_card_actions": sum(
+                bool(row.get("paid_action", row.get("paid_operation")))
+                and row.get("category") == "card"
+                for row in self._battle_operation_trace
+            ),
             "paid_card_operations": sum(
-                bool(row.get("paid_operation")) and row.get("category") == "card"
+                bool(row.get("paid_action", row.get("paid_operation")))
+                and row.get("category") == "card"
+                for row in self._battle_operation_trace
+            ),
+            "free_card_actions": sum(
+                bool(row.get("free_action", row.get("free_operation")))
+                and row.get("category") == "card"
                 for row in self._battle_operation_trace
             ),
             "free_card_operations": sum(
-                bool(row.get("free_operation")) and row.get("category") == "card"
+                bool(row.get("free_action", row.get("free_operation")))
+                and row.get("category") == "card"
                 for row in self._battle_operation_trace
             ),
             "paid_maneuvers": sum(
@@ -2197,6 +2266,7 @@ class ProgressionTelemetry:
                 [int(value) for value in before.battle_start_command]
                 != command_after_recovery
             ),
+            "no_paid_action": self._battle_events["paid_operations"] == 0,
             "no_paid_operation": self._battle_events["paid_operations"] == 0,
             "hand_remaining": [len(player.hand) for player in before.players],
             "deck_remaining": [len(player.deck) for player in before.players],
@@ -2655,23 +2725,44 @@ class ProgressionTelemetry:
                     sum(row["constraint_active_decisions"] for row in rows),
                     sum(row["actions"] for row in rows),
                 ),
+                "pass_command": self._mean_optional([
+                    row["first_signal_command"] for row in rows
+                ]),
                 "first_signal_command": self._mean_optional([
                     row["first_signal_command"] for row in rows
+                ]),
+                "pass_unplayable_cards": self._mean_optional([
+                    row["first_signal_unplayable_cards"] for row in rows
                 ]),
                 "first_signal_unplayable_cards": self._mean_optional([
                     row["first_signal_unplayable_cards"] for row in rows
                 ]),
+                "pass_structurally_dead_cards": self._mean_optional([
+                    row.get("first_signal_structurally_dead_cards") for row in rows
+                ]),
                 "first_signal_structurally_dead_cards": self._mean_optional([
                     row.get("first_signal_structurally_dead_cards") for row in rows
+                ]),
+                "pass_unaffordable_cards": self._mean_optional([
+                    row.get("first_signal_unaffordable_cards") for row in rows
                 ]),
                 "first_signal_unaffordable_cards": self._mean_optional([
                     row.get("first_signal_unaffordable_cards") for row in rows
                 ]),
+                "pass_legal_alternatives": self._mean_optional([
+                    row["first_signal_legal_alternatives"] for row in rows
+                ]),
                 "first_signal_legal_alternatives": self._mean_optional([
                     row["first_signal_legal_alternatives"] for row in rows
                 ]),
+                "pass_playable_card_actions": self._mean_optional([
+                    row["first_signal_playable_card_actions"] for row in rows
+                ]),
                 "first_signal_playable_card_actions": self._mean_optional([
                     row["first_signal_playable_card_actions"] for row in rows
+                ]),
+                "pass_maneuver_actions": self._mean_optional([
+                    row["first_signal_maneuver_actions"] for row in rows
                 ]),
                 "first_signal_maneuver_actions": self._mean_optional([
                     row["first_signal_maneuver_actions"] for row in rows

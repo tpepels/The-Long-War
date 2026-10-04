@@ -420,7 +420,8 @@ def main() -> None:
     passes = report.telemetry["passes"]
     print(
         "Passes: "
-        f"first-signal share={passes['first_signal_rate']}, "
+        f"events={passes['events']}, "
+        f"mean actions before Pass={passes['mean_actions_before_pass']}, "
         f"mean hand={passes['mean_hand_size']}"
     )
 
