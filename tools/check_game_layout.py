@@ -175,8 +175,8 @@ CHECK_SCRIPT = r"""
     if (scenario === "battle") {
       document.querySelector("#hand [data-hand-card]")?.click();
       const cycle = $("cycle-button");
-      if (cycle && !cycle.hidden && getComputedStyle(cycle).display !== "none") {
-        fail("standard-cycle-control-visible");
+      if (!cycle || cycle.hidden || getComputedStyle(cycle).display === "none") {
+        fail("cycle-control-missing");
       }
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     }
@@ -216,7 +216,7 @@ CHECK_SCRIPT = r"""
       if (document.querySelectorAll("#hand > .play-card").length < 18) fail("large-hand-fixture-incomplete");
       if (!document.querySelector("#player-piles .command-counter")) fail("command-status-missing");
       const cycle = document.getElementById("cycle-button");
-      if (cycle && !cycle.hidden && getComputedStyle(cycle).display !== "none") fail("standard-cycle-control-visible");
+      if (!cycle || cycle.hidden || getComputedStyle(cycle).display === "none") fail("cycle-control-missing");
     }
     document.querySelectorAll(".board-card strong").forEach((title, index) => {
       if (title.scrollHeight > title.clientHeight + epsilon || title.scrollWidth > title.clientWidth + epsilon) fail("board-title-" + index + "-clipped");
