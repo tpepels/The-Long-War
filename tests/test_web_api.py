@@ -90,7 +90,7 @@ def test_opening_turn_uses_normal_discard_then_draw_at_hand_limit() -> None:
     assert "start-of-turn draw" in session.log[0]
 
 
-def test_hotseat_card_operation_returns_to_privacy_gate() -> None:
+def test_hotseat_keeps_privacy_view_between_actions_then_gates_on_handoff() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
     finish_hotseat_mulligan(session)
@@ -100,13 +100,24 @@ def test_hotseat_card_operation_returns_to_privacy_gate() -> None:
     action = next(
         item
         for item in snapshot["legal_actions"]
-        if item["kind"] not in {"Pass", "Discard"}
+        if item["kind"] not in {"Pass", "Discard", "EndTurn"}
     )
     result = session.act(action["key"], active)
 
-    assert result["viewer"] is None
-    assert result["needs_reveal"] is True
-    assert result["hand"] == []
+    assert result["viewer"] == active
+    assert result["active_player"] == active
+    assert result["actions_this_turn"] == 1
+    assert result["needs_reveal"] is False
+
+    end_turn = next(
+        item
+        for item in result["legal_actions"]
+        if item["kind"] == "EndTurn"
+    )
+    handed_off = session.act(end_turn["key"], active)
+    assert handed_off["viewer"] is None
+    assert handed_off["needs_reveal"] is True
+    assert handed_off["hand"] == []
 
 
 def test_browser_computer_ai_profiles_use_real_production_agents() -> None:
@@ -236,7 +247,7 @@ def test_stratagem_action_is_paid_and_hidden_from_opponent() -> None:
     result = session.act(action["key"], active)
 
     assert player.command == before_command - action["command_cost"]
-    assert result["viewer"] is None
+    assert result["viewer"] == active
     assert result["active_player"] == active
     assert result["actions_this_turn"] == 1
     assert session.state.stratagems[active].card_id == stratagem_id
@@ -339,6 +350,12 @@ def test_two_closing_endturns_end_battle_and_non_passer_starts_next() -> None:
     first = session.state.active_player
     second = 1 - first
     session.state.players[first].hand.clear()
+    # The first closing turn begins with a normal draw. Leave room so this
+    # fixture tests EndTurn sequencing rather than the hand-limit discard gate.
+    if len(session.state.players[second].hand) >= session.engine.hand_limit:
+        session.state.players[second].deck.append(
+            session.state.players[second].hand.pop()
+        )
 
     first_pass = next(
         action
