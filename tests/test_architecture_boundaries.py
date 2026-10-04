@@ -821,3 +821,13 @@ def test_pass_heuristic_uses_canonical_action_transition() -> None:
     body = source[start:end]
     assert "_fe_apply_fast(" in body
     assert "_fe_pass_action(" not in body
+
+
+def test_committed_native_source_fingerprint_matches_sources() -> None:
+    from longwar.native_fingerprint import current_native_source_fingerprint
+
+    generated = (ROOT / "src" / "longwar" / "_native_source_fingerprint.generated.pxi").read_text(
+        encoding="utf-8"
+    )
+    expected = current_native_source_fingerprint()
+    assert f'NATIVE_SOURCE_FINGERPRINT = "{expected}"' in generated
