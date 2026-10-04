@@ -104,7 +104,7 @@ function effectTokens(effect){
 function liveMarkup(effect){
   const limited=effect.limit==="once_per_battle";
   const reminder=exposedText(effect);
-  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+timingGlyph(effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
+  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+timingGlyph(effect.timing)+'</span><span class="edge-timing-word">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
 }
 function stackEdge(card){
   return '<header class="stack-edge" data-edge-layout="single-row">'+statGroup(card)+'<div class="edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div><div class="edge-live-group">'+(card.placement?'<span class="edge-placement" title="'+esc(titleCase(card.placement))+' only">'+rowGlyph(card.placement)+'<span class="placement-lock">'+utilityGlyph("lock")+'</span></span>':"")+liveEffects(card).map(liveMarkup).join("")+'</div></header>';
@@ -129,8 +129,21 @@ function densityClass(card){
   return chars>250?" very-dense":chars>170?" dense":chars<95?" sparse":"";
 }
 function artStyle(card){return CARD_ART.has(card.id)?' style="--card-art:url(art/v2/cards/'+esc(card.id)+'.png)"':"";}
+function forceArticle(card,density,extra=""){
+  return '<article class="v2-card card-force chronicle-force-face'+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+artStyle(card)+'>'+
+    stackEdge(card)+
+    '<div class="motif-field chronicle-art" aria-hidden="true"></div>'+
+    '<section class="chronicle-lower">'+
+      '<div class="chronicle-title-block"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+'</div>'+
+      '<div class="chronicle-divider" aria-hidden="true"><span></span></div>'+
+      '<div class="rules chronicle-rules">'+rules(card)+'</div>'+
+    '</section>'+
+    '<footer class="card-footer chronicle-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">F · '+esc(card.id)+'</span>'+costSeal(card)+'</footer>'+
+  '</article>';
+}
 function cardArticle(card,extra="",options={}){
   const density=densityClass(card),heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
+  if(card.type==="force") return forceArticle(card,density,extra);
   return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={

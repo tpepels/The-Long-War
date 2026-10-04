@@ -125,3 +125,30 @@ Tactics, Stratagems and Narratives do not waste space on the rigid battlefield s
 - no Command word at the cost;
 - no inner rounded-rectangle document frame;
 - print and browser share the component.
+
+
+## Canonical Force face - The Chronicle
+
+The approved Chronicle Force card is now the production target for **Force cards**.
+
+Its fixed composition is:
+
+1. 10.5 mm exposed battlefield strip;
+2. 34 mm mounted illustration plate;
+3. centered title and written classifications;
+4. engraved divider;
+5. open parchment rules;
+6. quiet footer and original octagonal Command seal.
+
+All Force cards use identical illustration geometry and a centered 50/50 cover crop. Rules density may change type size slightly, but may never resize or reposition the art.
+
+The material treatment is part of the design, not decoration added later:
+- real reusable parchment-grain SVG texture;
+- ornamental full-card frame;
+- ornamental art-window frame;
+- inset highlight/shadow around the art plate;
+- printed/engraved dividers;
+- restrained navy/black heraldic ink;
+- warm worn parchment.
+
+Other card families remain on the previous renderer until they are converted deliberately, one family at a time.
