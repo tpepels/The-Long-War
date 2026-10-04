@@ -301,6 +301,8 @@ Playing a Stratagem:
 
 You may play at most **1 Stratagem from your hand per Battle**.
 
+If the Stratagem requires you to choose a Front, direction, or formation when you play it, that choice is public. Only the identity of the face-down Stratagem is hidden.
+
 A Stratagem remains face-down unless its own effect causes it to be revealed. When its condition occurs, its owner is responsible for revealing and resolving it correctly. The game relies on both players to play hidden Stratagems honestly.
 
 If a Stratagem is never revealed, it may remain hidden through the end of the Battle.
