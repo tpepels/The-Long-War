@@ -12,11 +12,12 @@ The first browser build downloads a pinned Pyodide/Emscripten toolchain. Later b
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
 make install
 make native-build
 make verify
 ```
+
+The Makefile automatically uses `.venv/bin/python` when that environment exists, so shell activation is optional. You can still run `source .venv/bin/activate` for interactive development.
 
 Rebuild the native extension after every `.pyx` or `.pxi` change.
 
