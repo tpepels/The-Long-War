@@ -285,12 +285,12 @@ for (const card of articles) {
     if (!first) fail(card, "missing-header-strength");
     else sameAnchor(card, "first-strength", [rect(first).left - bounds.left, rect(first).top - bounds.top]);
     const classes = edge.querySelector(".edge-classes");
-    if (classes) {
-      sameAnchor(card, "classifications-left", [rect(classes).left - bounds.left]);
-      if (classes.textContent.trim()) sameAnchor(card, "classifications-top", [rect(classes).top - bounds.top, textInk(classes).baseline - bounds.top]);
-    }
+    if (classes && classes.textContent.trim())
+      sameAnchor(card, "classifications-baseline", [textInk(classes).baseline - bounds.top]);
     const firstLive = edge.querySelector(".edge-live");
-    if (firstLive) sameAnchor(card, "live-reminder-top", [rect(firstLive).top - bounds.top]);
+    if (firstLive) sameAnchor(card, "live-reminder-baseline", [textInk(firstLive).baseline - bounds.top]);
+    if (edge.querySelector(".edge-heading, .edge-reminders"))
+      fail(card, "stack-edge-not-single-row");
   }
   for (const stat of headerStats) {
     const numeral = stat.querySelector("b");
@@ -312,9 +312,10 @@ for (const card of articles) {
     if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
       fail(card, selector.slice(1) + "-overflow");
   }
-  for (const element of edge.querySelectorAll(".edge-classes, .edge-live")) {
+  for (const element of edge.querySelectorAll(".edge-classes, .edge-live, .edge-live-group")) {
     if (!element.textContent.trim()) continue;
-    const label = element.classList.contains("edge-live") ? "edge-live" : "edge-classes";
+    const label = element.classList.contains("edge-live") ? "edge-live" :
+      element.classList.contains("edge-live-group") ? "edge-live-group" : "edge-classes";
     if (!visible(element) || !inside(rect(edge), rect(element))) fail(card, label + "-outside");
     if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
       fail(card, label + "-overflow");
@@ -322,7 +323,9 @@ for (const card of articles) {
     range.selectNodeContents(element);
     if (!inside(rect(edge), range.getBoundingClientRect())) fail(card, label + "-text-outside");
   }
-  const rules = card.querySelector(".rules"), footer = card.querySelector(".card-footer");
+  const art = card.querySelector(".motif-field"), rules = card.querySelector(".rules"), footer = card.querySelector(".card-footer");
+  if (art && rules && rect(rules).top < rect(art).bottom - 1) fail(card, "art-rules-overlap");
+  if (art && art.querySelector("svg, img")) fail(card, "art-overlay");
   if (rules && footer && rect(rules).bottom > rect(footer).top + 1.5) fail(card, "rules-footer-overlap");
   const cost = card.querySelector(".cost-gem");
   if (cost) sameAnchor(card, "command-anchor", [bounds.right - rect(cost).right, bounds.bottom - rect(cost).bottom]);

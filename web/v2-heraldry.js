@@ -90,5 +90,5 @@
       (MOTIFS[card?.type] || MOTIFS.force) + '</svg>';
   }
 
-  window.V2Heraldry = { symbol, motif };
+  window.V2Heraldry = { symbol };
 })();

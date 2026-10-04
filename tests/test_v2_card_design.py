@@ -361,3 +361,31 @@ def test_v2_stack_lab_includes_force_alone_and_all_compositions() -> None:
     for case in ("force-alone", "force-bond", "force-name", "hero-force", "hero-name"):
         assert f'"{case}"' in js
     assert re.search(r"\bnamed\s*:", js)
+
+
+def test_v2_stack_edge_is_one_row_and_generated_art_has_no_overlay() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert 'data-edge-layout="single-row"' in js
+    assert "edge-heading" not in js
+    assert "edge-reminders" not in js
+    assert "V2Heraldry?.motif" not in js
+    assert '<div class="motif-field" aria-hidden="true"></div>' in js
+    assert ".motif-field > svg, .motif-field > img" in css
+    assert "display: none !important" in css
+    assert "grid-template-columns: auto minmax(0, 1fr) auto" in css
+
+
+def test_v2_rules_and_art_are_separate_layout_regions() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert ".rules { min-height: 0; flex: 1 1 auto; overflow: hidden;" in css
+    assert "art-rules-overlap" in js
+    assert "art-overlay" in js
+    assert ".very-dense .motif-field" in css
+
+
+def test_v2_footer_has_no_decorative_product_label() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert "The Long War · V2" not in js
+    assert "V2 · Hero · Unique" not in js

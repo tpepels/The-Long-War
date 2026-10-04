@@ -4,7 +4,7 @@
 @font-face { font-family: "LW Text"; src: url("fonts/GentiumBook-Italic.ttf") format("truetype"); font-style: italic; font-display: block; }
 * { box-sizing: border-box; }
 :root { --card-width: 68mm; --card-height: 96mm; --exposed-edge: 10.5mm; --display: "LW Display"; --text: "LW Text"; --utility: Arial; }
-body { margin: 0; background: #dedbd2; color: #29291f; font: 16px/1.4 var(--text); }
+body { margin: 0; background: #d9d4c8; color: #29291f; font: 16px/1.4 var(--text); }
 a { color: inherit; }
 button, select, input { font: 12px/1.3 var(--utility); }
 button { cursor: pointer; }
@@ -26,112 +26,156 @@ h1, h2, h3 { font-family: var(--display); font-weight: 600; }
 .card-wrap { position: relative; width: var(--card-width); height: var(--card-height); break-inside: avoid; }
 .copy-chip { position: absolute; bottom: -16px; right: 0; font: 10px/1 var(--utility); color: #555b50; }
 
-/* The outer edge, not the content box, defines the physical stack offset. */
+/* Physical card ------------------------------------------------------ */
 .v2-card {
-  --accent: #62674d; --deep: #364137; --paper: #f6f1e3; --frame: .4mm;
+  --accent: #62674d; --deep: #30372f; --paper: #f6f1e3; --frame: .38mm;
   width: var(--card-width); height: var(--card-height); flex: none;
   position: relative; isolation: isolate; display: flex; flex-direction: column;
-  border: var(--frame) solid var(--deep); border-radius: 3mm; overflow: hidden;
-  background: var(--paper); color: #25291f;
-  box-shadow: 0 1.4mm 3mm #26271938;
+  border: var(--frame) solid var(--deep); border-radius: 2.1mm; overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255,255,255,.44), transparent 24mm),
+    linear-gradient(150deg, rgba(88,70,38,.025), transparent 38%, rgba(40,46,35,.025)),
+    var(--paper);
+  color: #25291f;
+  box-shadow: 0 1.3mm 3mm #26271938, inset 0 0 0 .16mm rgba(255,255,255,.48);
   font: 3.3mm/1.12 var(--text);
 }
-.v2-card::before { content: ""; position: absolute; z-index: -1; inset: 1.15mm; border: .2mm solid var(--accent); border-radius: 2mm; pointer-events: none; opacity: .75; }
-.v2-card::after { content: ""; position: absolute; z-index: -1; inset: 11.5mm 2mm 10mm; background: repeating-linear-gradient(0deg, transparent 0 1.9mm, #57472804 2mm 2.1mm); pointer-events: none; }
-.card-force { --accent: #666d4b; --deep: #374438; --paper: #f5f1e3; --family-art: url("art/v2/force-march.png"); --art-position: 50% 46%; }
-.card-bond { --accent: #876743; --deep: #664932; --paper: #faf0df; --family-art: url("art/v2/bond-bound-spears.png"); --art-position: 50% 46%; }
-.card-name { --accent: #587c6a; --deep: #305848; --paper: #f1f4e8; --family-art: url("art/v2/name-tattered-banner.png"); --art-position: 50% 48%; }
-.card-hero { --accent: #9a752e; --deep: #775321; --paper: #fbf2da; --family-art: url("art/v2/hero-helmet-laurel.png"); --art-position: 50% 42%; }
-.card-tactic { --accent: #9d5442; --deep: #733c32; --paper: #f8eee4; --family-art: url("art/v2/tactic-archer-volley.png"); --art-position: 50% 44%; }
-.card-stratagem { --accent: #657687; --deep: #35495b; --paper: #eef1ed; --family-art: url("art/v2/stratagem-war-map.png"); --art-position: 50% 48%; }
-.card-narrative { --accent: #856078; --deep: #634858; --paper: #f7efeb; --family-art: url("art/v2/narrative-roadside-memorial.png"); --art-position: 50% 46%; }
-.stack-edge {
-  flex: 0 0 calc(var(--exposed-edge) - var(--frame)); height: calc(var(--exposed-edge) - var(--frame));
-  padding: .25mm 2.5mm .4mm; position: relative; display: flex; flex-direction: column;
-  border-bottom: .3mm solid var(--deep); background: color-mix(in srgb, var(--accent) 8%, var(--paper));
+/* Corner-only interior frame. It gives the face structure without drawing
+   another rectangle over the artwork. */
+.v2-card::before {
+  content: ""; position: absolute; inset: 1.25mm; z-index: 6; pointer-events: none; opacity: .74;
+  background:
+    linear-gradient(var(--accent),var(--accent)) left top / 10mm .22mm no-repeat,
+    linear-gradient(var(--accent),var(--accent)) left top / .22mm 8mm no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right top / 10mm .22mm no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right top / .22mm 8mm no-repeat,
+    linear-gradient(var(--accent),var(--accent)) left bottom / 10mm .22mm no-repeat,
+    linear-gradient(var(--accent),var(--accent)) left bottom / .22mm 8mm no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right bottom / 10mm .22mm no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right bottom / .22mm 8mm no-repeat;
 }
-.edge-heading { flex: 0 0 3.5mm; display: flex; align-items: center; gap: .66mm; min-width: 0; }
-.stat-force, .stat-bond, .stat-name { display: inline-flex; align-items: center; justify-content: flex-start; gap: .65mm; flex: none; color: var(--deep); }
-.edge-heading > [class^="stat-"] { width: 10mm; height: 3.5mm; }
-.card-hero .edge-heading > .stat-force::after { content: "or"; font: italic 1.85mm/1 var(--text); color: var(--accent); }
-.edge-heading > .stat-name:nth-child(2) { width: 9mm; }
-.stat-symbol, .edge-emblem { display: inline-flex; flex: none; width: 3.4mm; height: 3.4mm; }
+.v2-card::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 2.2mm, rgba(79,65,40,.018) 2.2mm 2.28mm);
+}
+.card-force { --accent: #66704c; --deep: #354139; --paper: #f5f1e3; --family-art: url("art/v2/force-march.png"); --art-position: 50% 46%; }
+.card-bond { --accent: #8a6843; --deep: #604630; --paper: #faf0df; --family-art: url("art/v2/bond-bound-spears.png"); --art-position: 50% 47%; }
+.card-name { --accent: #5b7e6c; --deep: #315747; --paper: #f1f4e8; --family-art: url("art/v2/name-tattered-banner.png"); --art-position: 50% 49%; }
+.card-hero { --accent: #9d762e; --deep: #76531f; --paper: #fbf2da; --family-art: url("art/v2/hero-helmet-laurel.png"); --art-position: 50% 43%; }
+.card-tactic { --accent: #9f5644; --deep: #703d32; --paper: #f8eee4; --family-art: url("art/v2/tactic-archer-volley.png"); --art-position: 50% 45%; }
+.card-stratagem { --accent: #687989; --deep: #354a5a; --paper: #eef1ed; --family-art: url("art/v2/stratagem-war-map.png"); --art-position: 50% 49%; }
+.card-narrative { --accent: #88617a; --deep: #614657; --paper: #f7efeb; --family-art: url("art/v2/narrative-roadside-memorial.png"); --art-position: 50% 47%; }
+
+/* One row only. This entire 10.5 mm band is the battlefield interface when
+   Force/Bond/Name cards overlap. */
+.stack-edge {
+  flex: 0 0 calc(var(--exposed-edge) - var(--frame));
+  height: calc(var(--exposed-edge) - var(--frame));
+  position: relative; z-index: 3;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; column-gap: 1.45mm;
+  padding: .65mm 2.45mm .65mm;
+  border-bottom: .28mm solid color-mix(in srgb, var(--deep) 82%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 13%, var(--paper)), color-mix(in srgb, var(--paper) 97%, white));
+}
+.edge-stats { display: flex; align-items: center; flex: none; gap: .75mm; height: 7.2mm; }
+.edge-stats > span + span { margin-left: .25mm; padding-left: .8mm; border-left: .18mm solid color-mix(in srgb, var(--accent) 42%, transparent); }
+.stat-force, .stat-bond, .stat-name, .edge-emblem {
+  display: inline-flex; align-items: center; justify-content: flex-start; gap: .55mm;
+  flex: none; color: var(--deep); white-space: nowrap;
+}
+.stat-symbol, .edge-emblem { width: 4.05mm; height: 4.05mm; }
 .stat-symbol svg, .edge-emblem svg { width: 100%; height: 100%; }
-.edge-heading b { font: 600 4.3mm/.86 var(--display); font-variant-numeric: lining-nums; }
-.edge-type { width: 9mm; flex: none; font: 700 1.95mm/1.1 var(--utility); letter-spacing: .035em; text-transform: uppercase; }
-.edge-classes { font: 2.55mm/1.05 var(--utility); white-space: nowrap; min-width: 0; }
-.edge-placement { margin-left: auto; white-space: nowrap; font: 700 2.05mm/1.1 var(--utility); color: var(--deep); }
-.edge-reminders { display: flex; flex-direction: column; justify-content: flex-start; flex: 1; min-height: 0; }
-.edge-live { color: #23291f; font: 2.65mm/1.05 var(--utility); }
-.edge-live strong { color: var(--deep); font-size: 2.15mm; font-weight: 700; white-space: nowrap; }
-.edge-live strong::after { content: " ·"; }
-.card-body { flex: 1 1 auto; min-height: 0; padding: 2.4mm 3.4mm 1mm; display: flex; flex-direction: column; }
-.card-title { flex: none; margin: 0; color: var(--deep); font: 600 5.7mm/1.23 var(--display); letter-spacing: -.025em; text-wrap: balance; }
-.card-byline { flex: none; margin: 1.2mm 0 0; color: #565e51; font: 2.35mm/1.15 var(--utility); }
-.hero-values { display: flex; flex: none; align-items: center; gap: 3mm; margin: 1mm 0 0; }
-.hero-values > span { display: flex; align-items: center; gap: 1mm; }
-.hero-values small { font: 700 2.05mm/1 var(--utility); text-transform: uppercase; letter-spacing: .09em; }
-.hero-values b { font: 600 4.1mm/1 var(--display); }
-.hero-values .stat-symbol { width: 4.5mm; height: 4.5mm; }
-.hero-values i { font: italic 2.7mm/1 var(--text); color: #877651; }
-.hero-values > span:last-child { color: #305848; }
-.hero-values .stat-name { color: #305848; }
+.edge-stats b { font: 600 4.35mm/.9 var(--display); font-variant-numeric: lining-nums; }
+.edge-identity { min-width: 0; display: flex; align-items: center; height: 100%; }
+.edge-classes {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: #4e554a; font: italic 2.16mm/1 var(--text);
+}
+.edge-live-group {
+  min-width: 0; max-width: 28mm; display: flex; align-items: center; justify-content: flex-end; gap: .8mm; overflow: hidden;
+}
+.edge-placement, .edge-live {
+  flex: none; white-space: nowrap; color: var(--deep); font: 700 1.82mm/1.05 var(--utility); letter-spacing: .025em; text-transform: uppercase;
+}
+.edge-placement { padding-right: .75mm; border-right: .18mm solid color-mix(in srgb, var(--accent) 38%, transparent); }
+.edge-live strong { font-size: 1.62mm; letter-spacing: .05em; }
+.edge-live strong::after { content: " · "; }
+.edge-live span { letter-spacing: .015em; }
+
+/* Body: title, one unobstructed illustration, rules. */
+.card-body { flex: 1 1 auto; min-height: 0; padding: 2.1mm 3.35mm .8mm; display: flex; flex-direction: column; position: relative; z-index: 2; }
+.card-title { flex: none; margin: 0; color: var(--deep); font: 600 5.75mm/1.03 var(--display); letter-spacing: -.025em; text-wrap: balance; }
+.card-byline { flex: none; margin: .8mm 0 0; color: #596052; font: 2.15mm/1.1 var(--utility); }
 .motif-field {
-  min-height: 0; position: relative; isolation: isolate; overflow: hidden;
-  flex: 0 0 17mm; margin: 1.5mm 0 2mm; color: var(--accent);
-  display: grid; place-items: center;
-  border-top: .18mm solid color-mix(in srgb, var(--accent) 38%, transparent);
+  position: relative; flex: 0 0 23mm; min-height: 0; overflow: hidden;
+  margin: 1.45mm -1.15mm 1.55mm;
+  clip-path: polygon(0 2.5%, 100% 0, 100% 97.5%, 0 100%);
+  background: var(--paper);
+  border-top: .18mm solid color-mix(in srgb, var(--accent) 34%, transparent);
   border-bottom: .18mm solid color-mix(in srgb, var(--accent) 30%, transparent);
-  background: color-mix(in srgb, var(--paper) 86%, white);
 }
 .motif-field::before {
-  content: ""; position: absolute; inset: -1px; z-index: 0;
+  content: ""; position: absolute; inset: 0; z-index: 0;
   background-image: var(--family-art); background-size: cover; background-position: var(--art-position, 50% 50%);
-  filter: grayscale(.48) sepia(.24) saturate(.72) contrast(.94);
-  opacity: .66; mix-blend-mode: multiply;
+  filter: saturate(.92) contrast(1.05);
+  opacity: .98;
 }
 .motif-field::after {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--paper) 80%, transparent), transparent 18%, transparent 82%, color-mix(in srgb, var(--paper) 80%, transparent)),
-    linear-gradient(180deg, color-mix(in srgb, var(--paper) 45%, transparent), transparent 28%, transparent 72%, color-mix(in srgb, var(--paper) 54%, transparent));
-  box-shadow: inset 0 0 0 .14mm color-mix(in srgb, var(--deep) 16%, transparent);
+    linear-gradient(180deg, rgba(255,255,255,.05), transparent 68%, color-mix(in srgb, var(--paper) 18%, transparent)),
+    linear-gradient(90deg, color-mix(in srgb, var(--paper) 10%, transparent), transparent 12%, transparent 88%, color-mix(in srgb, var(--paper) 10%, transparent));
 }
-.motif-field > svg { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; overflow: visible; opacity: .42; mix-blend-mode: multiply; }
-.heraldry-main { stroke-width: 1.5; }
-.heraldry-fine { stroke-width: .6; opacity: .65; }
-.sparse .motif-field { flex-basis: 26mm; margin-top: 2mm; margin-bottom: 3mm; }
-.dense .motif-field { flex-basis: 7mm; margin: 1mm 0 1.2mm; }
-.dense .card-title { font-size: 5.2mm; }
-.rules { min-height: 0; flex: 1 1 auto; }
-.effect-block { margin: 0; padding: 0 0 1.5mm; }
-.effect-block + .effect-block { padding-top: 1.5mm; border-top: .18mm solid color-mix(in srgb, var(--accent) 38%, transparent); }
-.effect-head { display: flex; align-items: center; gap: 1.6mm; margin-bottom: .8mm; }
-.effect-label { color: var(--deep); font: 700 2.25mm/1.05 var(--utility); letter-spacing: .07em; }
-.timing-event .effect-label::before { content: ""; display: inline-block; width: 0; height: 0; margin-right: 1mm; border-left: 1.1mm solid currentColor; border-top: .65mm solid transparent; border-bottom: .65mm solid transparent; }
-.timing-state .effect-label { border-bottom: .22mm double var(--accent); padding-bottom: .3mm; }
-.effect-limit { font: italic 2.6mm/1 var(--text); color: #616657; }
-.effect-text { font: 3.3mm/1.12 var(--text); }
-.sparse .effect-text { font-size: 3.6mm; line-height: 1.15; }
-.hero-rule-mode + .hero-rule-mode { margin-top: .6mm; padding-top: 1mm; border-top: .25mm solid var(--accent); }
-.mode-heading { float: left; margin: 0 1.5mm .5mm 0; padding-right: 1.5mm; border-right: .2mm solid var(--accent); color: var(--deep); font: 700 2mm/1 var(--utility); text-transform: uppercase; letter-spacing: .12em; }
-.hero-rule-mode[data-mode="name"] .mode-heading { color: #305848; }
-.hero-rule-mode .effect-head { margin-bottom: .55mm; }
-.hero-rule-mode .effect-block { padding-bottom: 1.05mm; }
-.hero-rule-mode .effect-block + .effect-block { padding-top: 1mm; }
-.empty-rules { margin: 2mm 0; text-align: center; font: italic 3.6mm/1.2 var(--text); color: #686e5d; }
-.card-footer { flex: 0 0 9mm; min-height: 9mm; position: relative; display: flex; flex-wrap: wrap; align-content: center; gap: .5mm; padding: 1mm 13mm 1.4mm 3.4mm; }
-.card-footer::before { content: ""; position: absolute; left: 3.4mm; right: 9mm; top: 0; height: .22mm; background: var(--accent); }
-.footer-mark { width: 100%; font: 700 1.8mm/1 var(--utility); text-transform: uppercase; letter-spacing: .15em; color: var(--deep); }
-.footer-id { font: 1.6mm/1.05 var(--utility); color: #727667; }
-.cost-gem { position: absolute; right: 2.1mm; bottom: 1.6mm; width: 9mm; height: 9mm; display: grid; place-items: center; color: #fff9e8; }
+/* No second heraldic drawing is allowed inside the art field. */
+.motif-field > svg, .motif-field > img { display: none !important; }
+
+.rules { min-height: 0; flex: 1 1 auto; overflow: hidden; position: relative; z-index: 2; }
+.effect-block { margin: 0; padding: 0 0 1.15mm; }
+.effect-block + .effect-block { padding-top: 1.15mm; border-top: .16mm solid color-mix(in srgb, var(--accent) 34%, transparent); }
+.effect-head { display: flex; align-items: baseline; gap: 1.2mm; margin-bottom: .55mm; }
+.effect-label { color: var(--deep); font: 700 2.05mm/1.05 var(--utility); letter-spacing: .07em; text-transform: uppercase; }
+.timing-event .effect-label::before { content: "◆"; margin-right: .75mm; font-size: 1.2mm; vertical-align: .15mm; }
+.timing-state .effect-label { border-bottom: .18mm double var(--accent); padding-bottom: .2mm; }
+.effect-limit { font: italic 2.35mm/1 var(--text); color: #626759; }
+.effect-text { font: 3.24mm/1.12 var(--text); }
+.hero-rule-mode + .hero-rule-mode { margin-top: .5mm; padding-top: .85mm; border-top: .22mm solid var(--accent); }
+.mode-heading { float: left; margin: 0 1.3mm .45mm 0; padding-right: 1.2mm; border-right: .18mm solid var(--accent); color: var(--deep); font: 700 1.85mm/1 var(--utility); text-transform: uppercase; letter-spacing: .11em; }
+.hero-rule-mode[data-mode="name"] .mode-heading { color: #315747; }
+.hero-rule-mode .effect-head { margin-bottom: .45mm; }
+.hero-rule-mode .effect-block { padding-bottom: .85mm; }
+.hero-rule-mode .effect-block + .effect-block { padding-top: .8mm; }
+.empty-rules { margin: 2mm 0; text-align: center; font: italic 3.5mm/1.2 var(--text); color: #686e5d; }
+
+/* Density changes can sacrifice illustration height, never its separation from text. */
+.sparse .motif-field { flex-basis: 30mm; margin-top: 1.8mm; margin-bottom: 2.2mm; }
+.dense .motif-field { flex-basis: 15mm; margin-top: 1.1mm; margin-bottom: 1.1mm; }
+.dense .effect-text { font-size: 2.92mm; line-height: 1.1; }
+.dense .effect-block { padding-bottom: .85mm; }
+.very-dense .motif-field { flex-basis: 10.5mm; margin-top: .8mm; margin-bottom: .9mm; }
+.very-dense .card-title { font-size: 5.05mm; }
+.very-dense .effect-text { font-size: 2.65mm; line-height: 1.06; }
+.very-dense .effect-label { font-size: 1.85mm; }
+.very-dense .effect-block { padding-bottom: .55mm; }
+.very-dense .effect-block + .effect-block { padding-top: .55mm; }
+
+.card-footer {
+  flex: 0 0 7.5mm; min-height: 7.5mm; position: relative;
+  display: flex; align-items: end; gap: 1mm;
+  padding: .65mm 12.5mm 1.25mm 3.35mm;
+}
+.card-footer::before { content: ""; position: absolute; left: 3.35mm; right: 10mm; top: 0; height: .18mm; background: color-mix(in srgb, var(--accent) 42%, transparent); }
+.footer-mark { font: 700 1.55mm/1 var(--utility); text-transform: uppercase; letter-spacing: .14em; color: var(--deep); }
+.footer-mark:empty { display: none; }
+.footer-id { margin-left: auto; max-width: 37mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 1.45mm/1 var(--utility); color: #727667; }
+.cost-gem { position: absolute; right: 2.2mm; bottom: 1.2mm; width: 8.7mm; height: 8.7mm; display: grid; place-items: center; color: #fff9e8; }
 .cost-gem svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--deep); }
-.cost-gem .seal-inner { fill: none; stroke: #e9d8a1; stroke-width: .7; }
-.cost-gem b { position: relative; font: 600 5.8mm/1 var(--display); font-variant-numeric: lining-nums; }
-.card-tactic::before { border-left-width: .6mm; }
-.card-stratagem::before { border-style: double; border-width: .5mm; }
-.card-name .card-title { text-align: center; }
-.card-hero::before { border-width: .35mm; }
+.cost-gem .seal-inner { fill: none; stroke: #ead9a4; stroke-width: .7; }
+.cost-gem b { position: relative; font: 600 5.55mm/1 var(--display); font-variant-numeric: lining-nums; }
+
+.card-tactic { border-left-width: .55mm; }
+.card-stratagem { border-style: double; border-width: .55mm; }
+.card-hero { box-shadow: 0 1.4mm 3.2mm #26271940, inset 0 0 0 .2mm color-mix(in srgb, var(--accent) 24%, transparent); }
 .layout-overflow { outline: 2px solid #b02e25; outline-offset: 3px; }
 #layout-status { padding: 12px; border: 1px solid #b02e25; font: 12px/1.4 var(--utility); }
 #layout-status[hidden], [hidden] { display: none !important; }
@@ -148,6 +192,7 @@ h1, h2, h3 { font-family: var(--display); font-weight: 600; }
 .stack-card[data-stack-layer="1"] { top: var(--exposed-edge); z-index: 1; }
 .stack-card[data-stack-layer="2"] { top: calc(2 * var(--exposed-edge)); z-index: 2; }
 .stack-card .v2-card { box-shadow: 0 .5mm 1mm #25271d35; }
+
 @media screen and (max-width: 650px) { .toolbar { padding: 18px 12px; } main { padding: 22px 12px; } .lab-heading { flex-direction: column; gap: 8px; } .cards { gap: 24px 12px; } #count { margin-left: 0; } }
 .print-version { display: none; }
 @page v2cards { size: A4 landscape; margin: 6mm; }

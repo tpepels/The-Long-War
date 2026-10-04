@@ -1,46 +1,86 @@
-# V2 visual specification
+# V2 physical-card visual specification
 
-The card face returns to the earlier Long War/Astra design language.
+The design must work first as a printed tabletop component and second as a browser preview.
 
-- 68 × 96 mm.
-- Four by two on A4 landscape.
-- Strong double frame and muted family-specific wash.
-- Decorative geometric motif field so the card feels like a game object, not a document.
-- No beige effect textboxes.
-- Each effect is open typography separated by a fine rule.
-- Timing words use compact bold sans labels; events have a small arrowhead, states an underline, and limits italic serif. No filled ability panels.
-- Force and Bond expose a fixed 10.5 mm live-information edge.
-- Hero Force and Name values use two separate crests. Never compress both into one circle.
-- Command cost is an unlabeled faceted gem in the bottom-right. No visible word "COMMAND".
-- Header geometry is fixed across all density classes so stacked edges align.
+## Stack geometry
 
-The exposed heading fixes the Strength position and classification baseline.
-Complete live reminders start at the same second-row position, using up to two
-lines; longer future text must be flagged rather than truncated or shrunk.
-The Hero edge always prints shield Strength, “or”, and banner modifier as
-separate values. Its live edge is explicitly labelled FORCE. The printed face
-never changes when a Hero is used as a Name.
+Cards are 68 × 96 mm.
 
-The Card Lab includes actual Force-alone and overlapping Force + Bond, Force + Name,
-Force + Bond + Name, Hero-as-Force and Hero-as-Name proofs. These use the same
-card component and dimensions as the catalogue and print export. No underlying
-body is hidden or shortened to make the examples appear to fit.
+Force is the bottom card, Bond the middle card, Name the top card. Each additional card is shifted down by exactly 10.5 mm.
 
-Class references are secondary “Involves” bylines, never intrinsic classes or
-an assumed target declaration. Battle-limited Narrative duration is explicit.
-See `docs/card-printing.md` for reproduction and verification commands.
+The exposed 10.5 mm edge is **one horizontal row only**. Do not split it into a heading row plus a reminder row.
 
+The row contains, from left to right:
 
-## Recovered family artwork
+1. Strength/stat crest or type emblem;
+2. classifications / compact identity;
+3. only the live buried reminder or row restriction that must remain readable.
 
-The interrupted Astra/Codex pass produced seven coherent engraved landscape images. They are integrated as **card-family vignettes**, not as arbitrary per-card illustrations:
+The type symbol and family treatment already identify Force/Bond/Name. Do not cram redundant labels into the strip.
 
-- Force - `web/art/v2/force-march.png`
-- Bond - `web/art/v2/bond-bound-spears.png`
-- Name - `web/art/v2/name-tattered-banner.png`
-- Hero - `web/art/v2/hero-helmet-laurel.png`
-- Tactic - `web/art/v2/tactic-archer-volley.png`
-- Stratagem - `web/art/v2/stratagem-war-map.png`
-- Narrative - `web/art/v2/narrative-roadside-memorial.png`
+Hero Force and Name values remain separate adjacent stat marks. Never combine them into one circle.
 
-The renderer desaturates and blends these into the parchment, then keeps the vector heraldry as a restrained overprint. The art may add character but must never carry rules information or alter fixed stack geometry.
+## No-lifting rule
+
+A player must never lift the Name to inspect the Bond or lift the Bond to inspect the Force.
+
+PLAY text may disappear after resolving. Any ACTION, REACTION, BONDED, or WHILE NAMED rule that can still matter while a Force or Bond is buried must be represented completely in the exposed row.
+
+## Illustration
+
+The recovered generated family image is the illustration.
+
+There must be **one image layer only** in the art field.
+
+Do not place the old vector heraldry motif on top of the generated image. Heraldry remains useful for small type/stat symbols, but not as a second illustration.
+
+The image receives only very light paper/edge grading. It should remain visibly detailed and should be the main visual focus of the card.
+
+Rules text is a separate layout region below the image and may never overlap it.
+
+Sparse cards may devote more height to art. Dense cards may reduce art height, but not by allowing rules to invade the image.
+
+## Frame
+
+Use one strong physical outer cut line.
+
+Do not put a second complete rounded rectangle inside it. Interior structure comes from restrained corner marks, the exposed-edge rule, the illustration boundary, and the footer rule.
+
+The frame should feel like a game component, not a slide, UI panel, or bordered document.
+
+## Title and rules
+
+Title: EB Garamond, dominant and left aligned.
+
+Rules: Gentium Book, open on the parchment.
+
+Utility/timing/classification labels: Arial.
+
+Separate multiple effects with spacing and a fine rule. Do not put effects inside beige boxes.
+
+## Command cost
+
+The bottom-right cost is one integrated faceted seal with only the numeral. No visible COMMAND label and no product/version wording competing with it.
+
+## Density
+
+The component may use sparse / normal / dense / very-dense interior layouts.
+
+Those variants may change art height and rules type size. They may **not** change:
+
+- card dimensions;
+- exposed-edge height;
+- stack-row baseline;
+- stat placement;
+- classification baseline;
+- cost anchor.
+
+## Acceptance criteria
+
+- one exposed row;
+- generated image unobstructed by vector art;
+- no rule text over image;
+- no complete inner rounded-rectangle outline;
+- all stack combinations remain readable without lifting;
+- Hero Force and Name stats remain distinct;
+- print and browser use the same renderer.
