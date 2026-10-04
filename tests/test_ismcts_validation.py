@@ -11,7 +11,7 @@ from longwar.agents.ismcts_agent import ISMCTSAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import EndTurn, Front, GameEngine, Pass, Phase, PlayForce, Position, Rank
-from longwar.game.model import StratagemState
+from longwar.game.model import NarrativeState, StratagemState
 from longwar.game.actions import action_key
 from longwar.rules import GameRules
 
@@ -273,6 +273,43 @@ def test_hidden_determinizations_share_root_information_identity() -> None:
     assert len(keys) == 1
     assert len(hashes) == 1
     assert len(action_lists) == 1
+
+
+def test_stable_fast_information_id_includes_public_narrative_state() -> None:
+    from longwar.mccfr import information_set_id
+
+    engine, deck, _priors = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=9213, first_player=0)
+    state.narratives[1] = [
+        NarrativeState(
+            "the-battle-had-chosen-them",
+            fronts=(Front.SECOND,),
+            triggered_this_battle=True,
+            triggered_players_mask=1,
+        )
+    ]
+    fast = FastEngine(engine)
+
+    packed = fast.from_game_state(state)
+    assert (
+        fast_search.stable_information_id_from_fast_key(
+            fast,
+            fast.information_key(packed, 0),
+        )
+        == information_set_id(state, 0)
+    )
+
+    changed = state.clone()
+    changed.narratives[1][0].fronts = (Front.THIRD,)
+    changed_packed = fast.from_game_state(changed)
+    assert (
+        fast_search.stable_information_id_from_fast_key(
+            fast,
+            fast.information_key(changed_packed, 0),
+        )
+        == information_set_id(changed, 0)
+    )
+    assert information_set_id(state, 0) != information_set_id(changed, 0)
 
 
 def test_stable_fast_information_id_includes_public_hidden_stratagem_choice() -> None:
