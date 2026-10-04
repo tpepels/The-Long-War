@@ -22,8 +22,7 @@
       "design_batch": 1,
       "design_rules": {
         "baseline_force": "vanilla"
-      },
-      "engine_sync": "pending-first-80-migration"
+      }
     },
     {
       "id": "seven-black-ships",
@@ -53,8 +52,7 @@
       "design_rules": {
         "printed_role_effect": "rear_strength_bonus",
         "amount": 1
-      },
-      "engine_sync": "pending-first-80-migration"
+      }
     },
     {
       "id": "the-white-hands-of-elara",
@@ -91,8 +89,7 @@
         "printed_role_effect": "support_force_ahead_strength_bonus",
         "amount": 2,
         "deploy_rank": "rear"
-      },
-      "engine_sync": "pending-first-80-migration"
+      }
     },
     {
       "id": "avaros-the-bronze-king",
@@ -154,7 +151,6 @@
           }
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 1
     },
@@ -248,7 +244,6 @@
         "effect": "next_maneuver_cost_zero_this_battle",
         "accumulates": false
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 2
     },
@@ -315,8 +310,7 @@
         "printed_role_effect": "frontline_strength_bonus_if_force_behind",
         "amount": 1,
         "deploy_rank": "front"
-      },
-      "engine_sync": "pending-first-80-migration"
+      }
     },
     {
       "id": "the-crow-archers",
@@ -353,8 +347,7 @@
         "printed_role_effect": "rear_strength_bonus_if_force_ahead",
         "amount": 2,
         "deploy_rank": "rear"
-      },
-      "engine_sync": "pending-first-80-migration"
+      }
     },
     {
       "id": "the-house-of-reed",
@@ -395,7 +388,6 @@
         },
         "deploy_rank": "rear"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 2
     },
@@ -425,7 +417,6 @@
       "design_rules": {
         "prevent_opponent_card_effect_movement": true
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 2
     },
@@ -484,7 +475,6 @@
           "effect": "optional_swap_adjacent_friendly_formation"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 2
     },
@@ -513,7 +503,6 @@
           "effect": "optional_move_formation_adjacent_empty_position"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 2
     },
@@ -553,7 +542,6 @@
           "contribution": "chosen_front_instead_of_own"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 2
     },
@@ -600,7 +588,6 @@
           "effect": "optional_move_adjacent_friendly_to_vacated_position"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
     },
@@ -645,7 +632,6 @@
         },
         "deploy_rank": "front"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
     },
@@ -673,7 +659,6 @@
         "trigger": "adjacent_friendly_named_formation_maneuvers_away",
         "effect": "optional_move_into_vacated_position"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
     },
@@ -702,7 +687,6 @@
         "timing": "after_retreat_resolves",
         "effect": "optional_zero_cost_maneuver_this_formation"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
     },
@@ -733,7 +717,6 @@
           "effect": "optional_swap_two_adjacent_friendly_formations_excluding_self"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
     },
@@ -763,7 +746,6 @@
         "trigger": "opposing_formation_maneuvers_into_same_front",
         "effect": "optional_zero_cost_maneuver_this_formation"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
     },
@@ -790,7 +772,6 @@
       "design_rules": {
         "prevent_opponent_card_effect_move_into_front_from_adjacent": true
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3
     },
@@ -825,7 +806,6 @@
         "trigger": "first_friendly_maneuver_into_empty_each_battle",
         "gain_command": 1
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 3,
       "narrative_form": "saga"
@@ -862,7 +842,6 @@
         "effect": "ignore_rear_formations_when_comparing_strength",
         "deploy_rank": "front"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -906,7 +885,6 @@
         "effect": "suppress_opposing_rear_force_for_resolution",
         "deploy_rank": "rear"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -951,7 +929,6 @@
         "effect": "drive_off_opposing_frontline_named_instead_of_retreat",
         "deploy_rank": "front"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -996,7 +973,6 @@
         "effect": "target_does_not_contribute_this_resolution",
         "deploy_rank": "front"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -1025,7 +1001,6 @@
         "cost": "discard_own_force_and_all_attached_cards",
         "effect": "chosen_opposing_formation_does_not_contribute_this_resolution"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -1055,7 +1030,6 @@
         "timing": "after_retreat",
         "effect": "return_retreating_formation_bond_to_owner_hand"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -1086,7 +1060,6 @@
         "trigger": "opponent_effect_would_prevent_other_friendly_formation_contribution",
         "replacement": "this_formation_does_not_contribute_instead"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -1117,7 +1090,6 @@
         "condition": "front_tied_and_exactly_one_side_has_frontline_named",
         "effect": "that_side_wins_front"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 4
     },
@@ -1154,7 +1126,6 @@
       "design_rules": {
         "persistence": "inherited_bond"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1181,7 +1152,6 @@
       "design_rules": {
         "persistence": "bond_returns_to_hand_when_force_driven_off"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1210,7 +1180,6 @@
       "design_rules": {
         "persistence": "name_returns_to_hand_when_formation_driven_off"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1239,7 +1208,6 @@
       "design_rules": {
         "persistence": "retreat_sideways"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1276,7 +1244,6 @@
         "discount_amount": 1,
         "minimum_cost": 1
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1305,7 +1272,6 @@
       "design_rules": {
         "persistence": "start_battle_reposition"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1333,7 +1299,6 @@
         "persistence": "retreat_command_compensation",
         "amount": 1
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1362,7 +1327,6 @@
       "design_rules": {
         "persistence": "voluntary_retreat_if_rear_empty"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 5
     },
@@ -1391,7 +1355,6 @@
         "condition": "controller_command_lower_than_opponent",
         "cost": 0
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
     },
@@ -1423,7 +1386,6 @@
         "normal_cost": 2,
         "discounted_cost": 1
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
     },
@@ -1453,7 +1415,6 @@
         "effect": "draw_cards",
         "draw_cards": 2
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
     },
@@ -1483,7 +1444,6 @@
           "gain_command": 1
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
     },
@@ -1514,7 +1474,6 @@
         "discard_cards": 1,
         "gain_command": 2
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6,
       "narrative_form": "warning"
@@ -1543,7 +1502,6 @@
         "command": "protect_lost_fronts",
         "lost_fronts_protected": 1
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
     },
@@ -1576,7 +1534,6 @@
         "minimum_cost": 1,
         "discount_amount": 1
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
     },
@@ -1607,7 +1564,6 @@
         "unnamed_formations_can_maneuver": true,
         "duration": "battle"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 6
     },
@@ -1658,7 +1614,6 @@
           "effect": "optional_zero_cost_maneuver"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -1708,7 +1663,6 @@
           "combat": "breakthrough_if_opponent_no_rear_force"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -1758,7 +1712,6 @@
           "effect": "return_hero_to_hand_if_driven_off"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -1810,7 +1763,6 @@
           "minimum_cost": 1
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -1862,7 +1814,6 @@
           "on_completion": "return_one_bond_from_discard_to_hand"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -1912,7 +1863,6 @@
           "after_self_retreat": "optional_sideways_rear_move"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -1961,7 +1911,6 @@
           "on_play": "optional_take_adjacent_open_bond"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -2013,7 +1962,6 @@
           "on_completion": "return_one_narrative_from_discard_to_hand"
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 7
     },
@@ -2054,7 +2002,6 @@
           "discard_self": true
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "legend"
@@ -2093,7 +2040,6 @@
         "secondary": "optional_zero_cost_maneuver_that_formation",
         "discard_self": true
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "legend"
@@ -2132,7 +2078,6 @@
         "secondary": "optional_sideways_rear_move",
         "discard_self": true
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "omen"
@@ -2171,7 +2116,6 @@
         "secondary": "optional_zero_cost_friendly_named_maneuver",
         "discard_self": true
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "warning"
@@ -2213,7 +2157,6 @@
           "draw_cards": 1
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "prophecy"
@@ -2255,7 +2198,6 @@
           "draw_cards": 1
         }
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "saga"
@@ -2293,7 +2235,6 @@
         "gain_command": 1,
         "secondary": "optional_move_adjacent_friendly_into_vacated_position"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "myth"
@@ -2332,7 +2273,6 @@
         "secondary": "optional_zero_cost_friendly_named_maneuver",
         "discard_self": true
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 8,
       "narrative_form": "conspiracy"
@@ -2369,7 +2309,6 @@
         "effect": "losing_frontline_named_driven_off_instead_of_retreating",
         "affects": "both_players"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2404,7 +2343,6 @@
         "chosen_fronts": 2,
         "outcome": "higher_combined_strength_wins_both"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2440,7 +2378,6 @@
         "abandoned_front_strength_ignored": true,
         "adjacent_front_formation_strength_bonus": 1
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2476,7 +2413,6 @@
         "same_rank": true,
         "destination_must_have_been_empty_before_effect": true
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2506,7 +2442,6 @@
         "condition": "win_middle_and_both_adjacent_fronts",
         "effect": "middle_opposing_frontline_named_driven_off_instead_of_retreating"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2536,7 +2471,6 @@
         "timing": "battle_end_before_strength_comparison",
         "effect": "optional_swap_friendly_frontline_and_rear_formations_one_front"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2567,7 +2501,6 @@
         "additional_move_extra_cost": 1,
         "destination": "empty_frontline_same_front"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2606,7 +2539,6 @@
         "friendly_named_maneuver_cost": 0,
         "restriction": "chosen_direction"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 9
     },
@@ -2638,7 +2570,6 @@
         "can_maneuver_while_unnamed": true,
         "first_maneuver_each_battle_cost": 0
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -2669,7 +2600,6 @@
         "on_play_condition": "position_has_prepared_bond_or_name",
         "effect": "optional_zero_cost_maneuver_even_if_unnamed"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -2700,7 +2630,6 @@
         "condition": "controller_has_front_with_no_force",
         "first_self_maneuver_each_battle_cost": 0
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -2731,7 +2660,6 @@
         "condition": "friendly_force_in_all_four_fronts",
         "after_self_maneuver": "optional_zero_cost_other_friendly_named_maneuver"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -2768,7 +2696,6 @@
         "trigger": "regain_command_from_narrative",
         "effect": "optional_zero_cost_friendly_named_maneuver"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -2798,7 +2725,6 @@
         "can_maneuver_while_unnamed": true,
         "first_maneuver_each_battle_cost": 0
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -2828,7 +2754,6 @@
         "trigger": "force_moves_or_maneuvers",
         "effect": "optional_move_this_bond_to_adjacent_friendly_force_without_bond"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -2859,7 +2784,6 @@
         "trigger": "formation_driven_off",
         "replacement": "optional_move_name_to_adjacent_friendly_force_with_bond_no_name"
       },
-      "engine_sync": "pending-first-80-migration",
       "design_status": "approved",
       "design_batch": 10
     },
@@ -3077,7 +3001,6 @@
         "discard_after_both_players_trigger": true,
         "next_action_must_affect_chosen_front_if_possible": true
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "omen"
@@ -3121,7 +3044,6 @@
         "discard_when_named_formation_retreated": true,
         "affects": "both_players"
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "saga"
@@ -3167,7 +3089,6 @@
         "draw_after_forced_maneuver": 1,
         "discard_after_next_turn_constraint": true
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "warning"
@@ -3212,7 +3133,6 @@
         "discard_self": true,
         "next_battle_first_action_must_be_maneuver_if_possible": true
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12,
       "narrative_form": "omen"
@@ -3250,7 +3170,6 @@
         "formations_cannot_maneuver_away_from_chosen_front": true,
         "affects": "both_players"
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     },
@@ -3288,7 +3207,6 @@
         "first_maneuver_each_player_must_use_direction_if_possible": true,
         "affects": "both_players"
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     },
@@ -3326,7 +3244,6 @@
         "affects": "both_players",
         "next_action_each_player_must_affect_chosen_front_if_possible": true
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     },
@@ -3368,7 +3285,6 @@
         "later_maneuvers_same_direction_if_possible": true,
         "duration": "battle"
       },
-      "engine_sync": "native",
       "design_status": "approved",
       "design_batch": 12
     }
