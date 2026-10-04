@@ -135,7 +135,9 @@ def test_standard_ui_exposes_command_automatic_draw_paced_actions_and_term_help(
     assert "standard game exposed Draw as an operation" in text("tools/check_play_start.py")
     assert "Command" in play
     assert "Hero · Force / Name" in play
-    assert "Hero ready" in play and "Hero used" in play
+    assert "hero_force_used" in play and "hero_name_used" in play
+    assert "F ready" in play and "F used" in play
+    assert "N ready" in play and "N used" in play
     assert "hero-dual-strength" in css
     assert "scheduleAiStep" in play
     assert "type: REQUEST_TYPE.AI_STEP" in play
