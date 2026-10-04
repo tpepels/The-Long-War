@@ -210,7 +210,7 @@ def test_front_loss_command_overrun_is_not_clamped_before_collapse() -> None:
         0,
     ).operations(1, 1).clear_hands().formation(
         1,
-        Position(Front.FIRST, Rank.FRONT),
+        Position(Front.SECOND, Rank.FRONT),
         force="the-fifty-men",
     )
 
@@ -274,11 +274,11 @@ def test_front_losses_reduce_command_before_recovery_floor_applies() -> None:
         4,
     ).operations(1, 1).clear_hands().formation(
         1,
-        Position(Front.FIRST, Rank.FRONT),
+        Position(Front.SECOND, Rank.FRONT),
         force="the-fifty-men",
     ).formation(
         0,
-        Position(Front.SECOND, Rank.FRONT),
+        Position(Front.THIRD, Rank.FRONT),
         force="the-fifty-men",
     )
 
@@ -314,11 +314,11 @@ def test_lost_front_command_penalty_is_configurable() -> None:
         5,
     ).operations(1, 1).clear_hands().formation(
         1,
-        Position(Front.FIRST, Rank.FRONT),
+        Position(Front.SECOND, Rank.FRONT),
         force="the-fifty-men",
     ).formation(
         0,
-        Position(Front.SECOND, Rank.FRONT),
+        Position(Front.THIRD, Rank.FRONT),
         force="the-fifty-men",
     )
 
@@ -676,7 +676,7 @@ def test_front_loss_can_cause_collapse_before_recovery() -> None:
         5,
     ).operations(1, 1).clear_hands().formation(
         1,
-        Position(Front.FIRST, Rank.FRONT),
+        Position(Front.SECOND, Rank.FRONT),
         force="the-fifty-men",
     )
 
