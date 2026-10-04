@@ -288,6 +288,23 @@ def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
     ):
         assert forbidden not in import_surface
 
+    # Browser/native parity must include the state introduced by the playtest
+    # overhaul rather than comparing only the old one-Action projection.
+    for field in (
+        "actions_this_turn",
+        "closing_turns_remaining",
+        "cards_played_this_turn_front_mask",
+        "cards_played_this_battle_front_mask",
+        "narratives_played_this_battle",
+        "pending_draw_count",
+        "pending_draw_finish_operation",
+        "free_maneuver_available",
+        "free_maneuver_source",
+    ):
+        assert f'"{field}"' in source
+    assert '"revealed": stratagem.revealed' in source
+    assert '"pass-closing-sequence"' in source
+
 
 def test_browser_modes_are_product_terms_not_solver_names() -> None:
     from longwar.protocol import GameMode, PlaySetupMode
