@@ -61,10 +61,16 @@ def fingerprint_paths() -> list[Path]:
         elif relative.parts[0] in _GAMEPLAY_DIRS and path.suffix == ".py":
             paths.append(path)
 
-    for directory in ("cards", "decks"):
-        root = ROOT / directory
-        if root.exists():
-            paths.extend(root.rglob("*.json"))
+    # Only canonical engine content belongs in the game identity.
+    # cards/v2 is a separate physical-design proposal and must not invalidate
+    # current-game evidence when it changes.
+    canonical_cards = ROOT / "cards" / "cards.json"
+    if canonical_cards.is_file():
+        paths.append(canonical_cards)
+
+    decks = ROOT / "decks"
+    if decks.exists():
+        paths.extend(decks.glob("*.json"))
 
     setup = ROOT / "setup.py"
     if setup.exists():
