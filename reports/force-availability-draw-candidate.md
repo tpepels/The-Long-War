@@ -16,7 +16,7 @@ The previous 30-card name-rich experiment decks contain 10 Subjects/Forces, not 
 
 The four added Forces lean toward unrestricted placement so the experiment directly addresses hands with too few battlefield pieces or only awkward Frontline/Rear pieces.
 
-Internal engine identifiers remain `subject` / `PlaySubject` for compatibility. The experimental card text uses **Force**.
+At the time of this experiment, internal engine identifiers still used `subject` / `PlaySubject` for compatibility. Current runtime vocabulary uses **Force**.
 
 ## Shared rules
 
