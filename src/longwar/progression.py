@@ -1378,7 +1378,7 @@ class ProgressionTelemetry:
             "definitions": {
                 "lifecycle_action": (
                     "Formation timing counts Battle decision actions, including effect choices, "
-                    "but excludes mandatory draw-cleanup discards."
+                    "but excludes mandatory discard-before-draw substeps."
                 ),
                 "formation_identity": (
                     "A formation lifecycle is anchored to its Force. Explicit Maneuvers "
@@ -1442,7 +1442,7 @@ class ProgressionTelemetry:
                 ),
                 "discarded_without_play": (
                     "A card moved from hand into discard without being the card action just played. "
-                    "Cards leaving the battlefield during Battle cleanup do not count."
+                    "Battlefield removals do not count because they did not leave the hand."
                 ),
                 "unplayed_at_match_end": (
                     "Copies still in hand when the match ends. Cards remaining unseen in the deck are not counted."
