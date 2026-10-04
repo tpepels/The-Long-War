@@ -841,6 +841,7 @@ def test_pass_outcomes_use_front_balance_not_invented_battle_winner() -> None:
             **row,
             "first_signal": True,
             "command_remaining": 3,
+            "mechanical_category": "no_alternative",
         }
         for row in rows
     ]
