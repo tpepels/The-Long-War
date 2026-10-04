@@ -13,7 +13,7 @@ from .decks import (
 )
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState
-from .protocol import CardField, CardType
+from .protocol import CardField, CardType, DesignField, DesignToken
 
 
 class BeliefStateError(ValueError):
@@ -255,6 +255,47 @@ class BeliefSampler:
             ),
         )
 
+    def _hidden_stratagem_choice_compatible(
+        self,
+        card_id: str,
+        stratagem,
+    ) -> bool:
+        """Whether one hidden Stratagem could have produced the public choices."""
+        design = self.engine.cards[card_id].get(CardField.DESIGN_RULES, {})
+        fronts = tuple(stratagem.fronts)
+        direction = stratagem.direction
+        targets = tuple(stratagem.targets)
+
+        stratagem_kind = design.get(DesignField.STRATAGEM)
+        if stratagem_kind == DesignToken.ALL_RESERVES_FORWARD:
+            # Choosing zero reserves exposes no targets, so this can be
+            # observationally identical to a no-choice Stratagem.
+            return not fronts and direction is None
+        if stratagem_kind == DesignToken.WHEEL_LINE:
+            return not fronts and direction is not None
+
+        if design.get(DesignField.CHOSEN_FRONTS) == 2:
+            return len(fronts) == 2 and direction is None and not targets
+        if design.get(DesignField.CHOSEN_EDGE_FRONT):
+            return (
+                len(fronts) == 1
+                and fronts[0] in {Front.FIRST, Front.FOURTH}
+                and direction is None
+                and not targets
+            )
+        if design.get(DesignField.CHOSEN_FRONT):
+            return len(fronts) == 1 and direction is None and not targets
+        if (
+            design.get(DesignField.DIRECTION_CHOICE)
+            or design.get(DesignField.CHOOSE_DIRECTION)
+        ):
+            return not fronts and direction is not None and not targets
+
+        # A no-choice card is compatible only when the face-down card exposes
+        # no public selection. Reserve selection with zero targets is
+        # intentionally also compatible with this observation.
+        return not fronts and direction is None and not targets
+
     def sample_hidden_zones(
         self,
         state: GameState,
@@ -314,6 +355,13 @@ class BeliefSampler:
                 if count > 0
                 and self.engine.cards[card_id][CardField.TYPE]
                 == CardType.STRATAGEM
+                and (
+                    not hidden_stratagem
+                    or self._hidden_stratagem_choice_compatible(
+                        card_id,
+                        stratagem,
+                    )
+                )
             ]
             if hidden_stratagem and not candidate_stratagems:
                 continue
