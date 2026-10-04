@@ -1310,7 +1310,7 @@ function renderProgression(lab) {
     </div>
     <div>
       <h3>Low-Command match diagnosis</h3>
-      <p class="dashboard-note">Exact simulation identity is retained so a pathological match can be replayed from its seed. Rows are ordered by censoring, final Battle, then equal-low streak length.</p>
+      <p class="dashboard-note">Exact simulation identity is retained so a pathological match can be replayed from its seed. Rows are ordered by censoring, final Battle, then simulation/game index.</p>
       <div class="table-wrap fitted-table">
         <table class="mini-table">
           <thead><tr>
