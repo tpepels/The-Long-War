@@ -686,7 +686,7 @@ function renderCommandExperiment(lab) {
     const deckProfiles = Object.values(profile.progression_profiles?.profiles || {});
     const games = sum(deckProfiles, (deck) => deck.games);
     const censored = sum(deckProfiles, (deck) => deck.censored_games);
-    const firstSignalCommand = weighted(deckProfiles, (deck) => {
+    const passCommand = weighted(deckProfiles, (deck) => {
       const d = deck.progression?.resources?.command_at_pass
         || deck.progression?.resources?.command_at_first_signal;
       return { value: d?.mean, weight: d?.count };
@@ -695,7 +695,7 @@ function renderCommandExperiment(lab) {
       const d = deck.progression?.resources?.command_before_collapse;
       return { value: d?.mean, weight: d?.count };
     });
-    const firstSignalCount = sum(deckProfiles, (deck) =>
+    const passCount = sum(deckProfiles, (deck) =>
       (deck.progression?.resources?.command_at_pass
         || deck.progression?.resources?.command_at_first_signal)?.count
     );
@@ -762,9 +762,9 @@ function renderCommandExperiment(lab) {
       collapsePointStartRate: resolvedBattles ? collapsePointStarts / resolvedBattles : null,
       bothCollapsePointStartRate: resolvedBattles ? bothCollapsePointStarts / resolvedBattles : null,
       noPaidOperationRate: stallDiagnosticBattles ? noPaidOperations / stallDiagnosticBattles : null,
-      firstSignalCommand,
-      passZeroRate: firstSignalCount ? passZero / firstSignalCount : null,
-      passFourPlusRate: firstSignalCount ? passFourPlus / firstSignalCount : null,
+      passCommand,
+      passZeroRate: passCount ? passZero / passCount : null,
+      passFourPlusRate: passCount ? passFourPlus / passCount : null,
       guardOpportunityRate: agentDecisions ? guardDecisions / agentDecisions : null,
       guardOverrideRate: guardDecisions ? guardOverrides / guardDecisions : null,
       guardOverrides,
@@ -854,7 +854,7 @@ function renderCommandExperiment(lab) {
           <td>${pct(row.collapsePointStartRate)}</td>
           <td>${pct(row.bothCollapsePointStartRate)}</td>
           <td>${pct(row.noPaidOperationRate)}</td>
-          <td>${num(row.firstSignalCommand, 1)}</td>
+          <td>${num(row.passCommand, 1)}</td>
           <td>${pct(row.passZeroRate)}</td>
           <td>${pct(row.passFourPlusRate)}</td>
           <td>${pct(row.guardOpportunityRate)}</td>
