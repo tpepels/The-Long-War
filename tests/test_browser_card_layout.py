@@ -338,6 +338,9 @@ def test_remote_peer_transport_is_rule_free_webrtc_token_exchange() -> None:
     assert 'createDataChannel("the-long-war"' in source
     assert "inviteToken" in source
     assert "answerToken" in source
+    assert "...endpoint" not in source
+    assert source.count("return endpoint;") == 2
+    assert "get connected()" in source
     assert "longwar." not in source
     assert "cards" not in source
     assert "legal_actions" not in source
