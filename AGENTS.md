@@ -144,6 +144,8 @@ Keep evidence types distinct:
 
 Do not change global rules or canonical card data merely to simplify an experimental diagnosis. Use explicit experiment overrides with provenance.
 
+The persistent-board playtest deliberately removed automatic lost-Front Retreat. Legacy printed clauses phrased as "instead of Retreating" must not be silently reinterpreted as direct drive-offs. Explicit card-effect Retreats remain live; redesign of the affected legacy cards is deferred until fresh post-overhaul evidence.
+
 ## Repository discipline
 
 Do not solve architecture problems by adding more architecture. Prefer fewer permanent entry points, fewer named modes, and configuration passed through existing boundaries.
