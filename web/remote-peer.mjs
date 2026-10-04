@@ -126,13 +126,11 @@ export async function createRemoteHost({ onMessage, onState } = {}) {
   await peer.setLocalDescription(offer);
   await waitForIceGathering(peer);
 
-  return {
-    ...endpoint,
-    inviteToken: encodeDescription(peer.localDescription),
-    async acceptAnswer(token) {
-      await peer.setRemoteDescription(decodeDescription(token, "answer"));
-    },
+  endpoint.inviteToken = encodeDescription(peer.localDescription);
+  endpoint.acceptAnswer = async (token) => {
+    await peer.setRemoteDescription(decodeDescription(token, "answer"));
   };
+  return endpoint;
 }
 
 export async function createRemoteGuest(inviteToken, { onMessage, onState } = {}) {
@@ -157,8 +155,6 @@ export async function createRemoteGuest(inviteToken, { onMessage, onState } = {}
   await peer.setLocalDescription(answer);
   await waitForIceGathering(peer);
 
-  return {
-    ...endpoint,
-    answerToken: encodeDescription(peer.localDescription),
-  };
+  endpoint.answerToken = encodeDescription(peer.localDescription);
+  return endpoint;
 }
