@@ -61,7 +61,7 @@ def test_rulebook_core_values_match_standard_engine() -> None:
     assert f"draw **{standard.opening_hand_size} cards**" in rules_text
     assert f"Each player begins with **{standard.starting_command} Command**" in rules_text
     assert f"at most **{standard.ongoing_narrative_limit} Ongoing Narratives**" in rules_text
-    assert "take **up to 2 Actions**" in rules_text
+    assert "Take **up to 2 Actions**" in rules_text
     assert "A **Maneuver** is an Action" in rules_text
     assert f"A Maneuver costs **{standard.maneuver_command_cost} Command**." in rules_text
     assert "**Pass is a turn, not an Action.**" in rules_text
@@ -92,7 +92,7 @@ def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     assert "Pass is not an Action" in play
     assert "Stratagems are set face-down" in play
     assert "The battlefield persists" in play
-    assert "player who did not Pass start" in play
+    assert "did not Pass start" in play
 
     assert '"rules": self.engine.rules.as_dict()' in api
     assert '"active_front_mask": active_front_mask' in api
