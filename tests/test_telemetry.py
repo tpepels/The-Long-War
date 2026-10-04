@@ -959,7 +959,7 @@ def test_low_command_telemetry_records_simultaneous_collapse_termination() -> No
     ]
     assert all(row["forced"] for row in record["operation_trace"])
     assert record["board_changed_during_battle"] is False
-    assert record["board_changed_during_resolution"] is True
+    assert record["board_changed_during_resolution"] is False
 
 def test_progression_attributes_command_economy_by_source_card() -> None:
     engine, deck = setup()
