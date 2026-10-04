@@ -51,7 +51,10 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
     }
     assert baseline_card(canonical["namar"])["strength"] == 2
     assert baseline_card(canonical["the-long-march"])["design_rules"] == {}
-    assert baseline_card(canonical["the-ground-was-held"])["design_rules"] == {}
+    stratagem = baseline_card(canonical["the-ground-was-held"])
+    assert stratagem["design_rules"] == {}
+    assert "face-down" in stratagem["text"]
+    assert "face-up" not in stratagem["text"]
     assert "rules" not in baseline_card(canonical["followed"])
 
 
