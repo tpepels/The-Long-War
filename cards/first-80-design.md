@@ -1,10 +1,10 @@
 # First 80 - card design
 
-This file records approved card-design batches for the first 80-card set.
+> **Historical design record.** This file records the development of the original first-80 pool and is not a current rules or card-mechanics authority. The canonical 95-card data is `cards/cards.json`; current approved mechanics are summarized in `cards/approved-card-mechanics.md`; current game rules are in `rules/rulebook.md`.
 
-It is a design source, not yet canonical engine data. Move an approved card into `cards/cards.json` only when the canonical engine can represent its full rules text without display/engine divergence.
+Some sections below intentionally preserve superseded concepts from the design process, including older Stratagem visibility and Retreat-era assumptions. Do not promote those statements back into the engine or player-facing rules.
 
-Costs and Strength values are provisional unless explicitly locked later.
+Costs and Strength values shown here are historical unless they match the canonical card data.
 
 ## Batch 1 - Baseline
 
