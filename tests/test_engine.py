@@ -95,6 +95,53 @@ def effect_choices(
     return actions
 
 
+def _finish_closing_turn(engine: GameEngine, state) -> None:
+    """Resolve mandatory draw substeps, then end the current closing turn."""
+    for _ in range(32):
+        legal = engine.legal_actions(state)
+        end_turn = next(
+            (action for action in legal if isinstance(action, EndTurn)),
+            None,
+        )
+        if end_turn is not None:
+            engine.apply(state, end_turn)
+            return
+
+        # A closing turn still begins with the normal automatic draw. At the
+        # hand limit that draw pauses for the mandatory discard before EndTurn
+        # becomes legal.
+        discard = next(
+            (action for action in legal if isinstance(action, Discard)),
+            None,
+        )
+        if discard is not None:
+            engine.apply(state, discard)
+            continue
+
+        effect = next(
+            (
+                action
+                for action in legal
+                if isinstance(action, EffectChoice) and action.skip
+            ),
+            None,
+        )
+        if effect is None:
+            effect = next(
+                (action for action in legal if isinstance(action, EffectChoice)),
+                None,
+            )
+        if effect is not None:
+            engine.apply(state, effect)
+            continue
+
+        raise AssertionError(
+            "closing turn exposed neither EndTurn nor a mandatory substep: "
+            f"{legal!r}"
+        )
+    raise AssertionError("closing turn did not settle")
+
+
 def resolve_battle_by_passing(engine: GameEngine, state) -> None:
     """Finish a Battle from the fixed post-Pass two-turn closing state.
 
@@ -109,10 +156,10 @@ def resolve_battle_by_passing(engine: GameEngine, state) -> None:
     state.active_player = 1
     state.actions_this_turn = 0
 
-    engine.apply(state, EndTurn())
+    _finish_closing_turn(engine, state)
     assert state.closing_turns_remaining == 1
     assert state.active_player == 0
-    engine.apply(state, EndTurn())
+    _finish_closing_turn(engine, state)
 
 
 def test_battlefield_is_four_fronts_by_two_ranks() -> None:
