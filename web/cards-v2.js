@@ -91,7 +91,7 @@ function rules(card){
   return effects(card).length?effects(card).map(effectBlock).join(""):'<p class="empty-rules">No special rules.</p>';
 }
 function statusLine(card){const bits=[];if(card.type==="stratagem")bits.push("Played face-down");if(card.duration==="this_battle")bits.push("This Battle");return bits.join(" · ")}
-function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'">'+commandGlyph(card.command_cost)+'</span>'}
+function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2H28L38 12V28L28 38H12L2 28V12Z"/><path class="seal-inner" d="M14 6H26L34 14V26L26 34H14L6 26V14Z"/></svg><b>'+esc(card.command_cost)+'</b></span>'}
 function cardArticle(card,extra="",options={}){
   const count=effects(card).reduce((n,e)=>n+(e.text||"").length,0),density=count>250?" very-dense":count>170?" dense":count<95?" sparse":"",heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
   return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'<div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';

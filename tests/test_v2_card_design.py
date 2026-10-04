@@ -182,9 +182,8 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
         assert output.one("v2-card")["attrs"]["data-card-id"] == card["id"]
         assert output.one("card-title")["text"] == card["title"]
         cost = output.one("cost-gem")
-        cost_numbers = output.all("glyph-number", within=cost)
-        assert len(cost_numbers) == 1
-        assert cost_numbers[0]["text"] == str(card["command_cost"])
+        assert cost["text"] == str(card["command_cost"])
+        assert len(output.all("seal-inner", within=cost)) == 1
         assert [node["text"] for node in output.all("effect-text")] == [e["text"] for e in effects(card)]
 
         formation = card["type"] in {"force", "bond", "name", "hero"}
@@ -235,6 +234,7 @@ def test_v2_visual_contract_is_not_powerpoint_layout() -> None:
     assert ".class-body-item" in css
     assert "command-label" not in js
     assert ">COMMAND<" not in js
+    assert 'class="seal-inner"' in js
     assert "function block(effect)function" not in js
     assert "const STACK_CASESconst STACK_CASES" not in js
 

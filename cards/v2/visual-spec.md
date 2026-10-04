@@ -65,9 +65,9 @@ Once-per-Battle is a limit, never a timing window.
 
 ### Command
 
-Command is always a d20/faceted-die symbol.
+Command uses the d20/faceted-die symbol in rules and exposed reminder grammar.
 
-The bottom-right cost is the die with only the numeral. There is no visible COMMAND label.
+The bottom-right printed card cost uses the original dark octagonal Command seal with the numeral centered inside it. There is no visible COMMAND label.
 
 ## Full face
 
