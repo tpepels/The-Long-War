@@ -1,6 +1,6 @@
 # First 80 - balance audit
 
-Status: historical audit of the original 80-card pool. The canonical pool now contains 95 cards; use the current Balance Lab and canonical card/deck data for active balance evidence.
+Status: **historical audit** of the original 80-card pool. The canonical pool now contains 95 cards; use the current Balance Lab, `cards/cards.json`, `decks.py`, and `rules/rulebook.md` for active evidence and rules. Deck quotas and card text below describe the ruleset at the time of this audit, not the current game.
 
 ## Applied conservative balance changes
 
@@ -29,16 +29,16 @@ The approved first-80 pool currently contains:
 
 That is 80 designed cards total, of which 28 are Unique.
 
-Current deck construction requires:
+At the time of this audit, deck construction required:
 
 - at least 34 cards;
 - at least 14 Force-type cards;
 - at least 6 printed Names;
 - maximum 2 copies of a non-Unique title;
 - maximum 1 copy of a Unique title;
-- Heroes count among Force-type cards and may instead be played as Names.
+- Heroes counted among Force-type cards and could instead be played as Names.
 
-Because all printed Names are Unique, the six required Name slots are always six different Names.
+Those quotas are superseded. Current deck construction keeps the 34-card minimum and 1-copy Unique limit, allows up to 4 copies of a non-Unique title, and has no Force or printed-Name minimum.
 
 ## Highest balance concerns
 
