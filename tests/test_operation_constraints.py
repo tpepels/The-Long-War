@@ -58,7 +58,7 @@ def named(state, player: int, position: Position, *, bond: str = "followed"):
     return slot
 
 
-def test_multiple_next_operation_requirements_prefer_one_action_satisfying_all():
+def test_multiple_next_action_requirements_prefer_one_action_satisfying_all():
     engine, state = fresh()
     source = Position(Front.THIRD, Rank.FRONT)
     destination = Position(Front.SECOND, Rank.FRONT)
@@ -393,7 +393,7 @@ def test_had_been_ordered_forward_gains_strength_and_keeps_direction_if_possible
     assert Maneuver(middle, right) not in legal
 
 
-def test_normal_action_consumes_an_impossible_next_operation_requirement():
+def test_normal_action_consumes_an_impossible_next_action_requirement():
     engine, state = fresh()
     state.players[0].hand = ["the-fifty-men"]
     state.operations_this_battle[:] = [1, 1]

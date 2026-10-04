@@ -469,3 +469,11 @@ def test_remote_invite_creation_has_visible_progress_and_errors() -> None:
     assert '"remote-reset"' in script
     assert "Direct connection failed" in script
     assert "#remote-status.remote-error" in style
+
+
+def test_battle_resolution_banner_uses_rules_active_front_count() -> None:
+    script = text("web/play.js")
+    assert '"Four Fronts resolved"' not in script
+    assert "renderedState.active_fronts?.length" in script
+    assert '" Front resolved"' in script
+    assert '" Fronts resolved"' in script

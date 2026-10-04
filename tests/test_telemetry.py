@@ -584,7 +584,8 @@ def test_command_flow_uses_actual_cost_and_excludes_between_battle_recovery() ->
     resources = progression.summary()["resources"]
     assert resources["command_spend"]["card_play"] == actual_cost
     if actual_cost == 0:
-        assert resources["free_operations"] == 1
+        assert resources["free_actions"] == 1
+        assert resources["free_operations"] == resources["free_actions"]
 
 
 def test_partial_formation_counter_is_force_anchored() -> None:
@@ -692,7 +693,11 @@ def test_partial_formation_is_recorded_at_battle_end() -> None:
     next_state.battle = state.battle + 1
     progression._record_battle_end(engine, state, next_state)
 
-    assert progression._battle_records[-1]["incomplete_at_end"] == [1, 0]
+    record = progression._battle_records[-1]
+    assert record["incomplete_at_end"] == [1, 0]
+    assert record["action_trace"] == record["operation_trace"]
+    assert record["paid_actions"] == record["paid_operations"]
+    assert record["free_actions"] == record["free_operations"]
     assert progression.summary()["formation_lifecycle"]["incomplete_at_battle_end"] == 1
 
 

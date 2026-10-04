@@ -100,6 +100,9 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
     assert report["stratagem"]["opportunity_use_rate"] == 0.3
     assert report["hand_pressure"]["dead_card_share_at_pass"] == 0.25
     assert report["hand_pressure"]["unplayable_card_turn_share"] == 0.25
+    assert report["passes"]["events"] == 50
+    assert report["passes"]["mean_passes_per_battle"] == pytest.approx(2.0)
+    # Historical alias remains readable for retained pre-overhaul fixtures.
     assert report["battle_end_signals"]["first_signal_share"] == 0.5
     assert report["decision_load"]["mean_legal_candidates_per_heuristic_decision"] == 12.0
 
@@ -108,6 +111,8 @@ def test_build_playability_report_derives_human_pacing_metrics() -> None:
     assert "2 censored matches" in markdown
     assert "Cards played per Battle" in markdown
     assert "Maneuvers per Battle" in markdown
+    assert "Passes per Battle" in markdown
+    assert "First signal share" not in markdown
     assert "AI self-play measures structural pacing" in markdown
 
 
@@ -184,6 +189,7 @@ def test_playability_allows_all_games_censored_before_first_resolution() -> None
         "battles": 0,
     }
     assert report["battle_pacing"]["mean_cards_played_per_battle"] is None
+    assert report["passes"]["mean_passes_per_battle"] is None
     assert report["battle_end_signals"]["mean_signals_per_battle"] is None
     assert report["stratagem"]["opportunity_use_rate"] is None
 
