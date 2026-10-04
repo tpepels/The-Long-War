@@ -118,6 +118,7 @@ GitHub Actions remain deployment-only. The Pages workflow may run compile/static
 ## AI/search
 
 - Canonical ISMCTS defaults live in `DEFAULT_ISMCTS_*` constants in `agents/ismcts_agent.py`.
+- Search-strength evidence produced before the playtest-overhaul engine is historical only. The old coarse screen found high UCT exploration harmful, belief count 4 promising, and rollout depth 12 promising, but none of those directions may be promoted for the rewritten game until the migrated engine is verified and the equal-time screen is rerun.
 - Runners consume shared search defaults unless a publication workflow deliberately pins and records an explicit budget.
 - Do not reintroduce optimizer sweeps/tournament configuration machinery without a concrete design need.
 - The supported search-parameter evidence workflow is `make experiments EXPERIMENT=ismcts-tournament EXPERIMENT_ARGS="..."`: the default `coarse` design screens a broad one-factor set with widely spaced values on representative decks with multiple mirrored deals per deck - "coarse" refers to parameter spacing, not tiny evidence samples. `--design refine --refine-profiles ...` combines/refines only nominated directions on broader evidence, and `--design full` retains the legacy exhaustive interaction/finalist/confirmation machinery. All strength comparisons use equal wall-clock budgets.
