@@ -440,9 +440,45 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         narrative_count = data[i]
         i += 1
         for _ in range(narrative_count):
-            narratives[owner].append(card_ids[data[i] - 1])
+            card_id = card_ids[data[i] - 1]
             i += 1
-            i += INFO_NARRATIVE_SEARCH_BYTES  # Narrative search state
+            front_mask = data[i]
+            triggered = bool(data[i + 1])
+            direction_code = data[i + 2]
+            triggered_players_mask = data[i + 3]
+            target_slot = data[i + 4] - 1
+            i += INFO_NARRATIVE_SEARCH_BYTES
+
+            fronts = [
+                front
+                for front in range(FRONT_COUNT)
+                if front_mask & (1 << front)
+            ]
+            if direction_code == DIRECTION_LEFT:
+                direction = "left"
+            elif direction_code == DIRECTION_RIGHT:
+                direction = "right"
+            else:
+                direction = None
+
+            target = None
+            if target_slot >= 0:
+                target_owner = target_slot // POSITIONS_PER_PLAYER
+                local = target_slot % POSITIONS_PER_PLAYER
+                target = [
+                    target_owner,
+                    local // RANK_COUNT,
+                    "front" if (local % RANK_COUNT) == 0 else "rear",
+                ]
+
+            narratives[owner].append({
+                "card_id": card_id,
+                "fronts": fronts,
+                "target": target,
+                "direction": direction,
+                "triggered_this_battle": triggered,
+                "triggered_players_mask": triggered_players_mask,
+            })
 
     stratagems = []
     for owner in range(PLAYER_COUNT):
