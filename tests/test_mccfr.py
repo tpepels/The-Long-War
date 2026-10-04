@@ -81,6 +81,26 @@ def test_information_set_includes_public_narrative_identities() -> None:
     assert information_set_id(state, 0) != first
 
 
+def test_information_set_includes_public_narrative_choices_and_trigger_state() -> None:
+    _, _, state = setup()
+    state.narratives[1] = [
+        NarrativeState(
+            "the-battle-had-chosen-them",
+            fronts=(Front.SECOND,),
+        )
+    ]
+    first = information_set_id(state, 0)
+
+    changed_front = state.clone()
+    changed_front.narratives[1][0].fronts = (Front.THIRD,)
+    assert information_set_id(changed_front, 0) != first
+
+    triggered = state.clone()
+    triggered.narratives[1][0].triggered_this_battle = True
+    triggered.narratives[1][0].triggered_players_mask = 1
+    assert information_set_id(triggered, 0) != first
+
+
 def test_stable_information_set_tracks_playtest_turn_flow() -> None:
     _, _, state = setup()
     baseline = information_set_id(state, 0)
