@@ -543,10 +543,12 @@ body.game-body {
   height: 100%;
   position: relative;
   display: grid;
-  grid-template-rows: 24px 22px minmax(0, 1fr) minmax(0, 1fr) 38px minmax(
-      0,
-      1fr
-    ) minmax(0, 1fr) 22px 24px;
+  grid-template-rows:
+    24px 22px
+    minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)
+    38px
+    minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)
+    22px 24px;
   gap: 4px;
 }
 .army-side {
@@ -580,23 +582,29 @@ body.game-body {
 .opponent-army .rank-rear {
   grid-row: 3;
 }
-.opponent-army .rank-front {
+.opponent-army .rank-middle {
   grid-row: 4;
 }
-.front-banner-row {
+.opponent-army .rank-front {
   grid-row: 5;
 }
-.player-army .rank-front {
+.front-banner-row {
   grid-row: 6;
 }
-.player-army .rank-rear {
+.player-army .rank-front {
   grid-row: 7;
 }
-.player-army .narrative-row {
+.player-army .rank-middle {
   grid-row: 8;
 }
-.battle-stratagem-zone.player {
+.player-army .rank-rear {
   grid-row: 9;
+}
+.player-army .narrative-row {
+  grid-row: 10;
+}
+.battle-stratagem-zone.player {
+  grid-row: 11;
 }
 .battle-line-wide {
   display: none;
