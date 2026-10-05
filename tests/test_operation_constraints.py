@@ -383,6 +383,7 @@ def test_there_was_no_road_back_allows_entry_but_not_exit():
     state.stratagems[0] = StratagemState(
         "there-was-no-road-back",
         fronts=(Front.SECOND,),
+        revealed=True,
     )
     source = Position(Front.SECOND, Rank.FRONT)
     named(state, 1, source)
@@ -403,6 +404,7 @@ def test_line_had_begun_to_move_forces_direction_and_makes_first_maneuver_free()
     state.stratagems[0] = StratagemState(
         "the-line-had-begun-to-move",
         direction="left",
+        revealed=True,
     )
     source = Position(Front.SECOND, Rank.FRONT)
     left = Position(Front.FIRST, Rank.FRONT)
