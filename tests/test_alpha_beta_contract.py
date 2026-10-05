@@ -8,6 +8,7 @@ from longwar.algorithms.alpha_beta import (
     AlphaBetaSearch,
     SearchBudget,
     SearchLimit,
+    action_completed_turn,
 )
 from longwar.game.model import Phase
 
@@ -181,6 +182,16 @@ class _PendingChoiceSearch(AlphaBetaSearch):
             "pending": ["effect-choice"],
             "mid": ["action-2"],
         }.get(state.name, [])
+
+
+def test_pending_opponent_choice_is_not_a_completed_turn() -> None:
+    engine = _PendingChoiceEngine()
+    state = _State()
+    child = state.clone()
+    engine.apply(child, "card", validate=False)
+
+    assert child.active_player != state.active_player
+    assert not action_completed_turn(engine, state, child, "card")
 
 
 def test_alpha_beta_pending_opponent_choice_does_not_consume_turn_depth():
