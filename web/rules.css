@@ -1724,12 +1724,12 @@
 .rv-side > div {
   min-width: 0;
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
   gap: 1.4mm;
 }
 
 .rv-slot {
-  min-height: 20mm;
+  min-height: 14mm;
   padding: 2.4mm;
   display: grid;
   place-items: center;
