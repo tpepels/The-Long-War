@@ -274,12 +274,15 @@ class StrategicHeuristicAgent(HeuristicAgent):
                     for action in root_order:
                         child = sampled.clone()
                         engine.apply(child, action, validate=False)
+                        remaining_depth = depth - int(
+                            child.active_player != root_player
+                        )
                         if self._use_native:
                             value = _native_search_value(
                                 self._fast_engine,
                                 child,
                                 root_player,
-                                depth - 1,
+                                remaining_depth,
                                 -inf,
                                 inf,
                                 budget,
@@ -291,7 +294,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
                             value = self._python_search.search(
                                 child,
                                 root_player=root_player,
-                                depth=depth - 1,
+                                depth=remaining_depth,
                                 alpha=-inf,
                                 beta=inf,
                                 budget=budget,
