@@ -22,8 +22,6 @@ from .model import (
     FRONT_COUNT,
     POSITIONS_PER_PLAYER,
     RANK_COUNT,
-    RANK_BY_INDEX,
-    RANK_INDEX,
     TOTAL_POSITION_COUNT,
     Slot,
     NarrativeState,
@@ -43,14 +41,9 @@ class InvalidDeck(ValueError):
 
 FRONTS = tuple(Front)
 FRONTLINE_POSITIONS = tuple(Position(front, Rank.FRONT) for front in FRONTS)
-MIDDLE_POSITIONS = tuple(Position(front, Rank.MIDDLE) for front in FRONTS)
 REAR_POSITIONS = tuple(Position(front, Rank.REAR) for front in FRONTS)
 POSITIONS_BY_FRONT = tuple(
-    (
-        FRONTLINE_POSITIONS[int(front)],
-        MIDDLE_POSITIONS[int(front)],
-        REAR_POSITIONS[int(front)],
-    )
+    (FRONTLINE_POSITIONS[int(front)], REAR_POSITIONS[int(front)])
     for front in FRONTS
 )
 ALL_POSITIONS = tuple(position for pair in POSITIONS_BY_FRONT for position in pair)
@@ -431,7 +424,7 @@ class GameEngine:
                 local = int(source_slot) % POSITIONS_PER_PLAYER
                 source_position = Position(
                     Front(local // RANK_COUNT),
-                    RANK_BY_INDEX[local % RANK_COUNT],
+                    Rank.FRONT if local % RANK_COUNT == 0 else Rank.REAR,
                 )
             front = item.get("front")
             constraints.append(
@@ -549,7 +542,7 @@ class GameEngine:
                 fast_state,
                 player,
                 int(position.front),
-                RANK_INDEX[position.rank],
+                0 if position.rank is Rank.FRONT else 1,
             )
         )
 
