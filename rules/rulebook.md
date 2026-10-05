@@ -80,8 +80,6 @@ A normal turn has two parts.
 
 Draw **1 card**.
 
-Your hand limit is **10**. If you would draw while holding 10 cards, discard 1 card first, then draw.
-
 If you need to draw from an empty deck, shuffle your discard pile to make a new draw pile.
 
 ### 2. Act
@@ -183,6 +181,10 @@ As one Action, you may:
 This costs no Command.
 
 Cycling is a legal Action whenever you have at least two cards in hand. Because of that, a player with two or more cards is not unable to act merely because they cannot or do not want to play those cards.
+
+## 10-card Hand Limit
+
+Your hand limit is **10**. If you are holding more than 10 cards, discard until you are holding 10.
 
 ## Passing {#passing}
 
