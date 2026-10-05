@@ -53,14 +53,29 @@ cdef inline bint _fe_player_has_empty_front(
     FastState state,
     int player,
 ) noexcept:
-    cdef int front
+    cdef int front, rank
+    cdef bint occupied
     for front in range(FRONT_COUNT):
         if not front_is_active(state.battle, front):
             continue
-        if (
-            state.force[slot_index(player, front, RANK_FRONT)] < 0
-            and state.force[slot_index(player, front, RANK_REAR)] < 0
-        ):
+        occupied = False
+        for rank in range(RANK_COUNT):
+            if state.force[slot_index(player, front, rank)] >= 0:
+                occupied = True
+                break
+        if not occupied:
+            return True
+    return False
+
+cdef inline bint _fe_front_has_named_formation(
+    FastEngine self,
+    FastState state,
+    int player,
+    int front,
+) noexcept:
+    cdef int rank
+    for rank in range(RANK_COUNT):
+        if _fe_slot_complete(self, state, slot_index(player, front, rank)):
             return True
     return False
 
@@ -1021,13 +1036,8 @@ cdef int _fe_legal_actions_into(
                         for front in range(FRONT_COUNT):
                             if (
                                 self.narrative_front_requires_named[card]
-                                and not (
-                                    _fe_slot_complete(
-                                        self, state, slot_index(player, front, RANK_FRONT)
-                                    )
-                                    or _fe_slot_complete(
-                                        self, state, slot_index(player, front, RANK_REAR)
-                                    )
+                                and not _fe_front_has_named_formation(
+                                    self, state, player, front
                                 )
                             ):
                                 continue
