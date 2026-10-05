@@ -6,7 +6,7 @@ from typing import Any
 from ..game.actions import Action
 from ..game.engine import GameEngine
 from ..game.model import GameState
-from ..mccfr import action_key, information_set_id
+from ..mccfr import action_key, search_information_set_id
 from ..protocol import AgentKind, MCCFR_POLICY_SCHEMA_VERSION, PolicySource
 from .heuristic_agent import HeuristicAgent
 from ..heuristics import command_preserving_actions
@@ -54,7 +54,7 @@ class MCCFRAgent:
             }
             return actions[0]
 
-        info_id = information_set_id(state, state.active_player)
+        info_id = search_information_set_id(engine, state, state.active_player)
         entry = self.policy.get("infosets", {}).get(info_id)
 
         if entry is None:
