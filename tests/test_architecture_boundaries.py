@@ -704,12 +704,13 @@ def test_native_topology_dimensions_are_not_cross_wired() -> None:
 
 def test_ongoing_narrative_storage_is_not_treated_as_front_index() -> None:
     effects = (SRC / "_fast_engine_effects.pxi").read_text(encoding="utf-8")
-    strength = (SRC / "_fast_engine_strength.pxi").read_text(encoding="utf-8")
+    actions = (SRC / "_fast_engine_actions.pxi").read_text(encoding="utf-8")
+    resolution = (SRC / "_fast_engine_resolution.pxi").read_text(encoding="utf-8")
 
     assert "controller * NARRATIVE_SLOTS_PER_PLAYER + front" not in effects
-    assert "player * NARRATIVE_SLOTS_PER_PLAYER + front" not in strength
-    assert "state.narrative_front_mask[ix] & (1 << front)" in effects
-    assert "narrative_front_mask" in strength
+    assert "player * NARRATIVE_SLOTS_PER_PLAYER + front" not in actions
+    assert "state.narrative_front_mask[ix] & (1 << front)" in actions
+    assert "front_mask = state.narrative_front_mask[ix]" in resolution
 
 
 def test_native_slot_access_never_uses_literal_rank_codes() -> None:
@@ -818,7 +819,11 @@ def test_pass_heuristic_uses_canonical_action_transition() -> None:
     start = source.index("cdef double pass_score_fast(")
     end = source.index("cdef bint action_needs_command_guard_probe_fast(", start)
     body = source[start:end]
-    assert "_fe_apply_fast(" in body
+    helper_start = source.index("cdef void copy_apply_for_evaluation_fast(")
+    helper_end = source.index("cdef void projected_lost_masks_fast(", helper_start)
+    helper = source[helper_start:helper_end]
+    assert "copy_apply_for_evaluation_fast(" in body
+    assert "_fe_apply_fast(" in helper
     assert "_fe_pass_action(" not in body
 
 
