@@ -117,8 +117,12 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, state.resolution_drive_mask[1])
     _info_hash_feed(&h, state.resolution_protected_mask[0])
     _info_hash_feed(&h, state.resolution_protected_mask[1])
-    _info_hash_feed(&h, state.resolution_front_loss_command_penalty[0])
-    _info_hash_feed(&h, state.resolution_front_loss_command_penalty[1])
+    _info_hash_feed_u16(
+        &h, <uint16_t>state.resolution_front_loss_command_penalty[0]
+    )
+    _info_hash_feed_u16(
+        &h, <uint16_t>state.resolution_front_loss_command_penalty[1]
+    )
     _info_hash_feed_u16(&h, state.resolution_suppressed_mask)
     _info_hash_feed(&h, state.resolution_cursor)
     _info_hash_feed(&h, <uint8_t>(state.resolution_starter + 1))
@@ -147,7 +151,8 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
-    # v12 widens observable deck/discard counts to 16 bits so every legal
+    # v13 widens in-progress Front-loss Command penalties to 16 bits.
+    # v12 widened observable deck/discard counts to 16 bits so every legal
     # deck size is representable.
     # v11 added public/owner-visible Stratagem reveal state.
     # v10 added two-Action turn state and the forced closing-turn countdown.
@@ -242,8 +247,14 @@ cdef int _fe__information_state_encode(
     _info_emit(buf, &n, h, state.resolution_drive_mask[1])
     _info_emit(buf, &n, h, state.resolution_protected_mask[0])
     _info_emit(buf, &n, h, state.resolution_protected_mask[1])
-    _info_emit(buf, &n, h, state.resolution_front_loss_command_penalty[0])
-    _info_emit(buf, &n, h, state.resolution_front_loss_command_penalty[1])
+    _info_emit_u16(
+        buf, &n, h,
+        <uint16_t>state.resolution_front_loss_command_penalty[0]
+    )
+    _info_emit_u16(
+        buf, &n, h,
+        <uint16_t>state.resolution_front_loss_command_penalty[1]
+    )
     _info_emit_u16(buf, &n, h, state.resolution_suppressed_mask)
     _info_emit(buf, &n, h, state.resolution_cursor)
     _info_emit(buf, &n, h, <uint8_t>(state.resolution_starter + 1))
