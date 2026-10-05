@@ -56,6 +56,18 @@ class GameRules:
 
         if self.opening_hand_size < 1:
             raise ValueError("opening_hand_size must be positive")
+        if self.mulligan_max_cards > self.opening_hand_size:
+            raise ValueError(
+                "mulligan_max_cards cannot exceed opening_hand_size"
+            )
+        if self.hand_limit < self.opening_hand_size:
+            raise ValueError(
+                "hand_limit cannot be smaller than opening_hand_size"
+            )
+        if self.actions_per_turn < 1:
+            raise ValueError("actions_per_turn must be positive")
+        if self.closing_turns_after_pass < 1:
+            raise ValueError("closing_turns_after_pass must be positive")
         if self.starting_command > self.command_cap:
             raise ValueError("starting_command cannot exceed command_cap")
         if self.command_collapse_threshold > self.command_cap:
