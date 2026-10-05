@@ -311,6 +311,35 @@ def test_heuristic_values_unused_hero_as_flexible_force_or_name_resource() -> No
 
     assert available > unavailable
 
+def test_heuristic_hero_value_respects_remaining_mode() -> None:
+    engine, state = engine_and_state()
+    hero = next(
+        card_id
+        for card_id, card in engine.cards.items()
+        if card.get("hero")
+    )
+    state.players[0].hand = [hero]
+    state.players[1].hand = []
+
+    # This prepared position specifically needs a Force. A Hero with only its
+    # Name allowance left must not receive the Force-mode need bonus.
+    target = state.slot(0, Position(Front.SECOND, Rank.FRONT))
+    target.bond = "followed"
+    target.name = "namar"
+
+    force_available = state.clone()
+    force_available.hero_used[0] = 2  # Name used; Force still available.
+    name_available = state.clone()
+    name_available.hero_used[0] = 1  # Force used; Name still available.
+
+    evaluator = HeuristicAgent(seed=2, exploration=0.0).evaluator
+    assert evaluator._hand_construction_value(
+        engine, force_available, 0
+    ) > evaluator._hand_construction_value(
+        engine, name_available, 0
+    )
+
+
 def test_complete_named_formation_is_distinguished_from_force_plus_name() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=11, exploration=0.0)
@@ -470,7 +499,7 @@ def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -
 
 
 
-def test_heuristic_values_fresh_battle_initiative() -> None:
+def test_heuristic_does_not_infer_fresh_battle_from_zero_action_counts() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=21, exploration=0.0)
 
@@ -483,15 +512,15 @@ def test_heuristic_values_fresh_battle_initiative() -> None:
     state.players[0].passed = False
     state.players[1].passed = False
 
+    # A player may EndTurn without taking an Action, so zero Battle Action
+    # counts do not prove this is the opening turn of the Battle.
     first = state.clone()
     first.active_player = 0
     second = state.clone()
     second.active_player = 1
 
-    assert agent.evaluate(engine, first, 0) > agent.evaluate(
-        engine,
-        second,
-        0,
+    assert agent.evaluate(engine, first, 0) == pytest.approx(
+        agent.evaluate(engine, second, 0)
     )
 
 
