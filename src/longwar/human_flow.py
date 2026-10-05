@@ -37,10 +37,10 @@ class HumanFlowDiagnostics:
         self._current_deck_sizes = [1, 1]
 
         self.pass_events = 0
-        self.first_signal_events = 0
-        self.early_first_signal_events = 0
-        self.signal_hand_total = 0
-        self.signal_operations_total = 0
+        self.pass_primary_events = 0
+        self.early_pass_primary_events = 0
+        self.pass_hand_total = 0
+        self.pass_actions_total = 0
 
         self.pre_draw_discards = 0
 
@@ -63,9 +63,9 @@ class HumanFlowDiagnostics:
             "force_hand_total", "hand_size_total", "no_playable_force_decisions",
             "battles", "player_battles", "cards_drawn_total",
             "deck_seen_fraction_total", "completion_events_total",
-            "command_spent_total", "pass_events", "first_signal_events",
-            "early_first_signal_events", "signal_hand_total",
-            "signal_operations_total", "pre_draw_discards", "reshuffles",
+            "command_spent_total", "pass_events", "pass_primary_events",
+            "early_pass_primary_events", "pass_hand_total",
+            "pass_actions_total", "pre_draw_discards", "reshuffles",
             "reshuffled_cards_total", "reshuffle_hand_cards_total",
         ):
             setattr(self, name, getattr(self, name) + getattr(other, name))
@@ -156,13 +156,13 @@ class HumanFlowDiagnostics:
         ):
             actions_before = state.operations_this_battle[actor]
             self.pass_events += 1
-            self.signal_hand_total += len(state.players[actor].hand)
-            self.signal_operations_total += actions_before
+            self.pass_hand_total += len(state.players[actor].hand)
+            self.pass_actions_total += actions_before
             # Compatibility counters: every recorded Pass is the sole Battle
             # Pass under the playtest rules.
-            self.first_signal_events += 1
+            self.pass_primary_events += 1
             if actions_before <= 1:
-                self.early_first_signal_events += 1
+                self.early_pass_primary_events += 1
 
     def after_action(
         self,
@@ -283,27 +283,27 @@ class HumanFlowDiagnostics:
             ),
             "pass_events": self.pass_events,
             "mean_hand_size_at_pass": self._ratio(
-                self.signal_hand_total,
+                self.pass_hand_total,
                 self.pass_events,
             ),
             "mean_actions_before_pass": self._ratio(
-                self.signal_operations_total,
+                self.pass_actions_total,
                 self.pass_events,
             ),
             # Compatibility aliases for historical signal-era artifacts.
             "signal_events": self.pass_events,
-            "first_signal_events": self.first_signal_events,
-            "early_first_signal_events": self.early_first_signal_events,
+            "first_signal_events": self.pass_primary_events,
+            "early_pass_primary_events": self.early_pass_primary_events,
             "early_first_signal_rate": self._ratio(
-                self.early_first_signal_events,
-                self.first_signal_events,
+                self.early_pass_primary_events,
+                self.pass_primary_events,
             ),
             "mean_hand_size_at_signal": self._ratio(
-                self.signal_hand_total,
+                self.pass_hand_total,
                 self.pass_events,
             ),
             "mean_operations_before_signal": self._ratio(
-                self.signal_operations_total,
+                self.pass_actions_total,
                 self.pass_events,
             ),
             "pre_draw_discards": self.pre_draw_discards,
