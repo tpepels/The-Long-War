@@ -397,7 +397,6 @@ def test_native_compile_time_protocol_is_generated() -> None:
         "DIRECTION_COUNT",
         "NARRATIVE_SLOTS_PER_PLAYER",
         "RANK_FRONT",
-        "RANK_MIDDLE",
         "RANK_REAR",
         "DIRECTION_NONE",
         "DIRECTION_LEFT",
