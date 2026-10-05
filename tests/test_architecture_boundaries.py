@@ -300,6 +300,8 @@ def test_browser_parity_replay_helper_needs_only_browser_runtime() -> None:
         "pending_draw_finish_operation",
         "free_maneuver_available",
         "free_maneuver_source",
+        "constraints",
+        "expires_end_of_activated_turn",
     ):
         assert f'"{field}"' in source
     assert '"revealed": stratagem.revealed' in source
