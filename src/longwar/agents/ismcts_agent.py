@@ -144,6 +144,11 @@ class ISMCTSAgent:
         self.leaf_scale = leaf_scale
         self.heuristic_weights = heuristic_weights or DEFAULT_HEURISTIC_WEIGHTS
         self.fast_engine = FastEngine(engine)
+        self.public_evaluator = NativeHeuristicEvaluator(
+            self.fast_engine,
+            self.heuristic_weights,
+            sampled_opponent_resources=False,
+        )
         self.evaluator = NativeHeuristicEvaluator(
             self.fast_engine,
             self.heuristic_weights,
@@ -253,8 +258,10 @@ class ISMCTSAgent:
             return legal[0]
 
         guard_state = self.fast_engine.from_game_state(state)
-        guard_codes, guarded = self.evaluator.command_preserving_action_codes(
-            guard_state
+        guard_codes, guarded = (
+            self.public_evaluator.command_preserving_action_codes(
+                guard_state
+            )
         )
         guarded_code_set = set(guard_codes)
         guarded_keys = {
