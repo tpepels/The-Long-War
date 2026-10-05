@@ -172,7 +172,7 @@ cdef inline int _fe_resolution_front_strength_fast(
         slot = player * POSITIONS_PER_PLAYER + local
         if state.force[slot] < 0:
             continue
-        if state.resolution_suppressed_mask & (<uint16_t>1 << slot):
+        if state.resolution_suppressed_mask & (<uint32_t>1 << slot):
             continue
         physical_front = local // RANK_COUNT
         rank = local % RANK_COUNT
@@ -207,7 +207,7 @@ cdef inline int _fe_resolution_front_strength_fast(
                     state.force[slot] >= 0
                     and not (
                         state.resolution_suppressed_mask
-                        & (<uint16_t>1 << slot)
+                        & (<uint32_t>1 << slot)
                     )
                 ):
                     formation_bonus += 1
