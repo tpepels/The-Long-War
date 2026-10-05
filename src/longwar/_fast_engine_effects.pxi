@@ -92,65 +92,18 @@ cdef void _fe_compact_ongoing_narratives(
         if read_slot != write_slot:
             dst = player * NARRATIVE_SLOTS_PER_PLAYER + write_slot
             state.narrative[dst] = state.narrative[src]
-            state.narrative_revealed[dst] = state.narrative_revealed[src]
             state.narrative_front_mask[dst] = state.narrative_front_mask[src]
             state.narrative_target_slot[dst] = state.narrative_target_slot[src]
             state.narrative_used[dst] = state.narrative_used[src]
             state.narrative_direction[dst] = state.narrative_direction[src]
             state.narrative_trigger_mask[dst] = state.narrative_trigger_mask[src]
             state.narrative[src] = -1
-            state.narrative_revealed[src] = 0
             state.narrative_front_mask[src] = 0
             state.narrative_target_slot[src] = -1
             state.narrative_used[src] = 0
             state.narrative_direction[src] = DIRECTION_NONE
             state.narrative_trigger_mask[src] = 0
         write_slot += 1
-
-cdef void _fe_reveal_ongoing_narrative(FastEngine self, FastState state, int controller, int narrative_slot, int front, int actor, int trigger_slot=-1):
-    cdef int ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
-    cdef int card = state.narrative[ix]
-    cdef int effect, amount, target
-    if card < 0:
-        return
-    state.narrative_revealed[ix] = 1
-    effect = self.ongoing_reveal_effect[card]
-    amount = self.ongoing_reveal_amount[card]
-    if effect == ONGOING_EFFECT_PENALIZE_FORCE and trigger_slot >= 0 and state.force[trigger_slot] >= 0:
-        state.temporary[trigger_slot] -= amount
-    elif effect == ONGOING_EFFECT_DISCARD_BOND and trigger_slot >= 0 and state.bond[trigger_slot] >= 0:
-        _fe_remove_bond(self, state, actor, trigger_slot)
-    elif effect == ONGOING_EFFECT_REINFORCE:
-        target = _fe_preferred_slot(self, state, controller, front)
-        if target >= 0:
-            state.temporary[target] += amount
-    state.narrative[ix] = -1
-    state.narrative_revealed[ix] = 0
-    state.narrative_front_mask[ix] = 0
-    state.narrative_target_slot[ix] = -1
-    _fe_compact_ongoing_narratives(self, state, controller)
-    _fe_append_discard(self, state, controller, card, True)
-
-cdef void _fe_resolve_ongoing_narrative_event(FastEngine self, FastState state, int actor, int event, int front, int trigger_slot=-1):
-    cdef int controller, narrative_slot, ix, card
-    for controller in (actor, other_player(actor)):
-        # Revealing removes and compacts the Narrative array. Descending
-        # storage order prevents a shifted matching Narrative from being
-        # skipped.
-        for narrative_slot in range(self.ongoing_narrative_limit - 1, -1, -1):
-            ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
-            card = state.narrative[ix]
-            if card < 0:
-                continue
-            if not (state.narrative_front_mask[ix] & (1 << front)):
-                continue
-            if self.ongoing_reveal_trigger[card] != event or actor == controller:
-                continue
-            if self.ongoing_reveal_requires_force[card] and not _fe_front_has_force(self, state, controller, front):
-                continue
-            _fe_reveal_ongoing_narrative(
-                self, state, controller, narrative_slot, front, actor, trigger_slot
-            )
 
 cdef bint _fe_strat_trigger_matches(FastEngine self, FastState state, int controller, int card, int event, int actor, int played_card=-1, int pos=-1) noexcept:
     cdef int role, rank, scope
@@ -286,7 +239,6 @@ cdef void _fe_discard_ongoing_narrative(
     if card < 0:
         return
     state.narrative[ix] = -1
-    state.narrative_revealed[ix] = 0
     state.narrative_front_mask[ix] = 0
     state.narrative_target_slot[ix] = -1
     state.narrative_used[ix] = 0
