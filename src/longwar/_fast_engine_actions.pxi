@@ -25,7 +25,11 @@ cdef inline bint _fe_card_move_destination_legal(
     cdef int bond = state.bond[source]
     if force < 0 or self.immobile_force[force]:
         return False
+    if not front_is_active(state.battle, front_from_slot(source)):
+        return False
     if owner_from_slot(dest) != owner:
+        return False
+    if not front_is_active(state.battle, front_from_slot(dest)):
         return False
     if (
         controller != owner
@@ -116,6 +120,8 @@ cdef inline bint _fe_maneuver_source_legal(
     int slot,
 ) noexcept:
     cdef int force, bond, strat
+    if not front_is_active(state.battle, front_from_slot(slot)):
+        return False
     force = state.force[slot]
     if force < 0 or self.immobile_force[force]:
         return False
@@ -141,7 +147,10 @@ cdef inline bint _fe_maneuver_destination_legal(
     FastState state,
     int slot,
 ) noexcept:
-    cdef int force = state.force[slot]
+    cdef int force
+    if not front_is_active(state.battle, front_from_slot(slot)):
+        return False
+    force = state.force[slot]
     if force >= 0:
         return (
             not self.immobile_force[force]
