@@ -686,7 +686,8 @@ function renderCommandExperiment(lab) {
       + Number(deck.progression?.low_command_stalls?.unequal_collapse_terminations || 0)
     );
     const noPaidOperations = sum(deckProfiles, (deck) =>
-      deck.progression?.low_command_stalls?.battles_with_no_paid_operation
+      deck.progression?.low_command_stalls?.battles_with_no_paid_action
+        ?? deck.progression?.low_command_stalls?.battles_with_no_paid_operation
     );
     const stallDiagnosticBattles = sum(deckProfiles, (deck) =>
       deck.progression?.low_command_stalls?.diagnostic_battles
@@ -849,7 +850,7 @@ function renderCommandExperiment(lab) {
             <td>${row.censored ? "yes" : "no"}</td>
             <td>${row.first_low_command_battle ?? "—"}</td>
             <td>${row.both_at_collapse_point_battle_starts ?? 0}</td>
-            <td>${row.battles_with_no_paid_operation ?? 0}</td>
+            <td>${row.battles_with_no_paid_action ?? row.battles_with_no_paid_operation ?? 0}</td>
             <td>${row.battles_with_no_board_change ?? 0}</td>
           </tr>
         `).join("")}</tbody>
@@ -1297,7 +1298,7 @@ function renderProgression(lab) {
               <td>${row.first_low_command_battle ?? "—"}</td>
               <td>${row.diagnostic_battles ?? 0}</td>
               <td>${row.both_at_collapse_point_battle_starts ?? 0}</td>
-              <td>${row.battles_with_no_paid_operation ?? 0}</td>
+              <td>${row.battles_with_no_paid_action ?? row.battles_with_no_paid_operation ?? 0}</td>
               <td>${row.battles_with_no_board_change ?? 0}</td>
               <td>${row.battles_with_no_strength_change ?? 0}</td>
             </tr>
