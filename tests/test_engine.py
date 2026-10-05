@@ -288,10 +288,16 @@ def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     state.slot(0, middle).force = None
     state.slot(0, rear).force = None
     assert engine.position_strength(state, 0, frontline) == 4
-    state.slot(0, middle).force = "the-white-hands-of-elara"
-    # Middle is directly behind Frontline. Red Shields gets +1 for that Force,
-    # while White Hands separately supports the Force directly ahead by +2.
-    assert engine.position_strength(state, 0, frontline) == 7
+
+    state.slot(0, middle).force = "the-fifty-men"
+    # Middle is directly behind Frontline, so Red Shields gets +1.
+    assert engine.position_strength(state, 0, frontline) == 5
+
+    state.slot(0, rear).force = "the-white-hands-of-elara"
+    # White Hands is Rear-only. From Rear it supports the Middle/Support Force
+    # directly in front of it, not the Frontline two ranks away.
+    assert engine.position_strength(state, 0, middle) == 6
+    assert engine.position_strength(state, 0, frontline) == 5
 
     state.slot(0, rear).force = "the-crow-archers"
     # Middle is directly ahead of Rear.
