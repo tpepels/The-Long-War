@@ -394,7 +394,7 @@ def test_force_recovery_uses_one_precomposed_shell() -> None:
     assert css.count("CANONICAL FORCE FACE — precomposed generated raster shell") == 1
     assert 'background:url("art/v2/ui/chronicle-force-shell-v2.webp")' in canonical
     assert (ROOT / "web" / "art" / "v2" / "ui" / "chronicle-force-shell-v2.webp").is_file()
-    assert 'background:url("art/v2/ui/chronicle-command-seal.jpg")' in canonical
+    assert 'background:url("art/v2/ui/chronicle-command-seal.jpg")' not in canonical
     assert "chronicle-top-strip.webp" not in canonical
     assert "chronicle-art-window.webp" not in canonical
     assert "chronicle-command-corner.webp" not in canonical
@@ -410,3 +410,16 @@ def test_force_recovery_keeps_live_layers_unboxed() -> None:
     assert "background:transparent" in canonical
     assert "rgba(239,222,185" not in canonical
     assert "--force-strip-h:10.5mm" in canonical
+
+
+def test_force_shell_owns_command_mount_and_text_avoids_printed_rails() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
+    assert "top:53.15mm" in canonical
+    assert "top:15.55mm" in canonical
+    assert "right:4.1mm" in canonical
+    assert "bottom:4.55mm" in canonical
+    assert "width:10.2mm" in canonical
+    assert "height:10.2mm" in canonical
+    assert "background:none" in canonical
+    assert 'background:url("art/v2/ui/chronicle-command-seal.jpg")' not in canonical

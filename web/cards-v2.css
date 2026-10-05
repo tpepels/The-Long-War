@@ -160,7 +160,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   position:absolute;
   left:0;
   right:0;
-  top:53.6mm;
+  top:53.15mm;
   bottom:0;
   z-index:3;
   padding:0;
@@ -171,9 +171,9 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   position:absolute;
   left:8.2mm;
   right:8.2mm;
-  top:.7mm;
-  height:9.7mm;
-  min-height:9.7mm;
+  top:.25mm;
+  height:9.45mm;
+  min-height:9.45mm;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -200,7 +200,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   flex:none;
   height:3.05mm;
   min-height:3.05mm;
-  margin:.28mm 0 0;
+  margin:.12mm 0 0;
   display:flex;
   justify-content:center;
   gap:.58mm;
@@ -220,7 +220,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   position:absolute;
   left:8.5mm;
   right:8.5mm;
-  top:12.35mm;
+  top:15.55mm;
   bottom:8.7mm;
   min-height:0;
   padding:.25mm .25mm 0;
@@ -293,28 +293,30 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 .card-force.chronicle-force-face .footer-id{
   position:absolute;
   left:50%;
-  bottom:2.2mm;
+  bottom:2.75mm;
   transform:translateX(-50%);
   max-width:27mm;
   color:#5c5548;
   font:1mm/1 var(--utility);
   letter-spacing:.04em;
 }
+/* The master shell already contains the octagonal Command mount.
+   This element is only the live numeral alignment box. */
 .card-force.chronicle-force-face .cost-gem{
   position:absolute;
-  right:3.7mm;
-  bottom:3.45mm;
-  width:8.25mm;
-  height:8.25mm;
+  right:4.1mm;
+  bottom:4.55mm;
+  width:10.2mm;
+  height:10.2mm;
   display:grid;
   place-items:center;
-  background:url("art/v2/ui/chronicle-command-seal.jpg") center/100% 100% no-repeat;
+  background:none;
   filter:none;
 }
 .card-force.chronicle-force-face .cost-gem svg{display:none}
 .card-force.chronicle-force-face .cost-gem b{
   position:relative;
   color:#f8e9c2;
-  font:600 4.75mm/1 var(--display);
+  font:600 4.9mm/1 var(--display);
   text-shadow:0 .16mm .2mm rgba(0,0,0,.62);
 }
