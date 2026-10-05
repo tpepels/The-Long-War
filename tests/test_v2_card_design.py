@@ -297,10 +297,16 @@ def test_exposed_row_preserves_classification_icons_before_reminder_width() -> N
 def test_canonical_force_artwork_geometry_is_identical() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    assert "--force-art-height:34mm" in css
-    assert ".card-force.chronicle-force-face .motif-field" in css
-    assert "height:var(--force-art-height)" in css
-    assert "background-position:50% 50%" in css
+    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
+    assert "--force-art-height:34mm" in canonical
+    assert "--force-art-x:8.1mm" in canonical
+    assert "--force-art-y:16.1mm" in canonical
+    assert "--force-art-w:51.8mm" in canonical
+    assert "height:var(--force-art-height)" in canonical
+    assert "background-position:50% 50%,50% 50%" in canonical
+    assert ".sparse .motif-field" in canonical
+    assert ".dense .motif-field" in canonical
+    assert ".very-dense .motif-field" in canonical
     assert "function forceArticle(" in js
     assert "chronicle-force-face" in js
     assert "if(card.type===\"force\") return forceArticle" in js
@@ -377,56 +383,30 @@ def test_force_face_keeps_top_strip_typographic_not_rebus_only() -> None:
 
 
 
-def test_force_face_uses_generated_raster_parts_only() -> None:
+
+
+
+
+
+def test_force_recovery_uses_one_precomposed_shell() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — generated raster-part composition", 1)[1]
-    for asset in (
-        "chronicle-force-shell-v2.webp",
-        "chronicle-top-strip.webp",
-        "chronicle-art-window.webp",
-        "chronicle-divider.webp",
-        "chronicle-command-corner.webp",
-        "chronicle-parchment.webp",
-    ):
-        assert asset in canonical
-        assert (ROOT / "web" / "art" / "v2" / "ui" / asset).is_file()
-    assert "chronicle-force-shell.jpg" not in canonical
-    assert 'url("art/v2/ui/chronicle-border.webp")' not in canonical
+    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
+    assert css.count("CANONICAL FORCE FACE — precomposed generated raster shell") == 1
+    assert 'background:url("art/v2/ui/chronicle-force-shell-v2.webp")' in canonical
+    assert (ROOT / "web" / "art" / "v2" / "ui" / "chronicle-force-shell-v2.webp").is_file()
+    assert 'background:url("art/v2/ui/chronicle-command-seal.jpg")' in canonical
+    assert "chronicle-top-strip.webp" not in canonical
+    assert "chronicle-art-window.webp" not in canonical
+    assert "chronicle-command-corner.webp" not in canonical
+    assert 'url("art/v2/ui/chronicle-divider.webp")' not in canonical
     assert "linear-gradient" not in canonical
 
 
-def test_force_face_has_one_canonical_composition_block() -> None:
+def test_force_recovery_keeps_live_layers_unboxed() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    assert css.count("CANONICAL FORCE FACE — generated raster-part composition") == 1
-    for retired_marker in (
-        "FORCE RASTER SHELL",
-        "FORCE ART WINDOW",
-        "FORCE SHELL/WINDOW RECOVERY",
-        "FORCE SHELL INTEGRATION PASS",
-        "FORCE SHELL GEOMETRY ALIGNMENT",
-        "FORCE FRAME FALLBACK",
-    ):
-        assert retired_marker not in css
-
-
-def test_force_face_locks_strip_and_art_geometry() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — generated raster-part composition", 1)[1]
-    assert "--force-strip-h:10.5mm" in canonical
-    assert "--force-art-x:7.15mm" in canonical
-    assert "--force-art-y:13.15mm" in canonical
-    assert "--force-art-w:53.7mm" in canonical
-    assert "--force-art-h:34.6mm" in canonical
-    assert "background-position:50% 50%,50% 50%" in canonical
-    assert ".sparse .motif-field" in canonical
-    assert ".dense .motif-field" in canonical
-    assert ".very-dense .motif-field" in canonical
-
-
-def test_force_face_has_no_live_panel_boxes() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — generated raster-part composition", 1)[1]
-    assert ".chronicle-rules{" in canonical
+    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
+    assert ".chronicle-divider," in canonical
     assert ".effect-block{" in canonical
     assert "background:transparent" in canonical
     assert "rgba(239,222,185" not in canonical
+    assert "--force-strip-h:10.5mm" in canonical
