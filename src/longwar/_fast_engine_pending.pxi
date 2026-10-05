@@ -329,7 +329,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     cdef bint cancelled, prepared_before, take_adjacent_open_bond_ready
 
     # A new Action starts a fresh Maneuver-resolution chain. Effect choices
-    # and mandatory discard-before-draw steps continue the current Action.
+    # and mandatory hand-limit cleanup steps continue the current Action.
     if kind != TYPE_EFFECT and kind != TYPE_DISCARD:
         memset(
             state.maneuvered_in_operation,
@@ -353,23 +353,22 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     if kind == TYPE_DISCARD:
         if not state.cleanup_pending:
-            raise ValueError("Discard is only legal before a mandatory draw")
+            raise ValueError("Discard is only legal for hand-limit cleanup")
         _fe_take_from_hand(self, state, actor, card, 0)
         _fe_append_discard(self, state, actor, card, False)
+        if state.hand_len[actor] > self.hand_limit:
+            return
         state.cleanup_pending = 0
         if state.pending_draw_count > 0:
-            state.pending_draw_count -= 1
-        _fe_draw_for_battle(self, state, actor, 1)
-        if state.pending_draw_count > 0:
-            _fe_queue_battle_draws(self, 
+            _fe_queue_battle_draws(
+                self,
                 state,
                 actor,
                 state.pending_draw_count,
             )
             if state.cleanup_pending:
                 return
-        if not state.cleanup_pending:
-            _fe_resume_pending_flow(self, state)
+        _fe_resume_pending_flow(self, state)
         return
 
     state.pending_resume = RESUME_FINISH_OPERATION
