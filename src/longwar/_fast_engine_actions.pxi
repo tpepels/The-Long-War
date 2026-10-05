@@ -545,8 +545,8 @@ cdef void _fe_enqueue_effect(
     int card=-1,
     int source=-1,
     int aux=-1,
-    uint16_t source_mask=0,
-    uint16_t dest_mask=0,
+    uint32_t source_mask=0,
+    uint32_t dest_mask=0,
     int flags=0,
     int command_source=-1,
 ) except *:
@@ -608,7 +608,7 @@ cdef int _fe_legal_pending_effect_actions(
 ) except -1:
     cdef int n = 0
     cdef int kind, player, source, dest, front, rank, card, i, j
-    cdef uint16_t source_mask, dest_mask
+    cdef uint32_t source_mask, dest_mask
     cdef uint8_t flags
     if state.pending_len == 0:
         return 0
