@@ -143,7 +143,7 @@ This file is a compact reference for the currently approved card designs.
 | 61 | **Before Sunset, the Ford Would Be Ours** | Prophecy | 2 | **Prophecy - Ongoing.** Choose a Front when you play this and place it beside that Front. At Battle end, if you win that Front, regain 2 Command and draw 1 card. Then discard this Prophecy. |
 | 62 | **They Lived to Tell It** | Saga | 1 | **Saga - Ongoing.** Place this beside one of your Named Formations when you play it. At Battle end, if that formation is still on the battlefield, regain 1 Command and draw 1 card. Then discard this Saga. |
 | 63 | **No Road Was Too Long** | Myth | 2 | **Myth - Ongoing.** The first time each Battle one of your formations Maneuvers into an empty position, regain 1 Command. You may then move an adjacent formation you control into the position it left. |
-| 64 | **The Muster Was False** | Conspiracy | 1 | **Conspiracy - Ongoing.** As soon as your opponent has a Force in both ranks of one Front, regain 1 Command. You may Maneuver one Named Formation you control for 0 Command. Then discard this Conspiracy. |
+| 64 | **The Muster Was False** | Conspiracy | 1 | **Conspiracy - Ongoing.** As soon as your opponent has a Force in both the Frontline and Rear of one Front, regain 1 Command. You may Maneuver one Named Formation you control for 0 Command. Then discard this Conspiracy. |
 
 
 
