@@ -116,6 +116,7 @@ class OperationConstraint:
     zero_cost: bool = False
     draw_after_satisfied: int = 0
     discard_source_narrative: bool = False
+    expires_end_of_activated_turn: bool = False
 
 
 @dataclass
@@ -362,6 +363,7 @@ class GameState:
                     zero_cost=item.zero_cost,
                     draw_after_satisfied=item.draw_after_satisfied,
                     discard_source_narrative=item.discard_source_narrative,
+                    expires_end_of_activated_turn=item.expires_end_of_activated_turn,
                 )
                 for item in self.constraints
             ],
