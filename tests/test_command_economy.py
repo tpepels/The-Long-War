@@ -130,6 +130,43 @@ def test_all_current_cards_have_positive_native_safe_command_costs() -> None:
 
 
 
+def test_ordinary_discount_defaults_to_minimum_cost_one() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    iven = next(card for card in data["cards"] if card["id"] == "iven")
+    iven["design_rules"].pop("minimum_cost")
+    engine = GameEngine(data)
+
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(
+            encoding="utf-8"
+        )
+    )["cards"]
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=26092702,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 3
+    front = Position(Front.FIRST, Rank.FRONT)
+    rear = Position(Front.FIRST, Rank.REAR)
+    GameScenario(state).formation(
+        0,
+        rear,
+        force="the-fifty-men",
+        bond="followed",
+        name="iven",
+    ).formation(
+        0,
+        front,
+        force="the-fifty-men",
+    ).commands(1, 5).hand(0, "followed")
+
+    action = PlayBond("followed", front)
+    assert engine.command_cost_for_action(state, action) == 1
+
+
 def test_catchup_zero_cost_cannot_stack_into_negative_command_cost() -> None:
     engine, state = standard_game()
     front = Position(Front.FIRST, Rank.FRONT)
