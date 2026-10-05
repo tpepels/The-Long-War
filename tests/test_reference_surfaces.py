@@ -42,6 +42,7 @@ def test_rulebook_uses_manual_columns_and_playtest_summary() -> None:
     assert "Battle I: middle 2" in playmat_source
     assert "Battle II: add left outer" in playmat_source
     assert "Battle III+: all 4" in playmat_source
+    assert playmat_source.count("Middle / Support") == 8
     assert f"take up to {standard.actions_per_turn} actions" in playmat
     assert "cycle (discard 2, draw 1)" in playmat
     assert "only when no legal action remains after your draw" in playmat
