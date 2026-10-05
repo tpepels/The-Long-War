@@ -4,7 +4,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from longwar.algorithms.alpha_beta import AlphaBetaSearch, SearchBudget
+from longwar.algorithms.alpha_beta import (
+    AlphaBetaSearch,
+    SearchBudget,
+    SearchLimit,
+)
 from longwar.game.model import Phase
 
 
@@ -100,6 +104,17 @@ class _TwoActionSearch(AlphaBetaSearch):
 class _TwoActionEvaluator:
     def _strategic_state_value(self, engine, state, player):
         return {"mid": -100.0, "leaf": 7.0}.get(state.name, 0.0)
+
+
+def test_search_budget_never_counts_rejected_node() -> None:
+    budget = SearchBudget(2)
+
+    budget.visit()
+    budget.visit()
+    with pytest.raises(SearchLimit):
+        budget.visit()
+
+    assert budget.nodes == 2
 
 
 def test_alpha_beta_depth_counts_completed_turns_not_raw_actions():
