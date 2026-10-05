@@ -1219,6 +1219,37 @@ def test_targeted_stratagem_play_choices_are_legal_actions() -> None:
     ) in legal
 
 
+@pytest.mark.parametrize(
+    "action",
+    [
+        PlayStratagem(
+            "there-was-no-road-back",
+            fronts=(Front.SECOND,),
+        ),
+        PlayStratagem(
+            "every-banner-turned-toward-them",
+            fronts=(Front.SECOND,),
+        ),
+        PlayStratagem(
+            "the-line-had-begun-to-move",
+            direction="right",
+        ),
+    ],
+)
+def test_stratagem_reveals_when_its_hidden_identity_would_constrain_opponent(
+    action: PlayStratagem,
+) -> None:
+    engine, state = setup_state(seed=47101)
+    state.players[0].hand = [action.card_id]
+    state.players[0].command = 20
+
+    assert action in engine.legal_actions(state)
+    engine.apply(state, action)
+
+    assert state.stratagems[0] is not None
+    assert state.stratagems[0].revealed is True
+
+
 def test_battle_turned_east_makes_only_chosen_direction_free() -> None:
     engine, state = setup_state(seed=4711)
     source = pos(1)
@@ -1228,14 +1259,16 @@ def test_battle_turned_east_makes_only_chosen_direction_free() -> None:
         direction="right",
     )
 
-    assert engine.command_cost_for_action(
-        state,
-        Maneuver(source, pos(2)),
-    ) == 0
+    chosen = Maneuver(source, pos(2))
+    assert engine.command_cost_for_action(state, chosen) == 0
     assert engine.command_cost_for_action(
         state,
         Maneuver(source, pos(0)),
     ) == 1
+
+    assert state.stratagems[0].revealed is False
+    engine.apply(state, chosen)
+    assert state.stratagems[0].revealed is True
 
 
 
