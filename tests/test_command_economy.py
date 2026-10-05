@@ -644,6 +644,23 @@ def test_spending_final_command_midbattle_remains_nonterminal() -> None:
 
 
 @pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"actions_per_turn": 0}, "actions_per_turn"),
+        ({"closing_turns_after_pass": 0}, "closing_turns_after_pass"),
+        ({"opening_hand_size": 10, "hand_limit": 9}, "hand_limit"),
+        ({"opening_hand_size": 2, "mulligan_max_cards": 3}, "mulligan_max_cards"),
+    ],
+)
+def test_invalid_turn_and_hand_rule_configurations_are_rejected(
+    changes: dict[str, int],
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        GameRules.standard().with_overrides(**changes)
+
+
+@pytest.mark.parametrize(
     "field",
     [
         "hero_force_play_limit_per_battle",
