@@ -31,9 +31,9 @@ class SearchBudget:
     nodes: int = 0
 
     def visit(self) -> None:
-        self.nodes += 1
-        if self.nodes > self.limit:
+        if self.nodes >= self.limit:
             raise SearchLimit
+        self.nodes += 1
 
 
 class AlphaBetaSearch:
