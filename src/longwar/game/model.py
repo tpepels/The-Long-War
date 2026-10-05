@@ -16,6 +16,7 @@ class Front(IntEnum):
 
 class Rank(str, Enum):
     FRONT = "front"
+    MIDDLE = "middle"
     REAR = "rear"
 
 
@@ -36,7 +37,7 @@ def other_player(player: int) -> int:
     return (player + 1) % PLAYER_COUNT
 
 
-RANK_INDEX = {Rank.FRONT: 0, Rank.REAR: 1}
+RANK_INDEX = {Rank.FRONT: 0, Rank.MIDDLE: 1, Rank.REAR: 2}
 FRONT_COUNT = len(Front)
 RANK_COUNT = len(Rank)
 POSITIONS_PER_PLAYER = FRONT_COUNT * RANK_COUNT
