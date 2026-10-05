@@ -37,8 +37,8 @@ class HumanFlowDiagnostics:
         self._current_deck_sizes = [1, 1]
 
         self.pass_events = 0
-        self.pass_primary_events = 0
-        self.early_pass_primary_events = 0
+        self.recorded_pass_events = 0
+        self.early_pass_events = 0
         self.pass_hand_total = 0
         self.pass_actions_total = 0
 
@@ -63,8 +63,8 @@ class HumanFlowDiagnostics:
             "force_hand_total", "hand_size_total", "no_playable_force_decisions",
             "battles", "player_battles", "cards_drawn_total",
             "deck_seen_fraction_total", "completion_events_total",
-            "command_spent_total", "pass_events", "pass_primary_events",
-            "early_pass_primary_events", "pass_hand_total",
+            "command_spent_total", "pass_events", "recorded_pass_events",
+            "early_pass_events", "pass_hand_total",
             "pass_actions_total", "pre_draw_discards", "reshuffles",
             "reshuffled_cards_total", "reshuffle_hand_cards_total",
         ):
@@ -160,9 +160,9 @@ class HumanFlowDiagnostics:
             self.pass_actions_total += actions_before
             # Compatibility counters: every recorded Pass is the sole Battle
             # Pass under the playtest rules.
-            self.pass_primary_events += 1
+            self.recorded_pass_events += 1
             if actions_before <= 1:
-                self.early_pass_primary_events += 1
+                self.early_pass_events += 1
 
     def after_action(
         self,
@@ -292,11 +292,11 @@ class HumanFlowDiagnostics:
             ),
             # Compatibility aliases for historical signal-era artifacts.
             "signal_events": self.pass_events,
-            "first_signal_events": self.pass_primary_events,
-            "early_pass_primary_events": self.early_pass_primary_events,
+            "first_signal_events": self.recorded_pass_events,
+            "early_first_signal_events": self.early_pass_events,
             "early_first_signal_rate": self._ratio(
-                self.early_pass_primary_events,
-                self.pass_primary_events,
+                self.early_pass_events,
+                self.recorded_pass_events,
             ),
             "mean_hand_size_at_signal": self._ratio(
                 self.pass_hand_total,
