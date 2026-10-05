@@ -497,9 +497,9 @@ cdef uint64_t _ismcts_rollout_action(
     if n == 1:
         return actions[0]
 
-    # Do not let random rollouts teach the tree that spending the final
-    # Command while the opponent remains positive is ordinary play. Inspect
-    # exact child states only for operations that can actually reach Collapse.
+    # Preserve every legal mid-Battle Command-spend line. The rollout
+    # safety filter is limited to actions that immediately finish the final
+    # closing turn and resolve the war as a loss.
     for i in range(n):
         if not evaluator.rollout_action_exhausts_command_fast(
             state,

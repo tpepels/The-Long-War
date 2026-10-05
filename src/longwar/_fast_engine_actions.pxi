@@ -300,6 +300,7 @@ cdef bint _fe_basic_maneuver_locks_allow(
         card = state.stratagem[controller]
         if (
             card >= 0
+            and state.stratagem_revealed[controller]
             and self.strat_no_maneuver_away[card]
             and state.stratagem_front_mask[controller] & (1 << front)
         ):
@@ -411,7 +412,11 @@ cdef bint _fe_maneuver_allowed_by_continuous(
 
     for controller in range(PLAYER_COUNT):
         card = state.stratagem[controller]
-        if card < 0 or not self.strat_first_maneuver_direction[card]:
+        if (
+            card < 0
+            or not state.stratagem_revealed[controller]
+            or not self.strat_first_maneuver_direction[card]
+        ):
             continue
         requested = state.stratagem_direction[controller]
         if requested == DIRECTION_LEFT:

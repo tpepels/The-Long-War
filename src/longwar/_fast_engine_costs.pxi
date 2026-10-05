@@ -116,6 +116,7 @@ cdef inline int _fe_command_cost_fast(
                 strat = state.stratagem[controller]
                 if (
                     strat >= 0
+                    and state.stratagem_revealed[controller]
                     and self.strat_first_maneuver_direction[strat]
                 ):
                     _fe_record_command_diag(

@@ -56,6 +56,54 @@ cdef class NativeHeuristicEvaluator:
             else 0
         )
 
+    cdef inline int mask_hidden_opponent_stratagem_fast(
+        self,
+        FastState state,
+        int player,
+    ) noexcept:
+        """Hide secret opponent mechanics from public-information evaluation."""
+        cdef int opponent = other_player(player)
+        cdef int card = state.stratagem[opponent]
+        if (
+            self.sampled_opponent_resources
+            or card < 0
+            or state.stratagem_revealed[opponent]
+        ):
+            return -1
+        state.stratagem[opponent] = -1
+        return card
+
+    cdef inline void restore_hidden_opponent_stratagem_fast(
+        self,
+        FastState state,
+        int player,
+        int card,
+    ) noexcept:
+        if card >= 0:
+            state.stratagem[other_player(player)] = card
+
+    cdef void copy_apply_for_evaluation_fast(
+        self,
+        FastState state,
+        int player,
+        uint64_t action,
+        FastState child,
+    ):
+        """Apply a hypothetical action without using an unknown enemy card."""
+        cdef int opponent = other_player(player)
+        cdef int hidden = -1
+        child.copy_from_fast(state)
+        hidden = self.mask_hidden_opponent_stratagem_fast(child, player)
+        _fe_apply_fast(self.engine, child, action)
+        if (
+            hidden >= 0
+            and child.phase == PHASE_BATTLE
+            and child.battle == state.battle
+            and child.stratagem[opponent] < 0
+        ):
+            child.stratagem[opponent] = hidden
+            child.stratagem_revealed[opponent] = 0
+
     cdef void projected_lost_masks_fast(
         self,
         FastState state,
@@ -136,13 +184,24 @@ cdef class NativeHeuristicEvaluator:
         cdef int own_after_loss=0, opponent_after_loss=0
         cdef int own_projected=0, opponent_projected=0
         cdef int current_delta=0, projected_delta=0
+        cdef int hidden_opponent_strat=-1
         cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
+        cdef double own_liability=0.0, opponent_liability=0.0
         cdef double score = 0.0
 
         if state.phase == PHASE_COMPLETE:
             if state.winner < 0:
                 return 0.0
             return self.weights[HW_TERMINAL_WIN_SCORE] if state.winner == player else -self.weights[HW_TERMINAL_WIN_SCORE]
+
+        # A public-information evaluator may know that an opposing face-down
+        # Stratagem exists and may know its public choices, but it may not use
+        # the secret identity to project Strength, Front outcomes, Command
+        # protection, or other card-specific effects. Belief-sampled search
+        # opts into the determinized identity explicitly.
+        hidden_opponent_strat = self.mask_hidden_opponent_stratagem_fast(
+            state, player
+        )
 
         self.projected_lost_masks_fast(
             state,
@@ -349,7 +408,12 @@ cdef class NativeHeuristicEvaluator:
 
         strat_delta = (
             (1 if state.stratagem[player] >= 0 else 0)
-            - (1 if state.stratagem[opponent] >= 0 else 0)
+            - (
+                1
+                if state.stratagem[opponent] >= 0
+                or hidden_opponent_strat >= 0
+                else 0
+            )
         )
         score += self.weights[HW_STRATAGEM_WEIGHT] * strat_delta
 
@@ -357,6 +421,9 @@ cdef class NativeHeuristicEvaluator:
         if self.sampled_opponent_resources:
             score -= self.immediate_completion_value_fast(state, opponent)
 
+        self.restore_hidden_opponent_stratagem_fast(
+            state, player, hidden_opponent_strat
+        )
         return score
 
     cdef int usable_force_hand_count_fast(
@@ -366,7 +433,7 @@ cdef class NativeHeuristicEvaluator:
     ) noexcept:
         """Count immediately allowance-usable Force cards in hand."""
         cdef int i, card, forces=0, heroes=0
-        cdef int remaining_force_uses = (
+        cdef int remaining_hero_uses = (
             self.remaining_hero_force_uses_fast(state, player)
         )
 
@@ -376,8 +443,8 @@ cdef class NativeHeuristicEvaluator:
                 heroes += state.hand[player][card]
             else:
                 forces += state.hand[player][card]
-        if heroes > remaining_force_uses:
-            heroes = remaining_force_uses
+        if heroes > remaining_hero_uses:
+            heroes = remaining_hero_uses
         return forces + heroes
 
     cdef int board_force_count_fast(
@@ -470,17 +537,16 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef bint needs_force=False, needs_bond=False, needs_name=False
-        cdef int local, slot, card, count, typ, hero_count=0
-        cdef int remaining_force_uses = self.remaining_hero_force_uses_fast(
-            state, player
+        cdef int local, slot, card, count, typ
+        cdef int hero_count=0, force_heroes=0, name_heroes=0, remaining_heroes=0
+        cdef int remaining_hero_force_uses = (
+            self.remaining_hero_force_uses_fast(state, player)
         )
-        cdef int remaining_name_uses = self.remaining_hero_name_uses_fast(
-            state, player
+        cdef int remaining_hero_name_uses = (
+            self.remaining_hero_name_uses_fast(state, player)
         )
-        cdef int use_force=0, use_name=0, remaining_heroes=0
         cdef double value=0.0
         cdef double force_value=0.0, name_value=0.0
-
         for local in range(POSITIONS_PER_PLAYER):
             slot = player * POSITIONS_PER_PLAYER + local
             if state.force[slot] < 0 and (
@@ -529,26 +595,29 @@ cdef class NativeHeuristicEvaluator:
             elif typ == CARD_STRATAGEM:
                 value += count * self.weights[HW_HAND_STRATAGEM]
 
-        # A physical Hero card can fill one mode once. Allocate the available
-        # Hero cards only across mode allowances that remain this Battle.
+        # Hero cards are dual-mode, but the two per-Battle allowances are
+        # independent. Allocate distinct physical Hero cards to the remaining
+        # Force/Name modes instead of pooling the allowances and then valuing an
+        # unavailable mode.
         remaining_heroes = hero_count
         if force_value >= name_value:
-            use_force = remaining_heroes
-            if use_force > remaining_force_uses:
-                use_force = remaining_force_uses
-            remaining_heroes -= use_force
-            use_name = remaining_heroes
-            if use_name > remaining_name_uses:
-                use_name = remaining_name_uses
+            force_heroes = min(
+                remaining_heroes, remaining_hero_force_uses
+            )
+            remaining_heroes -= force_heroes
+            name_heroes = min(
+                remaining_heroes, remaining_hero_name_uses
+            )
         else:
-            use_name = remaining_heroes
-            if use_name > remaining_name_uses:
-                use_name = remaining_name_uses
-            remaining_heroes -= use_name
-            use_force = remaining_heroes
-            if use_force > remaining_force_uses:
-                use_force = remaining_force_uses
-        value += use_force * force_value + use_name * name_value
+            name_heroes = min(
+                remaining_heroes, remaining_hero_name_uses
+            )
+            remaining_heroes -= name_heroes
+            force_heroes = min(
+                remaining_heroes, remaining_hero_force_uses
+            )
+        value += force_heroes * force_value
+        value += name_heroes * name_value
         return value
 
     cdef void strategic_resource_features_fast(
@@ -563,28 +632,32 @@ cdef class NativeHeuristicEvaluator:
         cdef int card, typ, hand_count, count, i
         cdef int forces=0, bonds=0, names=0, heroes=0
         cdef int discarded_forces=0, discarded_heroes=0
-        cdef int remaining_force_uses = self.remaining_hero_force_uses_fast(
-            state, player
-        )
-        cdef int remaining_name_uses = self.remaining_hero_name_uses_fast(
-            state, player
-        )
-        cdef int force_heroes, name_heroes, max_force_heroes, max_name_heroes
-        cdef int candidate, value, force_heroes_available, discarded_usable
+        cdef int remaining_force_uses, remaining_name_uses
+        cdef int force_heroes, name_heroes
+        cdef int max_force_heroes, max_name_heroes
+        cdef int candidate, value, immediate_force_heroes, discarded_usable
 
         future_sets[0] = 0
         force_availability[0] = 0.0
         affordable[0] = 0
+        remaining_force_uses = self.remaining_hero_force_uses_fast(
+            state, player
+        )
+        remaining_name_uses = self.remaining_hero_name_uses_fast(
+            state, player
+        )
 
         for card in range(self.engine.n_cards):
             hand_count = state.hand[player][card]
             count = hand_count + state.deck_counts[player][card]
-            typ = self.engine.card_type[card]
-
             if (
                 hand_count > 0
-                and self.engine.card_command_cost[card] <= state.command[player]
+                and self.engine.card_command_cost[card]
+                <= state.command[player]
             ):
+                # A Hero with both mode allowances exhausted is not an
+                # affordable playable resource this Battle merely because its
+                # printed Command cost is payable.
                 if (
                     not self.engine.hero[card]
                     or remaining_force_uses > 0
@@ -592,6 +665,7 @@ cdef class NativeHeuristicEvaluator:
                 ):
                     affordable[0] += hand_count
 
+            typ = self.engine.card_type[card]
             if typ == CARD_FORCE:
                 if self.engine.hero[card]:
                     heroes += count
@@ -602,18 +676,17 @@ cdef class NativeHeuristicEvaluator:
             elif typ == CARD_NAME:
                 names += count
 
-        max_force_heroes = heroes
-        if max_force_heroes > remaining_force_uses:
-            max_force_heroes = remaining_force_uses
+        max_force_heroes = min(heroes, remaining_force_uses)
+        max_name_heroes = min(heroes, remaining_name_uses)
 
-        # Hero Force and Name uses are separate allowances, but each physical
-        # Hero card can occupy only one mode. Explore the small legal split.
+        # Hero mode allowances are independent, but a physical Hero card can
+        # occupy only one future formation component. Explore the small legal
+        # allocation space explicitly.
         value = 0
         for force_heroes in range(max_force_heroes + 1):
-            max_name_heroes = heroes - force_heroes
-            if max_name_heroes > remaining_name_uses:
-                max_name_heroes = remaining_name_uses
             for name_heroes in range(max_name_heroes + 1):
+                if force_heroes + name_heroes > heroes:
+                    continue
                 candidate = forces + force_heroes
                 if bonds < candidate:
                     candidate = bonds
@@ -623,8 +696,8 @@ cdef class NativeHeuristicEvaluator:
                     value = candidate
         future_sets[0] = value
 
-        force_heroes_available = max_force_heroes
-        force_availability[0] = forces + force_heroes_available
+        immediate_force_heroes = min(heroes, remaining_force_uses)
+        force_availability[0] = forces + immediate_force_heroes
 
         for i in range(state.discard_len[player]):
             card = state.discard[player][i]
@@ -635,7 +708,7 @@ cdef class NativeHeuristicEvaluator:
             else:
                 discarded_forces += 1
 
-        discarded_usable = remaining_force_uses - force_heroes_available
+        discarded_usable = remaining_force_uses - immediate_force_heroes
         if discarded_usable < 0:
             discarded_usable = 0
         if discarded_heroes < discarded_usable:
@@ -771,11 +844,11 @@ cdef class NativeHeuristicEvaluator:
         int player,
         FastState child,
     ):
-        child.copy_from_fast(state)
-        _fe_apply_fast(
-            self.engine,
-            child,
+        self.copy_apply_for_evaluation_fast(
+            state,
+            player,
             encode_action(TYPE_PASS, -1, -1, -1, player),
+            child,
         )
 
         # Pass starts the fixed closing sequence rather than resolving the
@@ -809,8 +882,9 @@ cdef class NativeHeuristicEvaluator:
         FastState child,
     ):
         """True only when this exact action resolves the war as a loss."""
-        child.copy_from_fast(state)
-        _fe_apply_fast(self.engine, child, action)
+        self.copy_apply_for_evaluation_fast(
+            state, player, action, child
+        )
         return (
             child.phase == PHASE_COMPLETE
             and child.winner >= 0
@@ -824,52 +898,18 @@ cdef class NativeHeuristicEvaluator:
         uint64_t action,
         FastState child,
     ):
-        """Conservative low-Command guard used only by stochastic rollouts."""
-        cdef int opponent = other_player(player)
-        cdef int cost = _fe_command_cost_fast(self.engine, state, action)
-        cdef int margin = (
-            state.command[player] - self.engine.command_collapse_threshold
-        )
-
-        # A zero-cost EndTurn (or the second Action) can still finish the
-        # final closing turn and expose Battle-end Front losses / Collapse.
-        # Probe that boundary before applying the ordinary Command-spend fast
-        # path.
-        if self.action_needs_command_guard_probe_fast(state, player, action):
-            child.copy_from_fast(state)
-            _fe_apply_fast(self.engine, child, action)
-            return (
-                child.phase == PHASE_COMPLETE
-                and child.winner >= 0
-                and child.winner != player
-            )
-
-        # Away from the Battle boundary, only actions capable of consuming the
-        # remaining Command margin need an exact transition.
-        if cost <= 0 or cost < margin:
+        """Reject only an action that immediately resolves the war as a loss."""
+        if not self.action_needs_command_guard_probe_fast(
+            state, player, action
+        ):
             return False
-
-        child.copy_from_fast(state)
-        _fe_apply_fast(self.engine, child, action)
-
-        # Exact Battle-ending losses are always unsafe.
-        if (
+        self.copy_apply_for_evaluation_fast(
+            state, player, action, child
+        )
+        return (
             child.phase == PHASE_COMPLETE
             and child.winner >= 0
             and child.winner != player
-        ):
-            return True
-
-        # During an unfinished Battle, reaching the Collapse threshold is legal
-        # and remains searchable in the tree. Random rollouts, however, should
-        # not treat unilateral exhaustion as ordinary play when a preserving
-        # alternative exists. Exact application above respects immediate
-        # refunds/gains from the operation itself.
-        return (
-            child.phase == PHASE_BATTLE
-            and child.battle == state.battle
-            and child.command[player] <= self.engine.command_collapse_threshold
-            and child.command[opponent] > self.engine.command_collapse_threshold
         )
 
     cpdef tuple command_preserving_action_codes(self, FastState state):
@@ -996,8 +1036,9 @@ cdef class NativeHeuristicEvaluator:
             )
             return score
 
-        child.copy_from_fast(state)
-        _fe_apply_fast(self.engine, child, action)
+        self.copy_apply_for_evaluation_fast(
+            state, player, action, child
+        )
         score = self.evaluate_fast(child, player)
 
         if kind == TYPE_BOND:

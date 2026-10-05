@@ -309,7 +309,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 design.get(DesignField.DISCOUNT_AMOUNT, 0)
             )
             self.local_catchup_minimum_cost_name[code] = int(
-                design.get(DesignField.MINIMUM_COST, 0)
+                design.get(DesignField.MINIMUM_COST, 1)
             )
         name_design = design.get(DesignField.NAME) or {}
         if name_design.get(DesignField.COMMAND) == DesignToken.FIRST_CARD_IN_FRONT_EACH_BATTLE_DISCOUNT:
@@ -317,14 +317,14 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 name_design.get(DesignField.DISCOUNT_AMOUNT, 0)
             )
             self.first_front_card_battle_minimum_cost_name[code] = int(
-                name_design.get(DesignField.MINIMUM_COST, 0)
+                name_design.get(DesignField.MINIMUM_COST, 1)
             )
         if force_design.get(DesignField.NARRATIVE) == DesignToken.FIRST_NARRATIVE_EACH_BATTLE_DISCOUNT:
             self.first_narrative_battle_discount_force[code] = int(
                 force_design.get(DesignField.DISCOUNT_AMOUNT, 0)
             )
             self.first_narrative_battle_minimum_cost_force[code] = int(
-                force_design.get(DesignField.MINIMUM_COST, 0)
+                force_design.get(DesignField.MINIMUM_COST, 1)
             )
         name_design = design.get(DesignField.NAME) or {}
         self.immobile_force[code] = bool(
@@ -345,7 +345,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 design.get(DesignField.DISCOUNT_AMOUNT, 0)
             )
             self.frontline_force_minimum_cost[code] = int(
-                design.get(DesignField.MINIMUM_COST, 0)
+                design.get(DesignField.MINIMUM_COST, 1)
             )
             self.frontline_force_discount_requires_named[code] = 1
         if force_design.get(DesignField.COMMAND) == DesignToken.FRONTLINE_FORCE_DISCOUNT:
@@ -353,7 +353,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 force_design.get(DesignField.DISCOUNT_AMOUNT, 0)
             )
             self.frontline_force_minimum_cost[code] = int(
-                force_design.get(DesignField.MINIMUM_COST, 0)
+                force_design.get(DesignField.MINIMUM_COST, 1)
             )
         if force_design.get(DesignField.COMMAND) == DesignToken.PROTECT_LOST_FRONT_HERE:
             self.front_loss_protected_front[code] = 1

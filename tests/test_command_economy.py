@@ -130,6 +130,43 @@ def test_all_current_cards_have_positive_native_safe_command_costs() -> None:
 
 
 
+def test_ordinary_discount_defaults_to_minimum_cost_one() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    iven = next(card for card in data["cards"] if card["id"] == "iven")
+    iven["design_rules"].pop("minimum_cost")
+    engine = GameEngine(data)
+
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(
+            encoding="utf-8"
+        )
+    )["cards"]
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=26092702,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 3
+    front = Position(Front.FIRST, Rank.FRONT)
+    rear = Position(Front.FIRST, Rank.REAR)
+    GameScenario(state).formation(
+        0,
+        rear,
+        force="the-fifty-men",
+        bond="followed",
+        name="iven",
+    ).formation(
+        0,
+        front,
+        force="the-fifty-men",
+    ).commands(1, 5).hand(0, "followed")
+
+    action = PlayBond("followed", front)
+    assert engine.command_cost_for_action(state, action) == 1
+
+
 def test_catchup_zero_cost_cannot_stack_into_negative_command_cost() -> None:
     engine, state = standard_game()
     front = Position(Front.FIRST, Rank.FRONT)
@@ -368,7 +405,7 @@ def test_command_guard_keeps_zero_command_midbattle_actions() -> None:
     assert native_filtered == 0
 
 
-def test_rollout_guard_preserves_last_command_without_restricting_root() -> None:
+def test_rollout_guard_keeps_legal_zero_command_midbattle_actions() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         maneuver_command_cost=1,
@@ -399,8 +436,8 @@ def test_rollout_guard_preserves_last_command_without_restricting_root() -> None
 
     assert maneuver in root_safe
     assert root_filtered == 0
-    assert maneuver not in rollout_safe
-    assert rollout_filtered >= 1
+    assert maneuver in rollout_safe
+    assert rollout_filtered == 0
 
 
 def test_projected_lost_masks_use_tie_control_resolution_rule() -> None:
@@ -607,6 +644,35 @@ def test_spending_final_command_midbattle_remains_nonterminal() -> None:
 
 
 @pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"actions_per_turn": 0}, "actions_per_turn"),
+        ({"closing_turns_after_pass": 0}, "closing_turns_after_pass"),
+        ({"opening_hand_size": 10, "hand_limit": 9}, "hand_limit"),
+        ({"opening_hand_size": 2, "mulligan_max_cards": 3}, "mulligan_max_cards"),
+    ],
+)
+def test_invalid_turn_and_hand_rule_configurations_are_rejected(
+    changes: dict[str, int],
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        GameRules.standard().with_overrides(**changes)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "hero_force_play_limit_per_battle",
+        "hero_name_play_limit_per_battle",
+    ],
+)
+def test_hero_mode_allowance_cannot_exceed_native_bit_capacity(field: str) -> None:
+    with pytest.raises(ValueError):
+        GameRules.standard().with_overrides(**{field: 2})
+
+
+@pytest.mark.parametrize(
     ("field", "value"),
     [
         ("command_recovery_start", -1),
@@ -618,18 +684,6 @@ def test_negative_recovery_settings_are_invalid(field: str, value: int) -> None:
     with pytest.raises(ValueError):
         GameRules.standard().with_overrides(**{field: value})
 
-
-
-@pytest.mark.parametrize(
-    "field",
-    [
-        "hero_force_play_limit_per_battle",
-        "hero_name_play_limit_per_battle",
-    ],
-)
-def test_hero_mode_limits_reject_unrepresentable_values(field: str) -> None:
-    with pytest.raises(ValueError, match="native Hero"):
-        GameRules.standard().with_overrides(**{field: 2})
 
 
 def test_command_diagnostics_attribute_completion_gain_to_source_card() -> None:

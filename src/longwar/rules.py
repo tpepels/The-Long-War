@@ -56,6 +56,18 @@ class GameRules:
 
         if self.opening_hand_size < 1:
             raise ValueError("opening_hand_size must be positive")
+        if self.mulligan_max_cards > self.opening_hand_size:
+            raise ValueError(
+                "mulligan_max_cards cannot exceed opening_hand_size"
+            )
+        if self.hand_limit < self.opening_hand_size:
+            raise ValueError(
+                "hand_limit cannot be smaller than opening_hand_size"
+            )
+        if self.actions_per_turn < 1:
+            raise ValueError("actions_per_turn must be positive")
+        if self.closing_turns_after_pass < 1:
+            raise ValueError("closing_turns_after_pass must be positive")
         if self.starting_command > self.command_cap:
             raise ValueError("starting_command cannot exceed command_cap")
         if self.command_collapse_threshold > self.command_cap:
@@ -72,13 +84,13 @@ class GameRules:
             )
         if self.hero_force_play_limit_per_battle > 1:
             raise ValueError(
-                "hero_force_play_limit_per_battle exceeds native Hero "
-                "Force-mode capacity (1)"
+                "hero_force_play_limit_per_battle exceeds the supported "
+                "per-Battle Force-mode allowance (1)"
             )
         if self.hero_name_play_limit_per_battle > 1:
             raise ValueError(
-                "hero_name_play_limit_per_battle exceeds native Hero "
-                "Name-mode capacity (1)"
+                "hero_name_play_limit_per_battle exceeds the supported "
+                "per-Battle Name-mode allowance (1)"
             )
         if (
             self.stratagem_play_limit_per_battle

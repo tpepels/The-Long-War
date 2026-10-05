@@ -9,6 +9,7 @@ from longwar.agents.heuristic_agent import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Discard, EndTurn, Front, GameEngine, Pass, PlayBond, Position, Rank
+from longwar.game.model import StratagemState
 from longwar.native_engine import create_heuristic_evaluator
 from longwar.heuristics import StrategicEvaluator
 from longwar.rules import GameRules
@@ -172,6 +173,89 @@ def test_public_heuristic_value_does_not_use_opponent_hidden_hand_identities() -
     assert first == pytest.approx(second)
 
 
+def _hidden_stratagem_tie_state():
+    engine, state = engine_and_state()
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+
+    front = Front.FIRST
+    own = Position(front, Rank.FRONT)
+    enemy = Position(front, Rank.FRONT)
+    state.slot(0, own).force = "the-fifty-men"
+    state.slot(0, own).bond = "followed"
+    state.slot(0, own).name = "namar"
+    state.slot(1, enemy).force = "the-fifty-men"
+
+    delta = (
+        engine.front_strength(state, 0, front)
+        - engine.front_strength(state, 1, front)
+    )
+    state.slot(1, enemy).temporary_strength += delta
+    assert engine.front_strength(state, 0, front) == engine.front_strength(
+        state, 1, front
+    )
+    return engine, state
+
+
+def test_public_heuristic_does_not_use_hidden_opponent_stratagem_identity() -> None:
+    engine, state = _hidden_stratagem_tie_state()
+    evaluator = engine._native_heuristic()
+    fast = engine._native_core()
+
+    ground = state.clone()
+    ground.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        revealed=False,
+    )
+    lines = state.clone()
+    lines.stratagems[1] = StratagemState(
+        "the-lines-held",
+        revealed=False,
+    )
+
+    public_ground = evaluator.evaluate(fast.from_game_state(ground), 0)
+    public_lines = evaluator.evaluate(fast.from_game_state(lines), 0)
+    assert public_ground == pytest.approx(public_lines)
+
+    sampled = create_heuristic_evaluator(
+        fast,
+        sampled_opponent_resources=True,
+    )
+    sampled_ground = sampled.evaluate(fast.from_game_state(ground), 0)
+    sampled_lines = sampled.evaluate(fast.from_game_state(lines), 0)
+    assert sampled_ground != pytest.approx(sampled_lines)
+
+
+def test_public_action_score_does_not_resolve_hidden_stratagem_by_identity() -> None:
+    engine, state = _hidden_stratagem_tie_state()
+    state.active_player = 0
+    state.closing_turns_remaining = 1
+    state.pass_order = [0]
+    state.players[0].passed = True
+    evaluator = HeuristicAgent(seed=9, exploration=0.0).evaluator
+
+    ground = state.clone()
+    ground.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        revealed=False,
+    )
+    lines = state.clone()
+    lines.stratagems[1] = StratagemState(
+        "the-lines-held",
+        revealed=False,
+    )
+
+    assert engine.legal_actions(ground) == [EndTurn()]
+    assert engine.legal_actions(lines) == [EndTurn()]
+    assert evaluator._score_action(
+        engine, ground, 0, EndTurn()
+    ) == pytest.approx(
+        evaluator._score_action(engine, lines, 0, EndTurn())
+    )
+
+
 def test_heuristic_values_all_four_fronts_independently() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=3, exploration=0.0)
@@ -311,33 +395,30 @@ def test_heuristic_values_unused_hero_as_flexible_force_or_name_resource() -> No
 
     assert available > unavailable
 
-def test_heuristic_hero_value_respects_remaining_mode() -> None:
+def test_hero_hand_value_uses_only_the_remaining_mode_allowance() -> None:
     engine, state = engine_and_state()
-    hero = next(
-        card_id
-        for card_id, card in engine.cards.items()
-        if card.get("hero")
-    )
-    state.players[0].hand = [hero]
+    state.players[0].hand = ["kael-the-roadless"]
     state.players[1].hand = []
 
-    # This prepared position specifically needs a Force. A Hero with only its
-    # Name allowance left must not receive the Force-mode need bonus.
-    target = state.slot(0, Position(Front.SECOND, Rank.FRONT))
-    target.bond = "followed"
-    target.name = "namar"
+    # A prepared Name creates a Force need but no Name need.
+    slot = state.slot(0, Position(Front.SECOND, Rank.FRONT))
+    slot.name = "namar"
 
-    force_available = state.clone()
-    force_available.hero_used[0] = 2  # Name used; Force still available.
-    name_available = state.clone()
-    name_available.hero_used[0] = 1  # Force used; Name still available.
+    force_mode_left = state.clone()
+    force_mode_left.hero_used[0] = 2  # Name mode used; Force mode remains.
+    name_mode_left = state.clone()
+    name_mode_left.hero_used[0] = 1  # Force mode used; Name mode remains.
 
-    evaluator = HeuristicAgent(seed=2, exploration=0.0).evaluator
-    assert evaluator._hand_construction_value(
-        engine, force_available, 0
-    ) > evaluator._hand_construction_value(
-        engine, name_available, 0
+    native = engine._native_heuristic()
+    fast = engine._native_core()
+    force_value = native.hand_construction_value(
+        fast.from_game_state(force_mode_left), 0
     )
+    name_value = native.hand_construction_value(
+        fast.from_game_state(name_mode_left), 0
+    )
+
+    assert force_value > name_value
 
 
 def test_complete_named_formation_is_distinguished_from_force_plus_name() -> None:
@@ -499,7 +580,7 @@ def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -
 
 
 
-def test_heuristic_does_not_infer_fresh_battle_from_zero_action_counts() -> None:
+def test_zero_action_end_turn_does_not_create_false_fresh_battle_value() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=21, exploration=0.0)
 
@@ -512,13 +593,13 @@ def test_heuristic_does_not_infer_fresh_battle_from_zero_action_counts() -> None
     state.players[0].passed = False
     state.players[1].passed = False
 
-    # A player may EndTurn without taking an Action, so zero Battle Action
-    # counts do not prove this is the opening turn of the Battle.
     first = state.clone()
     first.active_player = 0
     second = state.clone()
     second.active_player = 1
 
+    # A player may voluntarily EndTurn after zero Actions. Therefore
+    # "nobody has taken an Action yet" is not a reliable fresh-Battle marker.
     assert agent.evaluate(engine, first, 0) == pytest.approx(
         agent.evaluate(engine, second, 0)
     )
