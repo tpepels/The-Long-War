@@ -9,7 +9,7 @@ from longwar.agents.online_mccfr_agent import OnlineMCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import EndTurn, Front, GameEngine, GameState, Position, Rank
 from longwar.game.model import PlayerState
-from longwar.mccfr import action_key
+from longwar.mccfr import action_key, search_information_set_id
 from longwar.online_mccfr import OnlineMCCFRResolver
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,6 +42,11 @@ def test_online_resolver_has_root_coverage_without_true_opponent_deck() -> None:
     assert set(result.strategy) == legal_keys
     assert sum(result.strategy.values()) == pytest.approx(1.0)
     assert result.belief_prior == "CardPoolDeckPrior"
+    assert result.root_information_set == search_information_set_id(
+        engine,
+        state,
+        state.active_player,
+    )
 
 
 def test_online_mccfr_agent_allows_legal_midbattle_zero_command_play() -> None:
