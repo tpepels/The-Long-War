@@ -2250,7 +2250,7 @@
         "positioning"
       ],
       "command_cost": 1,
-      "text": "**Conspiracy - Ongoing.** As soon as your opponent has a Force in both ranks of one Front, regain 1 Command. You may Maneuver one Named Formation you control for 0 Command. Then discard this Conspiracy.",
+      "text": "**Conspiracy - Ongoing.** As soon as your opponent has a Force in both the Frontline and Rear of one Front, regain 1 Command. You may Maneuver one Named Formation you control for 0 Command. Then discard this Conspiracy.",
       "balance": {
         "dynamic": true
       },
