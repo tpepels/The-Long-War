@@ -158,6 +158,18 @@ class GameEngine:
         """Return the configured base Command recovery for one Battle."""
         return int(self._native_core_instance.command_recovery_for_battle(battle))
 
+    def transition_completed_turn(
+        self,
+        before: GameState,
+        after: GameState,
+        action: Action,
+    ) -> bool:
+        """Return whether an applied transition completed one strategic turn."""
+        return isinstance(action, (Pass, EndTurn)) or (
+            after.turn_number != before.turn_number
+            and before.actions_this_turn + 1 >= self.rules.actions_per_turn
+        )
+
     def action_consumes_operation(
         self,
         state: GameState,
