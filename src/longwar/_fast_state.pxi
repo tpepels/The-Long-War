@@ -15,7 +15,6 @@ cdef class FastState:
     cdef uint8_t maneuvered_in_operation[SLOT_COUNT]
 
     cdef int8_t narrative[NARRATIVE_COUNT]
-    cdef uint8_t narrative_revealed[NARRATIVE_COUNT]
     cdef uint8_t narrative_front_mask[NARRATIVE_COUNT]
     cdef int8_t narrative_target_slot[NARRATIVE_COUNT]
     cdef uint8_t narrative_used[NARRATIVE_COUNT]
@@ -25,7 +24,7 @@ cdef class FastState:
     cdef uint8_t stratagem_revealed[PLAYER_COUNT]
     cdef uint8_t stratagem_front_mask[PLAYER_COUNT]
     cdef uint8_t stratagem_direction[PLAYER_COUNT]
-    cdef uint16_t stratagem_target_mask[PLAYER_COUNT]
+    cdef uint32_t stratagem_target_mask[PLAYER_COUNT]
     cdef uint8_t stratagem_used[PLAYER_COUNT]
     cdef uint8_t hero_used[PLAYER_COUNT]
     cdef uint16_t player_maneuver_count[PLAYER_COUNT]
@@ -93,8 +92,8 @@ cdef class FastState:
     cdef int8_t pending_command_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_aux[MAX_PENDING_EFFECTS]
-    cdef uint16_t pending_source_mask[MAX_PENDING_EFFECTS]
-    cdef uint16_t pending_dest_mask[MAX_PENDING_EFFECTS]
+    cdef uint32_t pending_source_mask[MAX_PENDING_EFFECTS]
+    cdef uint32_t pending_dest_mask[MAX_PENDING_EFFECTS]
     cdef uint8_t pending_flags[MAX_PENDING_EFFECTS]
     cdef uint8_t pending_len
     cdef uint8_t pending_resume
@@ -107,7 +106,7 @@ cdef class FastState:
     cdef uint8_t resolution_drive_mask[PLAYER_COUNT]
     cdef uint8_t resolution_protected_mask[PLAYER_COUNT]
     cdef int16_t resolution_front_loss_command_penalty[PLAYER_COUNT]
-    cdef uint16_t resolution_suppressed_mask
+    cdef uint32_t resolution_suppressed_mask
     cdef int8_t resolution_contribution_front[SLOT_COUNT]
     cdef uint8_t resolution_cursor
     cdef int8_t resolution_starter
@@ -134,7 +133,6 @@ cdef class FastState:
         memset(self.maneuver_count, 0, sizeof(self.maneuver_count))
         memset(self.maneuvered_in_operation, 0, sizeof(self.maneuvered_in_operation))
         memset(self.narrative, 0xff, sizeof(self.narrative))
-        memset(self.narrative_revealed, 0, sizeof(self.narrative_revealed))
         memset(self.narrative_front_mask, 0, sizeof(self.narrative_front_mask))
         memset(self.narrative_target_slot, 0xff, sizeof(self.narrative_target_slot))
         memset(self.narrative_used, 0, sizeof(self.narrative_used))
@@ -247,7 +245,6 @@ cdef class FastState:
         memcpy(self.maneuver_count, other.maneuver_count, sizeof(self.maneuver_count))
         memcpy(self.maneuvered_in_operation, other.maneuvered_in_operation, sizeof(self.maneuvered_in_operation))
         memcpy(self.narrative, other.narrative, sizeof(self.narrative))
-        memcpy(self.narrative_revealed, other.narrative_revealed, sizeof(self.narrative_revealed))
         memcpy(self.narrative_front_mask, other.narrative_front_mask, sizeof(self.narrative_front_mask))
         memcpy(self.narrative_target_slot, other.narrative_target_slot, sizeof(self.narrative_target_slot))
         memcpy(self.narrative_used, other.narrative_used, sizeof(self.narrative_used))

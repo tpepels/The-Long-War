@@ -7,8 +7,9 @@ from pathlib import Path
 import pytest
 
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine
+from longwar.game import Front, GameEngine, Position, Rank
 from longwar.game.actions import action_key
+from longwar.game.model import StratagemState
 
 
 fast_search = pytest.importorskip("longwar._fast_search")
@@ -253,3 +254,38 @@ def test_native_state_hash_distinguishes_draw_order() -> None:
     changed_packed = native.from_game_state(changed)
 
     assert native.state_hash(changed_packed) != baseline
+
+
+def test_native_stratagem_target_mask_preserves_high_player_two_slot() -> None:
+    engine, deck, native = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9910,
+        first_player=0,
+        opening_bonus=False,
+    )
+    target = Position(Front.FOURTH, Rank.REAR)
+    state.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        targets=((1, target),),
+        revealed=False,
+    )
+
+    packed = native.from_game_state(state)
+    exported = native.export_state(packed)
+    target_slot = 1 * (len(Front) * len(Rank)) + int(Front.FOURTH) * len(Rank) + 2
+
+    assert target_slot == 23
+    assert exported["stratagems"][1]["target_mask"] == 1 << target_slot
+    assert native.state_hash(packed) != native.state_hash(
+        native.from_game_state(
+            engine.new_game(
+                deck,
+                deck,
+                seed=9910,
+                first_player=0,
+                opening_bonus=False,
+            )
+        )
+    )

@@ -1,4 +1,4 @@
-cdef uint16_t _fe_asha_mask_for_suppression(
+cdef uint32_t _fe_asha_mask_for_suppression(
     FastEngine self,
     FastState state,
     int defender,
@@ -6,14 +6,14 @@ cdef uint16_t _fe_asha_mask_for_suppression(
     int original_target,
 ) noexcept:
     cdef int rank, slot, name
-    cdef uint16_t mask = 0
+    cdef uint32_t mask = 0
     for rank in range(RANK_COUNT):
         slot = slot_index(defender, front, rank)
         if slot == original_target or not _fe_slot_complete(self, state, slot):
             continue
         name = state.name[slot]
         if name >= 0 and self.intercept_name[name]:
-            mask |= <uint16_t>(1 << slot)
+            mask |= <uint32_t>(1 << slot)
     return mask
 
 cdef void _fe_suppress_with_interception(
@@ -24,7 +24,7 @@ cdef void _fe_suppress_with_interception(
 ) except *:
     cdef int defender = owner_from_slot(target)
     cdef int front = front_from_slot(target)
-    cdef uint16_t interceptors = _fe_asha_mask_for_suppression(self, 
+    cdef uint32_t interceptors = _fe_asha_mask_for_suppression(self, 
         state, defender, front, target
     )
     if interceptors:
@@ -40,7 +40,7 @@ cdef void _fe_suppress_with_interception(
             EFFECT_OPTIONAL,
         )
     else:
-        state.resolution_suppressed_mask |= <uint16_t>(1 << target)
+        state.resolution_suppressed_mask |= <uint32_t>(1 << target)
 
 cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t action) except *:
     cdef int kind = state.pending_kind[0]
@@ -106,9 +106,9 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     elif kind == EFFECT_INTERCEPT:
         if skip:
             if aux >= 0:
-                state.resolution_suppressed_mask |= <uint16_t>(1 << aux)
+                state.resolution_suppressed_mask |= <uint32_t>(1 << aux)
         elif source >= 0:
-            state.resolution_suppressed_mask |= <uint16_t>(1 << source)
+            state.resolution_suppressed_mask |= <uint32_t>(1 << source)
     elif kind == EFFECT_RETREAT:
         if not skip and source >= 0 and dest >= 0:
             _fe_retreat_slot(self, state, player, source, dest)
@@ -155,21 +155,21 @@ cdef void _fe_queue_take_adjacent_prepared_component_on_force_play(
     cdef int front = front_from_slot(destination)
     cdef int rank = rank_from_slot(destination)
     cdef int source
-    cdef uint16_t sources = 0
+    cdef uint32_t sources = 0
     if front > 0:
         source = slot_index(player, front - 1, rank)
         if state.force[source] < 0 and (
             (state.bond[source] >= 0 and state.bond[destination] < 0)
             or (state.name[source] >= 0 and state.name[destination] < 0)
         ):
-            sources |= <uint16_t>(1 << source)
+            sources |= <uint32_t>(1 << source)
     if front < FRONT_COUNT - 1:
         source = slot_index(player, front + 1, rank)
         if state.force[source] < 0 and (
             (state.bond[source] >= 0 and state.bond[destination] < 0)
             or (state.name[source] >= 0 and state.name[destination] < 0)
         ):
-            sources |= <uint16_t>(1 << source)
+            sources |= <uint32_t>(1 << source)
     if sources:
         _fe_enqueue_effect(self, 
             state,
@@ -192,7 +192,7 @@ cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
     cdef int front = front_from_slot(destination)
     cdef int rank = rank_from_slot(destination)
     cdef int source
-    cdef uint16_t sources = 0
+    cdef uint32_t sources = 0
     if state.force[destination] < 0 or state.bond[destination] >= 0:
         return
     if front > 0:
@@ -202,7 +202,7 @@ cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
             and state.bond[source] >= 0
             and state.name[source] < 0
         ):
-            sources |= <uint16_t>(1 << source)
+            sources |= <uint32_t>(1 << source)
     if front < FRONT_COUNT - 1:
         source = slot_index(player, front + 1, rank)
         if (
@@ -210,7 +210,7 @@ cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
             and state.bond[source] >= 0
             and state.name[source] < 0
         ):
-            sources |= <uint16_t>(1 << source)
+            sources |= <uint32_t>(1 << source)
     if sources:
         _fe_enqueue_effect(self, 
             state,
@@ -456,7 +456,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.force[pos] = card
         if (self.card_capabilities[card] & CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE) and prepared_before:
             _fe_queue_free_maneuver(
-                self, state, actor, <uint16_t>(1 << pos),
+                self, state, actor, <uint32_t>(1 << pos),
                 True, True, card
             )
         if (self.card_capabilities[card] & CAP_ON_PLAY_TAKE_ADJACENT_PREPARED_COMPONENT_FORCE):
@@ -561,7 +561,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.stratagem_direction[actor] = (
             <uint8_t>(dest + 1) if dest >= 0 else 0
         )
-        state.stratagem_target_mask[actor] = <uint16_t>(extra & 0xFFFF)
+        state.stratagem_target_mask[actor] = <uint32_t>extra
         state.stratagem_used[actor] += 1
 
         if self.strat_next_operation_front[card] and pos >= 0:

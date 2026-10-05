@@ -146,3 +146,21 @@ def test_longwar_action_keys_are_unique_across_live_states() -> None:
             engine.apply(state, rng.choice(actions), validate=False)
 
     assert checked >= 80
+
+
+@pytest.mark.skipif(not ACCELERATED, reason="native extension not built")
+def test_fast_information_decoder_preserves_middle_rank() -> None:
+    import longwar._fast_search as fast_search
+
+    engine, state = make_engine_and_state()
+    middle = Position(Front.SECOND, Rank.MIDDLE)
+    slot = state.slot(0, middle)
+    slot.force = "the-fifty-men"
+    slot.bond = "followed"
+    slot.name = "namar"
+
+    fast = fast_search.FastEngine(engine)
+    key = fast.information_key(fast.from_game_state(state), 0)
+    stable = fast_search.stable_information_id_from_fast_key(fast, key)
+
+    assert stable == information_set_id(state, 0)

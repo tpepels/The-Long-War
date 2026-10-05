@@ -53,14 +53,29 @@ cdef inline bint _fe_player_has_empty_front(
     FastState state,
     int player,
 ) noexcept:
-    cdef int front
+    cdef int front, rank
+    cdef bint occupied
     for front in range(FRONT_COUNT):
         if not front_is_active(state.battle, front):
             continue
-        if (
-            state.force[slot_index(player, front, RANK_FRONT)] < 0
-            and state.force[slot_index(player, front, RANK_REAR)] < 0
-        ):
+        occupied = False
+        for rank in range(RANK_COUNT):
+            if state.force[slot_index(player, front, rank)] >= 0:
+                occupied = True
+                break
+        if not occupied:
+            return True
+    return False
+
+cdef inline bint _fe_front_has_named_formation(
+    FastEngine self,
+    FastState state,
+    int player,
+    int front,
+) noexcept:
+    cdef int rank
+    for rank in range(RANK_COUNT):
+        if _fe_slot_complete(self, state, slot_index(player, front, rank)):
             return True
     return False
 
@@ -530,8 +545,8 @@ cdef void _fe_enqueue_effect(
     int card=-1,
     int source=-1,
     int aux=-1,
-    uint16_t source_mask=0,
-    uint16_t dest_mask=0,
+    uint32_t source_mask=0,
+    uint32_t dest_mask=0,
     int flags=0,
     int command_source=-1,
 ) except *:
@@ -593,7 +608,7 @@ cdef int _fe_legal_pending_effect_actions(
 ) except -1:
     cdef int n = 0
     cdef int kind, player, source, dest, front, rank, card, i, j
-    cdef uint16_t source_mask, dest_mask
+    cdef uint32_t source_mask, dest_mask
     cdef uint8_t flags
     if state.pending_len == 0:
         return 0
@@ -1021,13 +1036,8 @@ cdef int _fe_legal_actions_into(
                         for front in range(FRONT_COUNT):
                             if (
                                 self.narrative_front_requires_named[card]
-                                and not (
-                                    _fe_slot_complete(
-                                        self, state, slot_index(player, front, RANK_FRONT)
-                                    )
-                                    or _fe_slot_complete(
-                                        self, state, slot_index(player, front, RANK_REAR)
-                                    )
+                                and not _fe_front_has_named_formation(
+                                    self, state, player, front
                                 )
                             ):
                                 continue
