@@ -13,13 +13,13 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
 
     for p in range(PLAYER_COUNT):
-        _info_hash_feed(&h, state.deck_len[p])
+        _info_hash_feed_u16(&h, state.deck_len[p])
         for i in range(state.deck_len[p]):
             _info_hash_feed(&h, <uint8_t>(state.deck[p][i] + 1))
         for card in range(self.n_cards):
             _info_hash_feed(&h, state.hand[p][card])
         _info_hash_feed(&h, state.hand_len[p])
-        _info_hash_feed(&h, state.discard_len[p])
+        _info_hash_feed_u16(&h, state.discard_len[p])
         for i in range(state.discard_len[p]):
             _info_hash_feed(
                 &h,
@@ -147,7 +147,9 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
-    # v11 adds public/owner-visible Stratagem reveal state.
+    # v12 widens observable deck/discard counts to 16 bits so every legal
+    # deck size is representable.
+    # v11 added public/owner-visible Stratagem reveal state.
     # v10 added two-Action turn state and the forced closing-turn countdown.
     _info_emit(buf, &n, h, INFORMATION_KEY_VERSION)
     _info_emit(buf, &n, h, <uint8_t>player)
@@ -356,7 +358,7 @@ cdef int _fe__information_state_encode(
     for card in range(self.n_cards):
         _info_emit(buf, &n, h, state.deck_counts[player][card])
 
-    _info_emit(buf, &n, h, state.discard_len[player])
+    _info_emit_u16(buf, &n, h, state.discard_len[player])
     for i in range(state.discard_len[player]):
         _info_emit(
             buf,
@@ -375,8 +377,8 @@ cdef int _fe__information_state_encode(
             h,
             state.known_hidden[player][opponent][card],
         )
-    _info_emit(buf, &n, h, state.deck_len[opponent])
-    _info_emit(buf, &n, h, state.discard_len[opponent])
+    _info_emit_u16(buf, &n, h, state.deck_len[opponent])
+    _info_emit_u16(buf, &n, h, state.discard_len[opponent])
     for i in range(state.discard_len[opponent]):
         _info_emit(
             buf,
