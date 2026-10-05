@@ -269,7 +269,7 @@ Command gain is the common identity of this batch. The secondary effect expresse
 - **Prophecy - declared objective:** larger Command reward for winning a visibly chosen Front.
 - **Saga - survival:** Command from keeping a chosen Named Formation alive through the Battle.
 - **Myth - recurring belief:** once-per-Battle Command from behaving according to the Myth, plus movement.
-- **Conspiracy - overcommitment:** Command from the opponent filling both ranks of a Front, plus repositioning.
+- **Conspiracy - overcommitment:** Command from the opponent filling both the Frontline and Rear of a Front, plus repositioning.
 
 
 ## Stratagem identity
