@@ -99,6 +99,10 @@ def test_growing_fronts_and_deck_rules_are_canonical_in_rulebook() -> None:
     assert "**Battle II:** the left outer Front becomes active." in source
     assert "**Battle III:** the right outer Front becomes active." in source
     assert "An inactive Front is not part of the battlefield yet." in source
+    assert "Every Front has three positions on each player's side:" in source
+    assert "the **Middle/Support** between the front and rear;" in source
+    assert "**Directly in front of:** the next position toward the Frontline" in source
+    assert "**Directly behind:** the next position toward the Rear" in source
 
     assert "at least **34 cards**" in source
     assert "at most **4 copies** of any non-Unique title" in source
