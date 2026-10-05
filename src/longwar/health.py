@@ -310,9 +310,6 @@ def aggregate_simulations_for_health(
             "no_alternative_rate",
             "playable_alternative_rate",
             "mean_actions_before_pass",
-            "mean_operations_before_signal",
-            "first_signal_rate",
-            "signal_avoids_command_exhaustion_rate",
         ),
     )
     battles = _weighted_section(
