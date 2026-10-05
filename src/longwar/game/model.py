@@ -496,6 +496,7 @@ class GameState:
                 zero_cost=item.zero_cost,
                 draw_after_satisfied=item.draw_after_satisfied,
                 discard_source_narrative=item.discard_source_narrative,
+                expires_end_of_activated_turn=item.expires_end_of_activated_turn,
             )
             for item in source.constraints
         ]
