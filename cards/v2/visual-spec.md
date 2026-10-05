@@ -91,7 +91,7 @@ Where a per-card illustration exists under `web/art/v2/cards/`, use it. The seve
 
 No vector heraldry, watermark drawing, or second image may sit over the illustration.
 
-All card families, including Force, use the shared **20 mm illustration window** and shared card-body layout. Within each family, sparse/dense states may never change illustration height or crop position; density is handled only by rules typography and spacing.
+All card families, including Force, use the shared **20 mm illustration window** and shared card-body layout. Sparse/dense states may never change illustration geometry. Artwork focus is controlled independently through `--art-x` / `--art-y`: non-Force cards default to `50% 50%`, while Force defaults to the top-biased `50% 28%` to keep faces and heads inside the wide crop. Optional card data fields `art_focus_x` and `art_focus_y` override those defaults without changing the window.
 
 ## Rules
 

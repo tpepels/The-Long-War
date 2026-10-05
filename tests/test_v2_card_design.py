@@ -276,7 +276,7 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
         path.stem
         for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png")
     )
-    assert len(art_ids) == 98
+    assert len(art_ids) == 119
     known = {card["id"] for card in CARDS}
     assert art_ids
     assert set(art_ids) <= known
@@ -349,3 +349,67 @@ def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
     # the normal per-card art path. The Red Shields has no matching generated
     # file yet and therefore deliberately retains the Force family fallback.
     assert force_ids - art_ids == {"the-red-shields"}
+
+
+def test_dense_hero_rules_fit_shared_layout_regression() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert "\n.card-hero\n.card-hero\n" not in css
+    assert ".card-hero.dense .effect-text{font-size:2.46mm;line-height:1.04}" in css
+    assert ".card-hero.very-dense .effect-text{font-size:2.18mm;line-height:1.02}" in css
+    assert ".card-hero.dense .effect-head{gap:.45mm;margin-bottom:.32mm}" in css
+    assert ".card-hero.very-dense .effect-head{gap:.38mm;margin-bottom:.24mm}" in css
+    assert 'if(chars>180||(es.length>=3&&chars>120))return " very-dense";' in js
+    assert 'if(es.length>=3||chars>100)return " dense";' in js
+
+def test_doros_is_promoted_to_very_dense_layout() -> None:
+    card = next(card for card in CARDS if card["id"] == "doros-the-last-spear")
+    es = effects(card)
+    chars = sum(len(effect.get("text", "")) for effect in es)
+    assert len(es) == 3
+    assert chars > 120
+
+
+def test_hero_mode_headers_are_graphical_dividers() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert 'function heroModeHeading(mode)' in js
+    assert 'mode-heading-core' in js
+    assert 'As Force' not in js
+    assert 'As Name' not in js
+    assert '.mode-heading{display:grid;grid-template-columns:minmax(2mm,1fr) auto minmax(2mm,1fr)' in css
+    assert '.mode-heading::before,.mode-heading::after' in css
+    assert '.hero-rule-mode+.hero-rule-mode{margin-top:.48mm;padding-top:.2mm;border-top:0}' in css
+    assert '.hero-rule-mode[data-mode="force"] .mode-heading-core' in css
+    assert '.hero-rule-mode[data-mode="name"] .mode-heading-core' in css
+
+
+def test_art_focus_defaults_and_overrides() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "function artFocus(value,fallback)" in js
+    assert 'card.type==="force"?"28%":"50%"' in js
+    assert "card.art_focus_x" in js
+    assert "card.art_focus_y" in js
+    assert "--art-x:" in js and "--art-y:" in js
+    assert '.png?v="+encodeURIComponent(VERSION)' in js
+    assert "background-position:var(--art-x,50%) var(--art-y,50%),var(--art-x,50%) var(--art-y,50%)" in css
+
+
+def test_contact_sheet_art_promotions_are_canonical() -> None:
+    art_dir = ROOT / "web" / "art" / "v2" / "cards"
+    promoted = {
+        "they-had-gone-too-far", "all-banners-forward", "the-line-wheeled",
+        "they-let-them-through", "no-step-back", "held-the-line-for",
+        "seized-the-standard-of", "stayed-behind-for", "swore-again-to",
+        "endured-with", "rallied-behind", "bought-time-for", "trusted",
+        "marched-beneath-the-banner-of", "carried-the-oath-of",
+        "had-been-ordered-forward", "neris-the-ferryman",
+        "the-baggage-was-abandoned", "they-returned-with-names",
+        "they-were-gathering-there", "the-muster-was-false",
+        "the-first-spear", "the-old-guard", "seven-black-ships",
+        "the-house-of-reed", "the-grey-riders", "the-dust-riders",
+        "the-black-company", "the-red-duelists", "the-iron-boars",
+        "the-crow-archers", "the-white-hands-of-elara",
+    }
+    assert all((art_dir / f"{card_id}.png").is_file() for card_id in promoted)
