@@ -49,9 +49,12 @@ DEF PRE_RESOLUTION_SUPPRESSION_END = PRE_RESOLUTION_CONTRIBUTION_END + SLOT_COUN
 DEF PRE_RESOLUTION_SACRIFICE_END = PRE_RESOLUTION_SUPPRESSION_END + SLOT_COUNT
 
 DEF MAX_CARDS = 127
-DEF MAX_DECK = 254
+# A legal deck may contain four copies of every non-Unique card. Size native
+# card zones for the full wire-format card pool rather than imposing a hidden
+# 254-card deck rule.
+DEF MAX_DECK = MAX_CARDS * 4
 DEF MAX_ACTIONS = 1024
-DEF INFORMATION_KEY_VERSION = 11
+DEF INFORMATION_KEY_VERSION = 12
 
 DEF U16_BYTES = 2
 DEF U32_BYTES = 4
