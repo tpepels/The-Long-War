@@ -373,7 +373,7 @@ cdef void _fe_resolve_completion_effect_fast(
     int card,
     int front,
 ):
-    cdef int effect, amount
+    cdef int effect, amount, enemy_ix
     if card < 0:
         return
     effect = self.completion_effect[card]
@@ -384,6 +384,10 @@ cdef void _fe_resolve_completion_effect_fast(
         )
     elif effect == COMPLETE_DRAW:
         _fe_queue_battle_draws(self, state, player, amount)
+    elif effect == COMPLETE_REVEAL_NARRATIVE:
+        enemy_ix = other_player(player) * NARRATIVE_SLOTS_PER_PLAYER + front
+        if state.narrative[enemy_ix] >= 0:
+            state.narrative_revealed[enemy_ix] = 1
     elif effect == COMPLETE_RECOVER_BOND:
         _fe_recover_recent_bond_fast(self, state, player)
 
@@ -416,7 +420,7 @@ cdef void _fe_resolve_new_completions_fast(
         if state.name[slot] >= 0:
             if self.completion_free_maneuver_self[state.name[slot]]:
                 _fe_queue_free_maneuver(
-                    self, state, player, <uint32_t>(1 << slot),
+                    self, state, player, <uint16_t>(1 << slot),
                     True, False, state.name[slot]
                 )
             if self.completion_swap_adjacent[state.name[slot]]:
@@ -427,7 +431,7 @@ cdef void _fe_resolve_new_completions_fast(
                     -1,
                     -1,
                     -1,
-                    <uint32_t>(1 << slot),
+                    <uint16_t>(1 << slot),
                     _fe_adjacent_formation_mask(self, 
                         state, player, slot, False
                     ),
