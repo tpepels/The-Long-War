@@ -31,12 +31,13 @@ Then the active Fronts are resolved. Lost Fronts cost Command, the battlefield r
 
 ## The battlefield
 
-Every Front has two positions on each player's side:
+Every Front has three positions on each player's side:
 
 - the **Frontline**, nearest the centre of the battlefield;
+- the **Middle/Support** between the front and rear;
 - the **Rear**, directly behind it.
 
-The four Frontline positions form one rank. The four Rear positions form the other.
+The four Frontline positions form one rank. The four Support positions the middle. The four Rear positions form the other.
 
 Each position can hold at most:
 
@@ -44,7 +45,7 @@ Each position can hold at most:
 - one **Bond**;
 - one **Name**.
 
-Cards in a position form a stack. Nothing is automatically cleared from that stack at the end of a Battle. A lone Bond, a lone Name, an incomplete formation, and a complete formation can all remain there for the rest of the war unless a card or rule moves or removes them.
+Cards in a position form a stack. Cards and stacks played remain in play until the end of the game. A lone Bond, a lone Name, an incomplete formation, and a complete formation can all remain there for the rest of the war unless a card or rule moves or removes them.
 
 ### Strength
 
