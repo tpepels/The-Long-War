@@ -26,7 +26,6 @@ MULLIGAN_UNKNOWN_CARD_SCORE = 2.5
 
 HEURISTIC_DEFAULTS: dict[str, float] = {
     "terminal_win_score": 10000.0,
-    "fresh_battle_initiative": 0.70,
     "close_front_margin": 3,
     "exposed_front_margin": 4,
     "comfortable_front_margin": 5,
@@ -65,11 +64,6 @@ HEURISTIC_DEFAULTS: dict[str, float] = {
     "strategic_future_sets": 0.55,
     "strategic_force_availability": 0.40,
     "strategic_affordable_hand": 0.12,
-    "rollout_collapse_immediate_buffer": 1,
-    "rollout_collapse_near_buffer": 3,
-    "rollout_pass_immediate": 1.50,
-    "rollout_pass_near": 0.55,
-    "rollout_pass_normal": 0.20,
     "rollout_discard": 1.0,
     "rollout_maneuver": 0.90,
     "rollout_force": 1.35,
@@ -101,8 +95,6 @@ HEURISTIC_INTEGER_KEYS = frozenset({
     "force_hand_cap",
     "front_margin_clamp",
     "no_option_score",
-    "rollout_collapse_immediate_buffer",
-    "rollout_collapse_near_buffer",
 })
 
 
