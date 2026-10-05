@@ -368,7 +368,7 @@ def test_command_guard_keeps_zero_command_midbattle_actions() -> None:
     assert native_filtered == 0
 
 
-def test_rollout_guard_preserves_last_command_without_restricting_root() -> None:
+def test_rollout_guard_keeps_legal_zero_command_midbattle_actions() -> None:
     rules = GameRules.standard().with_overrides(
         command_collapse_threshold=0,
         maneuver_command_cost=1,
@@ -399,8 +399,8 @@ def test_rollout_guard_preserves_last_command_without_restricting_root() -> None
 
     assert maneuver in root_safe
     assert root_filtered == 0
-    assert maneuver not in rollout_safe
-    assert rollout_filtered >= 1
+    assert maneuver in rollout_safe
+    assert rollout_filtered == 0
 
 
 def test_projected_lost_masks_use_tie_control_resolution_rule() -> None:
@@ -604,6 +604,18 @@ def test_spending_final_command_midbattle_remains_nonterminal() -> None:
     assert child.phase.value == "battle"
     assert child.players[0].command == 0
     assert child.players[1].command == 5
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "hero_force_play_limit_per_battle",
+        "hero_name_play_limit_per_battle",
+    ],
+)
+def test_hero_mode_allowance_cannot_exceed_native_bit_capacity(field: str) -> None:
+    with pytest.raises(ValueError):
+        GameRules.standard().with_overrides(**{field: 2})
 
 
 @pytest.mark.parametrize(
