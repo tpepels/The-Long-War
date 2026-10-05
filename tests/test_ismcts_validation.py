@@ -448,6 +448,14 @@ def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
     assert first["max_tree_depth"] == second["max_tree_depth"]
 
 
+def test_ismcts_depth_accounting_uses_actor_change_not_action_serial() -> None:
+    source = (ROOT / "src" / "longwar" / "_ismcts_core.pxi").read_text(
+        encoding="utf-8"
+    )
+    assert "state.active_player != action_actor" in source
+    assert "state.turn_number != action_turn" not in source
+
+
 def test_root_visit_and_availability_accounting_is_conserved() -> None:
     engine, deck, _priors = _standard_fixture()
     state = engine.new_game(deck, deck, seed=9230, first_player=0)
@@ -509,6 +517,31 @@ def test_first_expansion_visits_every_root_action_once() -> None:
 
     assert result["root_total_visits"] == legal_count
     assert all(int(row["visits"]) == 1 for row in result["root_stats"])
+
+
+def test_tree_depth_one_keeps_action_two_inside_same_turn() -> None:
+    engine, state, _play = _two_action_reroot_state()
+    fast = FastEngine(engine)
+    evaluator = NativeHeuristicEvaluator(fast)
+    packed = fast.from_game_state(state)
+
+    result = ismcts_search(
+        fast,
+        evaluator,
+        [packed],
+        0,
+        iterations=64,
+        rollout_depth=0,
+        tree_depth_limit=1,
+        exploration=2.0,
+        rollout_policy=2,
+        seed=92831,
+    )
+
+    # A one-turn horizon may traverse Action 1 and Action 2. Raw tree path
+    # depth can therefore exceed strategic turn depth.
+    assert result["max_tree_depth"] == 1
+    assert result["max_tree_path_depth"] >= 2
 
 
 def test_persistent_tree_reroots_from_action_one_to_action_two() -> None:
