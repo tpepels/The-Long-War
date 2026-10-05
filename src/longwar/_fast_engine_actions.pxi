@@ -896,8 +896,8 @@ cdef int _fe_legal_actions_into(
 
     player = state.active_player
 
-    # A turn that starts at the hand limit must discard before its
-    # automatic draw. This substep is not the turn's operation.
+    # Hand-limit overflow must be cleaned up before play continues.
+    # This substep is not one of the turn's Actions.
     if state.cleanup_pending:
         for card in range(self.n_cards):
             if state.hand[player][card] > 0:
