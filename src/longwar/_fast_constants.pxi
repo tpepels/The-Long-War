@@ -194,7 +194,6 @@ cdef int NAME_NONE = 0
 cdef int COMPLETE_NONE = 0
 cdef int COMPLETE_GAIN_COMMAND = 1
 cdef int COMPLETE_DRAW = 3
-cdef int COMPLETE_REVEAL_NARRATIVE = 4
 cdef int COMPLETE_RECOVER_BOND = 5
 
 cdef int NARRATIVE_NONE = 0
