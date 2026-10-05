@@ -304,11 +304,6 @@ def aggregate_simulations_for_health(
             "mean_unaffordable_cards",
             "mean_affordable_cards",
             "mean_playable_cards_remaining",
-            "mean_legal_alternatives",
-            "mean_playable_card_actions",
-            "mean_maneuver_actions",
-            "no_alternative_rate",
-            "playable_alternative_rate",
             "mean_actions_before_pass",
         ),
     )
