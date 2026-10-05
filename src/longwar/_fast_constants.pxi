@@ -53,21 +53,21 @@ DEF MAX_CARDS = 127
 # 254-card deck rule.
 DEF MAX_DECK = MAX_CARDS * 4
 DEF MAX_ACTIONS = 1024
-DEF INFORMATION_KEY_VERSION = 13
+DEF INFORMATION_KEY_VERSION = 14
 
 DEF U16_BYTES = 2
 DEF U32_BYTES = 4
 DEF INFO_PLAYER_BASE_BYTES = 6
 DEF INFO_PLAYER_SEARCH_EXTRA_BYTES = 3
 DEF INFO_TURN_FLOW_BYTES = 2
-DEF INFO_PENDING_EFFECT_BYTES = 10
+DEF INFO_PENDING_EFFECT_BYTES = 14
 DEF INFO_PENDING_RESUME_BYTES = 2
 DEF INFO_MANEUVER_COUNT_BYTES = PLAYER_COUNT * U16_BYTES
 DEF INFO_CONSTRAINT_BYTES = 12
-DEF INFO_RESOLUTION_FIXED_BYTES = 15
+DEF INFO_RESOLUTION_FIXED_BYTES = 17
 DEF INFO_BOARD_SLOT_BASE_BYTES = 5
 DEF INFO_NARRATIVE_SEARCH_BYTES = 5
-DEF INFO_STRATAGEM_SEARCH_BYTES = 5
+DEF INFO_STRATAGEM_SEARCH_BYTES = 7
 
 DEF MAX_RECOVERY_SCHEDULE = 32
 DEF MAX_PENDING_EFFECTS = 32
@@ -404,6 +404,12 @@ cdef inline void _info_emit_u16(
 ) noexcept:
     _info_emit(buf, n, h, <uint8_t>(value & BYTE_MASK))
     _info_emit(buf, n, h, <uint8_t>(value >> 8))
+
+cdef inline void _info_emit_u32(
+    unsigned char* buf, int* n, InfoHash128* h, uint32_t value,
+) noexcept:
+    _info_emit_u16(buf, n, h, <uint16_t>(value & U16_MASK))
+    _info_emit_u16(buf, n, h, <uint16_t>((value >> 16) & U16_MASK))
 
 # Telemetry-only Command attribution. These values never enter game state or hashing.
 DEF MAX_COMMAND_DIAG_EVENTS = 128
