@@ -713,8 +713,10 @@ def test_tournament_summary_aggregates_required_search_and_flow_metrics() -> Non
     assert flow["mean_final_battle"] == pytest.approx(2.0)
     assert flow["final_battle_histogram"] == {"1": 1, "2": 1, "3": 1}
     assert flow["battle_one_ending_rate"] == pytest.approx(1 / 3)
+    assert flow["pass_events"] == 6
+    assert flow["signal_events"] == flow["pass_events"]
     assert flow["mean_command_at_pass"] == pytest.approx(4.0)
-    assert flow["mean_command_at_signal"] == pytest.approx(21 / 4)
+    assert flow["mean_command_at_signal"] == flow["mean_command_at_pass"]
     assert flow["forced_yield_events"] == 2
     assert flow["forced_yield_rate"] == pytest.approx(1 / 3)
 
