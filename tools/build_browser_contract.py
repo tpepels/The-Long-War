@@ -151,6 +151,34 @@ def project_state(state: GameState) -> dict[str, object]:
         "pending_draw_finish_operation": state.pending_draw_finish_operation,
         "free_maneuver_available": list(state.free_maneuver_available),
         "free_maneuver_source": list(state.free_maneuver_source),
+        "constraints": [
+            {
+                "source_card": item.source_card,
+                "player": item.player,
+                "kind": item.kind.value,
+                "source_owner": item.source_owner,
+                "front": None if item.front is None else int(item.front),
+                "direction": item.direction,
+                "source_position": (
+                    None
+                    if item.source_position is None
+                    else {
+                        "front": int(item.source_position.front),
+                        "rank": item.source_position.rank.value,
+                    }
+                ),
+                "activate_turn": item.activate_turn,
+                "expires_after_operation": item.expires_after_operation,
+                "persists_between_battles": item.persists_between_battles,
+                "zero_cost": item.zero_cost,
+                "draw_after_satisfied": item.draw_after_satisfied,
+                "discard_source_narrative": item.discard_source_narrative,
+                "expires_end_of_activated_turn": (
+                    item.expires_end_of_activated_turn
+                ),
+            }
+            for item in state.constraints
+        ],
         "battle": state.battle,
         "phase": state.phase.value,
         "active_player": state.active_player,
