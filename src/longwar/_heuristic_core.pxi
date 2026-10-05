@@ -629,9 +629,9 @@ cdef class NativeHeuristicEvaluator:
         int* affordable,
     ) noexcept:
         """Compute long-horizon card-resource features in one identity scan."""
-        cdef int card, typ, hand_count, count, i
+        cdef int card, typ, hand_count, count, i, narrative_slot
         cdef int forces=0, bonds=0, names=0, heroes=0
-        cdef int affordable_heroes=0
+        cdef int affordable_heroes=0, ongoing_in_play=0
         cdef int discarded_forces=0, discarded_heroes=0
         cdef int remaining_force_uses, remaining_name_uses
         cdef int force_heroes, name_heroes
@@ -647,10 +647,19 @@ cdef class NativeHeuristicEvaluator:
         remaining_name_uses = self.remaining_hero_name_uses_fast(
             state, player
         )
+        for narrative_slot in range(self.engine.ongoing_narrative_limit):
+            if (
+                state.narrative[
+                    player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+                ]
+                >= 0
+            ):
+                ongoing_in_play += 1
 
         for card in range(self.engine.n_cards):
             hand_count = state.hand[player][card]
             count = hand_count + state.deck_counts[player][card]
+            typ = self.engine.card_type[card]
             if (
                 hand_count > 0
                 and self.engine.card_command_cost[card]
@@ -658,10 +667,21 @@ cdef class NativeHeuristicEvaluator:
             ):
                 if self.engine.hero[card]:
                     affordable_heroes += hand_count
+                elif (
+                    typ == CARD_STRATAGEM
+                    and state.stratagem_used[player]
+                    >= self.engine.stratagem_play_limit_per_battle
+                ):
+                    pass
+                elif (
+                    typ == CARD_NARRATIVE
+                    and self.engine.ongoing_narrative[card]
+                    and ongoing_in_play >= self.engine.ongoing_narrative_limit
+                ):
+                    pass
                 else:
                     affordable[0] += hand_count
 
-            typ = self.engine.card_type[card]
             if typ == CARD_FORCE:
                 if self.engine.hero[card]:
                     heroes += count
