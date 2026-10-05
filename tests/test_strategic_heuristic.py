@@ -9,6 +9,7 @@ from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Pass, Position, Rank
+from longwar.game.actions import action_key
 from longwar.rules import GameRules
 from longwar.simulate import simulate_games
 
@@ -49,6 +50,56 @@ def test_default_belief_sampler_uses_actual_state_deck_size() -> None:
 
     assert sampler._deck_size_from_state(state, 1) == 40
     assert sampler._deck_size_from_state(sampled, 1) == 40
+
+
+def test_strategic_root_ordering_ignores_true_opponent_hand_identities() -> None:
+    deck = load_deck()
+    engine = standard_engine()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=7308,
+        first_player=0,
+        opening_bonus=False,
+    )
+    first = state.clone()
+    second = state.clone()
+    first.players[1].hand = [
+        "oren",
+        "iria",
+        "mara",
+        "the-baggage-was-abandoned",
+    ]
+    second.players[1].hand = [
+        "the-fifty-men",
+        "seven-black-ships",
+        "followed",
+        "swore-again-to",
+    ]
+
+    agent = StrategicHeuristicAgent(
+        engine,
+        seed=7309,
+        belief_samples=1,
+        rollout_plies=1,
+        candidate_width=4,
+        node_budget=100,
+        search_backend="python",
+    )
+
+    assert agent._public_evaluator.sampled_opponent_resources is False
+    assert agent.evaluator.sampled_opponent_resources is True
+    assert [
+        action_key(action)
+        for action in agent._public_search.ordered_actions(
+            first, 0, width=agent.candidate_width
+        )
+    ] == [
+        action_key(action)
+        for action in agent._public_search.ordered_actions(
+            second, 0, width=agent.candidate_width
+        )
+    ]
 
 
 def test_strategic_heuristic_returns_legal_action_without_true_hand_access() -> None:
