@@ -90,7 +90,7 @@ class ProgressionTelemetry:
         self._choice_maneuver: list[int] = []
         self._forced_decisions = 0
         self._forced_maneuvers = 0
-        self._signal_plus_one = 0
+        self._pass_plus_one_alternative = 0
         self._constraint_source_decisions = 0
         self._constraint_active_decisions = 0
         self._constraint_effect_choice_decisions = 0
@@ -110,7 +110,7 @@ class ProgressionTelemetry:
         self._constraint_forced_front_decisions = 0
         self._constraint_carried_between_battles = 0
         self._constraint_future_operations_affected = 0
-        self._signal_contexts: list[dict[str, Any]] = []
+        self._pass_contexts: list[dict[str, Any]] = []
 
         self._command_spend: Counter[str] = Counter()
         self._command_spend_by_battle: dict[str, Counter[str]] = defaultdict(Counter)
@@ -160,10 +160,10 @@ class ProgressionTelemetry:
             merged = dict(row)
             merged["game"] = game_offset + int(row.get("game", 0))
             self._battle_records.append(merged)
-        for row in other._signal_contexts:
+        for row in other._pass_contexts:
             merged = dict(row)
             merged["game"] = game_offset + int(row.get("game", 0))
-            self._signal_contexts.append(merged)
+            self._pass_contexts.append(merged)
         self._game_index += other._game_index + 1
 
         for row in other._formations.values():
@@ -186,7 +186,7 @@ class ProgressionTelemetry:
             getattr(self, name).extend(getattr(other, name))
 
         for name in (
-            "_forced_decisions", "_forced_maneuvers", "_signal_plus_one",
+            "_forced_decisions", "_forced_maneuvers", "_pass_plus_one_alternative",
             "_constraint_source_decisions", "_constraint_active_decisions",
             "_constraint_effect_choice_decisions",
             "_constraint_source_effect_choice_decisions", "_effect_choice_decisions",
@@ -451,7 +451,7 @@ class ProgressionTelemetry:
             self._forced_maneuvers += int(
                 len(legal) == 1 and isinstance(legal[0], Maneuver)
             )
-            self._signal_plus_one += int(
+            self._pass_plus_one_alternative += int(
                 bool(pass_actions) and len(alternatives) == 1
             )
             self._constraint_source_decisions += int(bool(constraint_sources))
@@ -499,7 +499,7 @@ class ProgressionTelemetry:
                 ),
                 "final_front_balance": None,
             })
-            self._signal_contexts.append(pass_context)
+            self._pass_contexts.append(pass_context)
 
         snapshot = self._snapshot(
             engine,
@@ -943,10 +943,11 @@ class ProgressionTelemetry:
                 all(value <= threshold for value in row["command_start"])
                 for row in battle_records
             ),
-            "battles_with_no_paid_operation": sum(
-                bool(row.get("no_paid_operation"))
+            "battles_with_no_paid_action": sum(
+                bool(row.get("no_paid_action", row.get("no_paid_operation")))
                 for row in stall_rows
             ),
+            # Historical alias.
             "battles_with_no_paid_operation": sum(
                 bool(row.get("no_paid_action", row.get("no_paid_operation")))
                 for row in stall_rows
@@ -1090,16 +1091,19 @@ class ProgressionTelemetry:
                 row.get("strength_changed") is False for row in battle_records
             ),
         }
-        first_signal = [row for row in self._signal_contexts if row["first_signal"]]
+        pass_rows = [
+            row for row in self._pass_contexts
+            if not row.get("forced_yield", False)
+        ]
         pass_outcomes = {
             "ahead": self._signal_outcome_group(
-                first_signal, lambda row: row["total_margin"] > 0
+                pass_rows, lambda row: row["total_margin"] > 0
             ),
             "tied": self._signal_outcome_group(
-                first_signal, lambda row: row["total_margin"] == 0
+                pass_rows, lambda row: row["total_margin"] == 0
             ),
             "behind": self._signal_outcome_group(
-                first_signal, lambda row: row["total_margin"] < 0
+                pass_rows, lambda row: row["total_margin"] < 0
             ),
         }
         # Historical artifact readers used first_signal_outcomes. Keep the
@@ -1116,9 +1120,6 @@ class ProgressionTelemetry:
             value
             for record in battle_records
             for value in record["command_before_collapse"]
-        ]
-        first_signal_rows = [
-            row for row in self._signal_contexts if row["first_signal"]
         ]
         resource = {
             "command_spend": dict(sorted(self._command_spend.items())),
@@ -1155,34 +1156,49 @@ class ProgressionTelemetry:
             "command_remaining_at_battle_end": self._distribution(command_end),
             "command_before_collapse": self._distribution(command_before_collapse),
             "command_at_pass": self._distribution(
-                row["command_remaining"] for row in first_signal_rows
+                row["command_remaining"] for row in pass_rows
             ),
             "command_at_first_signal": self._distribution(
-                row["command_remaining"] for row in first_signal_rows
+                row["command_remaining"] for row in pass_rows
             ),
+            "passes_with_paid_alternatives": sum(
+                row.get("paid_alternatives", 0) > 0 for row in pass_rows
+            ),
+            "passes_avoiding_command_exhaustion": sum(
+                bool(row.get("signal_avoids_command_exhaustion"))
+                for row in pass_rows
+            ),
+            "pass_avoids_command_exhaustion_rate": self._ratio(
+                sum(
+                    bool(row.get("signal_avoids_command_exhaustion"))
+                    for row in pass_rows
+                ),
+                len(pass_rows),
+            ),
+            # Historical signal-era aliases.
             "first_signals_with_paid_alternatives": sum(
-                row.get("paid_alternatives", 0) > 0 for row in first_signal_rows
+                row.get("paid_alternatives", 0) > 0 for row in pass_rows
             ),
             "first_signals_avoiding_command_exhaustion": sum(
                 bool(row.get("signal_avoids_command_exhaustion"))
-                for row in first_signal_rows
+                for row in pass_rows
             ),
             "first_signal_avoids_command_exhaustion_rate": self._ratio(
                 sum(
                     bool(row.get("signal_avoids_command_exhaustion"))
-                    for row in first_signal_rows
+                    for row in pass_rows
                 ),
-                len(first_signal_rows),
+                len(pass_rows),
             ),
             "pass_command_buckets": {
-                "0": sum(row["command_remaining"] == 0 for row in first_signal_rows),
-                "1-3": sum(1 <= row["command_remaining"] <= 3 for row in first_signal_rows),
-                "4+": sum(row["command_remaining"] >= 4 for row in first_signal_rows),
+                "0": sum(row["command_remaining"] == 0 for row in pass_rows),
+                "1-3": sum(1 <= row["command_remaining"] <= 3 for row in pass_rows),
+                "4+": sum(row["command_remaining"] >= 4 for row in pass_rows),
             },
             "first_signal_command_buckets": {
-                "0": sum(row["command_remaining"] == 0 for row in first_signal_rows),
-                "1-3": sum(1 <= row["command_remaining"] <= 3 for row in first_signal_rows),
-                "4+": sum(row["command_remaining"] >= 4 for row in first_signal_rows),
+                "0": sum(row["command_remaining"] == 0 for row in pass_rows),
+                "1-3": sum(1 <= row["command_remaining"] <= 3 for row in pass_rows),
+                "4+": sum(row["command_remaining"] >= 4 for row in pass_rows),
             },
             "command_end_buckets": {
                 "<0": sum(value < 0 for value in command_end),
@@ -1325,9 +1341,9 @@ class ProgressionTelemetry:
             "forced_maneuver_rate": self._ratio(
                 self._forced_maneuvers, len(self._choice_legal)
             ),
-            "pass_plus_one_alternative": self._signal_plus_one,
+            "pass_plus_one_alternative": self._pass_plus_one_alternative,
             "pass_plus_one_alternative_rate": self._ratio(
-                self._signal_plus_one, len(self._choice_legal)
+                self._pass_plus_one_alternative, len(self._choice_legal)
             ),
             "constraint_rule_source_decisions": self._constraint_source_decisions,
             "constraint_rule_source_rate": self._ratio(
@@ -1366,10 +1382,10 @@ class ProgressionTelemetry:
             "constraint_future_actions_affected": self._constraint_future_operations_affected,
             "constraint_future_operations_affected": self._constraint_future_operations_affected,
             "pass_mechanical_categories": dict(sorted(Counter(
-                row["mechanical_category"] for row in self._signal_contexts
+                row["mechanical_category"] for row in self._pass_contexts
             ).items())),
             "signal_mechanical_categories": dict(sorted(Counter(
-                row["mechanical_category"] for row in self._signal_contexts
+                row["mechanical_category"] for row in self._pass_contexts
             ).items())),
         }
 
@@ -2006,11 +2022,11 @@ class ProgressionTelemetry:
         ]
 
         battle_passes = [
-            row for row in self._signal_contexts
+            row for row in self._pass_contexts
             if row["game"] == self._game_index and row["battle"] == before.battle
         ]
-        first_signal_row = next(
-            (row for row in battle_passes if row["first_signal"]),
+        pass_row = next(
+            (row for row in battle_passes if not row.get("forced_yield", False)),
             None,
         )
 
@@ -2062,7 +2078,9 @@ class ProgressionTelemetry:
         pass_diagnostics = [
             {
                 "player": int(row["player"]),
-                "first_signal": bool(row["first_signal"]),
+                "pass": not bool(row.get("forced_yield", False)),
+                # Historical alias retained in serialized diagnostics.
+                "first_signal": bool(row.get("first_signal", True)),
                 "command": int(row["command_remaining"]),
                 "legal_alternatives": int(row.get("legal_alternatives", 0)),
                 "playable_card_actions": int(row.get("playable_card_actions", 0)),
@@ -2288,38 +2306,48 @@ class ProgressionTelemetry:
                 and row["maneuver_actions"] == 0
                 for row in pass_diagnostics
             ),
+            "pass_command": (
+                None if pass_row is None else pass_row["command_remaining"]
+            ),
+            "pass_unplayable_cards": (
+                None if pass_row is None else pass_row.get("unplayable_cards_remaining", 0)
+            ),
+            "pass_structurally_dead_cards": (
+                None if pass_row is None else pass_row.get("structurally_dead_cards", 0)
+            ),
+            "pass_unaffordable_cards": (
+                None if pass_row is None else pass_row.get("unaffordable_cards", 0)
+            ),
+            "pass_legal_alternatives": (
+                None if pass_row is None else pass_row.get("legal_alternatives", 0)
+            ),
+            "pass_playable_card_actions": (
+                None if pass_row is None else pass_row.get("playable_card_actions", 0)
+            ),
+            "pass_maneuver_actions": (
+                None if pass_row is None else pass_row.get("maneuver_actions", 0)
+            ),
+            # Historical signal-era aliases.
             "first_signal_command": (
-                None if first_signal_row is None else first_signal_row["command_remaining"]
+                None if pass_row is None else pass_row["command_remaining"]
             ),
             "first_signal_unplayable_cards": (
-                None
-                if first_signal_row is None
-                else first_signal_row.get("unplayable_cards_remaining", 0)
+                None if pass_row is None else pass_row.get("unplayable_cards_remaining", 0)
             ),
             "first_signal_structurally_dead_cards": (
-                None
-                if first_signal_row is None
-                else first_signal_row.get("structurally_dead_cards", 0)
+                None if pass_row is None else pass_row.get("structurally_dead_cards", 0)
             ),
             "first_signal_unaffordable_cards": (
-                None
-                if first_signal_row is None
-                else first_signal_row.get("unaffordable_cards", 0)
+                None if pass_row is None else pass_row.get("unaffordable_cards", 0)
             ),
             "first_signal_legal_alternatives": (
-                None
-                if first_signal_row is None
-                else first_signal_row.get("legal_alternatives", 0)
+                None if pass_row is None else pass_row.get("legal_alternatives", 0)
             ),
             "first_signal_playable_card_actions": (
-                None
-                if first_signal_row is None
-                else first_signal_row.get("playable_card_actions", 0)
+                None if pass_row is None else pass_row.get("playable_card_actions", 0)
             ),
             "first_signal_maneuver_actions": (
-                None
-                if first_signal_row is None
-                else first_signal_row.get("maneuver_actions", 0)
+                None if pass_row is None else pass_row.get("maneuver_actions", 0)
             ),
             "free_maneuvers": self._battle_events["free_maneuvers"],
             "command_gained": self._battle_events["command_gained"],
@@ -2327,11 +2355,11 @@ class ProgressionTelemetry:
         self._battle_records.append(record)
 
         front_balances = self._front_result_balances(front_scores)
-        for pass_row in self._signal_contexts:
+        for pass_row in self._pass_contexts:
             if (
                 pass_row["game"] == self._game_index
                 and pass_row["battle"] == before.battle
-                and pass_row["first_signal"]
+                and not pass_row.get("forced_yield", False)
                 and pass_row["final_front_balance"] is None
                 and front_balances is not None
             ):
@@ -2726,43 +2754,43 @@ class ProgressionTelemetry:
                     sum(row["actions"] for row in rows),
                 ),
                 "pass_command": self._mean_optional([
-                    row["first_signal_command"] for row in rows
+                    row.get("pass_command", row.get("first_signal_command")) for row in rows
                 ]),
                 "first_signal_command": self._mean_optional([
-                    row["first_signal_command"] for row in rows
+                    row.get("pass_command", row.get("first_signal_command")) for row in rows
                 ]),
                 "pass_unplayable_cards": self._mean_optional([
-                    row["first_signal_unplayable_cards"] for row in rows
+                    row.get("pass_unplayable_cards", row.get("first_signal_unplayable_cards")) for row in rows
                 ]),
                 "first_signal_unplayable_cards": self._mean_optional([
-                    row["first_signal_unplayable_cards"] for row in rows
+                    row.get("pass_unplayable_cards", row.get("first_signal_unplayable_cards")) for row in rows
                 ]),
                 "pass_structurally_dead_cards": self._mean_optional([
-                    row.get("first_signal_structurally_dead_cards") for row in rows
+                    row.get("pass_structurally_dead_cards", row.get("first_signal_structurally_dead_cards")) for row in rows
                 ]),
                 "first_signal_structurally_dead_cards": self._mean_optional([
                     row.get("first_signal_structurally_dead_cards") for row in rows
                 ]),
                 "pass_unaffordable_cards": self._mean_optional([
-                    row.get("first_signal_unaffordable_cards") for row in rows
+                    row.get("pass_unaffordable_cards", row.get("first_signal_unaffordable_cards")) for row in rows
                 ]),
                 "first_signal_unaffordable_cards": self._mean_optional([
                     row.get("first_signal_unaffordable_cards") for row in rows
                 ]),
                 "pass_legal_alternatives": self._mean_optional([
-                    row["first_signal_legal_alternatives"] for row in rows
+                    row.get("pass_legal_alternatives", row.get("first_signal_legal_alternatives")) for row in rows
                 ]),
                 "first_signal_legal_alternatives": self._mean_optional([
                     row["first_signal_legal_alternatives"] for row in rows
                 ]),
                 "pass_playable_card_actions": self._mean_optional([
-                    row["first_signal_playable_card_actions"] for row in rows
+                    row.get("pass_playable_card_actions", row.get("first_signal_playable_card_actions")) for row in rows
                 ]),
                 "first_signal_playable_card_actions": self._mean_optional([
                     row["first_signal_playable_card_actions"] for row in rows
                 ]),
                 "pass_maneuver_actions": self._mean_optional([
-                    row["first_signal_maneuver_actions"] for row in rows
+                    row.get("pass_maneuver_actions", row.get("first_signal_maneuver_actions")) for row in rows
                 ]),
                 "first_signal_maneuver_actions": self._mean_optional([
                     row["first_signal_maneuver_actions"] for row in rows
