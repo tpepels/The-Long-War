@@ -195,7 +195,8 @@ cdef double _packed_traverse(
     NativeHeuristicEvaluator evaluator,
     FastState state,
     int traverser,
-    int depth,
+    int turn_depth,
+    int level,
     int max_depth,
     object nodes,
     object rng,
@@ -204,7 +205,9 @@ cdef double _packed_traverse(
     double reach1,
     list scratch,
 ):
-    cdef int actor, child_depth, n, i, sampled_index
+    cdef int actor, child_turn_depth, child_level, n, i, sampled_index
+    cdef int kind, turn_serial, actions_before
+    cdef bint turn_completed
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double probabilities[MAX_ACTIONS]
     cdef double utilities[MAX_ACTIONS]
@@ -223,7 +226,11 @@ cdef double _packed_traverse(
             return 0.0
         return 1.0 if state.winner == traverser else -1.0
 
-    if depth >= max_depth:
+    if (
+        turn_depth >= max_depth
+        and state.pending_len == 0
+        and not state.cleanup_pending
+    ):
         return tanh(evaluator.evaluate_fast(state, traverser) / leaf_scale)
 
     actor = state.active_player
@@ -241,23 +248,37 @@ cdef double _packed_traverse(
 
     node.visits += 1
     node.strategy_into(&actions[0], n, &probabilities[0])
-    child_depth = depth + 1
+    child_level = level + 1
 
     if actor == traverser:
         for i in range(n):
             probability = probabilities[i]
-            child = <FastState>scratch[child_depth]
+            child = <FastState>scratch[child_level]
             child.copy_from_fast(state)
+            kind = action_kind(actions[i])
+            turn_serial = state.turn_number
+            actions_before = state.actions_this_turn
             _fe_apply_fast(engine, child, actions[i])
+            turn_completed = (
+                kind == TYPE_PASS
+                or kind == TYPE_END_TURN
+                or (
+                    child.turn_number != turn_serial
+                    and actions_before + 1 >= engine.actions_per_turn
+                )
+            )
+            child_turn_depth = turn_depth + (1 if turn_completed else 0)
             if actor == 0:
                 utility = _packed_traverse(
-                    engine, evaluator, child, traverser, child_depth, max_depth,
+                    engine, evaluator, child, traverser,
+                    child_turn_depth, child_level, max_depth,
                     nodes, rng, leaf_scale,
                     reach0 * probability, reach1, scratch,
                 )
             else:
                 utility = _packed_traverse(
-                    engine, evaluator, child, traverser, child_depth, max_depth,
+                    engine, evaluator, child, traverser,
+                    child_turn_depth, child_level, max_depth,
                     nodes, rng, leaf_scale,
                     reach0, reach1 * probability, scratch,
                 )
@@ -281,17 +302,31 @@ cdef double _packed_traverse(
             break
 
     probability = probabilities[sampled_index]
-    child = <FastState>scratch[child_depth]
+    child = <FastState>scratch[child_level]
     child.copy_from_fast(state)
+    kind = action_kind(actions[sampled_index])
+    turn_serial = state.turn_number
+    actions_before = state.actions_this_turn
     _fe_apply_fast(engine, child, actions[sampled_index])
+    turn_completed = (
+        kind == TYPE_PASS
+        or kind == TYPE_END_TURN
+        or (
+            child.turn_number != turn_serial
+            and actions_before + 1 >= engine.actions_per_turn
+        )
+    )
+    child_turn_depth = turn_depth + (1 if turn_completed else 0)
     if actor == 0:
         return _packed_traverse(
-            engine, evaluator, child, traverser, child_depth, max_depth,
+            engine, evaluator, child, traverser,
+            child_turn_depth, child_level, max_depth,
             nodes, rng, leaf_scale,
             reach0 * probability, reach1, scratch,
         )
     return _packed_traverse(
-        engine, evaluator, child, traverser, child_depth, max_depth,
+        engine, evaluator, child, traverser,
+        child_turn_depth, child_level, max_depth,
         nodes, rng, leaf_scale,
         reach0, reach1 * probability, scratch,
     )
@@ -311,7 +346,7 @@ def packed_external_sampling_traverse(
     NativeHeuristicEvaluator evaluator=None,
 ):
     if scratch is None:
-        scratch = [FastState() for _ in range(max_depth + 1)]
+        scratch = make_scratch(max_depth)
     if evaluator is None:
         evaluator = NativeHeuristicEvaluator(engine)
     return _packed_traverse(
@@ -320,6 +355,7 @@ def packed_external_sampling_traverse(
         state,
         traverser,
         depth,
+        0,
         max_depth,
         nodes,
         rng,
@@ -331,7 +367,11 @@ def packed_external_sampling_traverse(
 
 
 def make_scratch(int max_depth):
-    return [FastState() for _ in range(max_depth + 1)]
+    # Depth is measured in completed turns, but one turn may contain two
+    # Actions plus queued effect/discard choices. Keep raw recursion scratch
+    # separate from strategic depth.
+    levels = (max_depth + 1) * (2 * MAX_PENDING_EFFECTS + 8) + 2
+    return [FastState() for _ in range(levels)]
 
 
 
