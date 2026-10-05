@@ -112,6 +112,48 @@ def _hash_information_key(key: bytes) -> tuple[int, int]:
     return a, b
 
 
+def test_information_key_supports_legal_deck_counts_above_one_byte() -> None:
+    from longwar.mccfr import information_set_id
+
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    engine = GameEngine(data)
+    maximal_legal = [
+        card["id"]
+        for card in data["cards"]
+        for _ in range(1 if card["unique"] else 4)
+    ]
+    assert len(maximal_legal) == 296
+
+    state = engine.new_game(
+        maximal_legal,
+        maximal_legal,
+        seed=9216,
+        first_player=0,
+        opening_bonus=False,
+    )
+    assert len(state.players[1].deck) == 286
+
+    fast = FastEngine(engine)
+    packed = fast.from_game_state(state)
+    key = fast.information_key(packed, 0)
+
+    # The compact diagnostic decoder must consume the widened opponent deck
+    # count exactly; live search/policies use the full key directly.
+    assert (
+        fast_search.stable_information_id_from_fast_key(fast, key)
+        == information_set_id(state, 0)
+    )
+
+    changed = state.clone()
+    changed.players[1].deck = changed.players[1].deck[:-256]
+    changed_key = fast.information_key(fast.from_game_state(changed), 0)
+    assert key != changed_key
+    assert fast.information_hash(packed, 0) != fast.information_hash(
+        fast.from_game_state(changed),
+        0,
+    )
+
+
 @pytest.mark.parametrize("field", ["temporary", "command", "operations"])
 def test_information_hash_preserves_full_width_observable_values(field):
     from longwar.mccfr import information_set_id
