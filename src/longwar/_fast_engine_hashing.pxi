@@ -64,8 +64,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
 
     for ix in range(NARRATIVE_COUNT):
         _info_hash_feed(&h, <uint8_t>(state.narrative[ix] + 1))
-        _info_hash_feed(&h, state.narrative_revealed[ix])
-        _info_hash_feed(&h, state.narrative_front_mask[ix])
+                _info_hash_feed(&h, state.narrative_front_mask[ix])
         _info_hash_feed(&h, state.narrative_used[ix])
         _info_hash_feed(&h, state.narrative_direction[ix])
         _info_hash_feed(&h, state.narrative_trigger_mask[ix])
@@ -75,7 +74,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, state.stratagem_revealed[p])
         _info_hash_feed(&h, state.stratagem_front_mask[p])
         _info_hash_feed(&h, state.stratagem_direction[p])
-        _info_hash_feed_u16(&h, state.stratagem_target_mask[p])
+        _info_hash_feed_u32(&h, state.stratagem_target_mask[p])
         _info_hash_feed(&h, state.stratagem_used[p])
 
     _info_hash_feed(&h, state.cleanup_pending)
@@ -88,8 +87,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, <uint8_t>(state.pending_card[i] + 1))
         _info_hash_feed(&h, <uint8_t>(state.pending_source[i] + 1))
         _info_hash_feed(&h, <uint8_t>(state.pending_aux[i] + 1))
-        _info_hash_feed_u16(&h, state.pending_source_mask[i])
-        _info_hash_feed_u16(&h, state.pending_dest_mask[i])
+        _info_hash_feed_u32(&h, state.pending_source_mask[i])
+        _info_hash_feed_u32(&h, state.pending_dest_mask[i])
         _info_hash_feed(&h, state.pending_flags[i])
     _info_hash_feed(&h, state.pending_resume)
     _info_hash_feed(&h, <uint8_t>(state.pending_resume_player + 1))
@@ -123,7 +122,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed_u16(
         &h, <uint16_t>state.resolution_front_loss_command_penalty[1]
     )
-    _info_hash_feed_u16(&h, state.resolution_suppressed_mask)
+    _info_hash_feed_u32(&h, state.resolution_suppressed_mask)
     _info_hash_feed(&h, state.resolution_cursor)
     _info_hash_feed(&h, <uint8_t>(state.resolution_starter + 1))
     for slot in range(SLOT_COUNT):
@@ -211,8 +210,8 @@ cdef int _fe__information_state_encode(
         _info_emit(buf, &n, h, <uint8_t>(state.pending_card[i] + 1))
         _info_emit(buf, &n, h, <uint8_t>(state.pending_source[i] + 1))
         _info_emit(buf, &n, h, <uint8_t>(state.pending_aux[i] + 1))
-        _info_emit_u16(buf, &n, h, state.pending_source_mask[i])
-        _info_emit_u16(buf, &n, h, state.pending_dest_mask[i])
+        _info_emit_u32(buf, &n, h, state.pending_source_mask[i])
+        _info_emit_u32(buf, &n, h, state.pending_dest_mask[i])
         _info_emit(buf, &n, h, state.pending_flags[i])
     _info_emit(buf, &n, h, state.pending_resume)
     _info_emit(buf, &n, h, <uint8_t>(state.pending_resume_player + 1))
@@ -255,7 +254,7 @@ cdef int _fe__information_state_encode(
         buf, &n, h,
         <uint16_t>state.resolution_front_loss_command_penalty[1]
     )
-    _info_emit_u16(buf, &n, h, state.resolution_suppressed_mask)
+    _info_emit_u32(buf, &n, h, state.resolution_suppressed_mask)
     _info_emit(buf, &n, h, state.resolution_cursor)
     _info_emit(buf, &n, h, <uint8_t>(state.resolution_starter + 1))
     for i in range(SLOT_COUNT):
@@ -358,7 +357,7 @@ cdef int _fe__information_state_encode(
             _info_emit(buf, &n, h, state.stratagem_revealed[owner])
             _info_emit(buf, &n, h, state.stratagem_front_mask[owner])
             _info_emit(buf, &n, h, state.stratagem_direction[owner])
-            _info_emit_u16(buf, &n, h, state.stratagem_target_mask[owner])
+            _info_emit_u32(buf, &n, h, state.stratagem_target_mask[owner])
 
     for owner in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.stratagem_used[owner])
