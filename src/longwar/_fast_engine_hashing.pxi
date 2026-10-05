@@ -64,7 +64,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
 
     for ix in range(NARRATIVE_COUNT):
         _info_hash_feed(&h, <uint8_t>(state.narrative[ix] + 1))
-                _info_hash_feed(&h, state.narrative_front_mask[ix])
+        _info_hash_feed(&h, state.narrative_front_mask[ix])
         _info_hash_feed(&h, state.narrative_used[ix])
         _info_hash_feed(&h, state.narrative_direction[ix])
         _info_hash_feed(&h, state.narrative_trigger_mask[ix])
