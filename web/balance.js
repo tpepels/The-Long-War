@@ -1033,7 +1033,7 @@ function renderProgression(lab) {
     };
     trajectoryElement.innerHTML = [
       trajectoryCard("Command at Battle end", "command_remaining"),
-      trajectoryCard("Pass Command", "first_signal_command"),
+      trajectoryCard("Pass Command", "pass_command"),
       trajectoryCard("Occupied positions", "occupied_positions"),
       trajectoryCard("Contested Fronts", "contested_fronts"),
       trajectoryCard("Completed formations", "completed_formations"),
