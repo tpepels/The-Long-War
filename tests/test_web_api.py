@@ -267,6 +267,35 @@ def test_stratagem_action_is_paid_and_hidden_from_opponent() -> None:
     assert "Ground Was Held" not in opponent_view["last_action"]["label"]
     assert "face-down Stratagem" in opponent_view["last_action"]["label"]
 
+def test_public_constraint_stratagem_reveals_identity_when_played() -> None:
+    card_json, deck_json = payloads()
+    session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
+    finish_hotseat_mulligan(session)
+    active = session.state.active_player
+    opponent = 1 - active
+
+    stratagem_id = "every-banner-turned-toward-them"
+    session.state.players[active].hand[:] = [stratagem_id]
+    session.state.players[active].command = 20
+    session.state.pending_draw_discard_for = None
+
+    action = next(
+        item
+        for item in session.snapshot(active)["legal_actions"]
+        if item["kind"] == "PlayStratagem"
+        and item["card_id"] == stratagem_id
+    )
+    session.act(action["key"], active)
+
+    public = session.snapshot(opponent)
+    assert public["stratagems"][active]["card_id"] == stratagem_id
+    assert public["stratagems"][active]["hidden"] is False
+    assert public["stratagems"][active]["revealed"] is True
+    assert public["last_action"]["card_id"] == stratagem_id
+    assert public["last_action"]["hidden"] is False
+    assert "Every Banner Turned Toward Them" in public["last_action"]["label"]
+
+
 def test_hidden_stratagem_exposes_public_front_choice_but_not_identity() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
