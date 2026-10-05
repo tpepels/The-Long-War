@@ -747,8 +747,7 @@ def ismcts_search(
             state.phase != PHASE_COMPLETE
             and (
                 tree_turn_depth < tree_depth_limit
-                or state.pending_len > 0
-                or state.cleanup_pending
+                or _fe_forced_substep_pending(state)
             )
             and path_length < MAX_ISMCTS_DEPTH
         ):
@@ -792,13 +791,12 @@ def ismcts_search(
             action_kind_code = action_kind(action)
             _fe_apply_fast(engine, state, action)
             path_length += 1
-            if (
-                action_kind_code == TYPE_PASS
-                or action_kind_code == TYPE_END_TURN
-                or (
-                    state.turn_number != action_turn
-                    and action_count_before + 1 >= engine.actions_per_turn
-                )
+            if _fe_transition_completed_turn(
+                engine,
+                state,
+                action_turn,
+                action_count_before,
+                action_kind_code,
             ):
                 tree_turn_depth += 1
             if (
@@ -834,8 +832,7 @@ def ismcts_search(
             and state.phase != PHASE_COMPLETE
             and rollout_raw_steps < MAX_ISMCTS_DEPTH
             and (
-                state.pending_len > 0
-                or state.cleanup_pending
+                _fe_forced_substep_pending(state)
                 or (
                     not rollout_in_post_battle
                     and rollout_steps < rollout_depth
@@ -866,13 +863,12 @@ def ismcts_search(
             rollout_actions += 1
             if rollout_in_post_battle:
                 rollout_post_battle_actions += 1
-            if (
-                action_kind_code == TYPE_PASS
-                or action_kind_code == TYPE_END_TURN
-                or (
-                    state.turn_number != action_turn
-                    and action_count_before + 1 >= engine.actions_per_turn
-                )
+            if _fe_transition_completed_turn(
+                engine,
+                state,
+                action_turn,
+                action_count_before,
+                action_kind_code,
             ):
                 if rollout_in_post_battle:
                     rollout_post_battle_steps += 1
