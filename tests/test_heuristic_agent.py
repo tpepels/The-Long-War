@@ -247,8 +247,10 @@ def test_public_action_score_does_not_resolve_hidden_stratagem_by_identity() -> 
         revealed=False,
     )
 
-    assert engine.legal_actions(ground) == [EndTurn()]
-    assert engine.legal_actions(lines) == [EndTurn()]
+    # The privacy property is about scoring this legal Battle-ending action.
+    # Other unrelated Actions (for example a legal Maneuver) may also exist.
+    assert EndTurn() in engine.legal_actions(ground)
+    assert EndTurn() in engine.legal_actions(lines)
     assert evaluator._score_action(
         engine, ground, 0, EndTurn()
     ) == pytest.approx(
