@@ -9,7 +9,7 @@ from longwar.agents.heuristic_agent import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Discard, EndTurn, Front, GameEngine, Pass, PlayBond, Position, Rank
-from longwar.game.model import StratagemState
+from longwar.game.model import NarrativeState, StratagemState
 from longwar.native_engine import create_heuristic_evaluator
 from longwar.heuristics import StrategicEvaluator
 from longwar.rules import GameRules
@@ -450,6 +450,40 @@ def test_affordable_hand_caps_heroes_by_remaining_mode_allowances() -> None:
     assert native.affordable_hand_count(
         fast.from_game_state(both_spent), 0
     ) == 0
+
+
+def test_affordable_hand_excludes_spent_stratagem_allowance() -> None:
+    engine, state = engine_and_state()
+    state.players[0].command = 20
+    state.players[0].hand = ["the-ground-was-held"]
+
+    native = engine._native_heuristic()
+    fast = engine._native_core()
+    assert native.affordable_hand_count(fast.from_game_state(state), 0) == 1
+
+    spent = state.clone()
+    spent.stratagem_used[0] = 1
+    assert native.affordable_hand_count(fast.from_game_state(spent), 0) == 0
+
+
+def test_affordable_hand_respects_ongoing_narrative_limit() -> None:
+    engine, state = engine_and_state()
+    state.players[0].command = 20
+    state.players[0].hand = [
+        "the-battle-had-chosen-them",
+        "the-baggage-was-abandoned",
+    ]
+    state.narratives[0] = [
+        NarrativeState("the-long-march"),
+        NarrativeState("the-wall-did-not-break"),
+    ]
+
+    native = engine._native_heuristic()
+    fast = engine._native_core()
+
+    # The Ongoing card is blocked by the two-card Ongoing limit; the immediate
+    # Narrative remains a usable Command-affordable resource.
+    assert native.affordable_hand_count(fast.from_game_state(state), 0) == 1
 
 
 def test_complete_named_formation_is_distinguished_from_force_plus_name() -> None:
