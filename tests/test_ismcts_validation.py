@@ -474,10 +474,8 @@ def test_ismcts_depth_accounting_uses_completed_turn_boundaries() -> None:
     source = (ROOT / "src" / "longwar" / "_ismcts_core.pxi").read_text(
         encoding="utf-8"
     )
-    assert "state.turn_number != action_turn" in source
-    assert "action_count_before + 1 >= engine.actions_per_turn" in source
-    assert "state.pending_len > 0" in source
-    assert "state.cleanup_pending" in source
+    assert "_fe_transition_completed_turn(" in source
+    assert "_fe_forced_substep_pending(state)" in source
     assert "state.active_player != action_actor" not in source
 
 
