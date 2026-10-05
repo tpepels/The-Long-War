@@ -7,7 +7,7 @@ from .belief import BeliefSampler, DeckPrior
 from .game.actions import Action
 from .game.engine import GameEngine
 from .game.model import GameState, Phase
-from .mccfr import MCCFRTrainer, action_key, information_set_id
+from .mccfr import MCCFRTrainer, action_key, search_information_set_id
 
 
 @dataclass(frozen=True)
@@ -64,7 +64,7 @@ class OnlineMCCFRResolver:
 
         legal = self.engine.legal_actions(state)
         keys = [action_key(action) for action in legal]
-        root_id = information_set_id(state, viewer)
+        root_id = search_information_set_id(self.engine, state, viewer)
         diagnostics = self.belief.diagnostics(state, viewer)
 
         trainer_seed = self.rng.randrange(0, 2**31)
