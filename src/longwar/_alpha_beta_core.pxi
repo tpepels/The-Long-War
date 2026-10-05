@@ -266,7 +266,7 @@ cdef double native_alphabeta(
     NativeTranspositionTable table,
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
-    cdef int n, i, actor, bound
+    cdef int n, i, actor, bound, child_depth
     cdef bint maximizing
     cdef double value, child_value, alpha_start=alpha, beta_start=beta
     cdef double cached_value
@@ -323,12 +323,13 @@ cdef double native_alphabeta(
     for i in range(n):
         child.copy_from_fast(state)
         _fe_apply_fast(engine, child, actions[i])
+        child_depth = depth - (1 if child.active_player != actor else 0)
         child_value = native_alphabeta(
             engine,
             evaluator,
             child,
             root_player,
-            depth - 1,
+            child_depth,
             alpha,
             beta,
             budget,
@@ -385,7 +386,9 @@ cpdef double native_search_value(
     NativeTranspositionTable table=None,
 ):
     cdef FastState state = engine.from_game_state(game_state)
-    cdef int levels = depth + 2
+    # Depth counts completed turns while one turn can contain two Actions,
+    # mandatory draw-discard choices and queued card-effect choices.
+    cdef int levels = (depth + 1) * (2 * MAX_PENDING_EFFECTS + 8) + 2
     cdef object scratch
     if evaluator is None:
         evaluator = NativeHeuristicEvaluator(engine)
