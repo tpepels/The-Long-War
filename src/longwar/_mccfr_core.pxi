@@ -337,7 +337,12 @@ def make_scratch(int max_depth):
 
 @cython.boundscheck(True)
 def stable_information_id_from_fast_key(FastEngine engine, bytes key):
-    """Translate the current binary key to the public stable policy id."""
+    """Translate the binary key to the reduced diagnostic abstraction ID.
+
+    Live MCCFR training/export/playback uses the full native information key.
+    This decoder remains only for reference/parity tests of the older compact
+    observation shape.
+    """
     data = key
     i = 0
     version = data[i]
