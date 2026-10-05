@@ -473,7 +473,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             i += 1  # per-operation Maneuver-chain flag
             board[owner].append([
                 local // RANK_COUNT,
-                "front" if (local % RANK_COUNT) == 0 else "rear",
+                "front" if (local % RANK_COUNT) == RANK_FRONT else "middle" if (local % RANK_COUNT) == RANK_MIDDLE else "rear",
                 None if force_code < 0 else card_ids[force_code],
                 None if bond_code < 0 else card_ids[bond_code],
                 None if name_code < 0 else card_ids[name_code],
@@ -513,7 +513,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
                 target = [
                     target_owner,
                     local // RANK_COUNT,
-                    "front" if (local % RANK_COUNT) == 0 else "rear",
+                    "front" if (local % RANK_COUNT) == RANK_FRONT else "middle" if (local % RANK_COUNT) == RANK_MIDDLE else "rear",
                 ]
 
             narratives[owner].append({
@@ -536,7 +536,12 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         revealed = bool(data[i])
         front_mask = data[i + 1]
         direction_code = data[i + 2]
-        target_mask = data[i + 3] | (data[i + 4] << 8)
+        target_mask = (
+            data[i + 3]
+            | (data[i + 4] << 8)
+            | (data[i + 5] << 16)
+            | (data[i + 6] << 24)
+        )
         i += INFO_STRATAGEM_SEARCH_BYTES
 
         fronts = [
@@ -560,7 +565,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             targets.append([
                 target_owner,
                 local // RANK_COUNT,
-                "front" if (local % RANK_COUNT) == 0 else "rear",
+                "front" if (local % RANK_COUNT) == RANK_FRONT else "middle" if (local % RANK_COUNT) == RANK_MIDDLE else "rear",
             ])
 
         stratagems.append({
