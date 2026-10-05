@@ -1325,7 +1325,7 @@ def test_conditional_stratagem_reveals_when_battle_end_effect_fires() -> None:
     assert state.pending_draw_discard_for == 0
     assert state.stratagems[0] is not None
     assert state.stratagems[0].revealed is True
-    assert state.battle_resolution["front_loss_command_penalty"][0] >= 0
+    assert state.battle_resolution["front_loss_command_penalty"][0] == 0
 
 
 def test_center_must_hold_resolves_chosen_pair_by_combined_strength() -> None:
