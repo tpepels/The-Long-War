@@ -1139,13 +1139,16 @@ def test_rallied_behind_sorin_and_rear_support_use_printed_costs() -> None:
 def test_red_duelists_ignore_rear_strength_during_front_resolution() -> None:
     engine, state = setup_state()
     state.slot(0, pos(0, Rank.FRONT)).force = "the-red-duelists"
+    state.slot(0, pos(0, Rank.MIDDLE)).force = "the-fifty-men"
     state.slot(0, pos(0, Rank.REAR)).force = "seven-black-ships"
     state.slot(1, pos(0, Rank.FRONT)).force = "the-fifty-men"
+    state.slot(1, pos(0, Rank.MIDDLE)).force = "the-fifty-men"
     state.slot(1, pos(0, Rank.REAR)).force = "seven-black-ships"
 
     resolve_battle_by_passing(engine, state)
 
-    assert state.last_battle_snapshot["front_scores"][0] == [3, 4]
+    # Red Duelists suppress only Rear Strength. Middle/Support still counts.
+    assert state.last_battle_snapshot["front_scores"][0] == [7, 8]
 
 
 def test_ground_was_held_breaks_tie_only_for_single_frontline_named_side() -> None:
