@@ -256,6 +256,31 @@ def test_native_state_hash_distinguishes_draw_order() -> None:
     assert native.state_hash(changed_packed) != baseline
 
 
+def test_native_action_encoding_preserves_high_player_two_rear_slot() -> None:
+    engine, deck, native = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9909,
+        first_player=1,
+        opening_bonus=False,
+    )
+    state.battle = 3
+    state.active_player = 1
+    state.players[1].hand[:] = ["the-fifty-men"]
+    state.players[1].command = 20
+
+    packed = native.from_game_state(state)
+    key = "force:the-fifty-men:3:rear"
+    action = next(
+        action
+        for action in native.legal_actions(packed)
+        if native.action_key(action) == key
+    )
+
+    assert native.action_key(action) == key
+
+
 def test_native_stratagem_target_mask_preserves_high_player_two_slot() -> None:
     engine, deck, native = setup()
     state = engine.new_game(
