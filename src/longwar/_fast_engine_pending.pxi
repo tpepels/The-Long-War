@@ -514,8 +514,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         cancelled = _fe_pre_narrative_cancel(self, state, actor)
         if not cancelled:
             _fe_resolve_narrative(self, state, actor, card, pos, dest)
-            _fe_resolve_narrative_target_ongoing_narrative(self, state, actor, pos)
-        _fe_append_discard(self, state, actor, card, True)
+            _fe_append_discard(self, state, actor, card, True)
 
     elif kind == TYPE_ONGOING_NARRATIVE:
         _fe_take_from_hand(self, state, actor, card, 0)
