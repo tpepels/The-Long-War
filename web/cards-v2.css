@@ -580,3 +580,47 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   font-size:5.4mm;
   text-shadow:0 .2mm .25mm rgba(0,0,0,.5);
 }
+
+
+/* ------------------------------------------------------------------
+   FORCE ART WINDOW
+   Generated transparent raster frame layered over the dynamic illustration.
+   ------------------------------------------------------------------ */
+.card-force.chronicle-force-face .motif-field,
+.card-force.chronicle-force-face.sparse .motif-field,
+.card-force.chronicle-force-face.dense .motif-field,
+.card-force.chronicle-force-face.very-dense .motif-field{
+  left:5.7mm;
+  right:5.7mm;
+  top:10.2mm;
+  width:auto;
+  height:42mm;
+  min-height:42mm;
+  max-height:42mm;
+  overflow:visible;
+  border-radius:0;
+  background:none;
+}
+.card-force.chronicle-force-face .motif-field::before{
+  left:3.75mm;
+  right:3.75mm;
+  top:7mm;
+  bottom:7.4mm;
+  inset:auto;
+  border-radius:1mm;
+  background-image:var(--card-art,none),var(--family-art);
+  background-size:cover,cover;
+  background-position:50% 50%,50% 50%;
+  filter:saturate(1.03) contrast(1.05);
+  z-index:1;
+}
+.card-force.chronicle-force-face .motif-field::after{
+  content:"";
+  display:block;
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background:url("art/v2/ui/chronicle-art-window.webp") center/100% 100% no-repeat;
+}
+.card-force.chronicle-force-face .chronicle-lower{top:52mm}

@@ -395,3 +395,13 @@ def test_force_face_uses_precomposed_raster_shell() -> None:
     assert ".card-force.chronicle-force-face .cost-gem svg{display:none}" in css
     assert "top:12.8mm" in css
     assert "height:33.6mm" in css
+
+
+def test_force_face_uses_generated_art_window() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    asset = ROOT / "web" / "art" / "v2" / "ui" / "chronicle-art-window.webp"
+    assert asset.is_file()
+    assert 'url("art/v2/ui/chronicle-art-window.webp")' in css
+    assert "height:42mm" in css
+    assert "top:7mm" in css
+    assert "bottom:7.4mm" in css
