@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .agents.heuristic_agent import HeuristicAgent
-from .game.actions import Action, EndTurn, Pass, action_key
+from .game.actions import Action, action_key
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, other_player
 from .protocol import MCCFR_POLICY_SCHEMA_VERSION, ObservationZone, PLAYER_COUNT
@@ -429,17 +429,16 @@ class MCCFRTrainer:
 
         def next_state(current: GameState, action: Action) -> GameState:
             raw_child_depth = raw_depth_by_state_id[id(current)] + 1
-            turn_serial = current.turn_number
-            actions_before = current.actions_this_turn
             child = self._search_child(
                 current,
                 action,
                 raw_child_depth,
                 scratch_by_depth,
             )
-            turn_completed = isinstance(action, (Pass, EndTurn)) or (
-                child.turn_number != turn_serial
-                and actions_before + 1 >= self.engine.rules.actions_per_turn
+            turn_completed = self.engine.transition_completed_turn(
+                current,
+                child,
+                action,
             )
             raw_depth_by_state_id[id(child)] = raw_child_depth
             turn_depth_by_state_id[id(child)] = (
