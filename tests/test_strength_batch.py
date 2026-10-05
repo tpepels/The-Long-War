@@ -54,7 +54,7 @@ def test_name_option_delta_matches_full_strength_recalculation() -> None:
     bonds = ["followed", "guarded", "stood-fast-with", "endured-with", "trusted"]
     names = ["namar", "iria", "oren", "mara"]
 
-    for rank in (Rank.FRONT, Rank.REAR):
+    for rank in (Rank.FRONT, Rank.MIDDLE, Rank.REAR):
         position = Position(Front.SECOND, rank)
         slot = state.slot(0, position)
         slot.force = "the-fifty-men"
