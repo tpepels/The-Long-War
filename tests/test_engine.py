@@ -1606,7 +1606,7 @@ def test_hero_force_and_name_allowances_are_separate_once_per_battle() -> None:
         "the-ground-was-held",
         "the-lines-held",
     ]
-    # Avoid an unrelated discard-before-draw pause when Action 2 hands the
+    # Avoid an unrelated post-draw hand-limit pause when Action 2 hands the
     # turn to player 1.
     state.players[1].hand.clear()
     state.players[0].command = 20
