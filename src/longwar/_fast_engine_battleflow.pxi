@@ -282,6 +282,31 @@ cdef inline void _fe_clear_battle_temporary_strength(
     for slot in range(SLOT_COUNT):
         state.temporary[slot] = 0
 
+cdef inline bint _fe_forced_substep_pending(
+    FastState state,
+) noexcept:
+    """Whether search must continue through a non-optional engine substep."""
+    return state.pending_len > 0 or state.cleanup_pending
+
+
+cdef inline bint _fe_transition_completed_turn(
+    FastEngine self,
+    FastState state,
+    int turn_serial_before,
+    int actions_before,
+    int action_kind_code,
+) noexcept:
+    """Whether an applied transition completed one strategic turn."""
+    return (
+        action_kind_code == TYPE_PASS
+        or action_kind_code == TYPE_END_TURN
+        or (
+            state.turn_number != turn_serial_before
+            and actions_before + 1 >= self.actions_per_turn
+        )
+    )
+
+
 cdef inline int _fe_command_recovery_fast(
     FastEngine self,
     int battle,
