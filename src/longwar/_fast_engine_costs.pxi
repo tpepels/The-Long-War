@@ -99,6 +99,7 @@ cdef inline int _fe_command_cost_fast(
         for i in range(state.constraint_len):
             if (
                 state.constraint_player[i] == player
+                and state.constraint_activate_turn[i] != CONSTRAINT_ACTIVATE_NEXT_TURN
                 and state.turn_number >= state.constraint_activate_turn[i]
                 and state.constraint_kind[i] == CONSTRAINT_SPECIFIC_MANEUVER
                 and state.constraint_flags[i] & CONSTRAINT_ZERO_COST
