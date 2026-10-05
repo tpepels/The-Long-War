@@ -554,6 +554,7 @@ class PlaySession:
                 result["card_id"] = None
                 result["hidden"] = True
                 result["label"] = self.last_action["public_label"]
+        result.pop("stratagem_revealed", None)
         return result
 
     def _action_view(self, action: Action) -> dict[str, Any]:
