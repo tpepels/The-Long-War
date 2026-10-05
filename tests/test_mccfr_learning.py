@@ -112,7 +112,7 @@ def test_public_stratagem_choice_order_does_not_change_information_set() -> None
 
 
 def test_direct_longwar_traversal_matches_generic_core() -> None:
-    engine, deck, state = setup()
+    engine, deck, _state = setup()
     direct = MCCFRTrainer(
         engine,
         deck,
@@ -130,8 +130,11 @@ def test_direct_longwar_traversal_matches_generic_core() -> None:
         direct_traversal=False,
     )
 
-    direct_summary = direct.train_from_state(state, iterations=12)
-    generic_summary = generic.train_from_state(state, iterations=12)
+    # Root-deal training is the path that actually selects the primitive
+    # traversal when enabled. Use identical chance/search seeds so this is a
+    # production-backend parity test rather than two generic traversals.
+    direct_summary = direct.train(iterations=12)
+    generic_summary = generic.train(iterations=12)
 
     assert direct_summary == generic_summary
     assert direct.policy_payload()["infosets"] == generic.policy_payload()["infosets"]
