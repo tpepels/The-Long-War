@@ -484,6 +484,7 @@ cdef int _fe_filter_operation_constraints(
     for j in range(state.constraint_len):
         if (
             state.constraint_player[j] != player
+            or state.constraint_activate_turn[j] == CONSTRAINT_ACTIVATE_NEXT_TURN
             or state.turn_number < state.constraint_activate_turn[j]
         ):
             continue
