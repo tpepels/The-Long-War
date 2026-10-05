@@ -177,7 +177,10 @@ def test_direct_longwar_traversal_matches_generic_core() -> None:
     # Full 10-card openings create a combinatorial Action-1 × Action-2 tree
     # now that MCCFR depth counts completed turns. Keep this as a backend
     # parity test with a small but still two-Action legal surface.
-    rules = GameRules.standard().with_overrides(opening_hand_size=1)
+    rules = GameRules.standard().with_overrides(
+        opening_hand_size=1,
+        mulligan_max_cards=1,
+    )
     engine, deck, _state = setup(rules=rules)
     direct = MCCFRTrainer(
         engine,
