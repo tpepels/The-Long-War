@@ -948,12 +948,46 @@ cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
     elif resume == RESUME_START_BATTLE:
         _fe_finish_start_battle(self, state, player)
 
+cdef void _fe_expire_end_of_turn_constraints(
+    FastEngine self,
+    FastState state,
+    int actor,
+) noexcept:
+    cdef int i, flags, card, owner, narrative_slot, ix
+    i = state.constraint_len - 1
+    while i >= 0:
+        flags = state.constraint_flags[i]
+        if (
+            state.constraint_player[i] != actor
+            or state.turn_number < state.constraint_activate_turn[i]
+            or not (
+                flags & CONSTRAINT_EXPIRES_END_OF_ACTIVATED_TURN
+            )
+        ):
+            i -= 1
+            continue
+        card = state.constraint_source_card[i]
+        owner = state.constraint_source_owner[i]
+        _fe_remove_constraint_at(state, i)
+        if flags & CONSTRAINT_DISCARD_SOURCE_NARRATIVE:
+            for narrative_slot in range(self.ongoing_narrative_limit):
+                ix = owner * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+                if state.narrative[ix] == card:
+                    _fe_discard_ongoing_narrative(
+                        self, state, owner, narrative_slot
+                    )
+                    break
+        i -= 1
+
+
 cdef void _fe_finish_turn_fast(
     FastEngine self,
     FastState state,
     int actor,
 ) except *:
     cdef int opponent = other_player(actor)
+
+    _fe_expire_end_of_turn_constraints(self, state, actor)
 
     if state.closing_turns_remaining > 0:
         state.closing_turns_remaining -= 1
