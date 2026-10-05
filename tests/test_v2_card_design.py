@@ -368,3 +368,17 @@ def test_doros_is_promoted_to_very_dense_layout() -> None:
     chars = sum(len(effect.get("text", "")) for effect in es)
     assert len(es) == 3
     assert chars > 120
+
+
+def test_hero_mode_headers_are_graphical_dividers() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert 'function heroModeHeading(mode)' in js
+    assert 'mode-heading-core' in js
+    assert 'As Force' not in js
+    assert 'As Name' not in js
+    assert '.mode-heading{display:grid;grid-template-columns:minmax(2mm,1fr) auto minmax(2mm,1fr)' in css
+    assert '.mode-heading::before,.mode-heading::after' in css
+    assert '.hero-rule-mode+.hero-rule-mode{margin-top:.48mm;padding-top:.2mm;border-top:0}' in css
+    assert '.hero-rule-mode[data-mode="force"] .mode-heading-core' in css
+    assert '.hero-rule-mode[data-mode="name"] .mode-heading-core' in css

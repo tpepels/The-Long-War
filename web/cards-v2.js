@@ -87,8 +87,11 @@ function effectBlock(effect){
   const kind=["bonded","while_named","continuous"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
   return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+timingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div><div class="effect-text">'+esc(effect.text)+'</div></section>';
 }
+function heroModeHeading(mode){
+  return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
+}
 function rules(card){
-  if(card.type==="hero")return '<section class="hero-rule-mode" data-mode="force"><h4 class="mode-heading">'+typeGlyph("force")+'As Force</h4>'+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name"><h4 class="mode-heading">'+typeGlyph("name")+'As Name</h4>'+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
+  if(card.type==="hero")return '<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
   return effects(card).length?effects(card).map(effectBlock).join(""):'<p class="empty-rules">No special rules.</p>';
 }
 function statusLine(card){const bits=[];if(card.type==="stratagem")bits.push("Played face-down");if(card.duration==="this_battle")bits.push("This Battle");return bits.join(" · ")}
