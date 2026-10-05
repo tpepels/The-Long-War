@@ -27,6 +27,8 @@ from longwar.game.model import (
     PlayerState,
     Slot,
     NarrativeState,
+    OperationConstraint,
+    ConstraintKind,
     StratagemState,
 )
 from longwar.protocol import PLAYER_COUNT
@@ -421,6 +423,28 @@ def _restore_state(values: dict[str, object]) -> GameState:
             )
         )
         for item in values["stratagems"]
+    ]
+    values["constraints"] = [
+        OperationConstraint(
+            **{
+                **item,
+                "kind": ConstraintKind(item["kind"]),
+                "front": (
+                    None
+                    if item["front"] is None
+                    else Front(item["front"])
+                ),
+                "source_position": (
+                    None
+                    if item["source_position"] is None
+                    else Position(
+                        Front(item["source_position"]["front"]),
+                        Rank(item["source_position"]["rank"]),
+                    )
+                ),
+            }
+        )
+        for item in values["constraints"]
     ]
     values["phase"] = Phase(values["phase"])
     return GameState(**values)
