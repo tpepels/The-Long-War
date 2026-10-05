@@ -26,7 +26,6 @@ MULLIGAN_UNKNOWN_CARD_SCORE = 2.5
 
 HEURISTIC_DEFAULTS: dict[str, float] = {
     "terminal_win_score": 10000.0,
-    "fresh_battle_initiative": 0.70,
     "close_front_margin": 3,
     "exposed_front_margin": 4,
     "comfortable_front_margin": 5,
