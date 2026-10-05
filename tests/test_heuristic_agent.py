@@ -311,6 +311,32 @@ def test_heuristic_values_unused_hero_as_flexible_force_or_name_resource() -> No
 
     assert available > unavailable
 
+def test_hero_hand_value_uses_only_the_remaining_mode_allowance() -> None:
+    engine, state = engine_and_state()
+    state.players[0].hand = ["kael-the-roadless"]
+    state.players[1].hand = []
+
+    # A prepared Name creates a Force need but no Name need.
+    slot = state.slot(0, Position(Front.SECOND, Rank.FRONT))
+    slot.name = "namar"
+
+    force_mode_left = state.clone()
+    force_mode_left.hero_used[0] = 2  # Name mode used; Force mode remains.
+    name_mode_left = state.clone()
+    name_mode_left.hero_used[0] = 1  # Force mode used; Name mode remains.
+
+    native = engine._native_heuristic()
+    fast = engine._native_core()
+    force_value = native.hand_construction_value(
+        fast.from_game_state(force_mode_left), 0
+    )
+    name_value = native.hand_construction_value(
+        fast.from_game_state(name_mode_left), 0
+    )
+
+    assert force_value > name_value
+
+
 def test_complete_named_formation_is_distinguished_from_force_plus_name() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=11, exploration=0.0)
@@ -470,7 +496,7 @@ def test_heuristic_prefers_strength_that_changes_a_front_over_overcommitment() -
 
 
 
-def test_heuristic_values_fresh_battle_initiative() -> None:
+def test_zero_action_end_turn_does_not_create_false_fresh_battle_value() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=21, exploration=0.0)
 
@@ -488,10 +514,10 @@ def test_heuristic_values_fresh_battle_initiative() -> None:
     second = state.clone()
     second.active_player = 1
 
-    assert agent.evaluate(engine, first, 0) > agent.evaluate(
-        engine,
-        second,
-        0,
+    # A player may voluntarily EndTurn after zero Actions. Therefore
+    # "nobody has taken an Action yet" is not a reliable fresh-Battle marker.
+    assert agent.evaluate(engine, first, 0) == pytest.approx(
+        agent.evaluate(engine, second, 0)
     )
 
 
