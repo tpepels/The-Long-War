@@ -276,7 +276,7 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
         path.stem
         for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png")
     )
-    assert len(art_ids) == 90
+    assert len(art_ids) == 98
     known = {card["id"] for card in CARDS}
     assert art_ids
     assert set(art_ids) <= known
@@ -294,65 +294,12 @@ def test_exposed_row_preserves_classification_icons_before_reminder_width() -> N
     assert ".edge-live-text{max-width:20mm;" in css
 
 
-def test_canonical_force_artwork_geometry_is_identical() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
-    assert "--force-art-height:34mm" in canonical
-    assert "--force-art-x:8.1mm" in canonical
-    assert "--force-art-y:16.1mm" in canonical
-    assert "--force-art-w:51.8mm" in canonical
-    assert "height:var(--force-art-height)" in canonical
-    assert "background-position:50% 50%,50% 50%" in canonical
-    assert ".sparse .motif-field" in canonical
-    assert ".dense .motif-field" in canonical
-    assert ".very-dense .motif-field" in canonical
-    assert "function forceArticle(" in js
-    assert "chronicle-force-face" in js
-    assert "if(card.type===\"force\") return forceArticle" in js
-    assert "--art-position" not in css
-
 
 def test_nonformation_header_matches_stack_header_height() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert ".event-crown{height:calc(var(--exposed-edge) - var(--frame));flex:0 0 calc(var(--exposed-edge) - var(--frame));" in css
 
 
-def test_canonical_force_face_has_material_assets_and_approved_order() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-
-    for asset in (
-        "chronicle-parchment.webp",
-        "chronicle-border.webp",
-        "chronicle-divider.webp",
-    ):
-        assert asset in css
-        assert (ROOT / "web" / "art" / "v2" / "ui" / asset).is_file()
-
-    # Decorative Chronicle material is raster artwork, not hand-built SVG
-    # ornament. Vector assets remain reserved for functional game glyphs.
-    for retired_asset in (
-        "chronicle-grain.svg",
-        "chronicle-frame.svg",
-        "chronicle-art-frame.svg",
-    ):
-        assert retired_asset not in css
-
-    force_start = js.index("function forceArticle")
-    force_end = js.index("function cardArticle", force_start)
-    renderer = js[force_start:force_end]
-    assert renderer.index("stackEdge(card)") < renderer.index("motif-field chronicle-art")
-    assert renderer.index("motif-field chronicle-art") < renderer.index("card-title")
-    assert renderer.index("card-title") < renderer.index("chronicle-rules")
-    assert renderer.index("chronicle-rules") < renderer.index("chronicle-footer")
-
-
-def test_force_top_strip_includes_readable_timing_word() -> None:
-    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    assert "edge-timing-word" in js
-    assert ".card-force.chronicle-force-face .edge-timing-word" in css
 
 
 def test_force_style_lab_covers_force_layout_stress_cases() -> None:
@@ -371,65 +318,34 @@ def test_force_style_lab_covers_force_layout_stress_cases() -> None:
 
 
 
-def test_force_face_keeps_top_strip_typographic_not_rebus_only() -> None:
+
+
+
+
+
+
+def test_force_uses_shared_card_layout() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    assert ".card-force.chronicle-force-face .edge-timing{display:none}" in css
-    assert ".card-force.chronicle-force-face .strength-mark svg{display:none}" in css
-    assert "max-width:20.5mm" in css
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert "function forceArticle(" not in js
+    assert "chronicle-force-face" not in js
+    assert "CANONICAL FORCE FACE" not in css
+    assert ".card-force{--accent:" in css
+    assert "if(card.type===\"force\") return forceArticle" not in js
+    assert "(isFormationCard(card)?stackEdge(card):eventCrown(card))" in js
+    assert '<div class="card-body"><div class="card-identity">' in js
+    assert '<div class="motif-field" aria-hidden="true"></div>' in js
 
 
-
-
-
-
-
-
-
-
-
-
-def test_force_recovery_uses_one_precomposed_shell() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
-    assert css.count("CANONICAL FORCE FACE — precomposed generated raster shell") == 1
-    assert 'background:url("art/v2/ui/chronicle-force-shell-v2.webp")' in canonical
-    assert (ROOT / "web" / "art" / "v2" / "ui" / "chronicle-force-shell-v2.webp").is_file()
-    assert 'chronicle-command-seal.jpg' in canonical
-    assert "chronicle-top-strip.webp" not in canonical
-    assert "chronicle-art-window.webp" not in canonical
-    assert "chronicle-command-corner.webp" not in canonical
-    assert 'url("art/v2/ui/chronicle-divider.webp")' not in canonical
-    assert "linear-gradient" not in canonical
-
-
-def test_force_recovery_keeps_live_layers_unboxed() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
-    assert ".chronicle-divider," in canonical
-    assert ".effect-block{" in canonical
-    assert "background:transparent" in canonical
-    assert "rgba(239,222,185" not in canonical
-    assert "--force-strip-h:10.5mm" in canonical
-
-
-def test_force_shell_owns_command_mount_and_text_avoids_printed_rails() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
-    assert "top:53.15mm" in canonical
-    assert "top:16.65mm" in canonical
-    assert "right:4.15mm" in canonical
-    assert "bottom:4.65mm" in canonical
-    assert "width:10.1mm" in canonical
-    assert "height:10.1mm" in canonical
-    assert 'background:url("art/v2/ui/chronicle-command-seal.jpg") center/145% 145% no-repeat' in canonical
-    assert "clip-path:polygon(29% 0,71% 0,100% 29%,100% 71%,71% 100%,29% 100%,0 71%,0 29%)" in canonical
-
-
-def test_force_live_typography_clears_shell_rails() -> None:
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
-    assert "top:-.45mm" in canonical
-    assert "font:600 4.72mm/.98 var(--display)" in canonical
-    assert "font:400 1.92mm/1 var(--text)" in canonical
-    assert "top:16.65mm" in canonical
-    assert "font:2.86mm/1.16 var(--text)" in canonical
+def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
+    cards = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8"))
+    cards = cards if isinstance(cards, list) else cards["cards"]
+    force_ids = {card["id"] for card in cards if card["type"] == "force"}
+    art_ids = {
+        path.stem
+        for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png")
+    }
+    # Every Force with matching generated art in the repository is promoted to
+    # the normal per-card art path. The Red Shields has no matching generated
+    # file yet and therefore deliberately retains the Force family fallback.
+    assert force_ids - art_ids == {"the-red-shields"}
