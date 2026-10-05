@@ -491,6 +491,16 @@ class PlaySession:
         payload = self._action_view(action)
 
         self.engine.apply(self.state, action)
+        stratagem_revealed = False
+        if isinstance(action, PlayStratagem):
+            active_stratagem = self.state.stratagems[actor]
+            stratagem_revealed = bool(
+                active_stratagem is not None
+                and active_stratagem.card_id == action.card_id
+                and active_stratagem.revealed
+            )
+            if stratagem_revealed:
+                label = payload["label"]
         self.log.append(label)
         self.action_serial += 1
         self.last_action = {
@@ -500,6 +510,7 @@ class PlaySession:
             "public_label": label,
             "private_label": payload["label"],
             "events": [],
+            "stratagem_revealed": stratagem_revealed,
         }
 
         if self.state.phase is Phase.COMPLETE:
@@ -536,9 +547,13 @@ class PlaySession:
             result.get("kind") == "PlayStratagem"
             and viewer != result.get("actor")
         ):
-            result["card_id"] = None
-            result["hidden"] = True
-            result["label"] = self.last_action["public_label"]
+            if self.last_action.get("stratagem_revealed"):
+                result["hidden"] = False
+                result["label"] = self.last_action["private_label"]
+            else:
+                result["card_id"] = None
+                result["hidden"] = True
+                result["label"] = self.last_action["public_label"]
         return result
 
     def _action_view(self, action: Action) -> dict[str, Any]:
