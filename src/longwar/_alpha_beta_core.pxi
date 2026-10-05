@@ -288,8 +288,7 @@ cdef double native_alphabeta(
 
     if state.phase == PHASE_COMPLETE or (
         depth <= 0
-        and state.pending_len == 0
-        and not state.cleanup_pending
+        and not _fe_forced_substep_pending(state)
     ):
         return evaluator.strategic_evaluate_fast(state, root_player)
 
@@ -330,13 +329,8 @@ cdef double native_alphabeta(
         turn_serial = state.turn_number
         actions_before = state.actions_this_turn
         _fe_apply_fast(engine, child, actions[i])
-        turn_completed = (
-            kind == TYPE_PASS
-            or kind == TYPE_END_TURN
-            or (
-                child.turn_number != turn_serial
-                and actions_before + 1 >= engine.actions_per_turn
-            )
+        turn_completed = _fe_transition_completed_turn(
+            engine, child, turn_serial, actions_before, kind
         )
         child_depth = depth - (1 if turn_completed else 0)
         child_value = native_alphabeta(
