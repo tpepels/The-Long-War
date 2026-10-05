@@ -631,6 +631,7 @@ cdef class NativeHeuristicEvaluator:
         """Compute long-horizon card-resource features in one identity scan."""
         cdef int card, typ, hand_count, count, i
         cdef int forces=0, bonds=0, names=0, heroes=0
+        cdef int affordable_heroes=0
         cdef int discarded_forces=0, discarded_heroes=0
         cdef int remaining_force_uses, remaining_name_uses
         cdef int force_heroes, name_heroes
@@ -655,14 +656,9 @@ cdef class NativeHeuristicEvaluator:
                 and self.engine.card_command_cost[card]
                 <= state.command[player]
             ):
-                # A Hero with both mode allowances exhausted is not an
-                # affordable playable resource this Battle merely because its
-                # printed Command cost is payable.
-                if (
-                    not self.engine.hero[card]
-                    or remaining_force_uses > 0
-                    or remaining_name_uses > 0
-                ):
+                if self.engine.hero[card]:
+                    affordable_heroes += hand_count
+                else:
                     affordable[0] += hand_count
 
             typ = self.engine.card_type[card]
@@ -675,6 +671,14 @@ cdef class NativeHeuristicEvaluator:
                 bonds += count
             elif typ == CARD_NAME:
                 names += count
+
+        # Hero affordability is capped by both physical cards and the two
+        # independent per-Battle mode allowances. Three affordable Heroes in
+        # hand are still at most two usable Hero resources this Battle.
+        affordable[0] += min(
+            affordable_heroes,
+            remaining_force_uses + remaining_name_uses,
+        )
 
         max_force_heroes = min(heroes, remaining_force_uses)
         max_name_heroes = min(heroes, remaining_name_uses)
@@ -1110,6 +1114,13 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ):
         return self.hand_construction_value_fast(state, player)
+
+    cpdef int affordable_hand_count(
+        self,
+        FastState state,
+        int player,
+    ):
+        return self.affordable_hand_count_fast(state, player)
 
     cpdef double score_action(
         self,
