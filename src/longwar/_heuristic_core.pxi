@@ -366,7 +366,7 @@ cdef class NativeHeuristicEvaluator:
     ) noexcept:
         """Count immediately allowance-usable Force cards in hand."""
         cdef int i, card, forces=0, heroes=0
-        cdef int remaining_hero_uses = (
+        cdef int remaining_force_uses = (
             self.remaining_hero_force_uses_fast(state, player)
         )
 
@@ -376,8 +376,8 @@ cdef class NativeHeuristicEvaluator:
                 heroes += state.hand[player][card]
             else:
                 forces += state.hand[player][card]
-        if heroes > remaining_hero_uses:
-            heroes = remaining_hero_uses
+        if heroes > remaining_force_uses:
+            heroes = remaining_force_uses
         return forces + heroes
 
     cdef int board_force_count_fast(
