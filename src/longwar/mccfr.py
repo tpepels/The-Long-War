@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .agents.heuristic_agent import HeuristicAgent
-from .game.actions import Action, action_key
+from .game.actions import Action, EndTurn, Pass, action_key
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, other_player
 from .protocol import MCCFR_POLICY_SCHEMA_VERSION, ObservationZone, PLAYER_COUNT
@@ -193,9 +193,10 @@ class MCCFRTrainer:
     of every iteration. On the traversing player's nodes every legal action is
     expanded; on the opponent's nodes one action is sampled from regret
     matching. This is the external-sampling MCCFR update. The explicit
-    approximation is the depth limit: frontier states are evaluated by the
-    public-information heuristic evaluator rather than recursively solving the
-    rest of the match.
+    approximation is the turn-depth limit: frontier states are evaluated by
+    the public-information heuristic evaluator rather than recursively solving
+    the rest of the match. Pending choices and multiple Actions inside one turn
+    do not consume additional strategic depth.
     """
 
     def __init__(
@@ -423,32 +424,58 @@ class MCCFRTrainer:
         depth: int,
         scratch_by_depth: dict[int, GameState],
     ) -> float:
-        depth_by_state_id = {id(state): depth}
+        raw_depth_by_state_id = {id(state): 0}
+        turn_depth_by_state_id = {id(state): depth}
 
         def next_state(current: GameState, action: Action) -> GameState:
-            child_depth = depth_by_state_id[id(current)] + 1
+            raw_child_depth = raw_depth_by_state_id[id(current)] + 1
+            turn_serial = current.turn_number
+            actions_before = current.actions_this_turn
             child = self._search_child(
                 current,
                 action,
-                child_depth,
+                raw_child_depth,
                 scratch_by_depth,
             )
-            depth_by_state_id[id(child)] = child_depth
+            turn_completed = isinstance(action, (Pass, EndTurn)) or (
+                child.turn_number != turn_serial
+                and actions_before + 1 >= self.engine.rules.actions_per_turn
+            )
+            raw_depth_by_state_id[id(child)] = raw_child_depth
+            turn_depth_by_state_id[id(child)] = (
+                turn_depth_by_state_id[id(current)] + int(turn_completed)
+            )
             return child
 
+        def is_frontier(current: GameState) -> bool:
+            if current.phase is Phase.COMPLETE:
+                return True
+            if (
+                current.pending_effects
+                or current.pending_draw_discard_for is not None
+            ):
+                return False
+            return turn_depth_by_state_id[id(current)] >= self.max_depth
+
+        def frontier_utility(current: GameState, player: int) -> float:
+            if current.phase is Phase.COMPLETE:
+                if current.winner is None:
+                    return 0.0
+                return 1.0 if current.winner == player else -1.0
+            return self._leaf_value(current, player)
+
+        # external_sampling_traverse keeps its own recursion depth only for
+        # generic traversal mechanics. Long War's strategic horizon is enforced
+        # by is_frontier() from completed-turn state above.
         return external_sampling_traverse(
             state,
             traverser,
-            depth=depth,
-            max_depth=self.max_depth,
+            depth=0,
+            max_depth=None,
             nodes=self.nodes,
             rng=self.rng,
-            is_terminal=lambda current: current.phase is Phase.COMPLETE,
-            terminal_utility=lambda current, player: (
-                0.0
-                if current.winner is None
-                else 1.0 if current.winner == player else -1.0
-            ),
+            is_terminal=is_frontier,
+            terminal_utility=frontier_utility,
             current_player=lambda current: current.active_player,
             legal_actions=self.engine.legal_actions,
             action_key=action_key,
@@ -458,7 +485,7 @@ class MCCFRTrainer:
                 actor,
             ),
             next_state=next_state,
-            leaf_value=self._leaf_value,
+            leaf_value=None,
         )
 
     def _leaf_value(self, state: GameState, traverser: int) -> float:
