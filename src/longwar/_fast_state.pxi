@@ -1,11 +1,11 @@
 cdef class FastState:
     cdef int8_t deck[PLAYER_COUNT][MAX_DECK]
-    cdef uint8_t deck_len[PLAYER_COUNT]
+    cdef uint16_t deck_len[PLAYER_COUNT]
     cdef uint8_t deck_counts[PLAYER_COUNT][MAX_CARDS]
     cdef uint8_t hand[PLAYER_COUNT][MAX_CARDS]
     cdef uint8_t hand_len[PLAYER_COUNT]
     cdef int8_t discard[PLAYER_COUNT][MAX_DECK]
-    cdef uint8_t discard_len[PLAYER_COUNT]
+    cdef uint16_t discard_len[PLAYER_COUNT]
 
     cdef int8_t force[SLOT_COUNT]
     cdef int8_t bond[SLOT_COUNT]
