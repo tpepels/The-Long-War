@@ -3,9 +3,9 @@ cdef void _fe_queue_pre_resolution_choice(
     FastState state,
 ) except *:
     cdef int cursor = state.resolution_cursor
-    cdef int controller, slot, front, rear, force, bond, rank
+    cdef int controller, slot, front, rear, force, bond
     cdef int opponent, target
-    cdef uint32_t mask, target_mask
+    cdef uint16_t mask, target_mask
 
     # They Let Them Through - each controller may swap the two formations
     # in one Front before Strength is compared.
@@ -23,8 +23,8 @@ cdef void _fe_queue_pre_resolution_choice(
                     state.force[slot] >= 0
                     and state.force[rear] >= 0
                 ):
-                    mask |= <uint32_t>(1 << slot)
-                    mask |= <uint32_t>(1 << rear)
+                    mask |= <uint16_t>(1 << slot)
+                    mask |= <uint16_t>(1 << rear)
             if mask:
                 _fe_enqueue_effect(self, 
                     state,
@@ -53,7 +53,7 @@ cdef void _fe_queue_pre_resolution_choice(
             rear = slot_index(
                 owner_from_slot(slot),
                 front_from_slot(slot),
-                RANK_MIDDLE,
+                1,
             )
             if _fe_slot_is_empty(self, state, rear):
                 _fe_enqueue_effect(self, 
@@ -120,7 +120,7 @@ cdef void _fe_queue_pre_resolution_choice(
                 slot,
                 -1,
                 0,
-                <uint32_t>(1 << target),
+                <uint16_t>(1 << target),
                 EFFECT_OPTIONAL,
             )
         return
@@ -139,10 +139,12 @@ cdef void _fe_queue_pre_resolution_choice(
         opponent = other_player(controller)
         front = front_from_slot(slot)
         target_mask = 0
-        for rank in range(RANK_COUNT):
-            target = slot_index(opponent, front, rank)
-            if state.force[target] >= 0:
-                target_mask |= <uint32_t>(1 << target)
+        target = slot_index(opponent, front, RANK_FRONT)
+        if state.force[target] >= 0:
+            target_mask |= <uint16_t>(1 << target)
+        target = slot_index(opponent, front, RANK_REAR)
+        if state.force[target] >= 0:
+            target_mask |= <uint16_t>(1 << target)
         if target_mask:
             _fe_enqueue_effect(self, 
                 state,
