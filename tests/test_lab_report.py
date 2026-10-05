@@ -158,7 +158,7 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
             "1": {
                 "battles": 1,
                 "command_remaining": 14.0,
-                "first_signal_command": 12.0,
+                "pass_command": 12.0,
                 "occupied_positions": 3.0,
                 "active_fronts": 2.0,
                 "contested_fronts": 1.0,
@@ -175,7 +175,7 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
             "3": {
                 "battles": 1,
                 "command_remaining": 7.0,
-                "first_signal_command": 6.0,
+                "pass_command": 6.0,
                 "occupied_positions": 5.0,
                 "active_fronts": 3.0,
                 "contested_fronts": 2.0,
@@ -236,6 +236,11 @@ def test_lab_report_surfaces_progression_from_current_selfplay(tmp_path, monkeyp
         "early": 14.0,
         "late": 7.0,
         "delta": -7.0,
+    }
+    assert trajectory["metrics"]["pass_command"] == {
+        "early": 12.0,
+        "late": 6.0,
+        "delta": -6.0,
     }
     assert trajectory["metrics"]["occupied_positions"]["delta"] == 2.0
     assert trajectory["metrics"][
