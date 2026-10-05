@@ -37,7 +37,12 @@ class SearchBudget:
 
 
 class AlphaBetaSearch:
-    """Reference alpha-beta algorithm over canonical engine/evaluator APIs."""
+    """Reference alpha-beta over canonical engine/evaluator APIs.
+
+    Search depth is measured in completed turns, not raw engine actions.
+    Action 1 -> Action 2 and pending effect choices therefore remain inside
+    the same strategic ply.
+    """
 
     def __init__(
         self,
@@ -107,10 +112,11 @@ class AlphaBetaSearch:
                 scratch.append(child)
 
             self.engine.apply(child, action, validate=False)
+            child_depth = depth - int(child.active_player != actor)
             child_value = self.search(
                 child,
                 root_player=root_player,
-                depth=depth - 1,
+                depth=child_depth,
                 alpha=alpha,
                 beta=beta,
                 budget=budget,
