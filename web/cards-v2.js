@@ -104,7 +104,17 @@ function densityClass(card){
   }
   return chars>250?" very-dense":chars>170?" dense":chars<95?" sparse":"";
 }
-function artStyle(card){return ' style="--card-art:url(art/v2/cards/'+esc(card.id)+'.png)"';}
+function artFocus(value,fallback){
+  const text=String(value??"").trim();
+  if(/^\\d+(?:\\.\\d+)?%$/.test(text))return text;
+  return fallback;
+}
+function artStyle(card){
+  const x=artFocus(card.art_focus_x,"50%");
+  const y=artFocus(card.art_focus_y,card.type==="force"?"28%":"50%");
+  const artURL="art/v2/cards/"+esc(card.id)+".png?v="+encodeURIComponent(VERSION);
+  return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
+}
 function cardArticle(card,extra="",options={}){
   const density=densityClass(card),heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
   return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
