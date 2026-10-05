@@ -450,6 +450,9 @@ class GameEngine:
                     discard_source_narrative=bool(
                         item.get("discard_source_narrative", False)
                     ),
+                    expires_end_of_activated_turn=bool(
+                        item.get("expires_end_of_activated_turn", False)
+                    ),
                 )
             )
         state.constraints[:] = constraints
