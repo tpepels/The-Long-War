@@ -15,7 +15,6 @@ cdef class FastState:
     cdef uint8_t maneuvered_in_operation[SLOT_COUNT]
 
     cdef int8_t narrative[NARRATIVE_COUNT]
-    cdef uint8_t narrative_revealed[NARRATIVE_COUNT]
     cdef uint8_t narrative_front_mask[NARRATIVE_COUNT]
     cdef int8_t narrative_target_slot[NARRATIVE_COUNT]
     cdef uint8_t narrative_used[NARRATIVE_COUNT]
@@ -134,7 +133,6 @@ cdef class FastState:
         memset(self.maneuver_count, 0, sizeof(self.maneuver_count))
         memset(self.maneuvered_in_operation, 0, sizeof(self.maneuvered_in_operation))
         memset(self.narrative, 0xff, sizeof(self.narrative))
-        memset(self.narrative_revealed, 0, sizeof(self.narrative_revealed))
         memset(self.narrative_front_mask, 0, sizeof(self.narrative_front_mask))
         memset(self.narrative_target_slot, 0xff, sizeof(self.narrative_target_slot))
         memset(self.narrative_used, 0, sizeof(self.narrative_used))
@@ -247,7 +245,6 @@ cdef class FastState:
         memcpy(self.maneuver_count, other.maneuver_count, sizeof(self.maneuver_count))
         memcpy(self.maneuvered_in_operation, other.maneuvered_in_operation, sizeof(self.maneuvered_in_operation))
         memcpy(self.narrative, other.narrative, sizeof(self.narrative))
-        memcpy(self.narrative_revealed, other.narrative_revealed, sizeof(self.narrative_revealed))
         memcpy(self.narrative_front_mask, other.narrative_front_mask, sizeof(self.narrative_front_mask))
         memcpy(self.narrative_target_slot, other.narrative_target_slot, sizeof(self.narrative_target_slot))
         memcpy(self.narrative_used, other.narrative_used, sizeof(self.narrative_used))
