@@ -63,7 +63,7 @@ TRAJECTORY_FIELDS = (
     "command_start",
     "command_remaining",
     "command_before_collapse",
-    "first_signal_command",
+    "pass_command",
     "occupied_positions",
     "active_fronts",
     "contested_fronts",
