@@ -558,6 +558,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                     | CONSTRAINT_ZERO_COST
                     | CONSTRAINT_DRAW_ON_SATISFY
                     | CONSTRAINT_DISCARD_SOURCE_NARRATIVE
+                    | CONSTRAINT_EXPIRES_END_OF_ACTIVATED_TURN
                 ),
             )
 
