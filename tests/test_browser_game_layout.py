@@ -99,6 +99,17 @@ def test_start_overlay_obeys_hidden_attribute() -> None:
     assert "start overlay remains visible after match start" in checker
 
 
+def test_battlefield_renders_all_three_canonical_ranks() -> None:
+    play = text("web/play.js")
+    css = text("web/play.css")
+
+    assert 'renderRankRow(top, RANK.MIDDLE, "Middle / Support")' in play
+    assert 'renderRankRow(bottom, RANK.MIDDLE, "Middle / Support")' in play
+    assert ".opponent-army .rank-middle" in css
+    assert ".player-army .rank-middle" in css
+    assert "middle=Middle/Support" in play
+
+
 def test_battlefield_has_minimum_visual_scale_and_public_card_inspection() -> None:
     css = text("web/play.css")
     play = text("web/play.js")
