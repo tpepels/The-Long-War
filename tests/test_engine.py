@@ -277,6 +277,17 @@ def test_front_selecting_cards_cannot_target_inactive_fronts() -> None:
     ) in legal
 
 
+def test_maneuver_cannot_enter_inactive_front() -> None:
+    engine, state = setup_state(battle=1)
+    source = pos(2, Rank.MIDDLE)
+    make_named(state, 0, source)
+
+    legal = engine.legal_actions(state)
+
+    assert Maneuver(source, pos(1, Rank.MIDDLE)) in legal
+    assert Maneuver(source, pos(3, Rank.MIDDLE)) not in legal
+
+
 def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     engine, state = setup_state()
 
