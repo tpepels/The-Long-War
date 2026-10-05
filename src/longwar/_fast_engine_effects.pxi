@@ -260,8 +260,15 @@ cdef uint32_t _fe_named_formation_mask(
 ) noexcept:
     cdef int slot
     cdef uint32_t mask = 0
-    for slot in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
-        if slot != exclude and _fe_slot_complete(self, state, slot):
+    for slot in range(
+        player * POSITIONS_PER_PLAYER,
+        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+    ):
+        if (
+            slot != exclude
+            and front_is_active(state.battle, front_from_slot(slot))
+            and _fe_slot_complete(self, state, slot)
+        ):
             mask |= <uint32_t>(1 << slot)
     return mask
 
@@ -276,13 +283,20 @@ cdef uint32_t _fe_adjacent_formation_mask(
     cdef int rank = rank_from_slot(slot)
     cdef int other
     cdef uint32_t mask = 0
-    if front > 0:
+    if front > 0 and front_is_active(state.battle, front - 1):
         other = slot_index(player, front - 1, rank)
-        if state.force[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
+        if state.force[other] >= 0 and (
+            not named_only or _fe_slot_complete(self, state, other)
+        ):
             mask |= <uint32_t>(1 << other)
-    if front < FRONT_COUNT - 1:
+    if (
+        front < FRONT_COUNT - 1
+        and front_is_active(state.battle, front + 1)
+    ):
         other = slot_index(player, front + 1, rank)
-        if state.force[other] >= 0 and (not named_only or _fe_slot_complete(self, state, other)):
+        if state.force[other] >= 0 and (
+            not named_only or _fe_slot_complete(self, state, other)
+        ):
             mask |= <uint32_t>(1 << other)
     return mask
 
@@ -296,11 +310,14 @@ cdef uint32_t _fe_adjacent_empty_mask(
     cdef int rank = rank_from_slot(slot)
     cdef int other
     cdef uint32_t mask = 0
-    if front > 0:
+    if front > 0 and front_is_active(state.battle, front - 1):
         other = slot_index(player, front - 1, rank)
         if _fe_slot_is_empty(self, state, other):
             mask |= <uint32_t>(1 << other)
-    if front < FRONT_COUNT - 1:
+    if (
+        front < FRONT_COUNT - 1
+        and front_is_active(state.battle, front + 1)
+    ):
         other = slot_index(player, front + 1, rank)
         if _fe_slot_is_empty(self, state, other):
             mask |= <uint32_t>(1 << other)
