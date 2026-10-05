@@ -448,12 +448,15 @@ def test_ismcts_is_bit_reproducible_for_fixed_beliefs_and_seed() -> None:
     assert first["max_tree_depth"] == second["max_tree_depth"]
 
 
-def test_ismcts_depth_accounting_uses_actor_change_not_action_serial() -> None:
+def test_ismcts_depth_accounting_uses_completed_turn_boundaries() -> None:
     source = (ROOT / "src" / "longwar" / "_ismcts_core.pxi").read_text(
         encoding="utf-8"
     )
-    assert "state.active_player != action_actor" in source
-    assert "state.turn_number != action_turn" not in source
+    assert "state.turn_number != action_turn" in source
+    assert "action_count_before + 1 >= engine.actions_per_turn" in source
+    assert "state.pending_len > 0" in source
+    assert "state.cleanup_pending" in source
+    assert "state.active_player != action_actor" not in source
 
 
 def test_root_visit_and_availability_accounting_is_conserved() -> None:
