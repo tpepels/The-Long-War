@@ -156,9 +156,6 @@ cdef class NativeHeuristicEvaluator:
         cdef int current_delta=0, projected_delta=0
         cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
         cdef double own_liability=0.0, opponent_liability=0.0
-        cdef double passed_hand_value=0.0, responding_hand_value=0.0
-        cdef double passed_pressure=0.0, responding_pressure=0.0
-        cdef double signal_pressure=0.0
         cdef double score = 0.0
 
         if state.phase == PHASE_COMPLETE:
@@ -779,7 +776,7 @@ cdef class NativeHeuristicEvaluator:
         int player,
         uint64_t action,
     ) noexcept:
-        """Whether this operation can actually reach a Battle-end Collapse."""
+        """Whether this Action can actually reach a Battle-end Collapse."""
         cdef int kind = action_kind(action)
 
         # Only a transition that finishes the passer's final closing turn can
