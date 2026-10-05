@@ -233,21 +233,42 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     cdef int losses0, losses1
     cdef uint16_t projected_lost0=0, projected_lost1=0
 
-    # Resolution-based hidden Stratagems reveal as their Battle-end mechanic
-    # becomes relevant. Trigger-based Stratagems reveal in _fe_resolve_strat_event.
+    # Reveal a resolution Stratagem only when its own mechanic becomes
+    # active. Unconditional comparison modifiers reveal now; conditional
+    # effects below reveal only if their trigger/effect actually occurs.
     for controller in range(PLAYER_COUNT):
         strat = state.stratagem[controller]
         if (
             strat >= 0
             and (
-                self.strat_tie_control[strat]
-                or self.strat_combine_fronts[strat]
-                or self.strat_front_loss_protection[strat]
-                or self.strat_encirclement[strat]
+                self.strat_combine_fronts[strat]
                 or self.strat_refuse_flank[strat]
             )
         ):
             state.stratagem_revealed[controller] = 1
+
+    # The Ground Was Held matters only on a tied active Front where exactly
+    # one side has a Frontline Named Formation. Keep it hidden otherwise.
+    for front in range(FRONT_COUNT):
+        if not front_is_active(state.battle, front):
+            continue
+        a = _fe_resolution_front_strength_fast(self, state, 0, front)
+        b = _fe_resolution_front_strength_fast(self, state, 1, front)
+        if (
+            a == b
+            and (
+                _fe_slot_complete(
+                    self, state, slot_index(0, front, RANK_FRONT)
+                )
+                != _fe_slot_complete(
+                    self, state, slot_index(1, front, RANK_FRONT)
+                )
+            )
+        ):
+            for controller in range(PLAYER_COUNT):
+                strat = state.stratagem[controller]
+                if strat >= 0 and self.strat_tie_control[strat]:
+                    state.stratagem_revealed[controller] = 1
 
     # Record the effective comparison Strength displayed in the Battle
     # snapshot, then use the shared rule primitive for the actual outcomes.
@@ -279,14 +300,18 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     strat = state.stratagem[0]
     if strat >= 0 and self.strat_encirclement[strat]:
         if (state.resolution_lost_mask[1] & ENCIRCLEMENT_LEFT_MASK) == ENCIRCLEMENT_LEFT_MASK:
+            state.stratagem_revealed[0] = 1
             state.resolution_drive_mask[1] |= <uint8_t>(1 << ENCIRCLEMENT_LEFT_TARGET_FRONT)
         if (state.resolution_lost_mask[1] & ENCIRCLEMENT_RIGHT_MASK) == ENCIRCLEMENT_RIGHT_MASK:
+            state.stratagem_revealed[0] = 1
             state.resolution_drive_mask[1] |= <uint8_t>(1 << ENCIRCLEMENT_RIGHT_TARGET_FRONT)
     strat = state.stratagem[1]
     if strat >= 0 and self.strat_encirclement[strat]:
         if (state.resolution_lost_mask[0] & ENCIRCLEMENT_LEFT_MASK) == ENCIRCLEMENT_LEFT_MASK:
+            state.stratagem_revealed[1] = 1
             state.resolution_drive_mask[0] |= <uint8_t>(1 << ENCIRCLEMENT_LEFT_TARGET_FRONT)
         if (state.resolution_lost_mask[0] & ENCIRCLEMENT_RIGHT_MASK) == ENCIRCLEMENT_RIGHT_MASK:
+            state.stratagem_revealed[1] = 1
             state.resolution_drive_mask[0] |= <uint8_t>(1 << ENCIRCLEMENT_RIGHT_TARGET_FRONT)
 
     # Preserve the effective Front outcomes before resolution clears the
@@ -354,6 +379,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         )
         state.resolution_front_loss_command_penalty[0] -= protected
         if protected:
+            state.stratagem_revealed[0] = 1
             _fe_record_command_diag(
                 self, COMMAND_DIAG_FRONT_LOSS_PROTECTION,
                 COMMAND_DETAIL_FRONT_LOSS_STRATAGEM,
@@ -368,6 +394,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
         )
         state.resolution_front_loss_command_penalty[1] -= protected
         if protected:
+            state.stratagem_revealed[1] = 1
             _fe_record_command_diag(
                 self, COMMAND_DIAG_FRONT_LOSS_PROTECTION,
                 COMMAND_DETAIL_FRONT_LOSS_STRATAGEM,
