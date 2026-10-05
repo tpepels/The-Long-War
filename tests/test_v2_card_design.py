@@ -349,3 +349,22 @@ def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
     # the normal per-card art path. The Red Shields has no matching generated
     # file yet and therefore deliberately retains the Force family fallback.
     assert force_ids - art_ids == {"the-red-shields"}
+
+
+def test_dense_hero_rules_fit_shared_layout_regression() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert "\n.card-hero\n.card-hero\n" not in css
+    assert ".card-hero.dense .effect-text{font-size:2.46mm;line-height:1.04}" in css
+    assert ".card-hero.very-dense .effect-text{font-size:2.18mm;line-height:1.02}" in css
+    assert ".card-hero.dense .effect-head{gap:.45mm;margin-bottom:.32mm}" in css
+    assert ".card-hero.very-dense .effect-head{gap:.38mm;margin-bottom:.24mm}" in css
+    assert 'if(chars>180||(es.length>=3&&chars>120))return " very-dense";' in js
+    assert 'if(es.length>=3||chars>100)return " dense";' in js
+
+def test_doros_is_promoted_to_very_dense_layout() -> None:
+    card = next(card for card in CARDS if card["id"] == "doros-the-last-spear")
+    es = effects(card)
+    chars = sum(len(effect.get("text", "")) for effect in es)
+    assert len(es) == 3
+    assert chars > 120

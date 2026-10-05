@@ -96,8 +96,8 @@ function costSeal(card){return '<span class="cost-gem" aria-label="Command cost 
 function densityClass(card){
   const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length,0);
   if(card.type==="hero"){
-    if(chars>210)return " very-dense";
-    if(es.length>=3||chars>125)return " dense";
+    if(chars>180||(es.length>=3&&chars>120))return " very-dense";
+    if(es.length>=3||chars>100)return " dense";
   }
   return chars>250?" very-dense":chars>170?" dense":chars<95?" sparse":"";
 }
