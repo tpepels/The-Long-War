@@ -226,25 +226,6 @@ cdef inline int _fe_resolution_front_strength_fast(
             value += formation_bonus
     return value
 
-cdef inline bint _fe_breakthrough_active(
-    FastEngine self,
-    FastState state,
-    int player,
-    int front,
-) noexcept:
-    cdef int rank, slot, force, name
-    for rank in range(RANK_COUNT):
-        slot = slot_index(player, front, rank)
-        force = state.force[slot]
-        if force < 0:
-            continue
-        if self.force_breakthrough[force]:
-            return True
-        name = state.name[slot]
-        if name >= 0 and self.name_breakthrough[name]:
-            return True
-    return False
-
 cdef inline bint _fe_tie_control_active(
     FastEngine self,
     FastState state,
