@@ -694,3 +694,57 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   right:7.8mm;
   top:4.45mm;
 }
+
+
+/* FORCE FRAME FALLBACK
+   The large shell upload was unreliable. Compose only from raster assets that
+   have been verified in-browser: full-card border, art window, divider, seal. */
+.card-force.chronicle-force-face{
+  border:.35mm solid #29251e;
+  border-radius:2.6mm;
+  background:
+    url("art/v2/ui/chronicle-parchment.webp") 0 0/18mm auto repeat,
+    url("art/v2/ui/chronicle-parchment.webp") 8mm 5mm/31mm auto repeat,
+    #ead8b5;
+}
+.card-force.chronicle-force-face::before{
+  content:"";
+  display:block !important;
+  position:absolute;
+  inset:-.25mm;
+  z-index:9;
+  pointer-events:none;
+  opacity:1;
+  background:url("art/v2/ui/chronicle-border.webp") center/100% 100% no-repeat;
+  filter:saturate(1.16) contrast(1.08);
+}
+.card-force.chronicle-force-face::after{display:none !important}
+
+.card-force.chronicle-force-face .chronicle-lower::before{
+  content:"";
+  display:block;
+  position:absolute;
+  left:9.5mm;
+  right:9.5mm;
+  top:11.7mm;
+  height:2.2mm;
+  z-index:5;
+  pointer-events:none;
+  background:url("art/v2/ui/chronicle-divider.webp") center/100% auto no-repeat;
+  opacity:.82;
+}
+
+.card-force.chronicle-force-face .cost-gem{
+  right:4.8mm;
+  bottom:4.8mm;
+  width:9.2mm;
+  height:9.2mm;
+  background:url("art/v2/ui/chronicle-command-seal.jpg") center/100% 100% no-repeat;
+  filter:drop-shadow(0 .28mm .18mm rgba(26,20,14,.34));
+}
+.card-force.chronicle-force-face .cost-gem svg{display:none}
+.card-force.chronicle-force-face .cost-gem b{
+  color:#f8e9c2;
+  font-size:5.25mm;
+  text-shadow:0 .18mm .22mm rgba(0,0,0,.65);
+}
