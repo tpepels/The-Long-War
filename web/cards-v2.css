@@ -602,11 +602,8 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   background:none;
 }
 .card-force.chronicle-force-face .motif-field::before{
-  left:3.75mm;
-  right:3.75mm;
-  top:7mm;
-  bottom:7.4mm;
-  inset:auto;
+  position:absolute;
+  inset:7mm 3.75mm 7.4mm 3.75mm;
   border-radius:1mm;
   background-image:var(--card-art,none),var(--family-art);
   background-size:cover,cover;
@@ -624,3 +621,21 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   background:url("art/v2/ui/chronicle-art-window.webp") center/100% 100% no-repeat;
 }
 .card-force.chronicle-force-face .chronicle-lower{top:52mm}
+
+
+/* FORCE SHELL/WINDOW RECOVERY
+   Keep the raster shell visible and keep live art inside the generated window. */
+.card-force.chronicle-force-face{
+  background-color:#ead9b9;
+  background-image:url("art/v2/ui/chronicle-force-shell.webp");
+  background-position:center;
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+}
+.card-force.chronicle-force-face .motif-field::before{
+  opacity:1;
+}
+.card-force.chronicle-force-face .motif-field::after{
+  opacity:1;
+  filter:saturate(1.12) contrast(1.08) drop-shadow(0 .22mm .18mm rgba(50,36,19,.18));
+}

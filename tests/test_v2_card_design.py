@@ -405,3 +405,11 @@ def test_force_face_uses_generated_art_window() -> None:
     assert "height:42mm" in css
     assert "top:7mm" in css
     assert "bottom:7.4mm" in css
+
+
+def test_force_window_does_not_reset_art_inset() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    force_window = css.split("FORCE ART WINDOW", 1)[1]
+    assert "inset:auto" not in force_window
+    assert "inset:7mm 3.75mm 7.4mm 3.75mm" in force_window
+    assert 'background-image:url("art/v2/ui/chronicle-force-shell.webp")' in css
