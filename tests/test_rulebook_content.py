@@ -84,6 +84,8 @@ def test_pass_and_battle_end_order_match_playtest_rules() -> None:
 
     assert "You may end your turn after zero, one, or two Actions." in source
     assert "Ending your turn voluntarily is **not Pass**" in source
+    assert "if no legal Action remains after your draw, you must **Pass**" in source
+    assert "having no legal Action simply ends that closing turn" in source
 
     assert "Winning or losing a Front does **not** move, Retreat, or discard any battlefield cards." in source
     assert "Battle resolution by itself never causes any of these removals." in source
