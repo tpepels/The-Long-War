@@ -2024,6 +2024,27 @@ def test_before_sunset_draws_at_battle_end_and_records_refund() -> None:
     assert "before-sunset-the-ford-would-be-ours" in state.players[0].discard
 
 
+def test_start_of_battle_move_cannot_enter_inactive_front() -> None:
+    engine, state = setup_state(seed=48160, battle=1)
+    make_named(state, 0, pos(2, Rank.FRONT), name="meren")
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.battle == 2
+    moves = [
+        action
+        for action in effect_choices(engine, state, "move")
+        if not action.skip and action.destination is not None
+    ]
+    destinations = {
+        action.destination.position
+        for action in moves
+    }
+
+    assert pos(1, Rank.FRONT) in destinations
+    assert pos(3, Rank.FRONT) not in destinations
+
+
 def test_meren_repositions_before_first_turn_of_next_battle() -> None:
     engine, state = setup_state(seed=4816, battle=1)
     make_named(state, 0, pos(1, Rank.FRONT), name="meren")
