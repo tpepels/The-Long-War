@@ -17,7 +17,7 @@ from .game.actions import (
     action_key,
 )
 from .game.engine import GameEngine, all_positions
-from .game.model import ConstraintKind, Front, GameState, Phase, Position
+from .game.model import ConstraintKind, Front, GameState, Phase, Position, RANK_COUNT
 from .protocol import (
     CardField,
     CommandDiagnosticDetail,
@@ -1267,7 +1267,7 @@ class ProgressionTelemetry:
                 str(front + 1): self._distribution([
                     row["mean_strength_by_front"][player][front]
                     for row in battle_records
-                    for player in range(2)
+                    for player in range(PLAYER_COUNT)
                 ])
                 for front in range(4)
             },
@@ -1591,7 +1591,7 @@ class ProgressionTelemetry:
         before_map = dict(self._formation_at)
         after_slots = {
             (player, position): state.slot(player, position)
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
             for position in all_positions()
             if state.slot(player, position).force is not None
         }
@@ -1779,7 +1779,7 @@ class ProgressionTelemetry:
                         before.slot(player, position).bond,
                         before.slot(player, position).name,
                     ]
-                    for player in range(2)
+                    for player in range(PLAYER_COUNT)
                     for position in all_positions()
                 ]
                 after_board = [
@@ -1788,7 +1788,7 @@ class ProgressionTelemetry:
                         state.slot(player, position).bond,
                         state.slot(player, position).name,
                     ]
-                    for player in range(2)
+                    for player in range(PLAYER_COUNT)
                     for position in all_positions()
                 ]
                 before_strength = [
@@ -1796,14 +1796,14 @@ class ProgressionTelemetry:
                         engine.front_strength(before, player, front)
                         for front in Front
                     ]
-                    for player in range(2)
+                    for player in range(PLAYER_COUNT)
                 ]
                 after_strength = [
                     [
                         engine.front_strength(state, player, front)
                         for front in Front
                     ]
-                    for player in range(2)
+                    for player in range(PLAYER_COUNT)
                 ]
                 is_operation = isinstance(action, OPERATION_ACTIONS)
                 trace.update({
@@ -2002,16 +2002,16 @@ class ProgressionTelemetry:
                 - int(before.command_spent_this_battle[player])
                 + int(before.command_refunded_this_battle[player]),
             )
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
 
         incomplete_end = [
             self._count_partial(before, player)
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
         complete_end = [
             self._count_complete(before, player)
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
 
         battle_passes = [
@@ -2042,7 +2042,7 @@ class ProgressionTelemetry:
                             int(engine.rules.command_recovery_floor),
                             recovery_base,
                         )
-                        for _player in range(2)
+                        for _player in range(PLAYER_COUNT)
                     ]
                 ),
             )
@@ -2095,7 +2095,7 @@ class ProgressionTelemetry:
                 state.slot(player, position).bond,
                 state.slot(player, position).name,
             ]
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
             for position in all_positions()
         ]
         post_resolution_strength_by_front = [
@@ -2103,7 +2103,7 @@ class ProgressionTelemetry:
                 engine.front_strength(state, player, front)
                 for front in Front
             ]
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
         next_board_signature = (
             None
@@ -2179,7 +2179,7 @@ class ProgressionTelemetry:
             "mean_total_occupied": mean(sum(row["occupied"]) for row in rows),
             "mean_occupied_per_player": [
                 mean(row["occupied"][player] for row in rows)
-                for player in range(2)
+                for player in range(PLAYER_COUNT)
             ],
             "mean_active_fronts": mean(row["active_fronts"] for row in rows),
             "mean_developed_fronts": mean(row["developed_fronts"] for row in rows),
@@ -2189,24 +2189,24 @@ class ProgressionTelemetry:
             "mean_tied_fronts": mean(row["tied_fronts"] for row in rows),
             "mean_controlled_fronts": [
                 mean(row["controlled_fronts"][player] for row in rows)
-                for player in range(2)
+                for player in range(PLAYER_COUNT)
             ],
             "mean_complete_formations": mean(sum(row["complete_formations"]) for row in rows),
             "mean_partial_formations": mean(sum(row["partial_formations"]) for row in rows),
             "mean_total_strength_per_player": [
                 mean(row["total_strength"][player] for row in rows)
-                for player in range(2)
+                for player in range(PLAYER_COUNT)
             ],
             "mean_strength_by_front": [
                 [
                     mean(row["strength_by_front"][player][front] for row in rows)
                     for front in range(4)
                 ]
-                for player in range(2)
+                for player in range(PLAYER_COUNT)
             ],
             "mean_strength_concentration": [
                 self._mean_optional([row["strength_concentration"][player] for row in rows])
-                for player in range(2)
+                for player in range(PLAYER_COUNT)
             ],
             "front_control_changes": self._battle_control_changes,
             "control_balance_changes": self._battle_control_balance_changes,
@@ -2398,10 +2398,10 @@ class ProgressionTelemetry:
     ) -> dict[str, Any]:
         occupied = [
             sum(state.slot(player, position).occupied for position in all_positions())
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
-        complete = [self._count_complete(state, player) for player in range(2)]
-        partial = [self._count_partial(state, player) for player in range(2)]
+        complete = [self._count_complete(state, player) for player in range(PLAYER_COUNT)]
+        partial = [self._count_partial(state, player) for player in range(PLAYER_COUNT)]
         rule_active_mask = engine.rules.active_front_mask_for_battle(
             state.battle
         )
@@ -2410,14 +2410,14 @@ class ProgressionTelemetry:
                 (
                     sum(
                         state.board[player][int(front)][rank].force is not None
-                        for rank in range(2)
+                        for rank in range(RANK_COUNT)
                     )
                     if rule_active_mask & (1 << int(front))
                     else 0
                 )
                 for front in Front
             ]
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
         rules_active_fronts = sum(
             bool(rule_active_mask & (1 << int(front)))
@@ -2456,7 +2456,7 @@ class ProgressionTelemetry:
                 )
                 for front in Front
             ]
-            for player in range(2)
+            for player in range(PLAYER_COUNT)
         ]
         totals = [sum(values) for values in strengths]
         concentration = [
@@ -2516,7 +2516,7 @@ class ProgressionTelemetry:
                     state.slot(player, position).bond,
                     state.slot(player, position).name,
                 ]
-                for player in range(2)
+                for player in range(PLAYER_COUNT)
                 for position in all_positions()
             ],
             "legal_actions": legal_count,
