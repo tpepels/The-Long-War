@@ -1286,6 +1286,48 @@ def test_no_step_back_does_not_create_core_lost_front_removal() -> None:
     assert state.slot(0, pos(0, Rank.FRONT)).named is True
     assert "the-fifty-men" not in state.players[0].discard
 
+def _pause_resolution_on_battle_end_draw(state) -> None:
+    """Arrange a public Battle-end draw that pauses before Stratagem discard."""
+    target = pos(3, Rank.REAR)
+    make_named(state, 0, target)
+    state.narratives[0] = [
+        NarrativeState(
+            "they-lived-to-tell-it",
+            target_player=0,
+            target_position=target,
+        )
+    ]
+    # Player 0 draws once in the closing sequence, reaching the hand limit.
+    # The Saga's Battle-end draw must then pause for discard-before-draw.
+    state.players[0].hand[:] = state.players[0].hand[:9]
+
+
+def test_conditional_stratagem_stays_hidden_when_battle_end_effect_does_not_fire() -> None:
+    engine, state = setup_state(seed=47121)
+    state.stratagems[0] = StratagemState("the-lines-held")
+    _pause_resolution_on_battle_end_draw(state)
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.pending_draw_discard_for == 0
+    assert state.stratagems[0] is not None
+    assert state.stratagems[0].revealed is False
+
+
+def test_conditional_stratagem_reveals_when_battle_end_effect_fires() -> None:
+    engine, state = setup_state(seed=47122)
+    state.stratagems[0] = StratagemState("the-lines-held")
+    make_named(state, 1, pos(0), temporary=100)
+    _pause_resolution_on_battle_end_draw(state)
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.pending_draw_discard_for == 0
+    assert state.stratagems[0] is not None
+    assert state.stratagems[0].revealed is True
+    assert state.battle_resolution["front_loss_command_penalty"][0] >= 0
+
+
 def test_center_must_hold_resolves_chosen_pair_by_combined_strength() -> None:
     engine, state = setup_state(seed=4713)
     state.stratagems[0] = StratagemState(
