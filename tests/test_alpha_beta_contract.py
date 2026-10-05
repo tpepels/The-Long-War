@@ -268,6 +268,32 @@ def test_python_state_key_includes_search_relevant_flags():
     )
     assert AlphaBetaSearch.state_key(revealed) != AlphaBetaSearch.state_key(hidden)
 
+    from longwar.game.model import ConstraintKind, OperationConstraint
+
+    persistent_for_turn = state.clone()
+    persistent_for_turn.constraints = [
+        OperationConstraint(
+            source_card="the-long-march",
+            player=0,
+            kind=ConstraintKind.MANEUVER,
+            source_owner=0,
+            expires_end_of_activated_turn=False,
+        )
+    ]
+    expires_this_turn = state.clone()
+    expires_this_turn.constraints = [
+        OperationConstraint(
+            source_card="the-long-march",
+            player=0,
+            kind=ConstraintKind.MANEUVER,
+            source_owner=0,
+            expires_end_of_activated_turn=True,
+        )
+    ]
+    assert AlphaBetaSearch.state_key(
+        persistent_for_turn
+    ) != AlphaBetaSearch.state_key(expires_this_turn)
+
 
 def test_python_state_key_tracks_every_game_state_field() -> None:
     """Every GameState field must be referenced by state_key(), or be
