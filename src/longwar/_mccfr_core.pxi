@@ -557,8 +557,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             own_deck_counts.append([card_ids[card_code], count])
     own_deck_counts.sort(key=lambda row: row[0])
 
-    own_discard_len = data[i]
-    i += 1
+    own_discard_len = data[i] | (data[i + 1] << 8)
+    i += U16_BYTES
     own_discard = []
     for _ in range(own_discard_len):
         own_discard.append(card_ids[data[i] - 1])
@@ -575,10 +575,10 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             known_counts.append([card_ids[card_code], count])
     known_counts.sort(key=lambda row: row[0])
 
-    opponent_deck_count = data[i]
-    i += 1
-    opponent_discard_len = data[i]
-    i += 1
+    opponent_deck_count = data[i] | (data[i + 1] << 8)
+    i += U16_BYTES
+    opponent_discard_len = data[i] | (data[i + 1] << 8)
+    i += U16_BYTES
     opponent_discard = []
     for _ in range(opponent_discard_len):
         opponent_discard.append(card_ids[data[i] - 1])
