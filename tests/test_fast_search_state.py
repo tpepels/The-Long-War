@@ -269,6 +269,9 @@ def test_native_action_encoding_preserves_high_player_two_rear_slot() -> None:
     state.active_player = 1
     state.players[1].hand[:] = ["the-fifty-men"]
     state.players[1].command = 20
+    state.pending_draw_discard_for = None
+    state.pending_draw_count = 0
+    state.pending_draw_finish_operation = False
 
     packed = native.from_game_state(state)
     key = "force:the-fifty-men:3:rear"
