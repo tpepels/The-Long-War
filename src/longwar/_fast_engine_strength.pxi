@@ -182,7 +182,7 @@ cdef inline int _fe_resolution_front_strength_fast(
                 continue
         elif physical_front != front:
             continue
-        if frontline_only and rank != RANK_FRONT:
+        if frontline_only and rank == RANK_REAR:
             continue
         value += _fe_position_strength_fast(self, state, slot)
 
@@ -201,7 +201,9 @@ cdef inline int _fe_resolution_front_strength_fast(
             (mask == (1 << FIRST_FRONT_INDEX) and front == ENCIRCLEMENT_LEFT_TARGET_FRONT)
             or (mask == (1 << LAST_FRONT_INDEX) and front == ENCIRCLEMENT_RIGHT_TARGET_FRONT)
         ):
-            for rank in range(1 if frontline_only else RANK_COUNT):
+            for rank in range(RANK_COUNT):
+                if frontline_only and rank == RANK_REAR:
+                    continue
                 slot = slot_index(player, front, rank)
                 if (
                     state.force[slot] >= 0
