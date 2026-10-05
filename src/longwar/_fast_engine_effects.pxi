@@ -820,6 +820,16 @@ cdef void _fe_queue_battle_draws(
         count -= 1
 
 cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noexcept:
+    cdef int i
+    # "On your next turn" constraints cannot be scheduled by guessing how
+    # many Actions intervening turns will use. Arm them when that player's
+    # next turn actually starts.
+    for i in range(state.constraint_len):
+        if (
+            state.constraint_player[i] == player
+            and state.constraint_activate_turn[i] == CONSTRAINT_ACTIVATE_NEXT_TURN
+        ):
+            state.constraint_activate_turn[i] = state.turn_number
     state.active_player = player
     state.actions_this_turn = 0
     memset(
@@ -889,6 +899,7 @@ cdef void _fe_expire_end_of_turn_constraints(
         flags = state.constraint_flags[i]
         if (
             state.constraint_player[i] != actor
+            or state.constraint_activate_turn[i] == CONSTRAINT_ACTIVATE_NEXT_TURN
             or state.turn_number < state.constraint_activate_turn[i]
             or not (
                 flags & CONSTRAINT_EXPIRES_END_OF_ACTIVATED_TURN
