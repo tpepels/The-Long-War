@@ -102,21 +102,8 @@ function densityClass(card){
   return chars>250?" very-dense":chars>170?" dense":chars<95?" sparse":"";
 }
 function artStyle(card){return ' style="--card-art:url(art/v2/cards/'+esc(card.id)+'.png)"';}
-function forceArticle(card,density,extra=""){
-  return '<article class="v2-card card-force chronicle-force-face'+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+artStyle(card)+'>'+
-    stackEdge(card)+
-    '<div class="motif-field chronicle-art" aria-hidden="true"></div>'+
-    '<section class="chronicle-lower">'+
-      '<div class="chronicle-title-block"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+'</div>'+
-      '<div class="chronicle-divider" aria-hidden="true"><span></span></div>'+
-      '<div class="rules chronicle-rules">'+rules(card)+'</div>'+
-    '</section>'+
-    '<footer class="card-footer chronicle-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">F · '+esc(card.id)+'</span>'+costSeal(card)+'</footer>'+
-  '</article>';
-}
 function cardArticle(card,extra="",options={}){
   const density=densityClass(card),heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
-  if(card.type==="force") return forceArticle(card,density,extra);
   return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={

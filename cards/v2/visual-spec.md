@@ -91,7 +91,7 @@ Where a per-card illustration exists under `web/art/v2/cards/`, use it. The seve
 
 No vector heraldry, watermark drawing, or second image may sit over the illustration.
 
-Families that have not yet been migrated to their canonical face still use the shared **20 mm illustration window**. **Force is the deliberate exception:** the Chronicle Force face below uses a fixed **34 mm** mounted illustration plate. Within each family, sparse/dense states may never change illustration height or crop position; density is handled only by rules typography and spacing.
+All card families, including Force, use the shared **20 mm illustration window** and shared card-body layout. Within each family, sparse/dense states may never change illustration height or crop position; density is handled only by rules typography and spacing.
 
 ## Rules
 
@@ -126,30 +126,8 @@ Tactics, Stratagems and Narratives do not waste space on the rigid battlefield s
 - no inner rounded-rectangle document frame;
 - print and browser share the component.
 
+## Force layout
 
-## Canonical Force face - The Chronicle
+Force uses the same shared physical-card renderer as the other card families. It keeps the 10.5 mm exposed formation row through `stackEdge(card)`, then uses the standard identity block, 20 mm illustration window, rules area, footer and Command seal. Force-specific styling is limited to its family color variables and fallback illustration.
 
-The approved Chronicle Force card is now the production target for **Force cards**.
-
-Its fixed composition is:
-
-1. 10.5 mm exposed battlefield strip;
-2. 34 mm mounted illustration plate;
-3. centered title and written classifications;
-4. engraved divider;
-5. open parchment rules;
-6. quiet footer and original octagonal Command seal.
-
-All Force cards use identical illustration geometry and a centered 50/50 cover crop. Rules density may change type size slightly, but may never resize or reposition the art.
-
-The material treatment is part of the design, not decoration added later. After the failed live multi-raster assembly experiments, Force now uses a **precomposed generated master shell**:
-
-- `chronicle-force-shell-v2.webp` — the complete generated physical shell, already containing the outer border, battlefield-strip frame, artwork frame, parchment body, ornamental rails/dividers and Command mount;
-- `chronicle-command-seal.jpg` — the dark raster fill used inside the printed Command mount;
-- `chronicle-parchment.webp` — fallback substrate visible behind transparent shell apertures.
-
-The individual generated source parts remain useful design source material, but CSS no longer tries to align the top strip, art window, divider and corner as independent decorative layers. That experiment was too fragile.
-
-CSS now has one job: align live art, functional glyphs, title, classifications, rules, footer and Command numeral to the blank regions of the finished shell. It may position, size, clip, shadow and composite those live layers, but must not recreate the physical frame with gradients, fake borders, SVG ornament, opaque UI panels or a second decorative shell.
-
-Other card families remain on the previous renderer until they are converted deliberately, one family at a time.
+Per-card illustrations use the normal filename convention `web/art/v2/cards/<card-id>.png`. Candidate illustrations whose filenames exactly identify a Force card should be promoted to that path rather than wired through special-case CSS or JavaScript.
