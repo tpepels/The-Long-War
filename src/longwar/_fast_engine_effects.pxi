@@ -8,6 +8,9 @@ cdef inline void _fe_return_to_hand(FastEngine self, FastState state, int player
     state.hand[player][card] += 1
     state.hand_len[player] += 1
     state.known_hidden[other_player(player)][player][card] += 1
+    if state.hand_len[player] > self.hand_limit:
+        state.active_player = player
+        state.cleanup_pending = 1
 
 cdef bint _fe_remove_from_discard(
     FastEngine self,
@@ -820,7 +823,7 @@ cdef void _fe_queue_battle_draws(
     int player,
     int count,
 ) noexcept:
-    """Process draws one at a time and pause for discard at hand limit."""
+    """Draw first, then pause to discard any hand-limit overflow."""
     if count <= 0:
         return
     if state.cleanup_pending:
@@ -828,13 +831,13 @@ cdef void _fe_queue_battle_draws(
         return
     state.pending_draw_count = 0
     while count > 0 and _fe_can_draw_fast(self, state, player):
-        if state.hand_len[player] >= self.hand_limit:
+        _fe_draw_for_battle(self, state, player, 1)
+        count -= 1
+        if state.hand_len[player] > self.hand_limit:
             state.active_player = player
             state.cleanup_pending = 1
             state.pending_draw_count = count
             return
-        _fe_draw_for_battle(self, state, player, 1)
-        count -= 1
 
 cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noexcept:
     cdef int i
