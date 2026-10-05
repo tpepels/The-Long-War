@@ -62,6 +62,14 @@ def pos(front: int, rank: Rank = Rank.FRONT) -> Position:
     return Position(Front(front), rank)
 
 
+def slot_number(player: int, position: Position) -> int:
+    return (
+        player * FRONT_COUNT * len(Rank)
+        + int(position.front) * len(Rank)
+        + list(Rank).index(position.rank)
+    )
+
+
 def make_named(
     state,
     player: int,
@@ -103,8 +111,8 @@ def apply_explicit_retreat(
 ) -> None:
     """Apply one synthetic explicit Retreat through the real effect resolver."""
     slots_per_player = FRONT_COUNT * len(Rank)
-    source = player * slots_per_player + int(front) * len(Rank)
-    destination = source + (len(Rank) - 1)
+    source = slot_number(player, pos(int(front), Rank.FRONT))
+    destination = slot_number(player, pos(int(front), Rank.REAR))
     state.pending_effects[:] = [{
         "kind": 9,  # EFFECT_RETREAT
         "player": player,
@@ -2589,8 +2597,8 @@ def test_guarded_blocks_an_opponents_pending_card_move() -> None:
             "card": -1,
             "source": -1,
             "aux": -1,
-            "source_mask": 1 << 8,
-            "dest_mask": 1 << 10,
+            "source_mask": 1 << slot_number(1, source),
+            "dest_mask": 1 << slot_number(1, destination),
             "flags": 1,
         }
     ]
@@ -2618,10 +2626,10 @@ def test_eira_succession_resolver_moves_name_then_drives_off_source() -> None:
             "kind": 12,
             "player": 0,
             "card": -1,
-            "source": 0,
+            "source": slot_number(0, source),
             "aux": -1,
             "source_mask": 0,
-            "dest_mask": 1 << 2,
+            "dest_mask": 1 << slot_number(0, destination),
             "flags": 1,
         }
     ]
