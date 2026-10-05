@@ -56,24 +56,6 @@ cdef class NativeHeuristicEvaluator:
             else 0
         )
 
-    cdef inline int remaining_hero_uses_fast(
-        self,
-        FastState state,
-        int player,
-    ) noexcept:
-        return (
-            self.remaining_hero_force_uses_fast(state, player)
-            + self.remaining_hero_name_uses_fast(state, player)
-        )
-
-    cdef double incomplete_liability_fast(
-        self,
-        FastState state,
-        int player,
-    ) noexcept:
-        """Incomplete formations persist; Battle end creates no cleanup loss."""
-        return 0.0
-
     cdef void projected_lost_masks_fast(
         self,
         FastState state,
@@ -155,23 +137,12 @@ cdef class NativeHeuristicEvaluator:
         cdef int own_projected=0, opponent_projected=0
         cdef int current_delta=0, projected_delta=0
         cdef double own_vulnerability=0.0, opponent_vulnerability=0.0
-        cdef double own_liability=0.0, opponent_liability=0.0
         cdef double score = 0.0
 
         if state.phase == PHASE_COMPLETE:
             if state.winner < 0:
                 return 0.0
             return self.weights[HW_TERMINAL_WIN_SCORE] if state.winner == player else -self.weights[HW_TERMINAL_WIN_SCORE]
-
-        # The first player of a fresh Battle gets the first Action after the
-        # normal draw. Under the playtest rules this is the player who did not
-        # Pass in the previous Battle.
-        if (
-            state.operations_this_battle[0] == 0
-            and state.operations_this_battle[1] == 0
-            and state.pass_len == 0
-        ):
-            score += self.weights[HW_FRESH_BATTLE_INITIATIVE] if state.active_player == player else -self.weights[HW_FRESH_BATTLE_INITIATIVE]
 
         self.projected_lost_masks_fast(
             state,
@@ -499,11 +470,17 @@ cdef class NativeHeuristicEvaluator:
         int player,
     ) noexcept:
         cdef bint needs_force=False, needs_bond=False, needs_name=False
-        cdef int local, slot, card, count, typ, usable_count
-        cdef int remaining_hero_uses = self.remaining_hero_uses_fast(
+        cdef int local, slot, card, count, typ, hero_count=0
+        cdef int remaining_force_uses = self.remaining_hero_force_uses_fast(
             state, player
         )
-        cdef double value=0.0, force_value=0.0, name_value=0.0
+        cdef int remaining_name_uses = self.remaining_hero_name_uses_fast(
+            state, player
+        )
+        cdef int use_force=0, use_name=0, remaining_heroes=0
+        cdef double value=0.0
+        cdef double force_value=0.0, name_value=0.0
+
         for local in range(POSITIONS_PER_PLAYER):
             slot = player * POSITIONS_PER_PLAYER + local
             if state.force[slot] < 0 and (
@@ -519,36 +496,59 @@ cdef class NativeHeuristicEvaluator:
             ):
                 needs_name = True
 
+        force_value = self.weights[HW_HAND_FORCE_BASE] + (
+            self.weights[HW_HAND_FORCE_NEED] if needs_force else 0.0
+        )
+        name_value = self.weights[HW_HAND_COMPONENT_BASE] + (
+            self.weights[HW_HAND_NAME_NEED] if needs_name else 0.0
+        )
+
         for card in range(self.engine.n_cards):
             count = state.hand[player][card]
             if count == 0:
                 continue
             typ = self.engine.card_type[card]
             if typ == CARD_FORCE:
-                force_value = self.weights[HW_HAND_FORCE_BASE] + (self.weights[HW_HAND_FORCE_NEED] if needs_force else 0.0)
                 if self.engine.hero[card]:
-                    if remaining_hero_uses <= 0:
-                        continue
-                    usable_count = count
-                    if usable_count > remaining_hero_uses:
-                        usable_count = remaining_hero_uses
-                    remaining_hero_uses -= usable_count
-                    name_value = self.weights[HW_HAND_COMPONENT_BASE] + (self.weights[HW_HAND_NAME_NEED] if needs_name else 0.0)
-                    value += usable_count * (
-                        force_value
-                        if force_value >= name_value
-                        else name_value
-                    )
+                    hero_count += count
                 else:
                     value += count * force_value
             elif typ == CARD_BOND:
-                value += count * (self.weights[HW_HAND_COMPONENT_BASE] + (self.weights[HW_HAND_BOND_NEED] if needs_bond else 0.0))
+                value += count * (
+                    self.weights[HW_HAND_COMPONENT_BASE]
+                    + (
+                        self.weights[HW_HAND_BOND_NEED]
+                        if needs_bond
+                        else 0.0
+                    )
+                )
             elif typ == CARD_NAME:
-                value += count * (self.weights[HW_HAND_COMPONENT_BASE] + (self.weights[HW_HAND_NAME_NEED] if needs_name else 0.0))
+                value += count * name_value
             elif typ == CARD_NARRATIVE:
                 value += count * self.weights[HW_HAND_NARRATIVE]
             elif typ == CARD_STRATAGEM:
                 value += count * self.weights[HW_HAND_STRATAGEM]
+
+        # A physical Hero card can fill one mode once. Allocate the available
+        # Hero cards only across mode allowances that remain this Battle.
+        remaining_heroes = hero_count
+        if force_value >= name_value:
+            use_force = remaining_heroes
+            if use_force > remaining_force_uses:
+                use_force = remaining_force_uses
+            remaining_heroes -= use_force
+            use_name = remaining_heroes
+            if use_name > remaining_name_uses:
+                use_name = remaining_name_uses
+        else:
+            use_name = remaining_heroes
+            if use_name > remaining_name_uses:
+                use_name = remaining_name_uses
+            remaining_heroes -= use_name
+            use_force = remaining_heroes
+            if use_force > remaining_force_uses:
+                use_force = remaining_force_uses
+        value += use_force * force_value + use_name * name_value
         return value
 
     cdef void strategic_resource_features_fast(
@@ -563,24 +563,35 @@ cdef class NativeHeuristicEvaluator:
         cdef int card, typ, hand_count, count, i
         cdef int forces=0, bonds=0, names=0, heroes=0
         cdef int discarded_forces=0, discarded_heroes=0
-        cdef int remaining_hero_uses, usable_heroes, force_heroes, name_heroes
-        cdef int candidate, value, immediate_heroes, discarded_usable
+        cdef int remaining_force_uses = self.remaining_hero_force_uses_fast(
+            state, player
+        )
+        cdef int remaining_name_uses = self.remaining_hero_name_uses_fast(
+            state, player
+        )
+        cdef int force_heroes, name_heroes, max_force_heroes, max_name_heroes
+        cdef int candidate, value, force_heroes_available, discarded_usable
 
         future_sets[0] = 0
         force_availability[0] = 0.0
         affordable[0] = 0
-        remaining_hero_uses = self.remaining_hero_uses_fast(state, player)
 
         for card in range(self.engine.n_cards):
             hand_count = state.hand[player][card]
             count = hand_count + state.deck_counts[player][card]
+            typ = self.engine.card_type[card]
+
             if (
                 hand_count > 0
                 and self.engine.card_command_cost[card] <= state.command[player]
             ):
-                affordable[0] += hand_count
+                if (
+                    not self.engine.hero[card]
+                    or remaining_force_uses > 0
+                    or remaining_name_uses > 0
+                ):
+                    affordable[0] += hand_count
 
-            typ = self.engine.card_type[card]
             if typ == CARD_FORCE:
                 if self.engine.hero[card]:
                     heroes += count
@@ -591,27 +602,29 @@ cdef class NativeHeuristicEvaluator:
             elif typ == CARD_NAME:
                 names += count
 
-        usable_heroes = heroes
-        if usable_heroes > remaining_hero_uses:
-            usable_heroes = remaining_hero_uses
+        max_force_heroes = heroes
+        if max_force_heroes > remaining_force_uses:
+            max_force_heroes = remaining_force_uses
 
-        # A Hero may fill either the Force or Name side of one formation.
-        # Try every split of the small remaining Hero allowance and keep the
-        # maximum number of complete future formation sets.
+        # Hero Force and Name uses are separate allowances, but each physical
+        # Hero card can occupy only one mode. Explore the small legal split.
         value = 0
-        for force_heroes in range(usable_heroes + 1):
-            name_heroes = usable_heroes - force_heroes
-            candidate = forces + force_heroes
-            if bonds < candidate:
-                candidate = bonds
-            if names + name_heroes < candidate:
-                candidate = names + name_heroes
-            if candidate > value:
-                value = candidate
+        for force_heroes in range(max_force_heroes + 1):
+            max_name_heroes = heroes - force_heroes
+            if max_name_heroes > remaining_name_uses:
+                max_name_heroes = remaining_name_uses
+            for name_heroes in range(max_name_heroes + 1):
+                candidate = forces + force_heroes
+                if bonds < candidate:
+                    candidate = bonds
+                if names + name_heroes < candidate:
+                    candidate = names + name_heroes
+                if candidate > value:
+                    value = candidate
         future_sets[0] = value
 
-        immediate_heroes = usable_heroes
-        force_availability[0] = forces + immediate_heroes
+        force_heroes_available = max_force_heroes
+        force_availability[0] = forces + force_heroes_available
 
         for i in range(state.discard_len[player]):
             card = state.discard[player][i]
@@ -622,7 +635,7 @@ cdef class NativeHeuristicEvaluator:
             else:
                 discarded_forces += 1
 
-        discarded_usable = remaining_hero_uses - immediate_heroes
+        discarded_usable = remaining_force_uses - force_heroes_available
         if discarded_usable < 0:
             discarded_usable = 0
         if discarded_heroes < discarded_usable:
@@ -924,18 +937,6 @@ cdef class NativeHeuristicEvaluator:
         cdef int pos = action_pos(action)
         cdef double weight = self.weights[HW_ROLLOUT_BOND]
 
-        if kind == TYPE_PASS:
-            if (
-                state.command[player]
-                <= self.engine.command_collapse_threshold + self.weights[HW_ROLLOUT_COLLAPSE_IMMEDIATE_BUFFER]
-            ):
-                return self.weights[HW_ROLLOUT_PASS_IMMEDIATE]
-            if (
-                state.command[player]
-                <= self.engine.command_collapse_threshold + self.weights[HW_ROLLOUT_COLLAPSE_NEAR_BUFFER]
-            ):
-                return self.weights[HW_ROLLOUT_PASS_NEAR]
-            return self.weights[HW_ROLLOUT_PASS_NORMAL]
         if kind == TYPE_DISCARD:
             return self.weights[HW_ROLLOUT_DISCARD]
         if kind == TYPE_MANEUVER:
