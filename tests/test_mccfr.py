@@ -17,6 +17,7 @@ from longwar.mccfr import (
     search_information_set_id,
 )
 from longwar.protocol import MCCFR_POLICY_SCHEMA_VERSION
+from longwar.rules import GameRules
 
 ROOT = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.algorithm
@@ -234,9 +235,16 @@ def test_mccfr_agent_rejects_policy_from_previous_information_schema() -> None:
 
 
 def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
-    engine, deck, state = setup()
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    rules = GameRules.standard().with_overrides(opening_hand_size=1)
+    engine = GameEngine(data, rules=rules)
+    state = engine.new_game(deck, deck, seed=77, first_player=0)
     # This is a policy/export smoke test, not a branching stress test.
-    # One completed-turn horizon is enough to verify training and legal replay.
+    # One completed-turn horizon with a small opening surface is enough to
+    # verify training, policy export, and legal replay.
     trainer = MCCFRTrainer(engine, deck, deck, seed=9, max_depth=1)
     summary = trainer.train(2)
     policy = trainer.policy_payload()
