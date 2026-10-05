@@ -13,6 +13,19 @@ class SearchLimit(RuntimeError):
     pass
 
 
+def action_completed_turn(
+    engine: GameEngine,
+    state: GameState,
+    child: GameState,
+    action: Action,
+) -> bool:
+    """Whether one resolved root/search action consumed a strategic turn."""
+    return isinstance(action, (Pass, EndTurn)) or (
+        child.turn_number != state.turn_number
+        and state.actions_this_turn + 1 >= engine.rules.actions_per_turn
+    )
+
+
 def _freeze_state_value(value: object) -> object:
     """Convert nested mutable engine state into a deterministic hashable value."""
     if isinstance(value, dict):
@@ -115,12 +128,9 @@ class AlphaBetaSearch:
                 child = state.clone()
                 scratch.append(child)
 
-            turn_serial = state.turn_number
-            actions_before = state.actions_this_turn
             self.engine.apply(child, action, validate=False)
-            turn_completed = isinstance(action, (Pass, EndTurn)) or (
-                child.turn_number != turn_serial
-                and actions_before + 1 >= self.engine.rules.actions_per_turn
+            turn_completed = action_completed_turn(
+                self.engine, state, child, action
             )
             child_depth = depth - int(turn_completed)
             child_value = self.search(
