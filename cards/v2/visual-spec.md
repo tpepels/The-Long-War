@@ -145,12 +145,13 @@ All Force cards use identical illustration geometry and a centered 50/50 cover c
 The material treatment is part of the design, not decoration added later:
 - generated raster parchment texture;
 - generated raster full-card border with restrained navy/gold ornament;
-- the border asset itself supplies the art-window ornament;
+- generated raster art-window overlay mounted over the live illustration;
 - generated raster ornamental divider;
+- the full-card border, art-window overlay, divider, and Command seal are composed as separate raster layers;
 - inset highlight/shadow around the art plate;
 - restrained navy/black heraldic ink;
 - warm worn parchment;
-- border raster blended into the paper rather than sitting above it as a glossy overlay;
+- one continuous parchment surface under the live typography, with no tiled UI panels or beige effect boxes;
 - a restrained raster transition between artwork and title;
 - slightly larger rules text, with sparse-card whitespace finished by quiet print ornament rather than extra UI panels.
 

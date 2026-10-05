@@ -412,204 +412,101 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 
 
 /* ------------------------------------------------------------------
-   FORCE RASTER SHELL
-   The physical card is now a precomposed image. CSS only positions live data.
+   CANONICAL FORCE RASTER COMPOSITION
+   Decorative material is raster artwork. CSS only composes the live card data.
    ------------------------------------------------------------------ */
 .card-force.chronicle-force-face{
-  border:0;
-  border-radius:2.5mm;
-  background:#ead9b9 url("art/v2/ui/chronicle-force-shell.jpg") center/100% 100% no-repeat;
-  box-shadow:0 1.8mm 3.8mm rgba(31,25,18,.36),0 .35mm .65mm rgba(31,25,18,.25);
+  position:relative;
+  overflow:hidden;
+  border:.32mm solid #2d2922;
+  border-radius:2.6mm;
+  background-color:#ead8b7;
+  background-image:url("art/v2/ui/chronicle-parchment.webp");
+  background-position:center;
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  box-shadow:
+    0 1.8mm 3.8mm rgba(31,25,18,.34),
+    0 .35mm .65mm rgba(31,25,18,.24),
+    inset 0 0 3mm rgba(91,61,28,.07);
 }
-.card-force.chronicle-force-face::before,
+.card-force.chronicle-force-face::before{
+  content:"";
+  display:block;
+  position:absolute;
+  inset:-.18mm;
+  z-index:9;
+  pointer-events:none;
+  opacity:.99;
+  background:url("art/v2/ui/chronicle-border.webp") center/100% 100% no-repeat;
+  filter:saturate(1.12) contrast(1.06);
+}
 .card-force.chronicle-force-face::after{display:none}
 
-/* The shell already owns every decorative border. This small opaque patch only
-   clears the placeholder marks baked into the generated header interior. */
+/* One exposed battlefield row. The border asset supplies the printed strip. */
 .card-force.chronicle-force-face .stack-edge{
   position:absolute;
-  left:8.4mm;
-  right:8.4mm;
-  top:4.15mm;
-  z-index:5;
+  left:7.85mm;
+  right:7.85mm;
+  top:4.25mm;
+  z-index:6;
   width:auto;
-  height:6.05mm;
+  height:6.15mm;
   min-height:0;
-  padding:.65mm .75mm .45mm;
-  grid-template-columns:9.4mm max-content minmax(0,1fr);
-  column-gap:.65mm;
+  padding:.58mm .72mm .42mm;
+  grid-template-columns:9.2mm max-content minmax(0,1fr);
+  column-gap:.62mm;
   border:0;
-  background:
-    linear-gradient(rgba(242,226,190,.965),rgba(239,219,178,.965)),
-    url("art/v2/ui/chronicle-parchment.webp") center/18mm auto repeat;
+  background:transparent;
   box-shadow:none;
 }
-.card-force.chronicle-force-face .edge-stats{height:5.1mm}
+.card-force.chronicle-force-face .edge-stats{height:5.05mm}
 .card-force.chronicle-force-face .type-mark{width:4.25mm;height:4.25mm}
 .card-force.chronicle-force-face .strength-mark b{font-size:4.8mm}
 .card-force.chronicle-force-face .class-sigil{width:3.45mm;height:3.45mm}
-.card-force.chronicle-force-face .edge-live-text{max-width:21mm;font-size:1.62mm}
+.card-force.chronicle-force-face .edge-identity{gap:.42mm}
+.card-force.chronicle-force-face .edge-live-group{
+  gap:.3mm;
+  padding-left:.7mm;
+}
+.card-force.chronicle-force-face .edge-live-text{
+  max-width:21.5mm;
+  font-size:1.62mm;
+  line-height:1;
+}
 .card-force.chronicle-force-face .edge-timing-word{font-size:1.52mm}
 
-/* Art is placed inside the raster shell's aperture. Nothing here draws a frame. */
+/* Fixed Force illustration geometry, centered 50/50 crop. */
 .card-force.chronicle-force-face .motif-field,
 .card-force.chronicle-force-face.sparse .motif-field,
 .card-force.chronicle-force-face.dense .motif-field,
 .card-force.chronicle-force-face.very-dense .motif-field{
   position:absolute;
   z-index:2;
-  left:9.35mm;
-  right:9.35mm;
-  top:12.8mm;
+  left:6.65mm;
+  right:6.65mm;
+  top:11.05mm;
   width:auto;
-  height:33.6mm;
-  min-height:33.6mm;
-  max-height:33.6mm;
+  height:39.7mm;
+  min-height:39.7mm;
+  max-height:39.7mm;
   margin:0;
-  border:0;
-  border-radius:1.25mm;
-  box-shadow:none;
-  overflow:hidden;
-}
-.card-force.chronicle-force-face .motif-field::before{
-  inset:0;
-  background-image:var(--card-art,none),var(--family-art);
-  background-size:cover,cover;
-  background-position:50% 50%,50% 50%;
-  filter:saturate(1.02) contrast(1.04);
-}
-.card-force.chronicle-force-face .motif-field::after{display:none}
-
-/* Text lives over the parchment regions already present in the raster shell. */
-.card-force.chronicle-force-face .chronicle-lower{
-  position:absolute;
-  z-index:4;
-  left:0;
-  right:0;
-  top:48.0mm;
-  bottom:7.4mm;
-  padding:0;
-  background:none;
-  display:block;
-}
-.card-force.chronicle-force-face .chronicle-lower::before{display:none}
-.card-force.chronicle-force-face .chronicle-title-block{
-  position:absolute;
-  left:9.2mm;
-  right:9.2mm;
-  top:.7mm;
-  height:10.6mm;
-  min-height:0;
-  overflow:hidden;
-}
-.card-force.chronicle-force-face .card-title{
-  max-height:6.7mm;
-  font-size:5.35mm;
-  line-height:.95;
-}
-.card-force.chronicle-force-face .class-line{
-  height:3.25mm;
-  min-height:3.25mm;
-  margin-top:.35mm;
-}
-.card-force.chronicle-force-face .class-body-item{font-size:2.22mm}
-.card-force.chronicle-force-face .class-body-item svg{width:3.05mm;height:3.05mm}
-.card-force.chronicle-force-face .chronicle-divider{display:none}
-
-.card-force.chronicle-force-face .chronicle-rules{
-  position:absolute;
-  left:9.8mm;
-  right:9.8mm;
-  top:13.5mm;
-  bottom:1mm;
-  padding:.7mm .7mm 0;
-  background:rgba(239,222,185,.86);
-  border-radius:.8mm;
-}
-.card-force.chronicle-force-face .effect-block{
-  padding:.45mm .45mm 1mm;
-  column-gap:.9mm;
-  background:
-    linear-gradient(rgba(239,222,185,.94),rgba(239,222,185,.94)),
-    url("art/v2/ui/chronicle-parchment.webp") center/19mm auto repeat;
-}
-.card-force.chronicle-force-face .effect-block+.effect-block::before{display:none}
-.card-force.chronicle-force-face .effect-timing-icon{width:3.5mm;height:3.5mm}
-.card-force.chronicle-force-face .effect-label{font-size:2.12mm}
-.card-force.chronicle-force-face .effect-text{font-size:3.25mm;line-height:1.14}
-.card-force.chronicle-force-face.dense .effect-text{font-size:2.9mm}
-.card-force.chronicle-force-face.very-dense .effect-text{font-size:2.58mm}
-.card-force.chronicle-force-face.sparse .chronicle-rules::after{display:none}
-.card-force.chronicle-force-face .empty-rules{margin:3mm 0 0}
-
-/* Footer text and the Command numeral sit over the shell's own seal. */
-.card-force.chronicle-force-face .card-footer{
-  position:absolute;
-  z-index:6;
-  inset:0;
-  min-height:0;
-  height:100%;
-  padding:0;
-  pointer-events:none;
-}
-.card-force.chronicle-force-face .card-footer::before{display:none}
-.card-force.chronicle-force-face .footer-mark{
-  position:absolute;
-  left:9.7mm;
-  bottom:3.2mm;
-  font-size:1.25mm;
-}
-.card-force.chronicle-force-face .footer-id{
-  position:absolute;
-  left:50%;
-  bottom:2.9mm;
-  transform:translateX(-50%);
-  max-width:30mm;
-  font-size:1.12mm;
-}
-.card-force.chronicle-force-face .cost-gem{
-  right:5.55mm;
-  bottom:5.5mm;
-  width:9.55mm;
-  height:9.55mm;
-  filter:none;
-}
-.card-force.chronicle-force-face .cost-gem svg{display:none}
-.card-force.chronicle-force-face .cost-gem b{
-  color:#f8e9c2;
-  font-size:5.4mm;
-  text-shadow:0 .2mm .25mm rgba(0,0,0,.5);
-}
-
-
-/* ------------------------------------------------------------------
-   FORCE ART WINDOW
-   Generated transparent raster frame layered over the dynamic illustration.
-   ------------------------------------------------------------------ */
-.card-force.chronicle-force-face .motif-field,
-.card-force.chronicle-force-face.sparse .motif-field,
-.card-force.chronicle-force-face.dense .motif-field,
-.card-force.chronicle-force-face.very-dense .motif-field{
-  left:5.7mm;
-  right:5.7mm;
-  top:10.2mm;
-  width:auto;
-  height:42mm;
-  min-height:42mm;
-  max-height:42mm;
   overflow:visible;
+  border:0;
   border-radius:0;
   background:none;
+  box-shadow:none;
 }
 .card-force.chronicle-force-face .motif-field::before{
   position:absolute;
-  inset:7mm 3.75mm 7.4mm 3.75mm;
+  inset:5.55mm 2.65mm 5.85mm 2.65mm;
+  z-index:1;
   border-radius:1mm;
   background-image:var(--card-art,none),var(--family-art);
   background-size:cover,cover;
   background-position:50% 50%,50% 50%;
   filter:saturate(1.03) contrast(1.05);
-  z-index:1;
+  opacity:1;
 }
 .card-force.chronicle-force-face .motif-field::after{
   content:"";
@@ -619,132 +516,154 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   z-index:2;
   pointer-events:none;
   background:url("art/v2/ui/chronicle-art-window.webp") center/100% 100% no-repeat;
-}
-.card-force.chronicle-force-face .chronicle-lower{top:52mm}
-
-
-/* FORCE SHELL/WINDOW RECOVERY
-   Keep the raster shell visible and keep live art inside the generated window. */
-.card-force.chronicle-force-face{
-  background-color:#ead9b9;
-  background-image:url("art/v2/ui/chronicle-force-shell.jpg");
-  background-position:center;
-  background-size:100% 100%;
-  background-repeat:no-repeat;
-}
-.card-force.chronicle-force-face .motif-field::before{
-  opacity:1;
-}
-.card-force.chronicle-force-face .motif-field::after{
-  opacity:1;
-  filter:saturate(1.12) contrast(1.08) drop-shadow(0 .22mm .18mm rgba(50,36,19,.18));
+  filter:saturate(1.08) contrast(1.05) drop-shadow(0 .2mm .16mm rgba(50,36,19,.18));
 }
 
-
-/* FORCE SHELL INTEGRATION PASS
-   Use the actual generated full-card shell; live text no longer paints beige panels over it. */
-.card-force.chronicle-force-face .stack-edge{
-  background:transparent;
-  box-shadow:none;
-}
-.card-force.chronicle-force-face .chronicle-rules{
-  left:9.8mm;
-  right:9.8mm;
-  top:13.5mm;
-  bottom:1mm;
-  background:transparent;
-  border-radius:0;
-}
-.card-force.chronicle-force-face .effect-block{
-  background:transparent;
-}
-.card-force.chronicle-force-face .cost-gem{
-  right:5.2mm;
-  bottom:4.9mm;
-}
-
-
-/* FORCE SHELL GEOMETRY ALIGNMENT
-   The shell is a fixed card background. Keep the live window exactly inside its aperture. */
-.card-force.chronicle-force-face{
-  background-image:url("art/v2/ui/chronicle-force-shell.jpg");
-  background-size:100% 100%;
-  background-position:center;
-  background-repeat:no-repeat;
-}
-.card-force.chronicle-force-face .motif-field,
-.card-force.chronicle-force-face.sparse .motif-field,
-.card-force.chronicle-force-face.dense .motif-field,
-.card-force.chronicle-force-face.very-dense .motif-field{
-  left:7.1mm;
-  right:7.1mm;
-  top:11.4mm;
-  height:39.2mm;
-  min-height:39.2mm;
-  max-height:39.2mm;
-}
-.card-force.chronicle-force-face .motif-field::before{
-  inset:6.1mm 2.9mm 6.35mm 2.9mm;
-}
+/* Typography sits directly on one continuous parchment surface. */
 .card-force.chronicle-force-face .chronicle-lower{
-  top:49.9mm;
-}
-.card-force.chronicle-force-face .stack-edge{
-  left:7.8mm;
-  right:7.8mm;
-  top:4.45mm;
-}
-
-
-/* FORCE FRAME FALLBACK
-   The large shell upload was unreliable. Compose only from raster assets that
-   have been verified in-browser: full-card border, art window, divider, seal. */
-.card-force.chronicle-force-face{
-  border:.35mm solid #29251e;
-  border-radius:2.6mm;
-  background:
-    url("art/v2/ui/chronicle-parchment.webp") 0 0/18mm auto repeat,
-    url("art/v2/ui/chronicle-parchment.webp") 8mm 5mm/31mm auto repeat,
-    #ead8b5;
-}
-.card-force.chronicle-force-face::before{
-  content:"";
-  display:block !important;
   position:absolute;
-  inset:-.25mm;
-  z-index:9;
-  pointer-events:none;
-  opacity:1;
-  background:url("art/v2/ui/chronicle-border.webp") center/100% 100% no-repeat;
-  filter:saturate(1.16) contrast(1.08);
+  z-index:4;
+  left:0;
+  right:0;
+  top:50.05mm;
+  bottom:7.2mm;
+  padding:0;
+  display:block;
+  background:transparent;
 }
-.card-force.chronicle-force-face::after{display:none !important}
+.card-force.chronicle-force-face .chronicle-title-block{
+  position:absolute;
+  left:8.4mm;
+  right:8.4mm;
+  top:.35mm;
+  height:10.75mm;
+  min-height:0;
+  overflow:hidden;
+}
+.card-force.chronicle-force-face .card-title{
+  max-height:6.65mm;
+  margin:0;
+  font-size:5.35mm;
+  line-height:.96;
+}
+.card-force.chronicle-force-face .class-line{
+  height:3.25mm;
+  min-height:3.25mm;
+  margin-top:.28mm;
+  gap:.62mm;
+}
+.card-force.chronicle-force-face .class-body-item{font-size:2.25mm}
+.card-force.chronicle-force-face .class-body-item svg{width:3.05mm;height:3.05mm}
+.card-force.chronicle-force-face .class-separator{font-size:2.35mm}
 
+/* Printed divider between identity and rules. */
 .card-force.chronicle-force-face .chronicle-lower::before{
   content:"";
   display:block;
   position:absolute;
-  left:9.5mm;
-  right:9.5mm;
-  top:11.7mm;
-  height:2.2mm;
+  left:9mm;
+  right:9mm;
+  top:11.5mm;
+  height:2.15mm;
   z-index:5;
   pointer-events:none;
   background:url("art/v2/ui/chronicle-divider.webp") center/100% auto no-repeat;
   opacity:.82;
 }
+.card-force.chronicle-force-face .chronicle-divider{display:none}
 
+/* Rules remain open ink-on-paper: no beige UI box. */
+.card-force.chronicle-force-face .chronicle-rules{
+  position:absolute;
+  left:8.8mm;
+  right:8.8mm;
+  top:14mm;
+  bottom:6.6mm;
+  padding:.35mm .35mm 0;
+  overflow:hidden;
+  background:transparent;
+  border-radius:0;
+}
+.card-force.chronicle-force-face .effect-block{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:start;
+  column-gap:.9mm;
+  padding:.35mm .2mm 1.05mm;
+  background:transparent;
+}
+.card-force.chronicle-force-face .effect-block+.effect-block{
+  padding-top:1.35mm;
+  border-top:0;
+}
+.card-force.chronicle-force-face .effect-block+.effect-block::before{
+  left:10%;
+  right:10%;
+  top:.18mm;
+  height:.75mm;
+  opacity:.24;
+}
+.card-force.chronicle-force-face .effect-timing-icon{width:3.5mm;height:3.5mm}
+.card-force.chronicle-force-face .effect-label{
+  font-size:2.12mm;
+  line-height:1;
+}
+.card-force.chronicle-force-face .effect-text{
+  padding-top:.02mm;
+  font-size:3.32mm;
+  line-height:1.15;
+}
+.card-force.chronicle-force-face.dense .effect-text{font-size:2.92mm;line-height:1.10}
+.card-force.chronicle-force-face.very-dense .effect-text{font-size:2.62mm;line-height:1.06}
+.card-force.chronicle-force-face .empty-rules{margin:3mm 0 0}
+.card-force.chronicle-force-face.sparse .chronicle-rules::after{
+  content:"";
+  display:block;
+  width:38%;
+  height:1.45mm;
+  margin:5mm auto 0;
+  background:url("art/v2/ui/chronicle-divider.webp") center/100% auto no-repeat;
+  opacity:.11;
+}
+
+/* Footer and Command seal are mounted inside the printed border. */
+.card-force.chronicle-force-face .card-footer{
+  position:absolute;
+  z-index:6;
+  inset:0;
+  width:100%;
+  height:100%;
+  min-height:0;
+  padding:0;
+  pointer-events:none;
+}
+.card-force.chronicle-force-face .card-footer::before{display:none}
+.card-force.chronicle-force-face .footer-mark{
+  position:absolute;
+  left:9.5mm;
+  bottom:2.85mm;
+  font-size:1.16mm;
+}
+.card-force.chronicle-force-face .footer-id{
+  position:absolute;
+  left:50%;
+  bottom:2.55mm;
+  transform:translateX(-50%);
+  max-width:29mm;
+  color:#5d5548;
+  font-size:1.05mm;
+}
 .card-force.chronicle-force-face .cost-gem{
-  right:4.8mm;
-  bottom:4.8mm;
-  width:9.2mm;
-  height:9.2mm;
+  right:5.55mm;
+  bottom:5.55mm;
+  width:8.85mm;
+  height:8.85mm;
   background:url("art/v2/ui/chronicle-command-seal.jpg") center/100% 100% no-repeat;
-  filter:drop-shadow(0 .28mm .18mm rgba(26,20,14,.34));
+  filter:drop-shadow(0 .26mm .16mm rgba(26,20,14,.32));
 }
 .card-force.chronicle-force-face .cost-gem svg{display:none}
 .card-force.chronicle-force-face .cost-gem b{
   color:#f8e9c2;
-  font-size:5.25mm;
-  text-shadow:0 .18mm .22mm rgba(0,0,0,.65);
+  font-size:5.1mm;
+  text-shadow:0 .18mm .22mm rgba(0,0,0,.64);
 }
