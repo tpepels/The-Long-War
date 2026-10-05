@@ -2177,10 +2177,8 @@ def _aggregate_tournament_flow(
     """Aggregate game-flow diagnostics shared by both profiles in a pair."""
     final_battles: list[int] = []
     pass_events = 0
-    signal_events = 0
     forced_yield_events = 0
     command_at_pass_total = 0.0
-    command_at_signal_total = 0.0
 
     for payload in payloads:
         for outcome in payload.get("game_outcomes", []):
@@ -2192,18 +2190,13 @@ def _aggregate_tournament_flow(
 
         passes = payload.get("telemetry", {}).get("passes", {})
         events = int(passes.get("events", 0) or 0)
-        signals = int(passes.get("signal_events", 0) or 0)
         pass_events += events
-        signal_events += signals
         forced_yield_events += int(
             passes.get("forced_yield_events", 0) or 0
         )
         mean_command = passes.get("mean_command_remaining")
         if mean_command is not None:
             command_at_pass_total += events * float(mean_command)
-        mean_signal_command = passes.get("mean_command_at_signal")
-        if mean_signal_command is not None:
-            command_at_signal_total += signals * float(mean_signal_command)
 
     histogram = Counter(final_battles)
     return {
@@ -2223,15 +2216,16 @@ def _aggregate_tournament_flow(
             else None
         ),
         "pass_events": pass_events,
-        "signal_events": signal_events,
+        # Historical aliases mirror the current Pass metrics.
+        "signal_events": pass_events,
         "mean_command_at_pass": (
             command_at_pass_total / pass_events
             if pass_events
             else None
         ),
         "mean_command_at_signal": (
-            command_at_signal_total / signal_events
-            if signal_events
+            command_at_pass_total / pass_events
+            if pass_events
             else None
         ),
         "forced_yield_events": forced_yield_events,
@@ -3870,10 +3864,7 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
             or 0
         )
         passes = payload.get("telemetry", {}).get("passes", {})
-        signals = int(
-            passes.get("signal_events", passes.get("events", 0))
-            or 0
-        )
+        pass_events = int(passes.get("events", 0) or 0)
         forced_yields = int(passes.get("forced_yield_events", 0) or 0)
         decisions = payload.get("telemetry", {}).get("decisions", {})
         agent_decisions = decisions.get(args.agent, {})
@@ -3895,12 +3886,18 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
                 median(turn_actions) if turn_actions else None
             ),
             "resolved_battles": battles,
-            "signal_events": signals,
-            "forced_yield_events": forced_yields,
-            "mean_command_at_signal": passes.get("mean_command_at_signal"),
-            "signal_with_playable_alternative_rate": passes.get(
-                "signal_with_playable_alternative_rate"
+            "pass_events": pass_events,
+            "mean_command_at_pass": passes.get(
+                "mean_command_at_pass",
+                passes.get("mean_command_remaining"),
             ),
+            # Historical aliases for retained experiment readers.
+            "signal_events": pass_events,
+            "mean_command_at_signal": passes.get(
+                "mean_command_at_pass",
+                passes.get("mean_command_at_signal"),
+            ),
+            "forced_yield_events": forced_yields,
             "decisive_rollout_probes": int(
                 tactics.get("decisive_probes", 0) or 0
             ),
@@ -4029,7 +4026,7 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
             row["turn_consuming_actions_total"] for row in aggregate
         )
         battles = sum(row["resolved_battles"] for row in aggregate)
-        signals = sum(row["signal_events"] for row in aggregate)
+        pass_events = sum(row["pass_events"] for row in aggregate)
         forced_yields = sum(row["forced_yield_events"] for row in aggregate)
         all_resolved_outcomes = [
             outcome
@@ -4102,21 +4099,10 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
             )
             for key in collapse_bucket_keys
         }
-        command_signal_weight = sum(
-            (
-                float(row["mean_command_at_signal"])
-                * row["signal_events"]
-            )
+        command_pass_weight = sum(
+            float(row["mean_command_at_pass"]) * row["pass_events"]
             for row in aggregate
-            if row["mean_command_at_signal"] is not None
-        )
-        playable_signal_weight = sum(
-            (
-                float(row["signal_with_playable_alternative_rate"])
-                * row["signal_events"]
-            )
-            for row in aggregate
-            if row["signal_with_playable_alternative_rate"] is not None
+            if row["mean_command_at_pass"] is not None
         )
         resolved = decisive + draws
         row = {
@@ -4176,19 +4162,24 @@ def recovery_variant_run(args: argparse.Namespace) -> Path:
             "simultaneous_collapse_terminations": simultaneous_collapse_terminations,
             "unequal_collapse_terminations": unequal_collapse_terminations,
             "command_before_collapse_buckets": command_before_collapse_buckets,
-            "signal_events": signals,
+            "pass_events": pass_events,
             "forced_yield_events": forced_yields,
+            "mean_passes_per_battle": (
+                pass_events / battles if battles else None
+            ),
+            # Historical aliases for retained experiment readers.
+            "signal_events": pass_events,
             "mean_signals_per_battle": (
-                signals / battles if battles else None
+                pass_events / battles if battles else None
             ),
             "mean_forced_yields_per_battle": (
                 forced_yields / battles if battles else None
             ),
-            "mean_command_at_signal": (
-                command_signal_weight / signals if signals else None
+            "mean_command_at_pass": (
+                command_pass_weight / pass_events if pass_events else None
             ),
-            "signal_with_playable_alternative_rate": (
-                playable_signal_weight / signals if signals else None
+            "mean_command_at_signal": (
+                command_pass_weight / pass_events if pass_events else None
             ),
             "decisive_rollout_probes": sum(
                 row["decisive_rollout_probes"] for row in aggregate
