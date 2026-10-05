@@ -9,7 +9,13 @@ from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank
 from longwar.game.model import NarrativeState
-from longwar.mccfr import CFRNode, MCCFRTrainer, action_key, information_set_id
+from longwar.mccfr import (
+    CFRNode,
+    MCCFRTrainer,
+    action_key,
+    information_set_id,
+    search_information_set_id,
+)
 from longwar.protocol import MCCFR_POLICY_SCHEMA_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -116,6 +122,16 @@ def test_stable_information_set_tracks_playtest_turn_flow() -> None:
     assert information_set_id(closing, 0) != baseline
 
 
+def test_live_policy_information_set_tracks_rule_sensitive_masks() -> None:
+    engine, _deck, state = setup()
+    baseline = search_information_set_id(engine, state, 0)
+
+    changed = state.clone()
+    changed.cards_played_this_turn_front_mask[0] ^= 1 << int(Front.SECOND)
+
+    assert search_information_set_id(engine, changed, 0) != baseline
+
+
 def test_regret_matching_prefers_positive_regret() -> None:
     node = CFRNode(
         regret_sum={"a": 3.0, "b": -2.0},
@@ -159,7 +175,7 @@ def test_mccfr_policy_allows_legal_midbattle_zero_command_play() -> None:
         for action in legal
         if getattr(action, "card_id", None) == "marched-with"
     )
-    info_id = information_set_id(state, 0)
+    info_id = search_information_set_id(engine, state, 0)
     policy = {
         "schema_version": MCCFR_POLICY_SCHEMA_VERSION,
         "infosets": {
@@ -198,6 +214,11 @@ def test_current_fast_information_key_round_trips_canonical_state() -> None:
         fast_search.stable_information_id_from_fast_key(fast, key)
         == information_set_id(state, 0)
     )
+    assert fast.information_id(packed, 0) == search_information_set_id(
+        engine,
+        state,
+        0,
+    )
 
     with pytest.raises((IndexError, ValueError)):
         fast_search.stable_information_id_from_fast_key(fast, key[:-8])
@@ -213,6 +234,8 @@ def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
     assert policy["schema_version"] == MCCFR_POLICY_SCHEMA_VERSION
     assert policy["algorithm"] == "depth_limited_external_sampling_mccfr"
     assert policy["infosets"]
+    if trainer._used_primitive_training:
+        assert len(policy["infosets"]) == len(trainer._primitive_nodes)
 
     agent = MCCFRAgent(seed=11, policy=policy, deterministic=True)
     action = agent.choose(engine, state)
