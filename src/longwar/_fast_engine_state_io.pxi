@@ -186,6 +186,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             | (CONSTRAINT_ZERO_COST if constraint.zero_cost else 0)
             | (CONSTRAINT_DRAW_ON_SATISFY if constraint.draw_after_satisfied else 0)
             | (CONSTRAINT_DISCARD_SOURCE_NARRATIVE if constraint.discard_source_narrative else 0)
+            | (CONSTRAINT_EXPIRES_END_OF_ACTIVATED_TURN if constraint.expires_end_of_activated_turn else 0)
         )
         fast.constraint_len += 1
     resolution_state = state.battle_resolution
@@ -704,6 +705,9 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 ),
                 "discard_source_narrative": bool(
                     state.constraint_flags[i] & CONSTRAINT_DISCARD_SOURCE_NARRATIVE
+                ),
+                "expires_end_of_activated_turn": bool(
+                    state.constraint_flags[i] & CONSTRAINT_EXPIRES_END_OF_ACTIVATED_TURN
                 ),
             }
             for i in range(state.constraint_len)
