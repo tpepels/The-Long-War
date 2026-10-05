@@ -611,7 +611,7 @@ def ismcts_search(
     cdef int root_index, prior_root_index, max_tree_depth_seen = 0
     cdef int max_tree_path_depth_seen = 0
     cdef int i, best_ix=-1, second_ix=-1
-    cdef int rollout_battle, action_battle, action_turn
+    cdef int rollout_battle, action_battle, action_actor
     cdef long iteration, completed_iterations=0
     cdef uint64_t best_visits=0, second_visits=0
     cdef uint64_t root_total_visits_before=0
@@ -782,10 +782,10 @@ def ismcts_search(
             path_nodes[path_length] = node_index
             path_indices[path_length] = <uint16_t>ix
             action_battle = state.battle
-            action_turn = state.turn_number
+            action_actor = state.active_player
             _fe_apply_fast(engine, state, action)
             path_length += 1
-            if state.turn_number != action_turn:
+            if state.active_player != action_actor:
                 tree_turn_depth += 1
             if (
                 state.phase != PHASE_COMPLETE
@@ -842,13 +842,13 @@ def ismcts_search(
                 &decisive_rollout_probes,
                 &decisive_rollout_actions,
             )
-            action_turn = state.turn_number
+            action_actor = state.active_player
             _fe_apply_fast(engine, state, action)
             rollout_raw_steps += 1
             rollout_actions += 1
             if rollout_in_post_battle:
                 rollout_post_battle_actions += 1
-            if state.turn_number != action_turn:
+            if state.active_player != action_actor:
                 if rollout_in_post_battle:
                     rollout_post_battle_steps += 1
                 else:
