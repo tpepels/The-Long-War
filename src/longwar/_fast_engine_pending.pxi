@@ -463,7 +463,6 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             _fe_queue_take_adjacent_prepared_component_on_force_play(self, state, actor, pos)
         _fe_resolve_force_pair_narratives(self, state, actor)
         front = front_from_slot(pos)
-        _fe_resolve_ongoing_narrative_event(self, state, actor, EVENT_FORCE, front, pos)
         _fe_resolve_strat_event(self, state, EVENT_FORCE, actor, card, pos)
 
     elif kind == TYPE_BOND:
@@ -484,7 +483,6 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 self.bond_optional_draw_count[card],
             )
         front = front_from_slot(pos)
-        _fe_resolve_ongoing_narrative_event(self, state, actor, EVENT_BOND, front, pos)
 
     elif kind == TYPE_NAME:
         take_adjacent_open_bond_ready = (
@@ -523,7 +521,6 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_take_from_hand(self, state, actor, card, 0)
         state.narratives_played_this_battle[actor] += 1
         state.narrative[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = card
-        state.narrative_revealed[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = 1
         state.narrative_front_mask[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = (
             <uint8_t>(extra & FRONT_MASK)
             if self.narrative_choice_kind[card] == NARRATIVE_CHOICE_FRONT
