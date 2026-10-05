@@ -161,8 +161,15 @@ def _information_set_id_from_key(key: dict[str, Any]) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _search_information_set_key(state: GameState, player: int) -> str:
-    return information_set_id(state, player)
+def search_information_set_id(
+    engine: GameEngine,
+    state: GameState,
+    player: int,
+) -> str:
+    """Full observable information-set ID used by live MCCFR policies."""
+    native = engine._native_core()
+    packed = native.from_game_state(state)
+    return str(native.information_id(packed, player))
 
 
 def information_set_id(state: GameState, player: int) -> str:
@@ -445,7 +452,11 @@ class MCCFRTrainer:
             current_player=lambda current: current.active_player,
             legal_actions=self.engine.legal_actions,
             action_key=action_key,
-            information_set_id=_search_information_set_key,
+            information_set_id=lambda current, actor: search_information_set_id(
+                self.engine,
+                current,
+                actor,
+            ),
             next_state=next_state,
             leaf_value=self._leaf_value,
         )
@@ -463,10 +474,7 @@ class MCCFRTrainer:
             ):
                 raise RuntimeError("Primitive MCCFR export backend is unavailable")
             for internal_key, node in self._primitive_nodes.items():
-                info_id = stable_information_id_from_fast_key(
-                    self._primitive_engine,
-                    internal_key,
-                )
+                info_id = hashlib.sha256(internal_key).hexdigest()
                 raw_keys = sorted(node.regret_sum)
                 serialized = {
                     key: self._primitive_engine.action_key(key)
@@ -530,24 +538,21 @@ class MCCFRTrainer:
             "mulligan_policy": "no mulligan during MCCFR root sampling",
             "information_abstraction": {
                 "includes": [
-                    "public battlefield and discard state",
-                    "own hand identities",
-                    "own remaining deck multiset",
-                    "public hand/deck counts",
+                    "the full native observable information key",
+                    "public battlefield, discard, turn and Battle state",
+                    "own hidden resources and known opponent hidden cards",
+                    "public pending effects, constraints, discounts and free Maneuvers",
                     "public ongoing Narrative identities, selections, and trigger state",
                     "face-down opponent Stratagem existence and public selections, but not identity",
-                    "current Action slot and forced-closing countdown",
                 ],
                 "excludes": [
-                    "opponent hand identities",
+                    "opponent hidden identities not known to the viewer",
                     "face-down opponent Stratagem identity",
                     "both deck orders",
-                    "full action history",
-                    "search-only pending/constraint state from the exported stable policy id",
                 ],
                 "note": (
-                    "This is an imperfect-recall stable policy abstraction. "
-                    "Native MCCFR search nodes use the richer binary information key."
+                    "Training, export, online resolving and policy playback use "
+                    "the same full observable information key."
                 ),
             },
             "average_policy": "sampling-corrected external-sampling average strategy",
