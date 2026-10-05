@@ -167,7 +167,7 @@ If the destination contains one of your own formations, swap the two formations.
 
 Move the Force and every attached Bond and Name together.
 
-A Maneuver never changes a formation from Frontline to Rear or from Rear to Frontline unless a card explicitly says otherwise.
+A Maneuver never changes a formation's rank unless a card explicitly says otherwise.
 
 During the resolution of a single Action or effect, each formation may initiate at most one Maneuver.
 
