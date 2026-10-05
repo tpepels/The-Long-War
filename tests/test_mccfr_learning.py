@@ -6,9 +6,14 @@ from pathlib import Path
 import pytest
 
 from longwar.cards import load_card_file
-from longwar.game import Front, GameEngine, Position, Rank
+from longwar.game import EndTurn, Front, GameEngine, PlayForce, Position, Rank
 from longwar.game.model import StratagemState
-from longwar.mccfr import MCCFRTrainer, action_key, information_set_id
+from longwar.mccfr import (
+    MCCFRTrainer,
+    action_key,
+    information_set_id,
+    search_information_set_id,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -45,6 +50,62 @@ def test_fixed_state_training_is_reproducible() -> None:
         trainer.train_from_state(state, iterations=30)
 
     assert trainers[0].policy_payload() == trainers[1].policy_payload()
+
+
+def test_mccfr_depth_counts_completed_turns_not_raw_actions() -> None:
+    engine, deck, _state = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=191,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 3
+    target = Position(Front.FOURTH, Rank.REAR)
+    for front in Front:
+        for rank in Rank:
+            position = Position(front, rank)
+            if position != target:
+                state.slot(0, position).force = "the-fifty-men"
+    state.players[0].hand = ["the-fifty-men"]
+    state.players[0].deck = []
+    state.players[0].discard = []
+    state.players[1].hand = []
+    state.players[1].deck = []
+    state.players[1].discard = []
+    state.pending_draw_discard_for = None
+
+    play = PlayForce("the-fifty-men", target)
+    assert play in engine.legal_actions(state)
+    assert EndTurn() in engine.legal_actions(state)
+
+    trainer = MCCFRTrainer(
+        engine,
+        deck,
+        deck,
+        seed=192,
+        max_depth=1,
+        direct_traversal=False,
+    )
+    trainer._traverse(state, 0, depth=0)
+
+    same_turn = state.clone()
+    engine.apply(same_turn, play, validate=False)
+    assert same_turn.active_player == 0
+    assert same_turn.actions_this_turn == 1
+    assert (
+        search_information_set_id(engine, same_turn, 0)
+        in trainer.nodes
+    )
+
+    next_turn = state.clone()
+    engine.apply(next_turn, EndTurn(), validate=False)
+    assert next_turn.active_player == 1
+    assert (
+        search_information_set_id(engine, next_turn, 1)
+        not in trainer.nodes
+    )
 
 
 def test_face_down_opponent_stratagem_identity_is_not_in_information_set() -> None:
