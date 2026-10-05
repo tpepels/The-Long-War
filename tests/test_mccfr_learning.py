@@ -7,6 +7,7 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import EndTurn, Front, GameEngine, PlayForce, Position, Rank
+from longwar.rules import GameRules
 from longwar.game.model import StratagemState
 from longwar.mccfr import (
     MCCFRTrainer,
@@ -20,12 +21,12 @@ ROOT = Path(__file__).resolve().parents[1]
 pytestmark = pytest.mark.algorithm
 
 
-def setup():
+def setup(*, rules: GameRules | None = None):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
-    engine = GameEngine(data)
+    engine = GameEngine(data, rules=rules)
     state = engine.new_game(deck, deck, seed=19, first_player=0)
     return engine, deck, state
 
@@ -173,7 +174,11 @@ def test_public_stratagem_choice_order_does_not_change_information_set() -> None
 
 
 def test_direct_longwar_traversal_matches_generic_core() -> None:
-    engine, deck, _state = setup()
+    # Full 10-card openings create a combinatorial Action-1 × Action-2 tree
+    # now that MCCFR depth counts completed turns. Keep this as a backend
+    # parity test with a small but still two-Action legal surface.
+    rules = GameRules.standard().with_overrides(opening_hand_size=1)
+    engine, deck, _state = setup(rules=rules)
     direct = MCCFRTrainer(
         engine,
         deck,
