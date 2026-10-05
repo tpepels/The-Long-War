@@ -639,3 +639,26 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   opacity:1;
   filter:saturate(1.12) contrast(1.08) drop-shadow(0 .22mm .18mm rgba(50,36,19,.18));
 }
+
+
+/* FORCE SHELL INTEGRATION PASS
+   Use the actual generated full-card shell; live text no longer paints beige panels over it. */
+.card-force.chronicle-force-face .stack-edge{
+  background:transparent;
+  box-shadow:none;
+}
+.card-force.chronicle-force-face .chronicle-rules{
+  left:9.8mm;
+  right:9.8mm;
+  top:13.5mm;
+  bottom:1mm;
+  background:transparent;
+  border-radius:0;
+}
+.card-force.chronicle-force-face .effect-block{
+  background:transparent;
+}
+.card-force.chronicle-force-face .cost-gem{
+  right:5.2mm;
+  bottom:4.9mm;
+}

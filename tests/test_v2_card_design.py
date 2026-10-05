@@ -413,3 +413,10 @@ def test_force_window_does_not_reset_art_inset() -> None:
     assert "inset:auto" not in force_window
     assert "inset:7mm 3.75mm 7.4mm 3.75mm" in force_window
     assert 'background-image:url("art/v2/ui/chronicle-force-shell.webp")' in css
+
+
+def test_force_shell_is_not_covered_by_live_panels() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "FORCE SHELL INTEGRATION PASS" in css
+    assert ".card-force.chronicle-force-face .stack-edge{\n  background:transparent" in css
+    assert ".card-force.chronicle-force-face .effect-block{\n  background:transparent" in css
