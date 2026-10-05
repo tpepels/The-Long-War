@@ -370,3 +370,17 @@ def test_force_chronicle_material_is_raster_integrated() -> None:
     assert ".chronicle-lower::before" in css
     assert ".sparse .chronicle-rules::after" in css
     assert 'background:url("art/v2/ui/chronicle-divider.webp")' in css
+
+
+def test_force_face_keeps_top_strip_typographic_not_rebus_only() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert ".card-force.chronicle-force-face .edge-timing{display:none}" in css
+    assert ".card-force.chronicle-force-face .strength-mark svg{display:none}" in css
+    assert "max-width:22mm" in css
+
+
+def test_force_face_uses_raster_material_at_full_visual_strength() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "opacity:.98" in css
+    assert "mix-blend-mode:normal" in css
+    assert "saturate(1.13) contrast(1.07)" in css

@@ -48,13 +48,13 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  border:.52mm solid #332f27;
+  border:.40mm solid #3a3429;
   border-radius:2.8mm;
   background:
-    linear-gradient(180deg,rgba(255,250,232,.11),rgba(91,62,30,.045)),
-    url("art/v2/ui/chronicle-parchment.webp") center/auto 28mm repeat,
-    #efe0be;
-  background-blend-mode:multiply,normal,normal;
+    url("art/v2/ui/chronicle-parchment.webp") 0 0/18mm auto repeat,
+    url("art/v2/ui/chronicle-parchment.webp") 7mm 4mm/31mm auto repeat,
+    #ead8b5;
+  background-blend-mode:normal,normal,normal;
   box-shadow:
     0 1.9mm 3.8mm rgba(34,29,21,.34),
     0 .45mm .65mm rgba(29,25,19,.26),
@@ -67,10 +67,10 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   inset:0;
   z-index:8;
   pointer-events:none;
-  opacity:.78;
+  opacity:.98;
   background:url("art/v2/ui/chronicle-border.webp") center/100% 100% no-repeat;
-  mix-blend-mode:multiply;
-  filter:saturate(.88) contrast(.98);
+  mix-blend-mode:normal;
+  filter:saturate(1.13) contrast(1.07);
 }
 .card-force.chronicle-force-face::after{
   content:"";
@@ -90,15 +90,15 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   flex:0 0 calc(var(--exposed-edge) - var(--frame));
   height:calc(var(--exposed-edge) - var(--frame));
   z-index:4;
-  grid-template-columns:13mm max-content minmax(0,1fr);
-  column-gap:.9mm;
-  padding:1.02mm 3.15mm .78mm;
+  grid-template-columns:10.2mm max-content minmax(0,1fr);
+  column-gap:.75mm;
+  padding:1mm 3.05mm .78mm;
   color:#24261f;
   border-bottom:0;
   background:
-    linear-gradient(180deg,rgba(255,250,231,.70),rgba(232,213,177,.65)),
-    url("art/v2/ui/chronicle-parchment.webp") center/auto 20mm repeat;
-  background-blend-mode:multiply,normal;
+    url("art/v2/ui/chronicle-parchment.webp") 0 0/17mm auto repeat,
+    #ead6ae;
+  background-blend-mode:normal,normal;
   box-shadow:
     inset 0 -.65mm .95mm rgba(85,63,38,.075),
     inset 0 .18mm .12mm rgba(255,249,230,.35);
@@ -109,17 +109,17 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   color:#20241f;
 }
 .card-force.chronicle-force-face .type-mark{
-  width:4.65mm;height:4.65mm;
+  width:4.85mm;height:4.85mm;
   color:#1f2b35;
 }
 .card-force.chronicle-force-face .strength-mark{
-  gap:.28mm;
-  padding-left:.58mm;
-  border-left:.16mm solid #9a8566;
+  gap:0;
+  padding-left:.22mm;
+  border-left:0;
 }
-.card-force.chronicle-force-face .strength-mark svg{width:3.15mm;height:3.15mm}
+.card-force.chronicle-force-face .strength-mark svg{display:none}
 .card-force.chronicle-force-face .strength-mark b{
-  font:600 5.05mm/.88 var(--display);
+  font:600 5.25mm/.86 var(--display);
   color:#24241f;
 }
 .card-force.chronicle-force-face .edge-identity{
@@ -128,13 +128,13 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   padding:0 .2mm;
 }
 .card-force.chronicle-force-face .class-sigil{
-  width:3.8mm;height:3.8mm;
+  width:3.95mm;height:3.95mm;
   color:#202723;
 }
 .card-force.chronicle-force-face .edge-live-group{
   justify-content:flex-end;
-  gap:.38mm;
-  padding-left:.68mm;
+  gap:.32mm;
+  padding-left:.72mm;
   border-left:.16mm solid #9a8566;
   color:#292a23;
 }
@@ -145,17 +145,17 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   margin-left:-.95mm;
   margin-top:2mm;
 }
-.card-force.chronicle-force-face .edge-timing{width:3.15mm;height:3.15mm}
+.card-force.chronicle-force-face .edge-timing{display:none}
 .card-force.chronicle-force-face .edge-timing-word{
   display:inline;
-  font:700 1.55mm/1 var(--utility);
-  letter-spacing:.045em;
+  font:700 1.68mm/1 var(--utility);
+  letter-spacing:.035em;
   color:#282820;
 }
 .card-force.chronicle-force-face .edge-live-text{
-  max-width:20mm;
-  font:600 1.62mm/1 var(--display);
-  letter-spacing:.012em;
+  max-width:22mm;
+  font:600 1.78mm/.98 var(--display);
+  letter-spacing:.006em;
   color:#25251f;
 }
 .card-force.chronicle-force-face .use-socket{
@@ -186,7 +186,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   background-image:var(--card-art,none),var(--family-art);
   background-size:cover,cover;
   background-position:50% 50%,50% 50%;
-  filter:saturate(.90) contrast(1.045) brightness(.985);
+  filter:saturate(1.04) contrast(1.075) brightness(.985);
   opacity:1;
 }
 .card-force.chronicle-force-face .motif-field::after{
@@ -195,7 +195,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
     linear-gradient(180deg,rgba(255,244,213,.13),transparent 35%,rgba(38,29,20,.16)),
     url("art/v2/ui/chronicle-parchment.webp") center/auto 18mm repeat;
   background-blend-mode:normal,multiply;
-  opacity:.16;
+  opacity:.07;
 }
 
 /* Lower parchment field. The raster divider locks the illustration into the page. */
@@ -208,9 +208,10 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   display:flex;
   flex-direction:column;
   background:
-    linear-gradient(180deg,rgba(255,250,231,.045),rgba(94,66,33,.032)),
-    url("art/v2/ui/chronicle-parchment.webp") center/auto 28mm repeat;
-  background-blend-mode:multiply,normal;
+    url("art/v2/ui/chronicle-parchment.webp") 2mm 1mm/20mm auto repeat,
+    url("art/v2/ui/chronicle-parchment.webp") 11mm 6mm/34mm auto repeat,
+    #ead8b7;
+  background-blend-mode:multiply,normal,normal;
 }
 .card-force.chronicle-force-face .chronicle-lower::before{
   content:"";
@@ -227,8 +228,8 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 .card-force.chronicle-force-face .chronicle-title-block{
   position:relative;
   z-index:2;
-  flex:0 0 14.7mm;
-  min-height:14.7mm;
+  flex:0 0 12.35mm;
+  min-height:12.35mm;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -238,7 +239,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 .card-force.chronicle-force-face .card-title{
   flex:none;
   width:100%;
-  max-height:10mm;
+  max-height:8.7mm;
   margin:0;
   display:-webkit-box;
   -webkit-line-clamp:2;
@@ -247,15 +248,15 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   color:#27231d;
   text-align:center;
   text-wrap:balance;
-  font:600 5.45mm/.98 var(--display);
-  letter-spacing:-.012em;
+  font:600 5.55mm/.96 var(--display);
+  letter-spacing:-.018em;
   text-shadow:0 .1mm rgba(255,255,255,.48);
 }
 .card-force.chronicle-force-face .class-line{
   flex:none;
-  height:3.9mm;
-  min-height:3.9mm;
-  margin:.58mm 0 0;
+  height:3.55mm;
+  min-height:3.55mm;
+  margin:.35mm 0 0;
   display:flex;
   justify-content:center;
   gap:.7mm;
@@ -264,7 +265,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 }
 .card-force.chronicle-force-face .class-body-item{
   gap:.28mm;
-  font:400 2.25mm/1 var(--text);
+  font:400 2.32mm/1 var(--text);
   letter-spacing:.008em;
 }
 .card-force.chronicle-force-face .class-body-item svg{
@@ -278,9 +279,9 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 
 /* Generated ornamental divider - raster, never CSS line art. */
 .card-force.chronicle-force-face .chronicle-divider{
-  flex:0 0 2.75mm;
-  height:2.75mm;
-  margin:0 .1mm .9mm;
+  flex:0 0 2.45mm;
+  height:2.45mm;
+  margin:0 .1mm .72mm;
   background:url("art/v2/ui/chronicle-divider.webp") center/97% auto no-repeat;
   opacity:.76;
 }
@@ -326,13 +327,13 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   white-space:nowrap;
 }
 .card-force.chronicle-force-face .effect-timing-icon{
-  width:4.15mm;height:4.15mm;
+  width:3.8mm;height:3.8mm;
   color:#2a332d;
 }
 .card-force.chronicle-force-face .effect-label{
   color:#2c2922;
-  font:700 2mm/1 var(--utility);
-  letter-spacing:.04em;
+  font:600 2.22mm/1 var(--display);
+  letter-spacing:.025em;
 }
 .card-force.chronicle-force-face .effect-use{
   margin-left:.15mm;
@@ -347,7 +348,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   grid-column:2;
   padding-top:.08mm;
   color:#2d2922;
-  font:3.28mm/1.16 var(--text);
+  font:3.38mm/1.17 var(--text);
 }
 .card-force.chronicle-force-face .empty-rules{
   margin:3.4mm 0 0;
@@ -358,11 +359,11 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 .card-force.chronicle-force-face.sparse .chronicle-rules::after{
   content:"";
   display:block;
-  width:58%;
-  height:2.15mm;
-  margin:4.4mm auto 0;
+  width:42%;
+  height:1.65mm;
+  margin:5.2mm auto 0;
   background:url("art/v2/ui/chronicle-divider.webp") center/100% auto no-repeat;
-  opacity:.15;
+  opacity:.11;
 }
 
 /* Density may tighten rule typography only. Art/title geometry never moves. */
@@ -376,15 +377,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   z-index:3;
   padding:.7mm 13mm 1.25mm 4.35mm;
 }
-.card-force.chronicle-force-face .card-footer::before{
-  display:block;
-  left:8mm;
-  right:13mm;
-  top:-.55mm;
-  height:1.55mm;
-  background:url("art/v2/ui/chronicle-divider.webp") center/100% auto no-repeat;
-  opacity:.18;
-}
+.card-force.chronicle-force-face .card-footer::before{display:none}
 .card-force.chronicle-force-face .footer-id{
   color:#5c5548;
   font:1.35mm/1 var(--utility);
@@ -392,9 +385,9 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 }
 .card-force.chronicle-force-face .footer-mark{color:#4d493d}
 .card-force.chronicle-force-face .cost-gem{
-  right:2.55mm;
-  bottom:1.3mm;
-  width:9.2mm;height:9.2mm;
+  right:3.45mm;
+  bottom:2.25mm;
+  width:8.7mm;height:8.7mm;
   filter:drop-shadow(0 .48mm .28mm rgba(27,23,17,.34));
 }
 .card-force.chronicle-force-face .cost-gem svg{fill:#20272b}
@@ -404,7 +397,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 }
 .card-force.chronicle-force-face .cost-gem b{
   color:#fff0c6;
-  font-size:5.8mm;
+  font-size:5.5mm;
 }
 
 /* No legacy density class may alter canonical Force art geometry. */
