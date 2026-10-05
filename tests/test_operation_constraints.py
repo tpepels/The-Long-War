@@ -20,19 +20,20 @@ from longwar.game import (
     Rank,
 )
 from longwar.game.model import NarrativeState, StratagemState
+from longwar.rules import GameRules
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def fresh():
+def fresh(*, rules: GameRules | None = None):
     data = load_card_file(ROOT / "cards" / "cards.json")
     deck = json.loads(
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(
             encoding="utf-8"
         )
     )["cards"]
-    engine = GameEngine(data)
+    engine = GameEngine(data, rules=rules)
     state = engine.new_game(
         deck,
         deck,
@@ -258,6 +259,61 @@ def test_king_had_given_order_waits_until_next_turn_then_forces_free_maneuver():
         for action in legal
     )
     assert engine.command_cost_for_action(state, Maneuver(source, target)) == 0
+
+
+def test_king_had_given_order_waits_past_all_actions_of_three_action_turn():
+    rules = GameRules.standard().with_overrides(actions_per_turn=3)
+    engine, state = fresh(rules=rules)
+    source = Position(Front.SECOND, Rank.FRONT)
+    target = Position(Front.FIRST, Rank.FRONT)
+    named(state, 0, source)
+    state.players[0].hand = [
+        "the-king-had-given-the-order",
+        "the-fifty-men",
+        "the-fifty-men",
+    ]
+    state.players[1].hand = []
+    state.players[1].deck.clear()
+    state.players[1].discard.clear()
+
+    engine.apply(
+        state,
+        PlayNarrative(
+            "the-king-had-given-the-order",
+            targets=(BoardTarget(0, source),),
+            ongoing_slot=0,
+            direction="left",
+        ),
+    )
+
+    # Action 2 remains ordinary.
+    second_force = PlayForce(
+        "the-fifty-men",
+        Position(Front.FIRST, Rank.FRONT),
+    )
+    assert second_force in engine.legal_actions(state)
+    engine.apply(state, second_force)
+
+    # Action 3 of the same turn must also remain ordinary. The printed
+    # obligation says "on your next turn", not "two Actions later".
+    third_force = PlayForce(
+        "the-fifty-men",
+        Position(Front.FOURTH, Rank.FRONT),
+    )
+    assert third_force in engine.legal_actions(state)
+    engine.apply(state, third_force)
+
+    assert state.active_player == 1
+    assert engine.legal_actions(state) == [Pass()]
+    engine.apply(state, Pass())
+
+    legal = engine.legal_actions(state)
+    assert Maneuver(source, target) in legal
+    assert EndTurn() in legal
+    assert all(
+        action == Maneuver(source, target) or isinstance(action, EndTurn)
+        for action in legal
+    )
 
 
 def test_king_had_given_order_expires_if_next_turn_ends_without_action():
