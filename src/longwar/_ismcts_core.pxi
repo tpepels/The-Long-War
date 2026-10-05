@@ -611,7 +611,8 @@ def ismcts_search(
     cdef int root_index, prior_root_index, max_tree_depth_seen = 0
     cdef int max_tree_path_depth_seen = 0
     cdef int i, best_ix=-1, second_ix=-1
-    cdef int rollout_battle, action_battle, action_actor
+    cdef int rollout_battle, action_battle, action_turn, action_count_before
+    cdef int action_kind_code
     cdef long iteration, completed_iterations=0
     cdef uint64_t best_visits=0, second_visits=0
     cdef uint64_t root_total_visits_before=0
@@ -744,7 +745,11 @@ def ismcts_search(
         # strategic horizon.
         while (
             state.phase != PHASE_COMPLETE
-            and tree_turn_depth < tree_depth_limit
+            and (
+                tree_turn_depth < tree_depth_limit
+                or state.pending_len > 0
+                or state.cleanup_pending
+            )
             and path_length < MAX_ISMCTS_DEPTH
         ):
             actor = state.active_player
@@ -782,10 +787,19 @@ def ismcts_search(
             path_nodes[path_length] = node_index
             path_indices[path_length] = <uint16_t>ix
             action_battle = state.battle
-            action_actor = state.active_player
+            action_turn = state.turn_number
+            action_count_before = state.actions_this_turn
+            action_kind_code = action_kind(action)
             _fe_apply_fast(engine, state, action)
             path_length += 1
-            if state.active_player != action_actor:
+            if (
+                action_kind_code == TYPE_PASS
+                or action_kind_code == TYPE_END_TURN
+                or (
+                    state.turn_number != action_turn
+                    and action_count_before + 1 >= engine.actions_per_turn
+                )
+            ):
                 tree_turn_depth += 1
             if (
                 state.phase != PHASE_COMPLETE
@@ -820,7 +834,9 @@ def ismcts_search(
             and state.phase != PHASE_COMPLETE
             and rollout_raw_steps < MAX_ISMCTS_DEPTH
             and (
-                (
+                state.pending_len > 0
+                or state.cleanup_pending
+                or (
                     not rollout_in_post_battle
                     and rollout_steps < rollout_depth
                 )
@@ -842,13 +858,22 @@ def ismcts_search(
                 &decisive_rollout_probes,
                 &decisive_rollout_actions,
             )
-            action_actor = state.active_player
+            action_turn = state.turn_number
+            action_count_before = state.actions_this_turn
+            action_kind_code = action_kind(action)
             _fe_apply_fast(engine, state, action)
             rollout_raw_steps += 1
             rollout_actions += 1
             if rollout_in_post_battle:
                 rollout_post_battle_actions += 1
-            if state.active_player != action_actor:
+            if (
+                action_kind_code == TYPE_PASS
+                or action_kind_code == TYPE_END_TURN
+                or (
+                    state.turn_number != action_turn
+                    and action_count_before + 1 >= engine.actions_per_turn
+                )
+            ):
                 if rollout_in_post_battle:
                     rollout_post_battle_steps += 1
                 else:
