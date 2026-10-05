@@ -435,6 +435,15 @@ cdef bytes _fe_information_key(FastEngine self, FastState state, int player):
 cdef str _fe_information_id(FastEngine self, FastState state, int player):
     return hashlib.sha256(_fe_information_key_fast(self, state, player)).hexdigest()
 
+cdef inline str _fe_rank_key(int rank):
+    if rank == RANK_FRONT:
+        return "front"
+    if rank == RANK_MIDDLE:
+        return "middle"
+    if rank == RANK_REAR:
+        return "rear"
+    raise ValueError("Unknown rank code")
+
 cdef str _fe_action_key(FastEngine self, uint64_t action):
     cdef int kind = action_kind(action)
     cdef int card = action_card(action)
@@ -494,7 +503,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += (
                 f":source:{owner_from_slot(pos)},"
                 f"{front_from_slot(pos)},"
-                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+                f"{_fe_rank_key(rank_from_slot(pos))}"
             )
         if choice == EFFECT_FRONT_CONTRIBUTION and dest >= 0:
             key += f":front:{dest}"
@@ -502,30 +511,30 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += (
                 f":destination:{owner_from_slot(dest)},"
                 f"{front_from_slot(dest)},"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{_fe_rank_key(rank_from_slot(dest))}"
             )
         return key
     if kind == TYPE_MANEUVER:
         return (
             f"maneuver:{front_from_slot(pos)}:"
-            f"{'front' if rank_from_slot(pos) == 0 else 'rear'}:"
+            f"{_fe_rank_key(rank_from_slot(pos))}:"
             f"{front_from_slot(dest)}:"
-            f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+            f"{_fe_rank_key(rank_from_slot(dest))}"
         )
     if kind == TYPE_FORCE:
         return (
             f"force:{self.card_ids[card]}:{front_from_slot(pos)}:"
-            f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            f"{_fe_rank_key(rank_from_slot(pos))}"
         )
     if kind == TYPE_BOND:
         key = (
             f"bond:{self.card_ids[card]}:{front_from_slot(pos)}:"
-            f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            f"{_fe_rank_key(rank_from_slot(pos))}"
         )
         if dest >= 0:
             key += (
                 f":move:{front_from_slot(dest)}:"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{_fe_rank_key(rank_from_slot(dest))}"
             )
         if extra:
             key += f":extra:{self.bond_optional_extra_cost[card]}"
@@ -533,7 +542,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
     if kind == TYPE_NAME:
         return (
             f"name:{self.card_ids[card]}:{front_from_slot(pos)}:"
-            f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+            f"{_fe_rank_key(rank_from_slot(pos))}"
         )
     if kind == TYPE_ONGOING_NARRATIVE:
         key = f"narrative:{self.card_ids[card]}:ongoing:{pos}"
@@ -553,7 +562,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key += (
                 f":targets:{owner_from_slot(dest)},"
                 f"{front_from_slot(dest)},"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{_fe_rank_key(rank_from_slot(dest))}"
             )
             if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
                 key += (
@@ -590,7 +599,7 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                     targets.append(
                         f"{owner_from_slot(slot)},"
                         f"{front_from_slot(slot)},"
-                        f"{'front' if rank_from_slot(slot) == 0 else 'rear'}"
+                        f"{_fe_rank_key(rank_from_slot(slot))}"
                     )
             key += ":targets:" + ";".join(targets)
         return key
@@ -604,15 +613,15 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             return (
                 f"narrative:{self.card_ids[card]}:"
                 f"{player}:{front_from_slot(pos)}:"
-                f"{'front' if rank_from_slot(pos) == 0 else 'rear'};"
+                f"{_fe_rank_key(rank_from_slot(pos))};"
                 f"{player}:{front_from_slot(dest)}:"
-                f"{'front' if rank_from_slot(dest) == 0 else 'rear'}"
+                f"{_fe_rank_key(rank_from_slot(dest))}"
             )
         if pos >= 0:
             return (
                 f"narrative:{self.card_ids[card]}:"
                 f"{player}:{front_from_slot(pos)}:"
-                f"{'front' if rank_from_slot(pos) == 0 else 'rear'}"
+                f"{_fe_rank_key(rank_from_slot(pos))}"
             )
         return f"narrative:{self.card_ids[card]}:"
     raise ValueError("Unknown fast action")
