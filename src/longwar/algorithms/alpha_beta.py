@@ -20,10 +20,7 @@ def action_completed_turn(
     action: Action,
 ) -> bool:
     """Whether one resolved root/search action consumed a strategic turn."""
-    return isinstance(action, (Pass, EndTurn)) or (
-        child.turn_number != state.turn_number
-        and state.actions_this_turn + 1 >= engine.rules.actions_per_turn
-    )
+    return engine.transition_completed_turn(state, child, action)
 
 
 def _freeze_state_value(value: object) -> object:
