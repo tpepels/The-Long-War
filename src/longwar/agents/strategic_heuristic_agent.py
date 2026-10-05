@@ -188,6 +188,15 @@ class StrategicHeuristicAgent(HeuristicAgent):
         self._fast_engine = None
         self.last_decision = {}
 
+    def evaluate(
+        self,
+        engine: GameEngine,
+        state: GameState,
+        player: int,
+    ) -> float:
+        """Evaluate a real observation state without reading hidden identities."""
+        return self._public_evaluator._state_value(engine, state, player)
+
     def choose(self, engine: GameEngine, state: GameState) -> Action:
         decision_started = perf_counter()
         root_player = state.active_player
