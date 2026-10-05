@@ -36,6 +36,7 @@ FRONT_NAMES = {
 }
 RANK_NAMES = {
     Rank.FRONT: "Frontline",
+    Rank.MIDDLE: "Middle/Support",
     Rank.REAR: "Rear",
 }
 
