@@ -260,6 +260,43 @@ def test_king_had_given_order_waits_until_next_turn_then_forces_free_maneuver():
     assert engine.command_cost_for_action(state, Maneuver(source, target)) == 0
 
 
+def test_king_had_given_order_expires_if_next_turn_ends_without_action():
+    engine, state = fresh()
+    source = Position(Front.SECOND, Rank.FRONT)
+    named(state, 0, source)
+    state.players[0].hand = ["the-king-had-given-the-order"]
+    state.players[1].hand = []
+    state.players[1].deck.clear()
+    state.players[1].discard.clear()
+
+    play = PlayNarrative(
+        "the-king-had-given-the-order",
+        targets=(BoardTarget(0, source),),
+        ongoing_slot=0,
+        direction="left",
+    )
+    engine.apply(state, play)
+    engine.apply(state, EndTurn())
+    engine.apply(state, Pass())
+    assert state.active_player == 0
+    assert any(
+        item.source_card == "the-king-had-given-the-order"
+        for item in state.constraints
+    )
+
+    engine.apply(state, EndTurn())
+
+    assert not any(
+        item.source_card == "the-king-had-given-the-order"
+        for item in state.constraints
+    )
+    assert not any(
+        narrative.card_id == "the-king-had-given-the-order"
+        for narrative in state.narratives[0]
+    )
+    assert "the-king-had-given-the-order" in state.players[0].discard
+
+
 def test_they_had_gone_too_far_creates_next_battle_maneuver_obligation():
     engine, state = fresh()
     state.narratives[0] = [NarrativeState("they-had-gone-too-far")]
