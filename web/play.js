@@ -96,18 +96,21 @@ const TERM_HINTS = {
   "frontline": "The position nearest the Battle Line.",
   "frontline force": "The Force occupying the Frontline position of that Front.",
   "frontline forces": "Forces occupying Frontline positions.",
+  "middle": "The Middle/Support position between the Frontline and Rear in the same Front.",
+  "middle/support": "The middle rank between the Frontline and Rear.",
+  "support": "The Middle/Support position between the Frontline and Rear in the same Front.",
   "move": "Relocate a Named Formation or other cards as the rule or card text allows.",
   "name": "A Unique formation component. It may be prepared before the Force or Bond; Force-dependent text stays inactive until a Force is present.",
   "pass": "Available only when no legal Action remains after drawing. The opponent then takes one closing turn, you take one closing turn, and the Battle ends.",
   "passes": "Pass starts the fixed two-turn closing sequence; it is not an Action.",
-  "rear": "The position behind the Frontline in the same Front.",
+  "rear": "The back position of the same Front, behind the Middle/Support rank.",
   "rear force": "The Force occupying the Rear position of that Front.",
   "rear forces": "Forces occupying Rear positions.",
   "narratives": "Narratives are public. An Ongoing Narrative remains in play until its own text ends it.",
   "narrative": "A public Narrative card. A Narrative marked Ongoing remains in play according to its text.",
   "strength": "The value compared in each Front. Higher total Strength controls that Front.",
   "force": "The unit or place that activates a formation's Strength and Force-dependent Bond or Name text.",
-  "forces": "Cards that activate formations in Frontline or Rear positions.",
+  "forces": "Cards that activate formations in Frontline, Middle/Support, or Rear positions.",
   "prepared": "A Bond or Name already placed before its Force. It remains inactive where text depends on a Force.",
   "adjacent": "Immediately left or right in the same rank.",
   "adjacent force": "A Force immediately left or right in the same rank.",
@@ -658,6 +661,12 @@ function maneuverActionsTo(front, rank) {
   );
 }
 
+function rankDisplayName(rank) {
+  if (rank === RANK.FRONT) return "Frontline";
+  if (rank === RANK.MIDDLE) return "Middle / Support";
+  return "Rear";
+}
+
 function renderSlot(owner, front, rank) {
   const slot = boardSlot(owner, front, rank);
   const cardTargets = targetActionsForSlot(owner, front, rank);
@@ -712,7 +721,7 @@ function renderSlot(owner, front, rank) {
   if (!hasFormation) {
     return '<div class="' + classes.join(" ") + '" ' + attrs + '>' +
       '<span class="empty-slot-mark">＋</span><span>' +
-      (rank === RANK.FRONT ? "Frontline" : "Rear") + '</span>' +
+      rankDisplayName(rank) + '</span>' +
       (targetable
         ? '<b class="legal-target-cue">' + cue + ' · ' +
           commandCostLabel(targets) + '</b>'
@@ -877,11 +886,13 @@ function renderBattlefield() {
       '<div class="army-side opponent-army">' +
         renderNarrativeRow(top) +
         renderRankRow(top, RANK.REAR, "Rear") +
+        renderRankRow(top, RANK.MIDDLE, "Middle / Support") +
         renderRankRow(top, RANK.FRONT, "Frontline") +
       '</div>' +
       '<div class="battle-line-wide"><span>THE BATTLE LINE</span></div>' +
       '<div class="army-side player-army">' +
         renderRankRow(bottom, RANK.FRONT, "Frontline") +
+        renderRankRow(bottom, RANK.MIDDLE, "Middle / Support") +
         renderRankRow(bottom, RANK.REAR, "Rear") +
         renderNarrativeRow(bottom) +
       '</div>' +
@@ -2136,7 +2147,7 @@ function animateSnapshot(previous, before) {
 }
 
 window.render_game_to_text = () => JSON.stringify({
-  coordinate_system: "Fronts 0-3=Front 1-4; ranks front=Frontline, rear=Rear; viewer at bottom",
+  coordinate_system: "Fronts 0-3=Front 1-4; ranks front=Frontline, middle=Middle/Support, rear=Rear; viewer at bottom",
   ready: cardsReady,
   ...(state ? Object.fromEntries(["phase", "battle", "viewer", "active_player", "active_fronts", "actions_this_turn", "actions_per_turn", "closing_turns_remaining", "first_passer", "needs_ai", "needs_reveal", "winner", "players", "hand", "board", "narratives", "narrative_limit", "stratagems", "pass_order", "pending_draw_discard_for", "front_strengths", "front_control", "legal_actions", "last_action"].map((key) => [key, state[key]])) : { phase: "setup" }),
   selected_card: selectedCardId,
