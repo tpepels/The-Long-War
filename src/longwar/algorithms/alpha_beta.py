@@ -70,7 +70,11 @@ class AlphaBetaSearch:
     ) -> float:
         budget.visit()
 
-        if state.phase is Phase.COMPLETE or depth <= 0:
+        if state.phase is Phase.COMPLETE or (
+            depth <= 0
+            and not state.pending_effects
+            and state.pending_draw_discard_for is None
+        ):
             return self.evaluator._strategic_state_value(
                 self.engine,
                 state,
@@ -111,8 +115,14 @@ class AlphaBetaSearch:
                 child = state.clone()
                 scratch.append(child)
 
+            turn_serial = state.turn_number
+            actions_before = state.actions_this_turn
             self.engine.apply(child, action, validate=False)
-            child_depth = depth - int(child.active_player != actor)
+            turn_completed = isinstance(action, (Pass, EndTurn)) or (
+                child.turn_number != turn_serial
+                and actions_before + 1 >= self.engine.rules.actions_per_turn
+            )
+            child_depth = depth - int(turn_completed)
             child_value = self.search(
                 child,
                 root_player=root_player,
