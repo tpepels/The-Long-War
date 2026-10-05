@@ -175,7 +175,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     }
     rank_map = {
         Rank.FRONT.value: RANK_FRONT,
-        Rank.MIDDLE.value: RANK_MIDDLE,
         Rank.REAR.value: RANK_REAR,
     }
     force_text_map = {
