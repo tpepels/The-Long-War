@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from math import inf
+from types import SimpleNamespace
 
 import pytest
 
@@ -12,17 +13,39 @@ class _State:
     name: str = "root"
     active_player: int = 0
     phase: Phase = Phase.BATTLE
+    turn_number: int = 0
+    actions_this_turn: int = 0
+    pending_effects: tuple[str, ...] = ()
+    pending_draw_discard_for: int | None = None
 
     def clone(self):
-        return _State(self.name, self.active_player, self.phase)
+        return _State(
+            self.name,
+            self.active_player,
+            self.phase,
+            self.turn_number,
+            self.actions_this_turn,
+            self.pending_effects,
+            self.pending_draw_discard_for,
+        )
 
     def copy_from(self, other):
-        self.name, self.active_player, self.phase = other.name, other.active_player, other.phase
+        self.name = other.name
+        self.active_player = other.active_player
+        self.phase = other.phase
+        self.turn_number = other.turn_number
+        self.actions_this_turn = other.actions_this_turn
+        self.pending_effects = other.pending_effects
+        self.pending_draw_discard_for = other.pending_draw_discard_for
 
 
 class _GraphEngine:
+    rules = SimpleNamespace(actions_per_turn=1)
+
     def apply(self, state, action, *, validate):
         state.name = action
+        state.turn_number += 1
+        state.actions_this_turn = 0
         state.active_player = 1 - state.active_player
 
 
@@ -44,13 +67,19 @@ class _GraphSearch(AlphaBetaSearch):
 
 
 class _TwoActionEngine:
+    rules = SimpleNamespace(actions_per_turn=2)
+
     def apply(self, state, action, *, validate):
         if state.name == "root":
             state.name = "mid"
+            state.turn_number += 1
+            state.actions_this_turn = 1
             # Action 1 keeps control with the same player.
             return
         if state.name == "mid":
             state.name = "leaf"
+            state.turn_number += 1
+            state.actions_this_turn = 0
             state.active_player = 1 - state.active_player
             return
         raise AssertionError(f"unexpected state/action: {state.name}/{action}")
@@ -93,6 +122,70 @@ def test_alpha_beta_depth_counts_completed_turns_not_raw_actions():
 
     # Depth 1 must include Action 1 and the same player's EndTurn, reaching
     # the next player's decision. Raw-action depth would stop at "mid".
+    assert value == 7.0
+
+
+class _PendingChoiceEngine:
+    rules = SimpleNamespace(actions_per_turn=2)
+
+    def apply(self, state, action, *, validate):
+        if state.name == "root":
+            # Action 1 queues a choice for the opponent. The Action has not
+            # finished, so neither the action serial nor strategic turn depth
+            # advances yet.
+            state.name = "pending"
+            state.active_player = 1
+            state.pending_effects = ("intercept",)
+            return
+        if state.name == "pending":
+            # Resolving the choice finishes Action 1 and returns control to
+            # the original actor for Action 2.
+            state.name = "mid"
+            state.active_player = 0
+            state.pending_effects = ()
+            state.turn_number += 1
+            state.actions_this_turn = 1
+            return
+        if state.name == "mid":
+            state.name = "leaf"
+            state.active_player = 1
+            state.turn_number += 1
+            state.actions_this_turn = 0
+            return
+        raise AssertionError(f"unexpected state/action: {state.name}/{action}")
+
+
+class _PendingChoiceSearch(AlphaBetaSearch):
+    @staticmethod
+    def state_key(state):
+        return state.name
+
+    def ordered_actions(self, state, actor, *, width):
+        return {
+            "root": ["card"],
+            "pending": ["effect-choice"],
+            "mid": ["action-2"],
+        }.get(state.name, [])
+
+
+def test_alpha_beta_pending_opponent_choice_does_not_consume_turn_depth():
+    search = _PendingChoiceSearch(
+        _PendingChoiceEngine(),
+        _TwoActionEvaluator(),
+        candidate_width=2,
+    )
+    state = _State()
+    value = search.search(
+        state,
+        root_player=0,
+        depth=1,
+        alpha=-inf,
+        beta=inf,
+        budget=SearchBudget(20),
+        transposition={},
+        scratch=[],
+    )
+
     assert value == 7.0
 
 
