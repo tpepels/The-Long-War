@@ -1174,7 +1174,7 @@ function renderInteraction() {
       cancel.hidden = false;
     } else if (state.pending_draw_discard_for === state.viewer) {
       title.textContent = "Hand limit";
-      hint.textContent = "Your hand is above the limit. Discard down to " + state.hand_limit + " before play continues.";
+      hint.textContent = "Your hand is above the limit. Discard down to " + state.rules.hand_limit + " before play continues.";
       cancel.hidden = true;
     } else {
       title.textContent = "Your turn · Action " +
