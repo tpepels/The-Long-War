@@ -1005,11 +1005,16 @@ def test_battle_resolves_four_fronts_independently_without_battle_winner() -> No
 
 
 
-def test_incomplete_formations_persist_between_battles() -> None:
+def test_incomplete_formations_and_prepared_cards_persist_between_battles() -> None:
     engine, state = setup_state()
     incomplete = state.slot(0, pos(3))
     incomplete.force = "the-fifty-men"
     incomplete.bond = "followed"
+
+    prepared_bond = state.slot(0, pos(2, Rank.MIDDLE))
+    prepared_bond.bond = "swore-again-to"
+    prepared_name = state.slot(0, pos(1, Rank.REAR))
+    prepared_name.name = "namar"
 
     resolve_battle_by_passing(engine, state)
 
@@ -1017,8 +1022,14 @@ def test_incomplete_formations_persist_between_battles() -> None:
     assert persisted.force == "the-fifty-men"
     assert persisted.bond == "followed"
     assert persisted.name is None
+    assert state.slot(0, pos(2, Rank.MIDDLE)).bond == "swore-again-to"
+    assert state.slot(0, pos(2, Rank.MIDDLE)).force is None
+    assert state.slot(0, pos(1, Rank.REAR)).name == "namar"
+    assert state.slot(0, pos(1, Rank.REAR)).force is None
     assert "the-fifty-men" not in state.players[0].discard
     assert "followed" not in state.players[0].discard
+    assert "swore-again-to" not in state.players[0].discard
+    assert "namar" not in state.players[0].discard
 
 
 def test_battle_resolution_leaves_all_battlefield_positions_in_place() -> None:
