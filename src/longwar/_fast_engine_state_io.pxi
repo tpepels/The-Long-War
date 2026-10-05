@@ -64,7 +64,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     << slot_index(
                         int(target_choice[0]),
                         int(target_choice[1].front),
-                        RANK_FRONT if target_choice[1].rank is Rank.FRONT else RANK_REAR,
+                        RANK_FRONT if target_choice[1].rank is Rank.FRONT else RANK_MIDDLE if target_choice[1].rank is Rank.MIDDLE else RANK_REAR,
                     )
                 )
 
@@ -90,7 +90,6 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
 
         for i, narrative in enumerate(state.narratives[p][:self.ongoing_narrative_limit]):
             fast.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + i] = self.id_to_code[narrative.card_id]
-            fast.narrative_revealed[p * NARRATIVE_SLOTS_PER_PLAYER + i] = 1
             fast.narrative_used[p * NARRATIVE_SLOTS_PER_PLAYER + i] = bool(narrative.triggered_this_battle)
             fast.narrative_trigger_mask[p * NARRATIVE_SLOTS_PER_PLAYER + i] = int(narrative.triggered_players_mask)
             if narrative.direction == Direction.LEFT:
@@ -103,7 +102,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 fast.narrative_target_slot[p * NARRATIVE_SLOTS_PER_PLAYER + i] = slot_index(
                     int(narrative.target_player),
                     int(narrative.target_position.front),
-                    RANK_FRONT if narrative.target_position.rank is Rank.FRONT else RANK_REAR,
+                    RANK_FRONT if narrative.target_position.rank is Rank.FRONT else RANK_MIDDLE if narrative.target_position.rank is Rank.MIDDLE else RANK_REAR,
                 )
 
     fast.active_player = state.active_player
@@ -176,7 +175,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             else slot_index(
                 int(constraint.player),
                 int(constraint.source_position.front),
-                RANK_FRONT if constraint.source_position.rank is Rank.FRONT else RANK_REAR,
+                RANK_FRONT if constraint.source_position.rank is Rank.FRONT else RANK_MIDDLE if constraint.source_position.rank is Rank.MIDDLE else RANK_REAR,
             )
         )
         fast.constraint_activate_turn[i] = int(constraint.activate_turn)
