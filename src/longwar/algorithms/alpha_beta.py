@@ -281,6 +281,7 @@ class AlphaBetaSearch:
                     constraint.zero_cost,
                     constraint.draw_after_satisfied,
                     constraint.discard_source_narrative,
+                    constraint.expires_end_of_activated_turn,
                 )
                 for constraint in state.constraints
             ),
