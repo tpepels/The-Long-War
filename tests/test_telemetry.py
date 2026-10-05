@@ -521,6 +521,11 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
         "constraint_active_decisions": 1,
         "cards_played": 5,
         "pass_events": 2,
+        "pass_command": 6,
+        "pass_unplayable_cards": 2,
+        "pass_legal_alternatives": 3,
+        "pass_playable_card_actions": 2,
+        "pass_maneuver_actions": 1,
         "first_signal_command": 6,
         "first_signal_unplayable_cards": 2,
         "first_signal_legal_alternatives": 3,
@@ -539,7 +544,11 @@ def test_battle_index_aggregation_keeps_first_three_battles_separate() -> None:
     assert by_battle["4-7"]["battles"] == 2
     assert by_battle["8+"]["battles"] == 0
     assert by_battle["1"]["eventual_completion_rate_for_forces_deployed"] is None
-    assert by_battle["1"]["first_signal_unplayable_cards"] == pytest.approx(2.0)
+    assert by_battle["1"]["pass_unplayable_cards"] == pytest.approx(2.0)
+    assert (
+        by_battle["1"]["first_signal_unplayable_cards"]
+        == by_battle["1"]["pass_unplayable_cards"]
+    )
     assert by_battle["1"]["command_start"] == pytest.approx(20.0)
     assert by_battle["1"]["constraint_rule_source_rate"] == pytest.approx(0.5)
     assert by_battle["1"]["constraint_active_rate"] == pytest.approx(0.25)
@@ -958,7 +967,8 @@ def test_low_command_telemetry_records_simultaneous_collapse_termination() -> No
     assert stall["simultaneous_collapse_terminations"] == 1
     assert stall["unequal_collapse_terminations"] == 0
     assert stall["both_at_collapse_point_battle_starts"] == 1
-    assert stall["battles_with_no_paid_operation"] == 1
+    assert stall["battles_with_no_paid_action"] == 1
+    assert stall["battles_with_no_paid_operation"] == stall["battles_with_no_paid_action"]
     assert stall["battles_with_no_board_change"] == 1
     assert stall["battles_with_no_strength_change"] == 1
     assert stall["forced_passes"] == 1
