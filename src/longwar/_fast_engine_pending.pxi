@@ -551,7 +551,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 -1,
                 <int>extra,
                 dest,
-                state.turn_number + NEXT_OWN_TURN_OFFSET,
+                state.turn_number
+                + (self.actions_per_turn - state.actions_this_turn),
                 (
                     CONSTRAINT_EXPIRES_AFTER_OPERATION
                     | CONSTRAINT_PERSISTS_BATTLE
