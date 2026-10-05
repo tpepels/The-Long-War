@@ -142,19 +142,16 @@ Its fixed composition is:
 
 All Force cards use identical illustration geometry and a centered 50/50 cover crop. Rules density may change type size slightly, but may never resize or reposition the art.
 
-The material treatment is part of the design, not decoration added later:
-- generated raster parchment texture;
-- generated raster full-card border with restrained navy/gold ornament;
-- generated raster art-window overlay mounted over the live illustration;
-- generated raster ornamental divider;
-- the full-card border, art-window overlay, divider, and Command seal are composed as separate raster layers;
-- inset highlight/shadow around the art plate;
-- restrained navy/black heraldic ink;
-- warm worn parchment;
-- one continuous parchment surface under the live typography, with no tiled UI panels or beige effect boxes;
-- a restrained raster transition between artwork and title;
-- slightly larger rules text, with sparse-card whitespace finished by quiet print ornament rather than extra UI panels.
+The material treatment is part of the design, not decoration added later. The Force face is assembled from generated raster parts:
+- `chronicle-force-shell-v2.webp` — full-card ornamental shell/frame;
+- `chronicle-top-strip.webp` — battlefield-strip frame;
+- `chronicle-art-window.webp` — landscape artwork window/frame;
+- `chronicle-divider.webp` — ornamental divider;
+- `chronicle-command-corner.webp` — bottom-right Command seal/corner treatment;
+- `chronicle-parchment.webp` — continuous parchment substrate.
 
-Decorative framing and separators should use these raster assets rather than hand-built SVG or CSS line ornament. Functional game glyphs remain vector icons because they carry rules information rather than decoration.
+CSS may position, size, clip, layer, shadow, and composite these rasters and may style live typography. It must not recreate the physical frame with gradients, fake borders, SVG ornament, or opaque UI panels. Functional game glyphs remain vector icons because they carry rules information.
+
+Decorative framing and separators use the generated raster parts above. Functional game glyphs remain vector icons because they carry rules information rather than decoration.
 
 Other card families remain on the previous renderer until they are converted deliberately, one family at a time.
