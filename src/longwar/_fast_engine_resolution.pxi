@@ -14,6 +14,7 @@ cdef void _fe_queue_pre_resolution_choice(
         state.resolution_cursor += 1
         force = state.stratagem[controller]
         if force >= 0 and self.feigned_retreat_strat[force]:
+            state.stratagem_revealed[controller] = 1
             mask = 0
             for front in range(FRONT_COUNT):
                 slot = slot_index(controller, front, RANK_FRONT)
@@ -243,6 +244,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
                 or self.strat_combine_fronts[strat]
                 or self.strat_front_loss_protection[strat]
                 or self.strat_encirclement[strat]
+                or self.strat_refuse_flank[strat]
             )
         ):
             state.stratagem_revealed[controller] = 1
