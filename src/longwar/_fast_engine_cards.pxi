@@ -24,9 +24,6 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.bond_maneuver_adjacent_hero, 0, sizeof(self.bond_maneuver_adjacent_hero))
     memset(self.bond_blocks_opponent_card_move, 0, sizeof(self.bond_blocks_opponent_card_move))
     memset(self.bond_guarded_from_opponent_card_move, 0, sizeof(self.bond_guarded_from_opponent_card_move))
-    memset(self.rear_force_prevents_frontline_retreat, 0, sizeof(self.rear_force_prevents_frontline_retreat))
-    memset(self.force_breakthrough, 0, sizeof(self.force_breakthrough))
-    memset(self.name_breakthrough, 0, sizeof(self.name_breakthrough))
     memset(self.first_maneuver_free, 0, sizeof(self.first_maneuver_free))
     memset(self.first_maneuver_free_empty_front, 0, sizeof(self.first_maneuver_free_empty_front))
     memset(self.local_catchup_discount_name, 0, sizeof(self.local_catchup_discount_name))
@@ -81,7 +78,6 @@ cdef void _fe___cinit__(FastEngine self) except *:
     memset(self.strat_unnamed_maneuver, 0, sizeof(self.strat_unnamed_maneuver))
     memset(self.strat_tie_control, 0, sizeof(self.strat_tie_control))
     memset(self.strat_front_loss_protection, 0, sizeof(self.strat_front_loss_protection))
-    memset(self.strat_no_retreat, 0, sizeof(self.strat_no_retreat))
     memset(self.strat_combine_fronts, 0, sizeof(self.strat_combine_fronts))
     memset(self.strat_refuse_flank, 0, sizeof(self.strat_refuse_flank))
     memset(self.strat_encirclement, 0, sizeof(self.strat_encirclement))
@@ -304,9 +300,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.bond_blocks_opponent_card_move[code] = 1
         if design.get(DesignField.PREVENT_OPPONENT_CARD_EFFECT_MOVEMENT):
             self.bond_guarded_from_opponent_card_move[code] = 1
-        lost_front = design.get(DesignField.LOST_FRONT) or {}
-        if lost_front.get(DesignField.EFFECT) == DesignToken.DRIVE_OFF_SELF_PREVENT_FRONTLINE_RETREAT:
-            self.rear_force_prevents_frontline_retreat[code] = 1
         if design.get(DesignField.FIRST_MANEUVER_EACH_BATTLE_COST) == 0:
             self.first_maneuver_free[code] = 1
         if design.get(DesignField.FIRST_SELF_MANEUVER_EACH_BATTLE_COST) == 0:
@@ -333,11 +326,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.first_narrative_battle_minimum_cost_force[code] = int(
                 force_design.get(DesignField.MINIMUM_COST, 0)
             )
-        if force_design.get(DesignField.COMBAT) == DesignToken.BREAKTHROUGH:
-            self.force_breakthrough[code] = 1
         name_design = design.get(DesignField.NAME) or {}
-        if name_design.get(DesignField.COMBAT) == DesignToken.BREAKTHROUGH_IF_OPPONENT_NO_REAR_FORCE:
-            self.name_breakthrough[code] = 1
         self.immobile_force[code] = bool(
             force_design.get(DesignField.IMMOBILE) or design.get(DesignField.IMMOBILE)
         )
@@ -443,8 +432,6 @@ cdef void _fe___init__(FastEngine self, engine) except *:
             self.strat_front_loss_protection[code] = max(
                 0, int(design.get(DesignField.LOST_FRONTS_PROTECTED, 0))
             )
-        if design.get(DesignField.STRATAGEM) == DesignToken.NO_RETREAT_FRONT:
-            self.strat_no_retreat[code] = 1
         if design.get(DesignField.STRATAGEM) == DesignToken.COMBINE_TWO_ADJACENT_FRONTS:
             self.strat_combine_fronts[code] = 1
         if design.get(DesignField.STRATAGEM) == DesignToken.REFUSE_FLANK:
