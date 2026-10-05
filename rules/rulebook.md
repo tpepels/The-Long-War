@@ -37,7 +37,7 @@ Every Front has three positions on each player's side:
 - the **Middle/Support** between the front and rear;
 - the **Rear**, directly behind it.
 
-The four Frontline positions form one rank. The four Support positions the middle. The four Rear positions form the other.
+The four Frontline positions form the Frontline rank. The four Middle/Support positions form the middle rank. The four Rear positions form the Rear rank.
 
 Each position can hold at most:
 
@@ -336,10 +336,11 @@ Words such as *Swordsman*, *Archer*, *Human*, *King*, or *Ship* are classificati
 A few position words appear often on cards:
 
 - **Adjacent:** one active Front left or right in the same rank.
-- **In front of:** the Frontline position in the same Front.
-- **Behind:** the Rear position in the same Front.
+- **Directly in front of:** the next position toward the Frontline in the same Front. The Frontline is directly in front of Middle/Support; Middle/Support is directly in front of Rear.
+- **Directly behind:** the next position toward the Rear in the same Front. Middle/Support is directly behind the Frontline; the Rear is directly behind Middle/Support.
+- **Frontline**, **Middle/Support**, and **Rear** always name those specific ranks.
 
-An inactive Front is never adjacent for game purposes and cannot be chosen by an effect.
+An inactive Front is never adjacent for game purposes and cannot be chosen by an effect. The Frontline has no position directly in front of it, and the Rear has no position directly behind it.
 
 ## Card movement and removal {#reference}
 
