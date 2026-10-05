@@ -375,7 +375,7 @@ def test_force_face_keeps_top_strip_typographic_not_rebus_only() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert ".card-force.chronicle-force-face .edge-timing{display:none}" in css
     assert ".card-force.chronicle-force-face .strength-mark svg{display:none}" in css
-    assert "max-width:22mm" in css
+    assert "max-width:20.5mm" in css
 
 
 
@@ -394,7 +394,7 @@ def test_force_recovery_uses_one_precomposed_shell() -> None:
     assert css.count("CANONICAL FORCE FACE — precomposed generated raster shell") == 1
     assert 'background:url("art/v2/ui/chronicle-force-shell-v2.webp")' in canonical
     assert (ROOT / "web" / "art" / "v2" / "ui" / "chronicle-force-shell-v2.webp").is_file()
-    assert 'background:url("art/v2/ui/chronicle-command-seal.jpg")' in canonical
+    assert 'chronicle-command-seal.jpg' in canonical
     assert "chronicle-top-strip.webp" not in canonical
     assert "chronicle-art-window.webp" not in canonical
     assert "chronicle-command-corner.webp" not in canonical
@@ -410,3 +410,26 @@ def test_force_recovery_keeps_live_layers_unboxed() -> None:
     assert "background:transparent" in canonical
     assert "rgba(239,222,185" not in canonical
     assert "--force-strip-h:10.5mm" in canonical
+
+
+def test_force_shell_owns_command_mount_and_text_avoids_printed_rails() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
+    assert "top:53.15mm" in canonical
+    assert "top:16.65mm" in canonical
+    assert "right:4.15mm" in canonical
+    assert "bottom:4.65mm" in canonical
+    assert "width:10.1mm" in canonical
+    assert "height:10.1mm" in canonical
+    assert 'background:url("art/v2/ui/chronicle-command-seal.jpg") center/145% 145% no-repeat' in canonical
+    assert "clip-path:polygon(29% 0,71% 0,100% 29%,100% 71%,71% 100%,29% 100%,0 71%,0 29%)" in canonical
+
+
+def test_force_live_typography_clears_shell_rails() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    canonical = css.split("CANONICAL FORCE FACE — precomposed generated raster shell", 1)[1]
+    assert "top:-.45mm" in canonical
+    assert "font:600 4.72mm/.98 var(--display)" in canonical
+    assert "font:400 1.92mm/1 var(--text)" in canonical
+    assert "top:16.65mm" in canonical
+    assert "font:2.86mm/1.16 var(--text)" in canonical
