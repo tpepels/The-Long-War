@@ -195,7 +195,7 @@ def test_action_payload_uses_canonical_force_and_narrative_targets() -> None:
         if action["kind"] == "PlayForce"
     )
     assert force["position"]["front"] in (0, 1, 2, 3)
-    assert force["position"]["rank"] in ("front", "rear")
+    assert force["position"]["rank"] in ("front", "middle", "rear")
     assert force["targets"] == []
     assert force["command_cost"] == 2
 
