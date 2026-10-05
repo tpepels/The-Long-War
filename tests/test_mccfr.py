@@ -239,7 +239,10 @@ def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
     deck = json.loads(
         (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
     )["cards"]
-    rules = GameRules.standard().with_overrides(opening_hand_size=1)
+    rules = GameRules.standard().with_overrides(
+        opening_hand_size=1,
+        mulligan_max_cards=1,
+    )
     engine = GameEngine(data, rules=rules)
     state = engine.new_game(deck, deck, seed=77, first_player=0)
     # This is a policy/export smoke test, not a branching stress test.
