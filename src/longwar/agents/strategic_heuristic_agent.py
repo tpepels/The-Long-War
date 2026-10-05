@@ -7,7 +7,7 @@ from statistics import mean
 from ..protocol import PolicySource, SearchBackend
 from ..algorithms.alpha_beta import AlphaBetaSearch, SearchBudget, SearchLimit
 from ..belief import BeliefSampler, DeckPrior
-from ..game.actions import Action, Pass, action_key
+from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
 from ..game.model import GameState
 from ..heuristics import (
@@ -207,12 +207,6 @@ class StrategicHeuristicAgent(HeuristicAgent):
             root_player,
             width=self.candidate_width,
         )
-
-        # Pass is strategically unusual. Preserve it even when candidate
-        # pruning is active.
-        for action in actions:
-            if isinstance(action, Pass) and action not in candidates:
-                candidates.append(action)
 
         if guarded and not any(action in preserving for action in candidates):
             candidates.append(
