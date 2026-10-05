@@ -177,6 +177,28 @@ def test_information_hash_preserves_full_width_observable_values(field):
 
 
 
+def test_search_hashes_preserve_full_width_resolution_penalty() -> None:
+    engine, deck, _ = _standard_fixture()
+    state = engine.new_game(deck, deck, seed=181, first_player=0)
+    state.battle_resolution = {
+        "stage": 1,
+        "front_loss_command_penalty": [1, 0],
+    }
+    fast = FastEngine(engine)
+    first = fast.from_game_state(state)
+
+    changed = state.clone()
+    changed.battle_resolution = {
+        "stage": 1,
+        "front_loss_command_penalty": [257, 0],
+    }
+    second = fast.from_game_state(changed)
+
+    assert fast.state_hash(first) != fast.state_hash(second)
+    assert fast.information_hash(first, 0) != fast.information_hash(second, 0)
+    assert fast.information_key(first, 0) != fast.information_key(second, 0)
+
+
 def test_information_hash_includes_public_hero_allowance() -> None:
     from longwar.mccfr import information_set_id
 
