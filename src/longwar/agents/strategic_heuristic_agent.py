@@ -5,7 +5,12 @@ from time import perf_counter
 from statistics import mean
 
 from ..protocol import PolicySource, SearchBackend
-from ..algorithms.alpha_beta import AlphaBetaSearch, SearchBudget, SearchLimit
+from ..algorithms.alpha_beta import (
+    AlphaBetaSearch,
+    SearchBudget,
+    SearchLimit,
+    action_completed_turn,
+)
 from ..belief import BeliefSampler, DeckPrior
 from ..game.actions import Action, action_key
 from ..game.engine import GameEngine
@@ -275,7 +280,12 @@ class StrategicHeuristicAgent(HeuristicAgent):
                         child = sampled.clone()
                         engine.apply(child, action, validate=False)
                         remaining_depth = depth - int(
-                            child.active_player != root_player
+                            action_completed_turn(
+                                engine,
+                                sampled,
+                                child,
+                                action,
+                            )
                         )
                         if self._use_native:
                             value = _native_search_value(
