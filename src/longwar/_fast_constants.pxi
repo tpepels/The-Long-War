@@ -190,8 +190,6 @@ cdef int FORCE_TEXT_FRONT_IF_REAR = 4
 cdef int FORCE_TEXT_REAR_IF_FRONT = 5
 
 cdef int NAME_NONE = 0
-cdef int NAME_MOVE_ADJACENT = 1
-cdef int NAME_REVEAL_NARRATIVE = 2
 
 cdef int COMPLETE_NONE = 0
 cdef int COMPLETE_GAIN_COMMAND = 1
