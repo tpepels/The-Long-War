@@ -60,7 +60,7 @@ def test_hotseat_snapshot_hides_opening_hand_until_revealed() -> None:
     assert private["legal_actions"] == []
 
 
-def test_opening_turn_uses_normal_discard_then_draw_at_hand_limit() -> None:
+def test_opening_turn_draws_then_requires_hand_limit_cleanup() -> None:
     card_json, deck_json = payloads()
     session = PlaySession(card_json, deck_json, mode="hotseat", seed=1701)
 
@@ -69,7 +69,7 @@ def test_opening_turn_uses_normal_discard_then_draw_at_hand_limit() -> None:
 
     active = session.state.active_player
     assert session.setup_complete is True
-    assert len(session.state.players[active].hand) == 10
+    assert len(session.state.players[active].hand) == 11
     assert session.state.pending_draw_discard_for == active
 
     private = session.snapshot(active)
