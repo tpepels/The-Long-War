@@ -685,6 +685,39 @@ def test_negative_recovery_settings_are_invalid(field: str, value: int) -> None:
         GameRules.standard().with_overrides(**{field: value})
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("opening_hand_size", 256),
+        ("hand_limit", 256),
+        ("turn_draw_count", 256),
+        ("actions_per_turn", 256),
+        ("closing_turns_after_pass", 256),
+        ("command_cap", 32768),
+        ("command_recovery_start", 32768),
+        ("maneuver_command_cost", 32768),
+        ("lost_front_command_penalty", 8192),
+    ],
+)
+def test_rule_overrides_must_fit_native_storage(field: str, value: int) -> None:
+    changes = {field: value}
+    if field == "opening_hand_size":
+        changes["hand_limit"] = value
+    if field == "command_cap":
+        changes["starting_command"] = 20
+    with pytest.raises(ValueError, match=field):
+        GameRules.standard().with_overrides(**changes)
+
+
+def test_recovery_floor_cannot_exceed_command_cap() -> None:
+    with pytest.raises(ValueError, match="command_recovery_floor"):
+        GameRules.standard().with_overrides(
+            command_cap=10,
+            starting_command=10,
+            command_recovery_floor=11,
+        )
+
+
 
 def test_command_diagnostics_attribute_completion_gain_to_source_card() -> None:
     engine, state = standard_game()
