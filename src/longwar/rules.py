@@ -70,6 +70,16 @@ class GameRules:
                 "ongoing_narrative_limit exceeds native Narrative capacity "
                 f"({NARRATIVE_STORAGE_CAPACITY_PER_PLAYER})"
             )
+        if self.hero_force_play_limit_per_battle > 1:
+            raise ValueError(
+                "hero_force_play_limit_per_battle exceeds native Hero "
+                "Force-mode capacity (1)"
+            )
+        if self.hero_name_play_limit_per_battle > 1:
+            raise ValueError(
+                "hero_name_play_limit_per_battle exceeds native Hero "
+                "Name-mode capacity (1)"
+            )
         if (
             self.stratagem_play_limit_per_battle
             > STRATAGEM_ACTIVE_CAPACITY_PER_PLAYER
