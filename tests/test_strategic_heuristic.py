@@ -89,6 +89,9 @@ def test_strategic_root_ordering_ignores_true_opponent_hand_identities() -> None
 
     assert agent._public_evaluator.sampled_opponent_resources is False
     assert agent.evaluator.sampled_opponent_resources is True
+    assert agent.evaluate(engine, first, 0) == pytest.approx(
+        agent.evaluate(engine, second, 0)
+    )
     assert [
         action_key(action)
         for action in agent._public_search.ordered_actions(
