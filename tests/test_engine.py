@@ -191,13 +191,12 @@ def resolve_battle_by_passing(engine: GameEngine, state) -> None:
     _finish_closing_turn(engine, state)
 
 
-def test_battlefield_is_four_fronts_by_three_ranks() -> None:
+def test_battlefield_is_four_fronts_by_two_ranks() -> None:
     _engine, state = setup_state()
     assert FRONT_COUNT == 4
     assert len(state.board) == 2
     assert all(len(side) == 4 for side in state.board)
-    assert all(len(front) == 3 for side in state.board for front in side)
-    assert list(Rank) == [Rank.FRONT, Rank.MIDDLE, Rank.REAR]
+    assert all(len(front) == 2 for side in state.board for front in side)
     assert list(Front) == [
         Front.FIRST,
         Front.SECOND,
@@ -213,7 +212,6 @@ def test_active_fronts_expand_by_battle() -> None:
 
     legal = engine.legal_actions(state)
     assert PlayForce("the-fifty-men", pos(1)) in legal
-    assert PlayForce("the-fifty-men", pos(1, Rank.MIDDLE)) in legal
     assert PlayForce("the-fifty-men", pos(2)) in legal
     assert PlayForce("the-fifty-men", pos(0)) not in legal
     assert PlayForce("the-fifty-men", pos(3)) not in legal
@@ -273,7 +271,6 @@ def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     engine, state = setup_state()
 
     frontline = pos(0, Rank.FRONT)
-    middle = pos(0, Rank.MIDDLE)
     rear = pos(0, Rank.REAR)
 
     state.slot(0, frontline).force = "the-fifty-men"
@@ -285,22 +282,15 @@ def test_printed_strength_effects_apply_without_hidden_role_rules() -> None:
     assert engine.position_strength(state, 0, rear) == 5
 
     state.slot(0, frontline).force = "the-red-shields"
-    state.slot(0, middle).force = None
     state.slot(0, rear).force = None
     assert engine.position_strength(state, 0, frontline) == 4
-    state.slot(0, middle).force = "the-white-hands-of-elara"
-    # Middle is directly behind Frontline. Red Shields gets +1 for that Force,
-    # while White Hands separately supports the Force directly ahead by +2.
+    state.slot(0, rear).force = "the-white-hands-of-elara"
+    # Red Shields gets its printed +1 for a Force behind it, while White Hands
+    # separately gives the Force directly ahead +2.
     assert engine.position_strength(state, 0, frontline) == 7
 
     state.slot(0, rear).force = "the-crow-archers"
-    # Middle is directly ahead of Rear.
     assert engine.position_strength(state, 0, rear) == 6
-    assert engine.front_strength(state, 0, Front.FIRST) >= (
-        engine.position_strength(state, 0, frontline)
-        + engine.position_strength(state, 0, middle)
-        + engine.position_strength(state, 0, rear)
-    )
 
 
 def test_role_labels_alone_do_not_add_strength() -> None:
@@ -321,10 +311,8 @@ def test_printed_deploy_restrictions_are_enforced() -> None:
     legal = engine.legal_actions(state)
 
     assert PlayForce("the-red-shields", pos(0, Rank.FRONT)) in legal
-    assert PlayForce("the-red-shields", pos(0, Rank.MIDDLE)) not in legal
     assert PlayForce("the-red-shields", pos(0, Rank.REAR)) not in legal
     assert PlayForce("the-white-hands-of-elara", pos(1, Rank.REAR)) in legal
-    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.MIDDLE)) not in legal
     assert PlayForce("the-white-hands-of-elara", pos(1, Rank.FRONT)) not in legal
     assert PlayForce("avaros-the-bronze-king", pos(2, Rank.FRONT)) in legal
     assert PlayForce("avaros-the-bronze-king", pos(2, Rank.REAR)) not in legal
@@ -380,8 +368,8 @@ def test_losing_front_does_not_move_deploy_restricted_force() -> None:
 
 def test_maneuver_moves_named_formation_to_adjacent_empty_same_rank() -> None:
     engine, state = setup_state()
-    source = pos(0, Rank.MIDDLE)
-    destination = pos(1, Rank.MIDDLE)
+    source = pos(0)
+    destination = pos(1)
     make_named(state, 0, source)
     state.players[0].command = 5
 
@@ -424,7 +412,6 @@ def test_maneuver_has_no_vertical_or_non_adjacent_core_move() -> None:
     state.players[0].command = 5
     legal = engine.legal_actions(state)
 
-    assert Maneuver(source, pos(0, Rank.MIDDLE)) not in legal
     assert Maneuver(source, pos(0, Rank.REAR)) not in legal
     assert Maneuver(source, pos(2, Rank.FRONT)) not in legal
 
