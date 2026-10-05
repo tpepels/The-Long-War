@@ -104,7 +104,7 @@ def apply_explicit_retreat(
     """Apply one synthetic explicit Retreat through the real effect resolver."""
     slots_per_player = FRONT_COUNT * len(Rank)
     source = player * slots_per_player + int(front) * len(Rank)
-    destination = source + 1
+    destination = source + (len(Rank) - 1)
     state.pending_effects[:] = [{
         "kind": 9,  # EFFECT_RETREAT
         "player": player,
