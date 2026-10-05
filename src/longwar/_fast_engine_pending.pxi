@@ -496,15 +496,6 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.name[pos] = card
         if take_adjacent_open_bond_ready:
             _fe_queue_take_adjacent_open_bond_on_name_play(self, state, actor, pos)
-        if self.name_effect[card] == NAME_REVEAL_NARRATIVE:
-            front = front_from_slot(pos)
-            if state.narrative[(other_player(actor)) * NARRATIVE_SLOTS_PER_PLAYER + front] >= 0:
-                state.narrative_revealed[(other_player(actor)) * NARRATIVE_SLOTS_PER_PLAYER + front] = 1
-        elif self.name_effect[card] == NAME_MOVE_ADJACENT and dest >= 0:
-            source = pos
-            _fe_move_slot(self, state, source, dest)
-            pos = dest
-            _fe_resolve_force_move_triggers(self, state, actor, source, dest)
         _fe_resolve_strat_event(self, state, EVENT_NAME, actor, card, pos)
 
     elif kind == TYPE_NARRATIVE:
