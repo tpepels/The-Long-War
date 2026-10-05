@@ -90,7 +90,6 @@ class ProgressionTelemetry:
         self._choice_maneuver: list[int] = []
         self._forced_decisions = 0
         self._forced_maneuvers = 0
-        self._pass_plus_one_alternative = 0
         self._constraint_source_decisions = 0
         self._constraint_active_decisions = 0
         self._constraint_effect_choice_decisions = 0
@@ -186,7 +185,7 @@ class ProgressionTelemetry:
             getattr(self, name).extend(getattr(other, name))
 
         for name in (
-            "_forced_decisions", "_forced_maneuvers", "_pass_plus_one_alternative",
+            "_forced_decisions", "_forced_maneuvers",
             "_constraint_source_decisions", "_constraint_active_decisions",
             "_constraint_effect_choice_decisions",
             "_constraint_source_effect_choice_decisions", "_effect_choice_decisions",
@@ -433,26 +432,12 @@ class ProgressionTelemetry:
                 for candidate in legal
                 if isinstance(candidate, Maneuver)
             ]
-            pass_actions = [
-                candidate
-                for candidate in legal
-                if isinstance(candidate, Pass)
-            ]
-            alternatives = [
-                candidate
-                for candidate in legal
-                if not isinstance(candidate, Pass)
-            ]
-
             self._choice_legal.append(len(legal))
             self._choice_card.append(len(card_actions))
             self._choice_maneuver.append(len(maneuver_actions))
             self._forced_decisions += int(len(legal) == 1)
             self._forced_maneuvers += int(
                 len(legal) == 1 and isinstance(legal[0], Maneuver)
-            )
-            self._pass_plus_one_alternative += int(
-                bool(pass_actions) and len(alternatives) == 1
             )
             self._constraint_source_decisions += int(bool(constraint_sources))
             if self._constraint_active_supported:
@@ -906,7 +891,13 @@ class ProgressionTelemetry:
                             "command_after_recovery",
                             row.get("next_battle_command"),
                         ),
-                        "no_paid_operation": row.get("no_paid_operation"),
+                        "no_paid_action": row.get(
+                            "no_paid_action", row.get("no_paid_operation")
+                        ),
+                        # Historical alias.
+                        "no_paid_operation": row.get(
+                            "no_paid_action", row.get("no_paid_operation")
+                        ),
                         "board_changed": row.get("board_changed"),
                         "strength_changed": row.get("strength_changed"),
                         "command_changed": row.get("command_changed"),
@@ -1347,10 +1338,6 @@ class ProgressionTelemetry:
             "forced_maneuver_rate": self._ratio(
                 self._forced_maneuvers, len(self._choice_legal)
             ),
-            "pass_plus_one_alternative": self._pass_plus_one_alternative,
-            "pass_plus_one_alternative_rate": self._ratio(
-                self._pass_plus_one_alternative, len(self._choice_legal)
-            ),
             "constraint_rule_source_decisions": self._constraint_source_decisions,
             "constraint_rule_source_rate": self._ratio(
                 self._constraint_source_decisions, len(self._choice_legal)
@@ -1498,7 +1485,7 @@ class ProgressionTelemetry:
                 ),
                 "effect_resolution_decision": (
                     "Pending EffectChoice resolution is counted separately and excluded from ordinary "
-                    "operation-choice, forced-choice and card-playability statistics."
+                    "Action-choice, forced-choice and card-playability statistics."
                 ),
                 "card_draw_to_play": (
                     "Physical card copies are not engine-identified, so duplicate copies are "
