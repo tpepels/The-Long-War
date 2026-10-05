@@ -9,6 +9,7 @@ from longwar.agents.heuristic_agent import HeuristicAgent
 from longwar.agents.random_agent import RandomAgent
 from longwar.cards import load_card_file
 from longwar.game import Discard, EndTurn, Front, GameEngine, Pass, PlayBond, Position, Rank
+from longwar.game.model import StratagemState
 from longwar.native_engine import create_heuristic_evaluator
 from longwar.heuristics import StrategicEvaluator
 from longwar.rules import GameRules
@@ -170,6 +171,89 @@ def test_public_heuristic_value_does_not_use_opponent_hidden_hand_identities() -
     )
 
     assert first == pytest.approx(second)
+
+
+def _hidden_stratagem_tie_state():
+    engine, state = engine_and_state()
+    for player in state.players:
+        player.hand = []
+        player.deck = []
+        player.discard = []
+
+    front = Front.FIRST
+    own = Position(front, Rank.FRONT)
+    enemy = Position(front, Rank.FRONT)
+    state.slot(0, own).force = "the-fifty-men"
+    state.slot(0, own).bond = "followed"
+    state.slot(0, own).name = "namar"
+    state.slot(1, enemy).force = "the-fifty-men"
+
+    delta = (
+        engine.front_strength(state, 0, front)
+        - engine.front_strength(state, 1, front)
+    )
+    state.slot(1, enemy).temporary_strength += delta
+    assert engine.front_strength(state, 0, front) == engine.front_strength(
+        state, 1, front
+    )
+    return engine, state
+
+
+def test_public_heuristic_does_not_use_hidden_opponent_stratagem_identity() -> None:
+    engine, state = _hidden_stratagem_tie_state()
+    evaluator = engine._native_heuristic()
+    fast = engine._native_core()
+
+    ground = state.clone()
+    ground.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        revealed=False,
+    )
+    lines = state.clone()
+    lines.stratagems[1] = StratagemState(
+        "the-lines-held",
+        revealed=False,
+    )
+
+    public_ground = evaluator.evaluate(fast.from_game_state(ground), 0)
+    public_lines = evaluator.evaluate(fast.from_game_state(lines), 0)
+    assert public_ground == pytest.approx(public_lines)
+
+    sampled = create_heuristic_evaluator(
+        fast,
+        sampled_opponent_resources=True,
+    )
+    sampled_ground = sampled.evaluate(fast.from_game_state(ground), 0)
+    sampled_lines = sampled.evaluate(fast.from_game_state(lines), 0)
+    assert sampled_ground != pytest.approx(sampled_lines)
+
+
+def test_public_action_score_does_not_resolve_hidden_stratagem_by_identity() -> None:
+    engine, state = _hidden_stratagem_tie_state()
+    state.active_player = 0
+    state.closing_turns_remaining = 1
+    state.pass_order = [0]
+    state.players[0].passed = True
+    evaluator = HeuristicAgent(seed=9, exploration=0.0).evaluator
+
+    ground = state.clone()
+    ground.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        revealed=False,
+    )
+    lines = state.clone()
+    lines.stratagems[1] = StratagemState(
+        "the-lines-held",
+        revealed=False,
+    )
+
+    assert engine.legal_actions(ground) == [EndTurn()]
+    assert engine.legal_actions(lines) == [EndTurn()]
+    assert evaluator._score_action(
+        engine, ground, 0, EndTurn()
+    ) == pytest.approx(
+        evaluator._score_action(engine, lines, 0, EndTurn())
+    )
 
 
 def test_heuristic_values_all_four_fronts_independently() -> None:
