@@ -19,7 +19,6 @@ cdef inline uint8_t active_front_mask_for_battle(int battle) noexcept:
 cdef inline bint front_is_active(int battle, int front) noexcept:
     return bool(active_front_mask_for_battle(battle) & (1 << front))
 DEF NEXT_OPERATION_TURN_OFFSET = 1
-DEF NEXT_OWN_TURN_OFFSET = PLAYER_COUNT
 
 DEF FIRST_FRONT_INDEX = 0
 DEF LAST_FRONT_INDEX = FRONT_COUNT - 1
