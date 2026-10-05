@@ -28,10 +28,10 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
         if state.force[frontslot] >= 0:
             value += self.force_text_amount[card]
 
-    # Support effects add Strength to the Force directly ahead in the next
-    # rank: Rear -> Middle, Middle -> Frontline.
-    if rank < RANK_REAR:
-        rear = slot_index(player, front, rank + 1)
+    # The current support-ahead card is explicitly active only while in the
+    # Rear. With three ranks, its directly-ahead target is Middle/Support.
+    if rank == RANK_MIDDLE:
+        rear = slot_index(player, front, RANK_REAR)
         other = state.force[rear]
         if (
             other >= 0
