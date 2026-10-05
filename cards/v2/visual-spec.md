@@ -142,16 +142,14 @@ Its fixed composition is:
 
 All Force cards use identical illustration geometry and a centered 50/50 cover crop. Rules density may change type size slightly, but may never resize or reposition the art.
 
-The material treatment is part of the design, not decoration added later. The Force face is assembled from generated raster parts:
-- `chronicle-force-shell-v2.webp` — full-card ornamental shell/frame;
-- `chronicle-top-strip.webp` — battlefield-strip frame;
-- `chronicle-art-window.webp` — landscape artwork window/frame;
-- `chronicle-divider.webp` — ornamental divider;
-- `chronicle-command-corner.webp` — bottom-right Command seal/corner treatment;
-- `chronicle-parchment.webp` — continuous parchment substrate.
+The material treatment is part of the design, not decoration added later. After the failed live multi-raster assembly experiments, Force now uses a **precomposed generated master shell**:
 
-CSS may position, size, clip, layer, shadow, and composite these rasters and may style live typography. It must not recreate the physical frame with gradients, fake borders, SVG ornament, or opaque UI panels. Functional game glyphs remain vector icons because they carry rules information.
+- `chronicle-force-shell-v2.webp` — the complete generated physical shell, already containing the outer border, battlefield-strip frame, artwork frame, parchment body, ornamental rails/dividers and Command mount;
+- `chronicle-command-seal.jpg` — the dark raster fill used inside the printed Command mount;
+- `chronicle-parchment.webp` — fallback substrate visible behind transparent shell apertures.
 
-Decorative framing and separators use the generated raster parts above. Functional game glyphs remain vector icons because they carry rules information rather than decoration.
+The individual generated source parts remain useful design source material, but CSS no longer tries to align the top strip, art window, divider and corner as independent decorative layers. That experiment was too fragile.
+
+CSS now has one job: align live art, functional glyphs, title, classifications, rules, footer and Command numeral to the blank regions of the finished shell. It may position, size, clip, shadow and composite those live layers, but must not recreate the physical frame with gradients, fake borders, SVG ornament, opaque UI panels or a second decorative shell.
 
 Other card families remain on the previous renderer until they are converted deliberately, one family at a time.
