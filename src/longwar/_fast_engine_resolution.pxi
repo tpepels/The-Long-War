@@ -53,7 +53,7 @@ cdef void _fe_queue_pre_resolution_choice(
             rear = slot_index(
                 owner_from_slot(slot),
                 front_from_slot(slot),
-                RANK_MIDDLE,
+                RANK_REAR,
             )
             if _fe_slot_is_empty(self, state, rear):
                 _fe_enqueue_effect(self, 
