@@ -421,6 +421,37 @@ def test_hero_hand_value_uses_only_the_remaining_mode_allowance() -> None:
     assert force_value > name_value
 
 
+def test_affordable_hand_caps_heroes_by_remaining_mode_allowances() -> None:
+    engine, state = engine_and_state()
+    state.players[0].command = 20
+    state.players[0].hand = [
+        "avaros-the-bronze-king",
+        "kael-the-roadless",
+        "rovan-the-gatebreaker",
+    ]
+
+    native = engine._native_heuristic()
+    fast = engine._native_core()
+
+    # Three physical Heroes are affordable by printed Command, but only one
+    # Force-mode and one Name-mode Hero may be played from hand this Battle.
+    assert native.affordable_hand_count(
+        fast.from_game_state(state), 0
+    ) == 2
+
+    force_spent = state.clone()
+    force_spent.hero_used[0] = 1
+    assert native.affordable_hand_count(
+        fast.from_game_state(force_spent), 0
+    ) == 1
+
+    both_spent = state.clone()
+    both_spent.hero_used[0] = 3
+    assert native.affordable_hand_count(
+        fast.from_game_state(both_spent), 0
+    ) == 0
+
+
 def test_complete_named_formation_is_distinguished_from_force_plus_name() -> None:
     engine, state = engine_and_state()
     agent = HeuristicAgent(seed=11, exploration=0.0)
