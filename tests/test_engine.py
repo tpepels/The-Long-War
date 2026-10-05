@@ -429,6 +429,19 @@ def test_pass_is_forced_only_when_no_action_is_legal() -> None:
     state.actions_this_turn = 0
     assert engine.legal_actions(state) == [Pass()]
 
+def test_cycle_counts_as_a_legal_action_and_prevents_pass() -> None:
+    engine, state = setup_state(battle=1)
+    state.active_player = 0
+    state.players[0].hand = ["followed", "namar"]
+    state.players[0].command = 0
+
+    legal = engine.legal_actions(state)
+
+    assert Cycle("followed", "namar") in legal
+    assert Pass() not in legal
+    assert EndTurn() in legal
+
+
 def test_pass_gives_opponent_first_closing_turn_with_normal_draw() -> None:
     engine, state = setup_state(battle=1)
     state.active_player = 0
