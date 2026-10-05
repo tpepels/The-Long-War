@@ -266,8 +266,8 @@ cdef double native_alphabeta(
     NativeTranspositionTable table,
 ) except *:
     cdef uint64_t actions[MAX_ACTIONS]
-    cdef int n, i, actor, bound, child_depth
-    cdef bint maximizing
+    cdef int n, i, actor, bound, child_depth, kind, turn_serial, actions_before
+    cdef bint maximizing, turn_completed
     cdef double value, child_value, alpha_start=alpha, beta_start=beta
     cdef double cached_value
     cdef uint64_t preferred_action=0, best_action=0
@@ -286,7 +286,11 @@ cdef double native_alphabeta(
         budget.timed_out = True
         raise NativeSearchLimit()
 
-    if state.phase == PHASE_COMPLETE or depth <= 0:
+    if state.phase == PHASE_COMPLETE or (
+        depth <= 0
+        and state.pending_len == 0
+        and not state.cleanup_pending
+    ):
         return evaluator.strategic_evaluate_fast(state, root_player)
 
     key = _fe_state_hash_fast(engine, state)
@@ -322,8 +326,19 @@ cdef double native_alphabeta(
 
     for i in range(n):
         child.copy_from_fast(state)
+        kind = action_kind(actions[i])
+        turn_serial = state.turn_number
+        actions_before = state.actions_this_turn
         _fe_apply_fast(engine, child, actions[i])
-        child_depth = depth - (1 if child.active_player != actor else 0)
+        turn_completed = (
+            kind == TYPE_PASS
+            or kind == TYPE_END_TURN
+            or (
+                child.turn_number != turn_serial
+                and actions_before + 1 >= engine.actions_per_turn
+            )
+        )
+        child_depth = depth - (1 if turn_completed else 0)
         child_value = native_alphabeta(
             engine,
             evaluator,
