@@ -620,6 +620,18 @@ def test_negative_recovery_settings_are_invalid(field: str, value: int) -> None:
 
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        "hero_force_play_limit_per_battle",
+        "hero_name_play_limit_per_battle",
+    ],
+)
+def test_hero_mode_limits_reject_unrepresentable_values(field: str) -> None:
+    with pytest.raises(ValueError, match="native Hero"):
+        GameRules.standard().with_overrides(**{field: 2})
+
+
 def test_command_diagnostics_attribute_completion_gain_to_source_card() -> None:
     engine, state = standard_game()
     target = Position(Front.FIRST, Rank.FRONT)
