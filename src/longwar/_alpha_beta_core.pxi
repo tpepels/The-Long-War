@@ -275,9 +275,9 @@ cdef double native_alphabeta(
     cdef FastState order_scratch
     cdef InfoHash128 key
 
-    budget.nodes += 1
-    if budget.nodes > budget.limit:
+    if budget.nodes >= budget.limit:
         raise NativeSearchLimit()
+    budget.nodes += 1
     if (
         budget.deadline > 0.0
         and (budget.nodes & 255) == 0
