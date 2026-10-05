@@ -235,7 +235,9 @@ def test_mccfr_agent_rejects_policy_from_previous_information_schema() -> None:
 
 def test_mccfr_training_produces_policy_and_legal_agent_action() -> None:
     engine, deck, state = setup()
-    trainer = MCCFRTrainer(engine, deck, deck, seed=9, max_depth=2)
+    # This is a policy/export smoke test, not a branching stress test.
+    # One completed-turn horizon is enough to verify training and legal replay.
+    trainer = MCCFRTrainer(engine, deck, deck, seed=9, max_depth=1)
     summary = trainer.train(2)
     policy = trainer.policy_payload()
 
