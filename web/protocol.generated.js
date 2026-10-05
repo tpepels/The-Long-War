@@ -94,7 +94,6 @@ const LW_PROTOCOL_DATA = {
   },
   "rank": {
     "FRONT": "front",
-    "MIDDLE": "middle",
     "REAR": "rear"
   },
   "remoteMessageType": {
