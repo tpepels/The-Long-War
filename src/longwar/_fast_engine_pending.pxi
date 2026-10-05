@@ -324,7 +324,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     cdef int pos = action_pos(action)
     cdef int dest = action_dest(action)
     cdef int actor = state.active_player
-    cdef int front, before_mask = 0, cost = 0, source, target, local, choice, second_card
+    cdef int front, before_mask = 0, cost = 0, source, target, local, choice, second_card, strat
     cdef uint32_t extra = action_extra(action)
     cdef bint cancelled, prepared_before, take_adjacent_open_bond_ready
 
@@ -374,6 +374,30 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     state.pending_resume = RESUME_FINISH_OPERATION
     state.pending_resume_player = actor
+
+    # A self-only continuous Stratagem may remain hidden until its mechanic is
+    # actually used. Reveal it before resolving the Maneuver whose legality or
+    # Command cost depends on that secret identity.
+    if kind == TYPE_MANEUVER:
+        strat = state.stratagem[actor]
+        if strat >= 0 and not state.stratagem_revealed[actor]:
+            if self.strat_maneuver_cost[strat] >= 0:
+                state.stratagem_revealed[actor] = 1
+            elif (
+                self.strat_directional_maneuver[strat]
+                and (
+                    (
+                        state.stratagem_direction[actor] == DIRECTION_LEFT
+                        and front_from_slot(dest) < front_from_slot(pos)
+                    )
+                    or (
+                        state.stratagem_direction[actor] == DIRECTION_RIGHT
+                        and front_from_slot(dest) > front_from_slot(pos)
+                    )
+                )
+            ):
+                state.stratagem_revealed[actor] = 1
+
     cost = _fe_command_cost_fast(self, state, action)
     _fe_spend_command_fast(self, state, actor, cost)
 
@@ -581,6 +605,21 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 )
 
         choice = self.strat_choice_kind[card]
+
+        # Immediate effects and hidden mechanics that constrain both players
+        # cannot remain identity-secret while changing the public legal-action
+        # contract. Their own effect therefore reveals the Stratagem as it
+        # becomes active. Resolution-only and self-only future effects remain
+        # face-down until they are actually used.
+        if (
+            choice == STRAT_CHOICE_WHEEL
+            or choice == STRAT_CHOICE_RESERVES
+            or self.strat_next_operation_front[card]
+            or self.strat_no_maneuver_away[card]
+            or self.strat_first_maneuver_direction[card]
+        ):
+            state.stratagem_revealed[actor] = 1
+
         if choice == STRAT_CHOICE_WHEEL and dest >= 0:
             for source in range(actor * POSITIONS_PER_PLAYER, actor * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
                 if not (extra & (<uint32_t>1 << source)):
