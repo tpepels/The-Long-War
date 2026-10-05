@@ -468,10 +468,7 @@ class MCCFRTrainer:
     def policy_payload(self) -> dict[str, Any]:
         infosets: dict[str, Any] = {}
         if self._used_primitive_training:
-            if (
-                self._primitive_engine is None
-                or stable_information_id_from_fast_key is None
-            ):
+            if self._primitive_engine is None:
                 raise RuntimeError("Primitive MCCFR export backend is unavailable")
             for internal_key, node in self._primitive_nodes.items():
                 info_id = hashlib.sha256(internal_key).hexdigest()
