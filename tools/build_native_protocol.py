@@ -26,7 +26,6 @@ def render() -> str:
             NARRATIVE_STORAGE_CAPACITY_PER_PLAYER,
         ),
         ("RANK_FRONT", RANK_INDEX[Rank.FRONT]),
-        ("RANK_MIDDLE", RANK_INDEX[Rank.MIDDLE]),
         ("RANK_REAR", RANK_INDEX[Rank.REAR]),
         ("DIRECTION_NONE", int(DirectionCode.NONE)),
         ("DIRECTION_LEFT", int(DirectionCode.LEFT)),
