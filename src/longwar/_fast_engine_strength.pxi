@@ -20,17 +20,18 @@ cdef int _fe_position_strength_fast(FastEngine self, FastState state, int slot) 
     elif mod == FORCE_TEXT_REAR_BONUS and rank == RANK_REAR:
         value += self.force_text_amount[card]
     elif mod == FORCE_TEXT_FRONT_IF_REAR and rank == RANK_FRONT:
-        rear = slot_index(player, front, RANK_REAR)
+        rear = slot_index(player, front, RANK_MIDDLE)
         if state.force[rear] >= 0:
             value += self.force_text_amount[card]
     elif mod == FORCE_TEXT_REAR_IF_FRONT and rank == RANK_REAR:
-        frontslot = slot_index(player, front, RANK_FRONT)
+        frontslot = slot_index(player, front, RANK_MIDDLE)
         if state.force[frontslot] >= 0:
             value += self.force_text_amount[card]
 
-    # Rear support effects add Strength to the Force directly ahead.
-    if rank == RANK_FRONT:
-        rear = slot_index(player, front, RANK_REAR)
+    # Support effects add Strength to the Force directly ahead in the next
+    # rank: Rear -> Middle, Middle -> Frontline.
+    if rank < RANK_REAR:
+        rear = slot_index(player, front, rank + 1)
         other = state.force[rear]
         if (
             other >= 0
@@ -117,11 +118,15 @@ cdef int _fe_position_strength(FastEngine self, FastState state, int player, int
     return _fe_position_strength_fast(self, state, slot_index(player, front, rank))
 
 cdef int _fe_front_strength_fast(FastEngine self, FastState state, int player, int front) noexcept:
-    cdef int value, narrative, enemy, slot, bond
-    value = _fe_position_strength_fast(self, state, slot_index(player, front, RANK_FRONT))
-    value += _fe_position_strength_fast(self, state, slot_index(player, front, RANK_REAR))
+    cdef int value = 0
+    cdef int enemy, slot, bond, rank
+    for rank in range(RANK_COUNT):
+        value += _fe_position_strength_fast(
+            self, state, slot_index(player, front, rank)
+        )
     enemy = other_player(player)
-    for slot in (slot_index(enemy, front, RANK_FRONT), slot_index(enemy, front, RANK_REAR)):
+    for rank in range(RANK_COUNT):
+        slot = slot_index(enemy, front, rank)
         if state.force[slot] >= 0 and state.bond[slot] >= 0 and state.name[slot] >= 0:
             bond = state.bond[slot]
             value += self.bond_opposing[bond]
@@ -177,7 +182,7 @@ cdef inline int _fe_resolution_front_strength_fast(
                 continue
         elif physical_front != front:
             continue
-        if frontline_only and rank == RANK_REAR:
+        if frontline_only and rank != RANK_FRONT:
             continue
         value += _fe_position_strength_fast(self, state, slot)
 
