@@ -841,7 +841,7 @@ def test_pass_outcomes_use_front_balance_not_invented_battle_winner() -> None:
     assert group["positive_final_front_balance_rate"] == pytest.approx(0.5)
     assert "battle_win_rate" not in group
 
-    progression._signal_contexts = [
+    progression._pass_contexts = [
         {
             **row,
             "first_signal": True,
