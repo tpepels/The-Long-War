@@ -420,3 +420,12 @@ def test_force_shell_is_not_covered_by_live_panels() -> None:
     assert "FORCE SHELL INTEGRATION PASS" in css
     assert ".card-force.chronicle-force-face .stack-edge{\n  background:transparent" in css
     assert ".card-force.chronicle-force-face .effect-block{\n  background:transparent" in css
+
+
+def test_force_shell_uses_valid_lightweight_raster() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    asset = ROOT / "web" / "art" / "v2" / "ui" / "chronicle-force-shell.jpg"
+    assert asset.is_file()
+    assert asset.stat().st_size > 10_000
+    assert 'url("art/v2/ui/chronicle-force-shell.jpg")' in css
+    assert "FORCE SHELL GEOMETRY ALIGNMENT" in css

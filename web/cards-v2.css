@@ -418,7 +418,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 .card-force.chronicle-force-face{
   border:0;
   border-radius:2.5mm;
-  background:#ead9b9 url("art/v2/ui/chronicle-force-shell.webp") center/100% 100% no-repeat;
+  background:#ead9b9 url("art/v2/ui/chronicle-force-shell.jpg") center/100% 100% no-repeat;
   box-shadow:0 1.8mm 3.8mm rgba(31,25,18,.36),0 .35mm .65mm rgba(31,25,18,.25);
 }
 .card-force.chronicle-force-face::before,
@@ -627,7 +627,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
    Keep the raster shell visible and keep live art inside the generated window. */
 .card-force.chronicle-force-face{
   background-color:#ead9b9;
-  background-image:url("art/v2/ui/chronicle-force-shell.webp");
+  background-image:url("art/v2/ui/chronicle-force-shell.jpg");
   background-position:center;
   background-size:100% 100%;
   background-repeat:no-repeat;
@@ -661,4 +661,36 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 .card-force.chronicle-force-face .cost-gem{
   right:5.2mm;
   bottom:4.9mm;
+}
+
+
+/* FORCE SHELL GEOMETRY ALIGNMENT
+   The shell is a fixed card background. Keep the live window exactly inside its aperture. */
+.card-force.chronicle-force-face{
+  background-image:url("art/v2/ui/chronicle-force-shell.jpg");
+  background-size:100% 100%;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+.card-force.chronicle-force-face .motif-field,
+.card-force.chronicle-force-face.sparse .motif-field,
+.card-force.chronicle-force-face.dense .motif-field,
+.card-force.chronicle-force-face.very-dense .motif-field{
+  left:7.1mm;
+  right:7.1mm;
+  top:11.4mm;
+  height:39.2mm;
+  min-height:39.2mm;
+  max-height:39.2mm;
+}
+.card-force.chronicle-force-face .motif-field::before{
+  inset:6.1mm 2.9mm 6.35mm 2.9mm;
+}
+.card-force.chronicle-force-face .chronicle-lower{
+  top:49.9mm;
+}
+.card-force.chronicle-force-face .stack-edge{
+  left:7.8mm;
+  right:7.8mm;
+  top:4.45mm;
 }
