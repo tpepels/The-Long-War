@@ -45,14 +45,19 @@ cdef inline void _fe_take_from_hand(FastEngine self, FastState state, int player
     state.hand_len[player] -= 1
 
 cdef inline bint _fe_front_has_force(FastEngine self, FastState state, int player, int front) noexcept:
-    return state.force[slot_index(player, front, RANK_FRONT)] >= 0 or state.force[slot_index(player, front, RANK_REAR)] >= 0
+    cdef int rank
+    for rank in range(RANK_COUNT):
+        if state.force[slot_index(player, front, rank)] >= 0:
+            return True
+    return False
 
 cdef inline int _fe_preferred_slot(FastEngine self, FastState state, int player, int front) noexcept:
-    cdef int slot = slot_index(player, front, RANK_FRONT)
-    if state.force[slot] >= 0:
-        return slot
-    slot = slot_index(player, front, RANK_REAR)
-    return slot if state.force[slot] >= 0 else -1
+    cdef int rank, slot
+    for rank in range(RANK_COUNT):
+        slot = slot_index(player, front, rank)
+        if state.force[slot] >= 0:
+            return slot
+    return -1
 
 cdef void _fe_remove_bond(FastEngine self, FastState state, int player, int slot):
     cdef int bond = state.bond[slot]
@@ -304,10 +309,7 @@ cdef uint16_t _fe_adjacent_empty_mask(
 cdef bint _fe_force_in_all_fronts(FastEngine self, FastState state, int player) noexcept:
     cdef int front
     for front in range(FRONT_COUNT):
-        if (
-            state.force[slot_index(player, front, RANK_FRONT)] < 0
-            and state.force[slot_index(player, front, RANK_REAR)] < 0
-        ):
+        if not _fe_front_has_force(self, state, player, front):
             return False
     return True
 
