@@ -1081,8 +1081,14 @@ class ProgressionTelemetry:
                 ),
                 len(match_records),
             ),
+            "battles_with_no_paid_action": sum(
+                bool(row.get("no_paid_action", row.get("no_paid_operation")))
+                for row in battle_records
+            ),
+            # Historical alias.
             "battles_with_no_paid_operation": sum(
-                bool(row.get("no_paid_operation")) for row in battle_records
+                bool(row.get("no_paid_action", row.get("no_paid_operation")))
+                for row in battle_records
             ),
             "battles_with_no_board_change": sum(
                 row.get("board_changed") is False for row in battle_records
@@ -2769,31 +2775,31 @@ class ProgressionTelemetry:
                     row.get("pass_structurally_dead_cards", row.get("first_signal_structurally_dead_cards")) for row in rows
                 ]),
                 "first_signal_structurally_dead_cards": self._mean_optional([
-                    row.get("first_signal_structurally_dead_cards") for row in rows
+                    row.get("pass_structurally_dead_cards", row.get("first_signal_structurally_dead_cards")) for row in rows
                 ]),
                 "pass_unaffordable_cards": self._mean_optional([
                     row.get("pass_unaffordable_cards", row.get("first_signal_unaffordable_cards")) for row in rows
                 ]),
                 "first_signal_unaffordable_cards": self._mean_optional([
-                    row.get("first_signal_unaffordable_cards") for row in rows
+                    row.get("pass_unaffordable_cards", row.get("first_signal_unaffordable_cards")) for row in rows
                 ]),
                 "pass_legal_alternatives": self._mean_optional([
                     row.get("pass_legal_alternatives", row.get("first_signal_legal_alternatives")) for row in rows
                 ]),
                 "first_signal_legal_alternatives": self._mean_optional([
-                    row["first_signal_legal_alternatives"] for row in rows
+                    row.get("pass_legal_alternatives", row.get("first_signal_legal_alternatives")) for row in rows
                 ]),
                 "pass_playable_card_actions": self._mean_optional([
                     row.get("pass_playable_card_actions", row.get("first_signal_playable_card_actions")) for row in rows
                 ]),
                 "first_signal_playable_card_actions": self._mean_optional([
-                    row["first_signal_playable_card_actions"] for row in rows
+                    row.get("pass_playable_card_actions", row.get("first_signal_playable_card_actions")) for row in rows
                 ]),
                 "pass_maneuver_actions": self._mean_optional([
                     row.get("pass_maneuver_actions", row.get("first_signal_maneuver_actions")) for row in rows
                 ]),
                 "first_signal_maneuver_actions": self._mean_optional([
-                    row["first_signal_maneuver_actions"] for row in rows
+                    row.get("pass_maneuver_actions", row.get("first_signal_maneuver_actions")) for row in rows
                 ]),
                 "free_maneuvers": self._mean_field(rows, "free_maneuvers"),
                 "command_gained": self._mean_field(rows, "command_gained"),
