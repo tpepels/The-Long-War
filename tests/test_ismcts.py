@@ -13,6 +13,7 @@ from longwar.agents.ismcts_agent import (
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file
 from longwar.game import EndTurn, Front, GameEngine, Pass, Position, Rank
+from longwar.game.model import StratagemState
 from longwar.rules import GameRules
 
 fast_search = pytest.importorskip("longwar._fast_search")
@@ -40,6 +41,87 @@ def setup():
         ),
     )
     return engine, deck, priors
+
+
+def test_ismcts_root_guard_uses_public_stratagem_information() -> None:
+    engine, _deck, _priors = setup()
+    state = engine.new_game(
+        _deck,
+        _deck,
+        seed=8090,
+        first_player=0,
+        opening_bonus=False,
+    )
+    state.battle = 3
+    for player in state.players:
+        player.hand.clear()
+        player.deck.clear()
+        player.discard.clear()
+
+    contested = Position(Front.FIRST, Rank.FRONT)
+    state.slot(0, contested).force = "the-fifty-men"
+    enemy = state.slot(1, contested)
+    enemy.force = "the-fifty-men"
+    enemy.bond = "followed"
+    enemy.name = "namar"
+    delta = (
+        engine.front_strength(state, 1, Front.FIRST)
+        - engine.front_strength(state, 0, Front.FIRST)
+    )
+    state.slot(0, contested).temporary_strength += delta
+    assert engine.front_strength(
+        state, 0, Front.FIRST
+    ) == engine.front_strength(state, 1, Front.FIRST)
+
+    mobile = Position(Front.THIRD, Rank.FRONT)
+    own = state.slot(0, mobile)
+    own.force = "the-fifty-men"
+    own.bond = "followed"
+    own.name = "namar"
+
+    state.players[0].command = 1
+    state.players[1].command = 5
+    state.players[0].passed = True
+    state.pass_order[:] = [0]
+    state.closing_turns_remaining = 1
+    state.active_player = 0
+    state.actions_this_turn = 0
+
+    ground = state.clone()
+    ground.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        revealed=False,
+    )
+    lines = state.clone()
+    lines.stratagems[1] = StratagemState(
+        "the-lines-held",
+        revealed=False,
+    )
+
+    agent = ISMCTSAgent(
+        engine,
+        8091,
+        belief_samples=1,
+        iterations=8,
+        rollout_depth=1,
+    )
+    assert agent.public_evaluator.sampled_opponent_resources is False
+    assert agent.evaluator.sampled_opponent_resources is True
+
+    def guard_keys(evaluator, candidate):
+        packed = agent.fast_engine.from_game_state(candidate)
+        actions, _filtered = evaluator.command_preserving_action_codes(packed)
+        return {
+            agent.fast_engine.action_key(action)
+            for action in actions
+        }
+
+    assert guard_keys(agent.public_evaluator, ground) == guard_keys(
+        agent.public_evaluator, lines
+    )
+    assert guard_keys(agent.evaluator, ground) != guard_keys(
+        agent.evaluator, lines
+    )
 
 
 def test_cython_ismcts_returns_legal_action() -> None:
