@@ -77,6 +77,10 @@ class StrategicHeuristicAgent(HeuristicAgent):
         heuristic_weights: HeuristicWeights | None = None,
     ):
         self.heuristic_weights = heuristic_weights or DEFAULT_HEURISTIC_WEIGHTS
+        public_evaluator = StrategicEvaluator(
+            self.heuristic_weights,
+            sampled_opponent_resources=False,
+        )
         evaluator = StrategicEvaluator(
             self.heuristic_weights,
             sampled_opponent_resources=True,
@@ -136,6 +140,15 @@ class StrategicHeuristicAgent(HeuristicAgent):
         self.node_budget = node_budget
         self.time_budget_seconds = time_budget_seconds
 
+        # Root candidate ordering runs on the real observation state and must
+        # therefore be public-information only. Deeper alpha-beta runs on
+        # determinized belief samples and may use sampled hidden resources.
+        self._public_evaluator = public_evaluator
+        self._public_search = AlphaBetaSearch(
+            engine,
+            public_evaluator,
+            candidate_width=candidate_width,
+        )
         self._python_search = AlphaBetaSearch(
             engine,
             evaluator,
@@ -207,7 +220,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             }
             return actions[0]
 
-        candidates = self._python_search.ordered_actions(
+        candidates = self._public_search.ordered_actions(
             state,
             root_player,
             width=self.candidate_width,
@@ -217,7 +230,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             candidates.append(
                 max(
                     preserving,
-                    key=lambda action: self.evaluator._score_action(
+                    key=lambda action: self._public_evaluator._score_action(
                         engine,
                         state,
                         root_player,
@@ -227,7 +240,7 @@ class StrategicHeuristicAgent(HeuristicAgent):
             )
 
         scores = {
-            action: self.evaluator._score_action(
+            action: self._public_evaluator._score_action(
                 engine,
                 state,
                 root_player,
