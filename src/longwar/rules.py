@@ -7,6 +7,11 @@ from .protocol import (
     STRATAGEM_ACTIVE_CAPACITY_PER_PLAYER,
 )
 
+_NATIVE_U8_MAX = 255
+_NATIVE_I16_MAX = 32767
+_ACTIVE_FRONT_COUNT = 4
+_MAX_LOST_FRONT_PENALTY = _NATIVE_I16_MAX // _ACTIVE_FRONT_COUNT
+
 
 @dataclass(frozen=True, slots=True)
 class GameRules:
@@ -68,6 +73,46 @@ class GameRules:
             raise ValueError("actions_per_turn must be positive")
         if self.closing_turns_after_pass < 1:
             raise ValueError("closing_turns_after_pass must be positive")
+        byte_sized_rules = (
+            "opening_hand_size",
+            "mulligan_max_cards",
+            "actions_per_turn",
+            "closing_turns_after_pass",
+            "turn_draw_count",
+            "hand_limit",
+        )
+        for name in byte_sized_rules:
+            if getattr(self, name) > _NATIVE_U8_MAX:
+                raise ValueError(
+                    f"{name} exceeds native byte capacity ({_NATIVE_U8_MAX})"
+                )
+
+        command_sized_rules = (
+            "starting_command",
+            "command_cap",
+            "command_recovery_start",
+            "command_recovery_decrement",
+            "command_recovery_floor",
+            "command_collapse_threshold",
+            "maneuver_command_cost",
+        )
+        for name in command_sized_rules:
+            if getattr(self, name) > _NATIVE_I16_MAX:
+                raise ValueError(
+                    f"{name} exceeds native Command capacity ({_NATIVE_I16_MAX})"
+                )
+
+        if self.lost_front_command_penalty > _MAX_LOST_FRONT_PENALTY:
+            raise ValueError(
+                "lost_front_command_penalty exceeds the maximum that can be "
+                "applied across all four Fronts without overflowing native "
+                f"Command storage ({_MAX_LOST_FRONT_PENALTY})"
+            )
+        if self.command_recovery_floor > self.command_cap:
+            raise ValueError(
+                "command_recovery_floor cannot exceed command_cap"
+            )
+
         if self.starting_command > self.command_cap:
             raise ValueError("starting_command cannot exceed command_cap")
         if self.command_collapse_threshold > self.command_cap:
