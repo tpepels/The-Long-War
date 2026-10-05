@@ -129,6 +129,34 @@ def test_runtime_deck_validation_has_no_arbitrary_64_card_cap(data):
         engine.validate_deck([{}] * 34)
 
 
+def test_native_engine_accepts_largest_current_legal_deck(data):
+    engine = GameEngine(data)
+    maximal_legal = [
+        card["id"]
+        for card in data["cards"]
+        for _ in range(1 if card["unique"] else 4)
+    ]
+
+    # Current pool: 28 Unique cards + 67 non-Unique cards x4.
+    assert len(maximal_legal) == 296
+    engine.validate_deck(maximal_legal)
+
+    state = engine.new_game(
+        maximal_legal,
+        maximal_legal,
+        seed=1810,
+        first_player=0,
+        opening_bonus=False,
+    )
+    # Opening hands leave 286 cards in each draw pile, which exceeded the old
+    # uint8/254 native deck representation.
+    assert len(state.players[0].deck) == 286
+    native = engine._native_core()
+    packed = native.from_game_state(state)
+    key = native.information_key(packed, 0)
+    assert key == native.information_key(native.from_game_state(state), 0)
+
+
 def _expanded_pool(data, size):
     template = next(card for card in data["cards"] if card["id"] == "followed")
     while len(data["cards"]) < size:
@@ -178,11 +206,12 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     for player in state.players:
         player.deck = []
         player.hand = []
-        # Native card zones support up to 254 entries.
-        player.discard = ["followed"] * 254
+        # Native card zones cover the full four-copy wire-format pool:
+        # 127 possible card identities x 4 copies.
+        player.discard = ["followed"] * (127 * 4)
     native = engine._native_core()
     key = native.information_key(native.from_game_state(state), 0)
-    assert len(key) > 512
+    assert len(key) > 1024
     assert key == native.information_key(native.from_game_state(state), 0)
     state.players[0].discard.append("followed")
     with pytest.raises(ValueError, match="native capacity"):
