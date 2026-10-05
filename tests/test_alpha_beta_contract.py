@@ -43,6 +43,59 @@ class _GraphSearch(AlphaBetaSearch):
         return {"root": ["a", "b"], "a": ["a1", "a2"], "b": ["b1", "b2"]}[state.name]
 
 
+class _TwoActionEngine:
+    def apply(self, state, action, *, validate):
+        if state.name == "root":
+            state.name = "mid"
+            # Action 1 keeps control with the same player.
+            return
+        if state.name == "mid":
+            state.name = "leaf"
+            state.active_player = 1 - state.active_player
+            return
+        raise AssertionError(f"unexpected state/action: {state.name}/{action}")
+
+
+class _TwoActionSearch(AlphaBetaSearch):
+    @staticmethod
+    def state_key(state):
+        return state.name
+
+    def ordered_actions(self, state, actor, *, width):
+        return {
+            "root": ["action-1"],
+            "mid": ["end-turn"],
+        }.get(state.name, [])
+
+
+class _TwoActionEvaluator:
+    def _strategic_state_value(self, engine, state, player):
+        return {"mid": -100.0, "leaf": 7.0}.get(state.name, 0.0)
+
+
+def test_alpha_beta_depth_counts_completed_turns_not_raw_actions():
+    search = _TwoActionSearch(
+        _TwoActionEngine(),
+        _TwoActionEvaluator(),
+        candidate_width=2,
+    )
+    state = _State()
+    value = search.search(
+        state,
+        root_player=0,
+        depth=1,
+        alpha=-inf,
+        beta=inf,
+        budget=SearchBudget(20),
+        transposition={},
+        scratch=[],
+    )
+
+    # Depth 1 must include Action 1 and the same player's EndTurn, reaching
+    # the next player's decision. Raw-action depth would stop at "mid".
+    assert value == 7.0
+
+
 @pytest.mark.parametrize("sign", [1, -1])
 def test_descendant_cutoff_bound_is_not_cached_as_exact(sign):
     search = _GraphSearch(_GraphEngine(), _Evaluator(sign), candidate_width=2)
