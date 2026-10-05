@@ -228,8 +228,7 @@ cdef double _packed_traverse(
 
     if (
         turn_depth >= max_depth
-        and state.pending_len == 0
-        and not state.cleanup_pending
+        and not _fe_forced_substep_pending(state)
     ):
         return tanh(evaluator.evaluate_fast(state, traverser) / leaf_scale)
 
@@ -308,13 +307,8 @@ cdef double _packed_traverse(
     turn_serial = state.turn_number
     actions_before = state.actions_this_turn
     _fe_apply_fast(engine, child, actions[sampled_index])
-    turn_completed = (
-        kind == TYPE_PASS
-        or kind == TYPE_END_TURN
-        or (
-            child.turn_number != turn_serial
-            and actions_before + 1 >= engine.actions_per_turn
-        )
+    turn_completed = _fe_transition_completed_turn(
+        engine, child, turn_serial, actions_before, kind
     )
     child_turn_depth = turn_depth + (1 if turn_completed else 0)
     if actor == 0:
