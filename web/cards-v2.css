@@ -111,7 +111,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   width:100%;
   height:var(--force-strip-h);
   min-height:var(--force-strip-h);
-  padding:2.45mm 7.5mm 1.05mm;
+  padding:2.25mm 7.5mm 1.15mm;
   grid-template-columns:9.2mm max-content minmax(0,1fr);
   column-gap:.7mm;
   border:0;
@@ -119,13 +119,13 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   box-shadow:none;
   color:#24261f;
 }
-.card-force.chronicle-force-face .edge-stats{height:5.1mm;gap:.28mm}
-.card-force.chronicle-force-face .type-mark{width:4.25mm;height:4.25mm}
+.card-force.chronicle-force-face .edge-stats{height:4.55mm;gap:.24mm}
+.card-force.chronicle-force-face .type-mark{width:3.7mm;height:3.7mm}
 .card-force.chronicle-force-face .strength-mark{gap:0;padding-left:.15mm;border-left:0}
 .card-force.chronicle-force-face .strength-mark svg{display:none}
-.card-force.chronicle-force-face .strength-mark b{color:#24241f;font:600 4.9mm/.9 var(--display)}
+.card-force.chronicle-force-face .strength-mark b{color:#24241f;font:600 4.35mm/.9 var(--display)}
 .card-force.chronicle-force-face .edge-identity{justify-content:center;gap:.42mm;padding:0 .15mm}
-.card-force.chronicle-force-face .class-sigil{width:3.55mm;height:3.55mm;color:#202723}
+.card-force.chronicle-force-face .class-sigil{width:3.15mm;height:3.15mm;color:#202723}
 .card-force.chronicle-force-face .edge-live-group{
   justify-content:flex-end;
   gap:.3mm;
@@ -134,7 +134,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   color:#292a23;
 }
 .card-force.chronicle-force-face .edge-mechanic{gap:.3mm}
-.card-force.chronicle-force-face .edge-placement>.glyph-row{width:3.65mm;height:3.65mm}
+.card-force.chronicle-force-face .edge-placement>.glyph-row{width:3.25mm;height:3.25mm}
 .card-force.chronicle-force-face .placement-lock{width:1.7mm;height:1.7mm;margin-left:-.82mm;margin-top:1.85mm}
 .card-force.chronicle-force-face .edge-timing{display:none}
 .card-force.chronicle-force-face .edge-timing-word{
@@ -171,9 +171,9 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   position:absolute;
   left:8.2mm;
   right:8.2mm;
-  top:.25mm;
-  height:9.45mm;
-  min-height:9.45mm;
+  top:-.45mm;
+  height:9.55mm;
+  min-height:9.55mm;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -192,7 +192,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   color:#27231d;
   text-align:center;
   text-wrap:balance;
-  font:600 5.1mm/.96 var(--display);
+  font:600 4.72mm/.98 var(--display);
   letter-spacing:-.015em;
   text-shadow:0 .08mm rgba(255,255,255,.32);
 }
@@ -200,16 +200,16 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   flex:none;
   height:3.05mm;
   min-height:3.05mm;
-  margin:.12mm 0 0;
+  margin:.06mm 0 0;
   display:flex;
   justify-content:center;
   gap:.58mm;
   color:#433f34;
   overflow:hidden;
 }
-.card-force.chronicle-force-face .class-body-item{gap:.24mm;font:400 2.12mm/1 var(--text);letter-spacing:.004em}
-.card-force.chronicle-force-face .class-body-item svg{width:2.85mm;height:2.85mm;color:#26333c}
-.card-force.chronicle-force-face .class-separator{color:#927b55;font:600 2.2mm/1 var(--display)}
+.card-force.chronicle-force-face .class-body-item{gap:.24mm;font:400 1.92mm/1 var(--text);letter-spacing:.004em}
+.card-force.chronicle-force-face .class-body-item svg{width:2.6mm;height:2.6mm;color:#26333c}
+.card-force.chronicle-force-face .class-separator{color:#927b55;font:600 2.0mm/1 var(--display)}
 
 /* The divider is already printed into the shell. Never draw or layer another one. */
 .card-force.chronicle-force-face .chronicle-divider,
@@ -220,8 +220,8 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   position:absolute;
   left:8.5mm;
   right:8.5mm;
-  top:15.55mm;
-  bottom:8.7mm;
+  top:16.65mm;
+  bottom:9.1mm;
   min-height:0;
   padding:.25mm .25mm 0;
   overflow:hidden;
@@ -233,7 +233,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   display:grid;
   grid-template-columns:auto minmax(0,1fr);
   align-items:start;
-  column-gap:.82mm;
+  column-gap:.72mm;
   padding:.25mm .08mm .95mm;
   background:transparent;
   border:0;
@@ -251,10 +251,10 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   margin:0;
   white-space:nowrap;
 }
-.card-force.chronicle-force-face .effect-timing-icon{width:3.35mm;height:3.35mm;color:#2a332d}
+.card-force.chronicle-force-face .effect-timing-icon{width:3.0mm;height:3.0mm;color:#2a332d}
 .card-force.chronicle-force-face .effect-label{
   color:#2c2922;
-  font:600 2.02mm/1 var(--display);
+  font:600 1.84mm/1 var(--display);
   letter-spacing:.018em;
 }
 .card-force.chronicle-force-face .effect-use{margin-left:.08mm;gap:.28mm}
@@ -264,10 +264,10 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
   grid-column:2;
   padding-top:.02mm;
   color:#2d2922;
-  font:3.18mm/1.14 var(--text);
+  font:2.86mm/1.16 var(--text);
 }
-.card-force.chronicle-force-face.dense .effect-text{font-size:2.82mm;line-height:1.08}
-.card-force.chronicle-force-face.very-dense .effect-text{font-size:2.52mm;line-height:1.04}
+.card-force.chronicle-force-face.dense .effect-text{font-size:2.58mm;line-height:1.10}
+.card-force.chronicle-force-face.very-dense .effect-text{font-size:2.34mm;line-height:1.06}
 .card-force.chronicle-force-face .empty-rules{margin:2.7mm 0 0;color:#655b4b;text-align:center;font:italic 3mm/1.16 var(--text)}
 .card-force.chronicle-force-face.sparse .chronicle-rules::after{display:none}
 
@@ -293,7 +293,7 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
 .card-force.chronicle-force-face .footer-id{
   position:absolute;
   left:50%;
-  bottom:2.75mm;
+  bottom:3.35mm;
   transform:translateX(-50%);
   max-width:27mm;
   color:#5c5548;
@@ -304,19 +304,20 @@ main{max-width:1480px;margin:0 auto;padding:30px 28px 60px}.lab-heading{display:
    This element is only the live numeral alignment box. */
 .card-force.chronicle-force-face .cost-gem{
   position:absolute;
-  right:4.1mm;
-  bottom:4.55mm;
-  width:10.2mm;
-  height:10.2mm;
+  right:4.15mm;
+  bottom:4.65mm;
+  width:10.1mm;
+  height:10.1mm;
   display:grid;
   place-items:center;
-  background:none;
+  background:url("art/v2/ui/chronicle-command-seal.jpg") center/145% 145% no-repeat;
+  clip-path:polygon(29% 0,71% 0,100% 29%,100% 71%,71% 100%,29% 100%,0 71%,0 29%);
   filter:none;
 }
 .card-force.chronicle-force-face .cost-gem svg{display:none}
 .card-force.chronicle-force-face .cost-gem b{
   position:relative;
   color:#f8e9c2;
-  font:600 4.9mm/1 var(--display);
+  font:600 4.65mm/1 var(--display);
   text-shadow:0 .16mm .2mm rgba(0,0,0,.62);
 }
