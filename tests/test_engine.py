@@ -593,11 +593,11 @@ def test_cycle_discards_two_and_draws_one_as_one_action() -> None:
     assert state.actions_this_turn == 1
     assert state.active_player == 0
 
-def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> None:
+def test_turn_at_hand_limit_draws_then_requires_overflow_discard() -> None:
     rules = GameRules.standard()
     rules = rules.with_overrides(opening_hand_size=rules.hand_limit)
     engine, state = setup_state(opening_bonus=True, rules=rules)
-    assert len(state.players[0].hand) == engine.hand_limit
+    assert len(state.players[0].hand) == engine.hand_limit + 1
     assert state.pending_draw_discard_for == 0
 
     legal = engine.legal_actions(state)
@@ -605,12 +605,12 @@ def test_turn_at_hand_limit_requires_discard_then_draw_before_operation() -> Non
     assert all(isinstance(action, Discard) for action in legal)
 
     discarded = legal[0].card_id
-    deck_before = len(state.players[0].deck)
+    deck_after_draw = len(state.players[0].deck)
     engine.apply(state, legal[0])
 
     assert state.pending_draw_discard_for is None
     assert len(state.players[0].hand) == engine.hand_limit
-    assert len(state.players[0].deck) == deck_before - 1
+    assert len(state.players[0].deck) == deck_after_draw
     assert discarded in state.players[0].discard
     assert state.active_player == 0
 
@@ -623,7 +623,7 @@ def test_completion_draw_resolves_before_the_next_players_turn_draw() -> None:
     )
     state.players[0].deck = ["the-red-shields", "seven-black-ships"]
     # Avoid conflating Oren's completion draw with player 1's ordinary
-    # discard-before-draw substep after the operation finishes.
+    # turn-start hand-limit cleanup after the operation finishes.
     state.players[1].hand = []
     target = pos(0, Rank.FRONT)
     state.slot(0, target).force = "the-fifty-men"
@@ -862,9 +862,9 @@ def test_bought_time_for_can_pay_extra_to_draw_two_with_sequential_hand_limit() 
     engine.apply(state, invested)
 
     assert state.players[0].command == 8
-    assert len(state.players[0].hand) == engine.hand_limit
+    assert len(state.players[0].hand) == engine.hand_limit + 1
     assert state.pending_draw_discard_for == 0
-    assert state.pending_draw_count == 1
+    assert state.pending_draw_count == 0
     assert state.pending_draw_finish_operation is True
 
     engine.apply(state, engine.legal_actions(state)[0])
@@ -1350,7 +1350,7 @@ def _pause_resolution_on_battle_end_draw(state) -> None:
         )
     ]
     # Player 0 draws once in the closing sequence, reaching the hand limit.
-    # The Saga's Battle-end draw must then pause for discard-before-draw.
+    # The Saga's Battle-end draw must then create overflow and pause for cleanup.
     state.players[0].hand[:] = state.players[0].hand[:9]
 
 
