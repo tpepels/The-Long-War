@@ -789,7 +789,7 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         ],
         "narratives": [
             [
-                None if state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f] < 0 else (self.card_ids[state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f]], bool(state.narrative_revealed[p * NARRATIVE_SLOTS_PER_PLAYER + f]))
+                None if state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f] < 0 else (self.card_ids[state.narrative[p * NARRATIVE_SLOTS_PER_PLAYER + f]], True)
                 for f in range(FRONT_COUNT)
             ]
             for p in range(PLAYER_COUNT)
