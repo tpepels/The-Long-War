@@ -173,6 +173,7 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.temporary[dest] = state.temporary[source]
     state.negative_one_markers[dest] = state.negative_one_markers[source]
     state.negative_two_markers[dest] = state.negative_two_markers[source]
+    state.negative_three_markers[dest] = state.negative_three_markers[source]
     state.suppression_mask[dest] = state.suppression_mask[source]
     state.force_ability_used[dest] = state.force_ability_used[source]
     state.bond_ability_used[dest] = state.bond_ability_used[source]
@@ -188,6 +189,7 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.temporary[source] = 0
     state.negative_one_markers[source] = 0
     state.negative_two_markers[source] = 0
+    state.negative_three_markers[source] = 0
     state.suppression_mask[source] = 0
     state.force_ability_used[source] = 0
     state.bond_ability_used[source] = 0
@@ -216,6 +218,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     cdef int16_t temporary = state.temporary[a]
     cdef uint8_t negative_one = state.negative_one_markers[a]
     cdef uint8_t negative_two = state.negative_two_markers[a]
+    cdef uint8_t negative_three = state.negative_three_markers[a]
     cdef uint16_t suppression = state.suppression_mask[a]
     cdef uint8_t force_used = state.force_ability_used[a]
     cdef uint8_t bond_used = state.bond_ability_used[a]
@@ -231,6 +234,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.temporary[a] = state.temporary[b]
     state.negative_one_markers[a] = state.negative_one_markers[b]
     state.negative_two_markers[a] = state.negative_two_markers[b]
+    state.negative_three_markers[a] = state.negative_three_markers[b]
     state.suppression_mask[a] = state.suppression_mask[b]
     state.force_ability_used[a] = state.force_ability_used[b]
     state.bond_ability_used[a] = state.bond_ability_used[b]
@@ -246,6 +250,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.temporary[b] = temporary
     state.negative_one_markers[b] = negative_one
     state.negative_two_markers[b] = negative_two
+    state.negative_three_markers[b] = negative_three
     state.suppression_mask[b] = suppression
     state.force_ability_used[b] = force_used
     state.bond_ability_used[b] = bond_used
