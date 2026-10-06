@@ -317,7 +317,7 @@ def run_viewport(browser: str, url: str, width: int, height: int, screenshot: Pa
                                 capture_output=True, text=True, timeout=30, check=False)
     else:
         command = [browser, "--headless=new", "--no-sandbox", "--disable-gpu", browser_window_size(browser, width, height),
-                   "--force-device-scale-factor=1", "--virtual-time-budget=1500", "--dump-dom"]
+                   "--force-device-scale-factor=1", "--virtual-time-budget=5000", "--dump-dom"]
         result = subprocess.run([*command, url], capture_output=True, text=True, timeout=30, check=False)
     if result.returncode != 0:
         return "browser-error: " + result.stderr[-1200:]
