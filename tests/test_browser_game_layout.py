@@ -50,6 +50,8 @@ def test_game_layout_checker_covers_standard_desktop_sizes() -> None:
     assert "root-scroll" in checker
     assert "hand-card-" in checker
     assert "shell-outside-viewport" in checker
+    assert 'reference-decks.json' in checker
+    assert 'reference-deck.json' not in checker
 
 
 def test_live_player_loads_canonical_engine_without_a_javascript_rules_copy() -> None:
