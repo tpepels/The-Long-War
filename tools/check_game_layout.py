@@ -256,7 +256,12 @@ def prepare_fixture(directory: Path) -> None:
     shutil.copytree(ROOT / "web", directory, dirs_exist_ok=True)
     (directory / "data").mkdir(exist_ok=True)
     shutil.copy2(ROOT / "cards/cards.json", directory / "data/cards.json")
-    shutil.copy2(ROOT / DEFAULT_DECK_PATH, directory / "data/reference-deck.json")
+    deck_path = ROOT / DEFAULT_DECK_PATH
+    deck = json.loads(deck_path.read_text(encoding="utf-8"))
+    (directory / "data/reference-decks.json").write_text(
+        json.dumps({"decks": [{"file": deck_path.name, **deck}]}) + "\n",
+        encoding="utf-8",
+    )
     (directory / "qa-snapshots.json").write_text(json.dumps(presentation_snapshots()), encoding="utf-8")
     (directory / "qa-engine.mjs").write_text(TRANSPORT, encoding="utf-8")
     play = (directory / "play.js").read_text(encoding="utf-8")
