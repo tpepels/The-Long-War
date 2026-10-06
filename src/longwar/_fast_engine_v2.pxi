@@ -313,3 +313,588 @@ cdef inline bint _v2_card_type_mask_matches(
     int bit,
 ) noexcept:
     return mask == 255 or (bit != 0 and bool(mask & bit))
+
+
+cdef inline bint _v2_slot_has_temporary_negative(
+    FastState state,
+    int slot,
+) noexcept:
+    return (
+        state.negative_one_markers[slot] > 0
+        or state.negative_two_markers[slot] > 0
+        or bool(
+            state.suppression_mask[slot]
+            & (
+                SUPPRESS_BOND_STRENGTH
+                | SUPPRESS_BOND_TEXT
+                | SUPPRESS_NAME_TEXT
+                | SUPPRESS_ACTION_TURN
+                | SUPPRESS_ACTION_BATTLE
+                | SUPPRESS_LIMITED_BATTLE
+            )
+        )
+    )
+
+
+cdef uint32_t _v2_source_class_mask(
+    FastEngine self,
+    FastState state,
+    int player,
+    V2EffectSpec* effect,
+) noexcept:
+    cdef int slot
+    cdef uint32_t mask = 0
+    for slot in range(
+        player * POSITIONS_PER_PLAYER,
+        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+    ):
+        if state.force[slot] < 0:
+            continue
+        if not front_is_active(state.battle, front_from_slot(slot)):
+            continue
+        if effect.rank_mask and not (
+            effect.rank_mask & (1 << rank_from_slot(slot))
+        ):
+            continue
+        if effect.class_mask and not _v2_slot_has_any_class(
+            self, state, slot, effect.class_mask
+        ):
+            continue
+        mask |= <uint32_t>(1 << slot)
+    return mask
+
+
+cdef bint _v2_front_contains_class_mask(
+    FastEngine self,
+    FastState state,
+    int player,
+    int front,
+    uint32_t classes,
+) noexcept:
+    if classes == 0:
+        return True
+    return _v2_front_has_class(self, state, player, front, classes)
+
+
+cdef uint32_t _v2_target_mask(
+    FastEngine self,
+    FastState state,
+    int player,
+    int origin,
+    V2EffectSpec* effect,
+) noexcept:
+    cdef int opponent = other_player(player)
+    cdef int slot, front, rank, candidate, rear
+    cdef uint32_t mask = 0
+    cdef uint32_t classes
+    cdef int target = effect.target
+
+    if target == V2_TARGET_NONE:
+        return 0
+    if target == V2_TARGET_SELF:
+        if origin >= 0 and state.force[origin] >= 0:
+            return <uint32_t>(1 << origin)
+        return 0
+    if target == V2_TARGET_DIRECTLY_AHEAD:
+        if origin < 0:
+            return 0
+        rank = rank_from_slot(origin)
+        if rank <= RANK_FRONT:
+            return 0
+        candidate = slot_index(
+            owner_from_slot(origin),
+            front_from_slot(origin),
+            rank - 1,
+        )
+        if state.force[candidate] >= 0:
+            return <uint32_t>(1 << candidate)
+        return 0
+    if target == V2_TARGET_DIRECTLY_BEHIND:
+        if origin < 0:
+            return 0
+        rank = rank_from_slot(origin)
+        if rank >= RANK_REAR:
+            return 0
+        candidate = slot_index(
+            owner_from_slot(origin),
+            front_from_slot(origin),
+            rank + 1,
+        )
+        if state.force[candidate] >= 0:
+            return <uint32_t>(1 << candidate)
+        return 0
+    if target == V2_TARGET_OPPOSITE:
+        if origin < 0:
+            return 0
+        candidate = slot_index(
+            opponent,
+            front_from_slot(origin),
+            rank_from_slot(origin),
+        )
+        if state.force[candidate] >= 0:
+            return <uint32_t>(1 << candidate)
+        return 0
+
+    for slot in range(SLOT_COUNT):
+        front = front_from_slot(slot)
+        rank = rank_from_slot(slot)
+        if not front_is_active(state.battle, front):
+            continue
+
+        if target == V2_TARGET_FRIENDLY_ANY_CLASS:
+            if (
+                owner_from_slot(slot) == player
+                and state.force[slot] >= 0
+                and _v2_slot_has_any_class(
+                    self, state, slot, effect.class_mask
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_FRIENDLY_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == player
+                and front == front_from_slot(origin)
+                and state.force[slot] >= 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OTHER_FRIENDLY_SAME_FRONT:
+            if (
+                origin >= 0
+                and slot != origin
+                and owner_from_slot(slot) == player
+                and front == front_from_slot(origin)
+                and state.force[slot] >= 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OTHER_FRIENDLY_HUMAN_SAME_FRONT:
+            if (
+                origin >= 0
+                and slot != origin
+                and owner_from_slot(slot) == player
+                and front == front_from_slot(origin)
+                and state.force[slot] >= 0
+                and (_v2_slot_class_mask(self, state, slot) & (1 << 6))
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_UNBONDED_FRIENDLY_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == player
+                and front == front_from_slot(origin)
+                and state.force[slot] >= 0
+                and state.bond[slot] < 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_SELF_OR_DIRECTLY_AHEAD:
+            if origin >= 0 and owner_from_slot(slot) == player:
+                if slot == origin and state.force[slot] >= 0:
+                    mask |= <uint32_t>(1 << slot)
+                elif (
+                    front == front_from_slot(origin)
+                    and rank + 1 == rank_from_slot(origin)
+                    and state.force[slot] >= 0
+                ):
+                    mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_SELF_VERTICAL_FRIEND:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == player
+                and front == front_from_slot(origin)
+                and abs(rank - rank_from_slot(origin)) == 1
+                and state.force[slot] >= 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_ANY:
+            if owner_from_slot(slot) == opponent and state.force[slot] >= 0:
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_ANY_CLASS:
+            if (
+                owner_from_slot(slot) == opponent
+                and state.force[slot] >= 0
+                and _v2_slot_has_any_class(
+                    self, state, slot, effect.class_mask
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_NAMED_ANY:
+            if owner_from_slot(slot) == opponent and _v2_slot_named(state, slot):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_BONDED_ANY:
+            if owner_from_slot(slot) == opponent and _v2_slot_bonded(state, slot):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_BONDED_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and _v2_slot_bonded(state, slot)
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_REAR:
+            if (
+                owner_from_slot(slot) == opponent
+                and rank == RANK_REAR
+                and state.force[slot] >= 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and state.force[slot] >= 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_SAME_FRONT_WITHOUT_NEGATIVE_STRENGTH:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and state.force[slot] >= 0
+                and state.negative_one_markers[slot] == 0
+                and state.negative_two_markers[slot] == 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_FRONT_WITH_FRIENDLY_CLASS:
+            if (
+                owner_from_slot(slot) == opponent
+                and state.force[slot] >= 0
+                and _v2_front_contains_class_mask(
+                    self, state, player, front, effect.class_mask2
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_CLASS_FRONT_WITH_FRIENDLY_CLASS:
+            if (
+                owner_from_slot(slot) == opponent
+                and state.force[slot] >= 0
+                and _v2_slot_has_any_class(
+                    self, state, slot, effect.class_mask
+                )
+                and _v2_front_contains_class_mask(
+                    self, state, player, front, effect.class_mask2
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_PREPARED_ANY:
+            if (
+                owner_from_slot(slot) == opponent
+                and state.force[slot] < 0
+                and (state.bond[slot] >= 0 or state.name[slot] >= 0)
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_PREPARED_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and state.force[slot] < 0
+                and (state.bond[slot] >= 0 or state.name[slot] >= 0)
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_PREPARED_FRONT_WITH_FRIENDLY_CLASS:
+            if (
+                owner_from_slot(slot) == opponent
+                and state.force[slot] < 0
+                and (state.bond[slot] >= 0 or state.name[slot] >= 0)
+                and _v2_front_contains_class_mask(
+                    self, state, player, front, effect.class_mask2
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_PREPARED_COMPONENT_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == player
+                and front == front_from_slot(origin)
+                and state.force[slot] < 0
+                and (state.bond[slot] >= 0 or state.name[slot] >= 0)
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_PREPARED_NAME_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == player
+                and front == front_from_slot(origin)
+                and state.force[slot] < 0
+                and state.name[slot] >= 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_FRIENDLY_EXHAUSTED_FRONT_WITH_FRIENDLY_CLASS:
+            if (
+                owner_from_slot(slot) == player
+                and state.force[slot] >= 0
+                and state.exhausted[slot]
+                and _v2_front_contains_class_mask(
+                    self, state, player, front, effect.class_mask
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_FRIENDLY_FRONT_OF_SOURCE_CLASS:
+            if (
+                owner_from_slot(slot) == player
+                and state.force[slot] >= 0
+                and _v2_slot_has_temporary_negative(state, slot)
+                and _v2_front_contains_class_mask(
+                    self, state, player, front, effect.class_mask
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS:
+            if (
+                owner_from_slot(slot) == player
+                and state.force[slot] >= 0
+                and _v2_front_contains_class_mask(
+                    self, state, player, front, effect.class_mask
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+    # Movement effects targeting an opposing formation must also have a legal
+    # destination one row toward Rear.
+    if effect.op == V2_OP_MOVE and effect.flags & V2_FLAG_DIRECTION_REAR:
+        for slot in range(SLOT_COUNT):
+            if not (mask & (<uint32_t>1 << slot)):
+                continue
+            rank = rank_from_slot(slot)
+            if rank >= RANK_REAR:
+                mask &= <uint32_t>(~(<uint32_t>1 << slot))
+                continue
+            rear = slot_index(
+                owner_from_slot(slot),
+                front_from_slot(slot),
+                rank + 1,
+            )
+            if not _fe_card_move_destination_legal(
+                self, state, player, slot, rear
+            ):
+                mask &= <uint32_t>(~(<uint32_t>1 << slot))
+    return mask
+
+
+cdef bint _v2_stratagem_visible_from_effect(
+    FastEngine self,
+    FastState state,
+    int player,
+    int origin,
+    V2EffectSpec* effect,
+) noexcept:
+    cdef int opponent = other_player(player)
+    cdef int front, source
+    cdef uint8_t strat_mask
+    if state.stratagem[opponent] < 0 or state.stratagem_revealed[opponent]:
+        return False
+    strat_mask = state.stratagem_front_mask[opponent]
+    if strat_mask == 0:
+        return False
+
+    if effect.area == V2_AREA_ANY_ACTIVE:
+        if effect.class_mask == 0:
+            return True
+        return _v2_source_class_mask(self, state, player, effect) != 0
+
+    if effect.area == V2_AREA_SAME_FRONT:
+        if origin >= 0:
+            return bool(strat_mask & (1 << front_from_slot(origin)))
+        return False
+
+    if effect.area == V2_AREA_SAME_OR_ADJACENT:
+        if origin < 0:
+            return False
+        front = front_from_slot(origin)
+        return bool(
+            strat_mask
+            & (
+                (1 << front)
+                | (1 << (front - 1) if front > 0 else 0)
+                | (1 << (front + 1) if front < FRONT_COUNT - 1 else 0)
+            )
+        )
+
+    if effect.area == V2_AREA_SOURCE_SAME_OR_ADJACENT:
+        for source in range(
+            player * POSITIONS_PER_PLAYER,
+            player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+        ):
+            if (
+                state.force[source] < 0
+                or (
+                    effect.class_mask
+                    and not _v2_slot_has_any_class(
+                        self, state, source, effect.class_mask
+                    )
+                )
+            ):
+                continue
+            front = front_from_slot(source)
+            if strat_mask & (
+                (1 << front)
+                | (1 << (front - 1) if front > 0 else 0)
+                | (1 << (front + 1) if front < FRONT_COUNT - 1 else 0)
+            ):
+                return True
+    return False
+
+
+cdef bint _v2_effect_can_resolve(
+    FastEngine self,
+    FastState state,
+    int player,
+    int origin,
+    V2EffectSpec* effect,
+) noexcept:
+    cdef uint32_t mask
+    cdef int slot, dest, front, rank
+    if effect.op in (
+        V2_OP_GAIN_COMMAND,
+        V2_OP_OPTIONAL_EXTRA_PAYMENT_DRAW,
+        V2_OP_REORDER_TOP,
+        V2_OP_DRAW_PUT_TOP,
+        V2_OP_RECOVER,
+        V2_OP_SET_STRATAGEM_FROM_HAND,
+        V2_OP_PLAY_BOND_FROM_HAND,
+    ):
+        return True
+
+    if effect.op in (
+        V2_OP_LOOK_HAND,
+        V2_OP_DRAW,
+        V2_OP_DRAW_DISCARD,
+        V2_OP_PICK_TOP_TO_HAND_BOTTOM_REST,
+    ):
+        if effect.class_mask:
+            return _v2_source_class_mask(
+                self, state, player, effect
+            ) != 0
+        return True
+
+    if effect.op in (V2_OP_LOOK_STRATAGEM, V2_OP_DISRUPT_STRATAGEM):
+        return _v2_stratagem_visible_from_effect(
+            self, state, player, origin, effect
+        )
+
+    if effect.op == V2_OP_TAX and effect.front_mode == V2_FRONT_CHOOSE_ACTIVE:
+        return active_front_mask_for_battle(state.battle) != 0
+
+    if effect.op == V2_OP_MOVE and effect.target == V2_TARGET_SELF:
+        if origin < 0 or state.force[origin] < 0:
+            return False
+        for dest in range(
+            player * POSITIONS_PER_PLAYER,
+            player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+        ):
+            if (
+                abs(front_from_slot(dest) - front_from_slot(origin))
+                + abs(rank_from_slot(dest) - rank_from_slot(origin))
+                <= max(1, effect.steps)
+                and dest != origin
+                and _fe_card_move_destination_legal(
+                    self, state, player, origin, dest
+                )
+            ):
+                return True
+        return False
+
+    if effect.op == V2_OP_SWAP and effect.target == V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS:
+        mask = _v2_target_mask(self, state, player, origin, effect)
+        for slot in range(SLOT_COUNT):
+            if not (mask & (<uint32_t>1 << slot)):
+                continue
+            front = front_from_slot(slot)
+            rank = rank_from_slot(slot)
+            if rank > RANK_FRONT:
+                dest = slot_index(player, front, rank - 1)
+                if mask & (<uint32_t>1 << dest):
+                    return True
+            if rank < RANK_REAR:
+                dest = slot_index(player, front, rank + 1)
+                if mask & (<uint32_t>1 << dest):
+                    return True
+        return False
+
+    if effect.target != V2_TARGET_NONE:
+        return _v2_target_mask(
+            self, state, player, origin, effect
+        ) != 0
+
+    return True
+
+
+cdef inline int _v2_pending_aux(int mode, int effect_index) noexcept:
+    return (
+        (mode << V2_PENDING_MODE_SHIFT)
+        | (effect_index & V2_PENDING_EFFECT_MASK)
+    )
+
+
+cdef inline int _v2_pending_mode(int aux) noexcept:
+    return aux >> V2_PENDING_MODE_SHIFT
+
+
+cdef inline int _v2_pending_effect_index(int aux) noexcept:
+    return aux & V2_PENDING_EFFECT_MASK
+
+
+cdef inline V2EffectSpec* _v2_pending_effect(
+    FastEngine self,
+    FastState state,
+) noexcept:
+    cdef int card = state.pending_card[0]
+    cdef int aux = state.pending_aux[0]
+    return &self.v2_effects[
+        card
+    ][
+        _v2_pending_mode(aux)
+    ][
+        _v2_pending_effect_index(aux)
+    ]
+
+
+cdef void _v2_enqueue_effect(
+    FastEngine self,
+    FastState state,
+    int player,
+    int card,
+    int mode,
+    int effect_index,
+    int origin=-1,
+    int source_flags=0,
+) except *:
+    _fe_enqueue_effect(
+        self,
+        state,
+        EFFECT_V2_TARGET,
+        player,
+        card,
+        origin,
+        _v2_pending_aux(mode, effect_index),
+        0,
+        0,
+        source_flags,
+        card,
+    )
