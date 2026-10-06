@@ -1126,7 +1126,7 @@ body.game-body {
 .digital-hand .play-card {
   position: absolute;
   left: 50%;
-  top: 8px;
+  top: 4px;
   margin: 0;
   z-index: var(--fan-order, 1);
   transform-origin: center top;
