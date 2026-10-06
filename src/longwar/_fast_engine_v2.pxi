@@ -355,6 +355,24 @@ cdef void _v2_apply_becomes_named_effects(
                 card,
                 COMMAND_DETAIL_COMPLETION_GAIN,
             )
+        elif effect.op == V2_OP_GRANT_NAME_SUPPRESSION_IMMUNITY:
+            if origin >= 0:
+                state.name_suppression_immune[origin] = 1
+        elif effect.op == V2_OP_CLASS_STRENGTH_MARKERS:
+            if origin >= 0:
+                for slot in range(
+                    player * POSITIONS_PER_PLAYER,
+                    player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+                ):
+                    if (
+                        state.force[slot] >= 0
+                        and front_from_slot(slot) == front_from_slot(origin)
+                        and (
+                            _v2_slot_class_mask(self, state, slot)
+                            & effect.class_mask
+                        )
+                    ):
+                        state.temporary[slot] += effect.amount
         elif effect.op in (
             V2_OP_ADD_STRENGTH_MARKER,
             V2_OP_CHOOSE_CLASS_STRENGTH,
@@ -397,6 +415,32 @@ cdef bint _v2_component_has_live_op(
         ):
             return True
     return False
+
+
+cdef bint _v2_name_suppression_immune(
+    FastEngine self,
+    FastState state,
+    int slot,
+) noexcept:
+    cdef int bond
+    if slot < 0:
+        return False
+    if state.name_suppression_immune[slot]:
+        return True
+    if not _v2_slot_named(state, slot):
+        return False
+    bond = state.bond[slot]
+    if bond < 0:
+        return False
+    return _v2_component_has_live_op(
+        self,
+        state,
+        slot,
+        bond,
+        V2_MODE_DEFAULT,
+        V2_OP_NAME_SUPPRESSION_IMMUNITY,
+        SUPPRESS_BOND_TEXT,
+    )
 
 
 cdef bint _v2_force_is_mobile(
