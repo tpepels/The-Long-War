@@ -449,7 +449,7 @@ def test_shared_v2_visual_language_follows_print_reference_principles() -> None:
     assert ".motif-field{position:relative;flex:0 0 var(--art-height)" in css
     assert "clip-path:" not in css
     assert ".card-footer{flex:0 0 7.6mm" in css
-    assert "@page v2cards{size:A4 landscape;margin:7mm 8mm}" in css
+    assert "@page v2cards{size:A4 landscape;margin:9mm 12.5mm}" in css
 
 
 def test_legacy_print_renderer_is_removed() -> None:
@@ -503,3 +503,13 @@ def test_exploratory_decks_keep_broad_card_type_mix() -> None:
         assert counts["narrative"] >= 3
         assert deck.get("combo_notes")
         assert deck.get("playstyle")
+
+
+def test_print_cards_share_cut_seams() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "width:272mm;height:192mm" in css
+    assert "grid-template-columns:repeat(4,68mm)" in css
+    assert "grid-template-rows:repeat(2,96mm)" in css
+    assert "gap:0" in css
+    assert ".print-card{border-radius:0}" in css
+    assert ".print-card::before{border-radius:0}" in css
