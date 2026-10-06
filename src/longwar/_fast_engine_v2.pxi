@@ -341,6 +341,22 @@ cdef void _v2_apply_becomes_named_effects(
                 card,
                 COMMAND_DETAIL_COMPLETION_GAIN,
             )
+        elif effect.op in (
+            V2_OP_ADD_STRENGTH_MARKER,
+            V2_OP_CHOOSE_CLASS_STRENGTH,
+            V2_OP_DRAW,
+            V2_OP_DRAW_DISCARD,
+            V2_OP_MOVE,
+            V2_OP_PLAY_BOND_FROM_HAND,
+            V2_OP_RECOVER,
+            V2_OP_REMOVE_EXHAUSTION,
+            V2_OP_REMOVE_NEGATIVE_MARKER,
+            V2_OP_SET_STRATAGEM_FROM_HAND,
+            V2_OP_SUPPRESS_COMPONENT,
+        ):
+            _v2_enqueue_effect(
+                self, state, player, card, mode, i, origin
+            )
 
 
 cdef bint _v2_component_has_live_op(
