@@ -111,6 +111,31 @@ def test_card_family_mechanical_grammar() -> None:
             assert all(e["timing"] in {"continuous", "action"} and e["scope"] == "self" for e in card["effects"])
 
 
+def test_press_and_supply_raids_have_canonical_machine_rules() -> None:
+    by_id = {card["id"]: card for card in CARDS}
+    vocab = DATA["position_vocabulary"]
+
+    assert "opposing Force" in vocab["press"]
+    assert "active, unsuppressed SUPPLY" in vocab["supply_raid"]
+    assert "not below 1" in vocab["steal_command"]
+
+    assert by_id["the-river-raiders"]["text"] == "CONTINUOUS - PRESS +1."
+    assert by_id["the-fifty-men"]["title"] == "The Wolf Skirmishers"
+    assert by_id["the-fifty-men"]["design_rules"]["effects"][0]["requires_opposing_exhausted_same_front"] is True
+    assert by_id["the-black-company"]["title"] == "The Black Pursuers"
+    assert by_id["the-black-company"]["effects"][0]["timing"] == "exhausted"
+
+    reavers = by_id["the-unnamed-host"]
+    assert reavers["title"] == "The Salt-Road Reavers"
+    raid = reavers["design_rules"]["effects"][0]
+    assert raid["op"] == "steal_command"
+    assert raid["requires_opposing_supply_same_front"] is True
+    assert raid["minimum"] == 1
+
+    spoils = by_id["shared-the-spoils-with"]["design_rules"]["effects"][0]
+    assert spoils["requires_opposing_supply_same_front"] is True
+
+
 def test_classification_vocabulary_is_complete_and_small() -> None:
     allowed = set(DATA["classification_vocabulary"])
     grouped = {name for names in DATA["classification_groups"].values() for name in names}
