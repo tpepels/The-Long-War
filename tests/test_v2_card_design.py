@@ -202,6 +202,8 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
         "rear",
         "exhausted",
         "tireless",
+        "continuous",
+        "mobile",
     }
 
     for card, output in zip(CARDS, rendered, strict=True):
