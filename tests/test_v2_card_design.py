@@ -625,3 +625,68 @@ def test_renderer_knows_exhausted_and_tireless_states() -> None:
     assert 'name==="exhausted"?utilityGlyph("marker")' in js
     assert "MAY MANEUVER EXHAUSTED" in js
     assert "RESERVE" in js
+
+
+def test_buried_force_and_bond_rules_are_memory_light() -> None:
+    by_id = {card["id"]: card for card in CARDS}
+
+    # Bonds are the buried middle layer: choices resolve on PLAY; live text is state only.
+    for card in CARDS:
+        if card["type"] == "bond":
+            assert all(effect["timing"] not in {"action", "reaction"} for effect in card["effects"]), card["id"]
+
+    # Only deliberately tiny movement actions remain live on a buried Force layer.
+    buried_active = []
+    for card in CARDS:
+        if card["type"] == "force":
+            for effect in card["effects"]:
+                if effect["timing"] in {"action", "reaction"}:
+                    buried_active.append((card["id"], effect))
+        elif card["type"] == "hero":
+            for effect in card["modes"]["force"]["effects"]:
+                if effect["timing"] in {"action", "reaction"}:
+                    buried_active.append((card["id"], effect))
+
+    assert {card_id for card_id, _ in buried_active} == {
+        "the-vardai",
+        "kael-the-roadless",
+        "neris-the-ferryman",
+    }
+    for _, effect in buried_active:
+        assert effect["timing"] == "action"
+        assert "MOVE" in effect["exposed"].upper()
+        assert len(effect["exposed"]) <= 30
+
+    # Live buried state text must always have an exposed-strip representation.
+    for card in CARDS:
+        if card["type"] in {"force", "bond"}:
+            source = card["effects"]
+        elif card["type"] == "hero":
+            source = card["modes"]["force"]["effects"]
+        else:
+            continue
+        for effect in source:
+            if effect["timing"] != "play":
+                assert effect.get("exposed"), (card["id"], effect)
+
+
+def test_no_trivial_once_per_battle_plus_one_bookkeeping() -> None:
+    for card in CARDS:
+        for effect in effects(card):
+            if effect.get("limit") != "once_per_battle":
+                continue
+            if "+1 Strength" not in effect["text"]:
+                continue
+            # A limited +1 is acceptable only when the actual decision is something larger.
+            assert (
+                "Move " in effect["text"]
+                or "Each friendly formation" in effect["text"]
+            ), (card["id"], effect["text"])
+
+
+def test_effect_audit_covers_every_current_effect() -> None:
+    audit = (ROOT / "cards" / "v2" / "effect-audit.md").read_text(encoding="utf-8")
+    total = sum(len(effects(card)) for card in CARDS)
+    assert f"all {total} current card effects" in audit
+    assert "Pure `1/BATTLE -> +1 Strength` bookkeeping effects remaining: **0**" in audit
+    assert "Bonds with buried ACTION/REACTION abilities: **0**" in audit
