@@ -144,9 +144,9 @@ def _finish_closing_turn(engine: GameEngine, state) -> None:
             engine.apply(state, end_turn)
             return
 
-        # A closing turn still begins with the normal automatic draw. At the
-        # hand limit that draw pauses for the mandatory discard before EndTurn
-        # becomes legal.
+        # A closing turn still begins with the normal automatic draw. If that
+        # draw pushes the hand above the limit, cleanup must finish before
+        # EndTurn becomes legal.
         discard = next(
             (action for action in legal if isinstance(action, Discard)),
             None,
@@ -2021,6 +2021,42 @@ def test_wall_did_not_break_resolves_battle_end_reward_and_recovery() -> None:
     )
     assert "followed" in state.players[0].hand
     assert "the-wall-did-not-break" in state.players[0].discard
+
+
+
+def test_return_to_full_hand_triggers_hand_limit_cleanup() -> None:
+    engine, state = setup_state(seed=48140)
+    state.battle = 8
+    state.players[0].command = 10
+    state.players[1].command = 10
+    state.battle_start_command[:] = [10, 10]
+    # Player 0's closing-turn draw raises this to exactly 10.
+    state.players[0].hand = ["the-fifty-men"] * 9
+    state.players[0].discard = ["followed"]
+    make_named(state, 0, pos(0, Rank.FRONT))
+    state.narratives[0] = [
+        NarrativeState(
+            "the-wall-did-not-break",
+            fronts=(Front.FIRST,),
+        )
+    ]
+
+    resolve_battle_by_passing(engine, state)
+
+    assert len(state.players[0].hand) == engine.hand_limit
+    recover = next(
+        action
+        for action in effect_choices(engine, state, "recover")
+        if not action.skip and action.card_id == "followed"
+    )
+    engine.apply(state, recover)
+
+    assert len(state.players[0].hand) == engine.hand_limit + 1
+    assert state.pending_draw_discard_for == 0
+    assert all(
+        isinstance(action, Discard)
+        for action in engine.legal_actions(state)
+    )
 
 
 def test_before_sunset_draws_at_battle_end_and_records_refund() -> None:
