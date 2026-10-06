@@ -78,6 +78,8 @@ Avoid invisible "the first X each Battle/turn" bookkeeping when the same identit
 
 **Tactic** - immediate hostile interaction. Every Tactic affects the opponent.
 
+**Order** - immediate self-support instruction. Playing it spends one Action exactly like any other card play; resolve it, then discard it. A 0-Command Order must require a class, board state, position, or other real eligibility condition.
+
 **Stratagem** - hidden support for your own side.
 
 **Narrative** - face-up support for your own troops, classifications or formation states. A Narrative may have a visible ACTION ability when spending an Action is the point of the choice.
@@ -106,4 +108,4 @@ Each effect starts on a new line. Timing is visually distinct. Prose sits direct
 
 ## Zero-Command cards
 
-A printed Command cost of **0** removes only the Command payment. Playing the card still consumes an Action and the card itself still leaves the player's hand. Zero-Command effects may therefore be broad utility, but their value budget must account for spending half a normal two-Action turn.
+A printed Command cost of **0** removes only the Command payment. Playing the card still consumes an Action and the card itself still leaves the player's hand. Zero-Command Orders are never unrestricted: each requires a class, position, board state, or other real eligibility condition. Their value budget still includes spending half a normal two-Action turn.
