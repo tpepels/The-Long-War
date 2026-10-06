@@ -20,6 +20,8 @@ on:
       - "tools/build_browser_runtime.py"
       - "tools/check_web_static.py"
       - "tools/check_card_layout.py"
+      - "tests/test_v2_card_design.py"
+      - "tests/test_browser_card_layout.py"
       - ".github/workflows/pages.yml"
 
 permissions:
