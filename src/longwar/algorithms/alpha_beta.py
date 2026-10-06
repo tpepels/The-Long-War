@@ -206,6 +206,7 @@ class AlphaBetaSearch:
                 slot.force,
                 slot.bond,
                 slot.name,
+                slot.exhausted,
                 slot.temporary_strength,
                 slot.maneuvers_this_battle,
                 slot.maneuver_direction,
