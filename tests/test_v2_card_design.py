@@ -15,7 +15,7 @@ DATA = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf
 CARDS = DATA["cards"]
 DECK_DATA = json.loads((ROOT / "cards" / "v2" / "playtest-decks.json").read_text(encoding="utf-8"))
 DECKS = DECK_DATA["decks"]
-EXPECTED_COUNTS = {"force":30,"bond":22,"name":20,"hero":11,"tactic":14,"stratagem":11,"narrative":12}
+EXPECTED_COUNTS = {"force":30,"bond":24,"name":20,"hero":11,"tactic":14,"stratagem":11,"narrative":12}
 
 
 def effects(card: dict) -> list[dict]:
@@ -31,7 +31,7 @@ def force_mode_effects(card: dict) -> list[dict]:
 
 
 def test_v2_pool_shape_and_decks() -> None:
-    assert len(CARDS) == 120
+    assert len(CARDS) == 122
     assert Counter(card["type"] for card in CARDS) == EXPECTED_COUNTS
     known = {card["id"]: card for card in CARDS}
     assert DECK_DATA["deck_size"] == 45
@@ -111,7 +111,7 @@ def test_classification_vocabulary_is_complete_and_small() -> None:
 def test_movement_and_row_locks_remain_minor() -> None:
     movement = [c for c in CARDS if re.search(r"\b(?:move|moves|maneuver|maneuvers)\b", c.get("text", ""), re.I)]
     assert len(movement) <= DATA["design_limits"]["max_movement_cards"]
-    restricted = [c for c in CARDS if c["type"] == "force" and c.get("placement")]
+    restricted = [c for c in CARDS if c["type"] == "force" and (c.get("placement") or c.get("allowed_rows"))]
     assert len(restricted) <= DATA["design_limits"]["max_hard_row_restricted_forces"]
 
 
@@ -513,3 +513,51 @@ def test_print_cards_share_cut_seams() -> None:
     assert "gap:0" in css
     assert ".print-card{border-radius:0}" in css
     assert ".print-card::before{border-radius:0}" in css
+
+
+def test_three_rank_positional_support_grammar() -> None:
+    by_id = {card["id"]: card for card in CARDS}
+    positions = DATA["position_vocabulary"]
+    assert "directly ahead" in positions["directly_ahead"]
+    assert "directly behind" in positions["directly_behind"]
+    assert "SUPPORT +N" in positions["support"]
+    assert "SUPPLY" in positions["supply"]
+
+    for timing in ("front", "middle", "rear"):
+        assert timing in DATA["timing_vocabulary"]
+        assert timing in DATA["card_type_grammar"]["force"]["allowed_timings"]
+
+    for card_id in ("the-white-hands-of-elara", "the-house-of-reed", "the-watchtowers-of-eren"):
+        assert by_id[card_id].get("placement") is None
+        assert by_id[card_id]["allowed_rows"] == ["middle", "rear"]
+
+    first_spear = by_id["the-first-spear"]
+    assert first_spear.get("placement") is None
+    assert first_spear["effects"][0]["timing"] == "front"
+    assert "directly behind" in first_spear["effects"][0]["text"]
+
+    assert by_id["the-crow-archers"]["effects"][0]["timing"] == "rear"
+    assert by_id["the-crow-archers"]["effects"][0]["text"] == "SUPPORT +1."
+    assert "SUPPORT +1" in by_id["the-banner-singers"]["text"]
+
+
+def test_new_positional_bonds_are_short_relationship_cards() -> None:
+    by_id = {card["id"]: card for card in CARDS}
+    supported = by_id["supported-by"]
+    supplied = by_id["supplied-by"]
+    assert supported["type"] == supplied["type"] == "bond"
+    assert supported["strength_modifier"] == supplied["strength_modifier"] == 0
+    assert supported["text"] == "BONDED - SUPPORT +1."
+    assert supplied["text"] == "BONDED - SUPPLY."
+    assert len(supported["text"]) < 40
+    assert len(supplied["text"]) < 40
+
+
+def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert 'front:"FRONT",middle:"MIDDLE",rear:"REAR"' in js
+    assert '"front","middle","rear"' in js
+    assert "function placementMarkup(card)" in js
+    assert "Array.isArray(card.allowed_rows)" in js
+    assert "effectTimingGlyph" in js
+    assert "SUPPORT" in js and "SUPPLY" in js
