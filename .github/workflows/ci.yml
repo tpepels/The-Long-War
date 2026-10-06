@@ -54,3 +54,5 @@ jobs:
         run: python -m pytest -q -n 2 --tb=short --maxfail=1 -m "algorithm"
       - name: Run fast regression suite
         run: make test-fast WORKERS=2
+      - name: Check browser game layout
+        run: python tools/check_game_layout.py --require-browser
