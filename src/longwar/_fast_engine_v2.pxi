@@ -322,6 +322,7 @@ cdef inline bint _v2_slot_has_temporary_negative(
     return (
         state.negative_one_markers[slot] > 0
         or state.negative_two_markers[slot] > 0
+        or state.negative_three_markers[slot] > 0
         or bool(
             state.suppression_mask[slot]
             & (
@@ -588,6 +589,7 @@ cdef uint32_t _v2_target_mask(
                 and state.force[slot] >= 0
                 and state.negative_one_markers[slot] == 0
                 and state.negative_two_markers[slot] == 0
+                and state.negative_three_markers[slot] == 0
             ):
                 mask |= <uint32_t>(1 << slot)
 
