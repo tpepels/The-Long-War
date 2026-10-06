@@ -11,7 +11,7 @@ const LIVE=new Set(["action","reaction","bonded","while_named","front","middle",
 const RULE_TERMS=[
   "Named Formation","Bonded Formation","Unbonded Formation","Formation",
   "Force","Bond","Name","Hero","Tactic","Stratagem","Narrative",
-  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Tireless","Exhausted","Exhaustion token",
+  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Tireless","Exhausted","Exhaustion","Exhaustion token",
   "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
   "prepared Bond","prepared Name"
 ];
@@ -115,7 +115,7 @@ function effectTokens(effect){
 function liveMarkup(effect){
   const limited=effect.limit==="once_per_battle";
   const reminder=exposedText(effect);
-  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+timingGlyph(effect.timing)+'</span><span class="edge-timing-word">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
+  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+effectTimingGlyph(effect.timing)+'</span><span class="edge-timing-word">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
 }
 function placementMarkup(card){
   const rows=Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
@@ -129,7 +129,7 @@ function stackEdge(card){
 function eventCrown(card){return '<header class="event-crown"><span class="event-sigil">'+typeGlyph(card.type)+'</span><span class="event-family">'+esc(TYPE[card.type])+'</span><span class="event-rule"></span></header>'}
 function effectBlock(effect){
   const kind=["bonded","while_named","continuous","front","middle","rear","exhausted","tireless"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
-  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+timingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div><div class="effect-text">'+formatRuleText(effect.text)+'</div></section>';
+  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div><div class="effect-text">'+formatRuleText(effect.text)+'</div></section>';
 }
 function heroModeHeading(mode){
   return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
