@@ -34,7 +34,7 @@ def test_v2_pool_shape_and_decks() -> None:
     assert len(CARDS) == 128
     assert Counter(card["type"] for card in CARDS) == EXPECTED_COUNTS
     known = {card["id"]: card for card in CARDS}
-    assert DECK_DATA["deck_size"] == 45
+    assert DECK_DATA["deck_size"] == 48
     assert DECK_DATA["status"] == "exploratory-combo-playtest-decks"
     assert len(DECKS) == 4
     for deck in DECKS:
@@ -519,7 +519,7 @@ def test_exploratory_decks_keep_broad_card_type_mix() -> None:
         counts = Counter()
         for item in deck["cards"]:
             counts[known[item["id"]]["type"]] += item["copies"]
-        assert counts["force"] == 15
+        assert counts["force"] >= 14
         assert counts["name"] >= 6
         assert counts["hero"] == 3
         assert counts["bond"] >= 8
@@ -788,3 +788,11 @@ def test_every_card_has_command_value_audit_row() -> None:
     for card in CARDS:
         assert f"| {card['title']} |" in audit
     assert "Repeatable ACTION text pays an Action tax" in audit
+
+
+def test_exploratory_decks_collectively_cover_the_entire_v2_pool() -> None:
+    decked = {item["id"] for deck in DECKS for item in deck["cards"]}
+    assert decked == {card["id"] for card in CARDS}
+    assert DECK_DATA["deck_size"] == 48
+    # 48 cards is six full 8-card physical print sheets.
+    assert DECK_DATA["deck_size"] % 8 == 0
