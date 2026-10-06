@@ -44,6 +44,8 @@ async function main(){
       ["STACKING",vocabulary.stacking],
       ["COMMAND MODIFIERS",vocabulary.command_modifiers],
       ["TAX MARKERS",vocabulary.tax_markers],
+      ["-STRENGTH MARKER",vocabulary.strength_marker],
+      ["TEMPORARY NEGATIVE",vocabulary.temporary_negative_marker],
     ].filter(([,value])=>value);
     reference.innerHTML='<h1>V2 mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
