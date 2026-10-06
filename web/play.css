@@ -275,7 +275,7 @@ body.game-body {
 
 /* Fixed scene: HUD / opponent / battlefield / hand. */
 .tabletop-shell {
-  --hand-height: clamp(188px, 24vh, 255px);
+  --hand-height: clamp(200px, 24vh, 255px);
   height: 100%;
   width: 100%;
   display: grid;
