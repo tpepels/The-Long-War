@@ -23,10 +23,13 @@ illustration window is **20 mm** high. Force art is normalized offline to the
 shared aperture ratio; runtime artwork is centered by default, with
 `art_focus_x` / `art_focus_y` retained only as escape hatches.
 
-Print sheets use **A4 landscape** with 7 mm top/bottom and 8 mm side margins.
-Four 68 mm cards across and two 96 mm cards down, with 3 mm horizontal and 4 mm
-vertical gaps, produce an exact **281 × 196 mm** eight-card content grid. Print at
-100% / actual size without browser headers or footers.
+Print sheets use **A4 landscape** with 9 mm top/bottom and 12.5 mm side margins.
+Four 68 mm cards across and two 96 mm cards down form an exact **272 × 192 mm**
+eight-card block with **no gaps between cards**. Adjacent outer borders touch, so
+one straight cut separates both cards instead of requiring a trim on each side.
+Print cards use square outer corners on the sheet so the shared cut seams remain
+continuous; the normal rounded on-screen card shape is unchanged. Print at 100%
+/ actual size without browser headers or footers.
 
 `cards.html` prints the complete current V2 catalogue. `playtest-kit.html`
 loads `cards/v2/playtest-decks.json`, expands copy counts, and prints those same
