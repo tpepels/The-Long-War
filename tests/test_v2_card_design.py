@@ -268,7 +268,8 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
     # Per-card art follows the card-id filename convention rather than a
     # hand-maintained registry. Missing images leave the family-art layer
     # visible underneath, so adding a correctly named PNG needs no JS edit.
-    assert "--card-art:url(art/v2/cards/" in js
+    assert 'const artURL="art/v2/cards/"+esc(card.id)+".png?v="+encodeURIComponent(VERSION);' in js
+    assert "--card-art:url('+artURL+')" in js
     assert "CARD_ART" not in js
     assert "var(--card-art,none),var(--family-art)" in css
 
