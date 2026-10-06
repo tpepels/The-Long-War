@@ -80,6 +80,58 @@ COMMAND_RECOVERY_CANDIDATES = (
 )
 
 
+def _card_pool_context() -> dict[str, Any]:
+    """Identify the executable card pool and any divergent V2 proposal."""
+    canonical_path = ROOT / "cards" / "cards.json"
+    v2_path = ROOT / "cards" / "v2" / "cards.json"
+    canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
+    canonical_cards = canonical.get("cards", [])
+    context: dict[str, Any] = {
+        "engine_pool": "cards/cards.json",
+        "engine_card_count": len(canonical_cards),
+    }
+    if not v2_path.is_file():
+        return context
+
+    v2 = json.loads(v2_path.read_text(encoding="utf-8"))
+    v2_cards = v2.get("cards", [])
+    canonical_by_id = {card["id"]: card for card in canonical_cards}
+    v2_by_id = {card["id"]: card for card in v2_cards}
+    overlap = set(canonical_by_id) & set(v2_by_id)
+    changed = sum(
+        1
+        for card_id in overlap
+        if canonical_by_id[card_id].get("text", "").strip()
+        != v2_by_id[card_id].get("text", "").strip()
+    )
+    context.update(
+        {
+            "v2_pool": "cards/v2/cards.json",
+            "v2_status": v2.get("status"),
+            "v2_card_count": len(v2_cards),
+            "v2_overlap_count": len(overlap),
+            "v2_changed_overlap_count": changed,
+            "v2_extra_card_count": len(set(v2_by_id) - set(canonical_by_id)),
+            "v2_executable": False,
+        }
+    )
+    return context
+
+
+def _print_card_pool_notice() -> None:
+    context = _card_pool_context()
+    if not context.get("v2_pool"):
+        return
+    print(
+        "Card-pool notice: ISMCTS uses "
+        f"{context['engine_pool']} ({context['engine_card_count']} cards). "
+        f"{context['v2_pool']} is {context.get('v2_status')!r} "
+        f"({context['v2_card_count']} cards; "
+        f"{context['v2_changed_overlap_count']} changed overlapping cards; "
+        f"{context['v2_extra_card_count']} extra) and is not executable."
+    )
+
+
 def canonical_ismcts_tournament_config() -> dict[str, Any]:
     """Production ISMCTS settings, excluding the shared wall-clock budget."""
     return {
@@ -2501,6 +2553,7 @@ def _ismcts_coarse_tournament_run(args: argparse.Namespace) -> Path:
         "baseline": baseline,
         "candidate_catalog": catalog,
         "rules": GameRules.standard().as_dict(),
+        "card_pool": _card_pool_context(),
         "decks": list(deck_names),
         "utility_scale": "terminal +/-1; non-terminal tanh(evaluation / leaf_scale)",
         "budget_policy": "equal native search wall-clock budget; high iteration ceiling",
@@ -2619,6 +2672,7 @@ def _ismcts_refinement_tournament_run(args: argparse.Namespace) -> Path:
         "baseline": baseline,
         "candidate_catalog": catalog,
         "rules": GameRules.standard().as_dict(),
+        "card_pool": _card_pool_context(),
         "decks": list(deck_names),
         "utility_scale": "terminal +/-1; non-terminal tanh(evaluation / leaf_scale)",
         "budget_policy": "equal native search wall-clock budget; high iteration ceiling",
@@ -2694,6 +2748,7 @@ def _ismcts_refinement_tournament_run(args: argparse.Namespace) -> Path:
 
 def ismcts_tournament_run(args: argparse.Namespace) -> Path:
     """Dispatch the practical staged ISMCTS tuning workflow."""
+    _print_card_pool_notice()
     if args.design == "coarse":
         return _ismcts_coarse_tournament_run(args)
     if args.design == "refine":
@@ -2755,6 +2810,7 @@ def _ismcts_full_tournament_run(args: argparse.Namespace) -> Path:
         "baseline": baseline,
         "candidate_catalog": catalog,
         "rules": GameRules.standard().as_dict(),
+        "card_pool": _card_pool_context(),
         "decks": list(CANONICAL_DECK_PATHS),
         "utility_scale": "terminal +/-1; non-terminal tanh(evaluation / leaf_scale)",
         "budget_policy": "equal native search wall-clock budget; high iteration ceiling",
