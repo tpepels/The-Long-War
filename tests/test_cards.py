@@ -24,31 +24,51 @@ def test_canonical_card_pool_has_unique_ids_and_supported_types() -> None:
     ids = [card["id"] for card in data["cards"]]
     assert ids
     assert len(ids) == len(set(ids))
-    assert {card["type"] for card in data["cards"]} <= {
-        "force", "bond", "name", "narrative", "stratagem"
+    assert {card["type"] for card in data["cards"]} == {
+        "force",
+        "bond",
+        "name",
+        "hero",
+        "tactic",
+        "order",
+        "narrative",
+        "stratagem",
     }
 
 
-def test_every_card_has_world_classifications() -> None:
+def test_card_classifications_match_v2_family_grammar() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     for card in data["cards"]:
-        assert card["classes"]
+        assert isinstance(card["classes"], list)
         assert len(card["classes"]) == len(set(card["classes"]))
+        if card["type"] in {"force", "name", "hero"}:
+            assert card["classes"], card["id"]
 
 
 def test_names_and_heroes_are_unique() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     assert all(card["unique"] for card in cards_by_type(data, "name"))
-    heroes = [card for card in data["cards"] if card.get("hero")]
+    heroes = cards_by_type(data, "hero")
     assert heroes
-    assert all(card["type"] == "force" and card["unique"] for card in heroes)
+    assert all(card["unique"] for card in heroes)
+    assert all(set(card["modes"]) == {"force", "name"} for card in heroes)
 
 
-def test_narratives_have_specific_forms_and_public_ongoing_metadata() -> None:
+def test_narratives_and_orders_use_current_v2_family_grammar() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     narratives = cards_by_type(data, "narrative")
-    assert all(card["narrative_form"] in NARRATIVE_FORMS for card in narratives)
-    assert all(isinstance(card["ongoing"], bool) for card in narratives)
+    orders = cards_by_type(data, "order")
+    assert narratives and orders
+    assert all(
+        effect["timing"] in {"continuous", "action"}
+        for card in narratives
+        for effect in card.get("effects", [])
+    )
+    assert all(
+        effect["timing"] == "play" and effect["scope"] == "self"
+        for card in orders
+        for effect in card.get("effects", [])
+    )
 
 
 def test_card_catalogue_has_one_executable_mechanics_schema() -> None:
@@ -91,8 +111,8 @@ def test_active_decks_use_only_canonical_cards_and_current_minimum_rules() -> No
         validate_deck_definition(deck, cards)
 
 
-@pytest.mark.parametrize("value", [None, True, 0, 128, 1.5])
-def test_printed_command_cost_is_positive_native_safe_integer(value) -> None:
+@pytest.mark.parametrize("value", [None, True, -1, 128, 1.5])
+def test_printed_command_cost_is_nonnegative_native_safe_integer(value) -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     data["cards"][0]["command_cost"] = value
     with pytest.raises(ValueError, match="command_cost"):
@@ -123,24 +143,20 @@ def test_ordinary_new_card_can_reuse_existing_mechanics_without_catalogue_edits(
     validate_card_data(data)
 
 
-def test_card_capability_registry_is_compact_and_native_safe() -> None:
-    bits = list(CARD_CAPABILITY_BITS.values())
-    assert bits
-    assert len(bits) == len(set(bits))
-    assert len(bits) <= 64
-    assert all(bit > 0 and bit & (bit - 1) == 0 for bit in bits)
+def test_legacy_capability_registry_is_retired() -> None:
+    assert CARD_CAPABILITY_BITS == {}
 
 
-def test_every_compiled_capability_comes_from_the_shared_registry() -> None:
+def test_compiled_mechanics_use_v2_effect_schema_and_class_masks() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     for card in data["cards"]:
         compiled = compile_card_mechanics(card)
-        capabilities = compiled["_capabilities"]
-        assert set(capabilities) <= set(CARD_CAPABILITY_BITS)
-        assert compiled["_capability_bits"] == sum(
-            CARD_CAPABILITY_BITS[name]
-            for name in capabilities
-        )
+        assert compiled["_capabilities"] == ()
+        assert compiled["_capability_bits"] == 0
+        assert isinstance(compiled["_class_mask"], int)
+        assert isinstance(compiled["_reference_mask"], int)
+        assert compiled["effects"] == card["design_rules"]["effects"]
+        assert compiled["modes"] == card["design_rules"]["modes"]
 
 
 def test_cost_machine_rules_match_printed_minima_and_targets() -> None:
@@ -163,3 +179,44 @@ def test_cost_machine_rules_match_printed_minima_and_targets() -> None:
 def test_canonical_cards_have_no_engine_sync_migration_channel() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     assert all("engine_sync" not in card for card in data["cards"])
+
+
+def test_canonical_and_v2_catalogues_share_the_same_printed_pool() -> None:
+    canonical = load_card_file(ROOT / "cards" / "cards.json")
+    v2 = json.loads(
+        (ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8")
+    )
+    assert len(canonical["cards"]) == len(v2["cards"]) == 128
+
+    fields = (
+        "id",
+        "title",
+        "type",
+        "classes",
+        "references",
+        "command_cost",
+        "strength",
+        "strength_modifier",
+        "force_strength",
+        "name_strength_modifier",
+        "allowed_rows",
+        "bond_kind",
+        "effects",
+        "modes",
+        "text",
+        "design_tags",
+        "duration",
+    )
+
+    def printed(card):
+        return {
+            field: card.get(field)
+            for field in fields
+            if field in card
+        } | {"unique": bool(card.get("unique", False))}
+
+    canonical_by_id = {card["id"]: card for card in canonical["cards"]}
+    v2_by_id = {card["id"]: card for card in v2["cards"]}
+    assert canonical_by_id.keys() == v2_by_id.keys()
+    for card_id in canonical_by_id:
+        assert printed(canonical_by_id[card_id]) == printed(v2_by_id[card_id]), card_id
