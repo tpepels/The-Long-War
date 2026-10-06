@@ -68,6 +68,9 @@ class RenderedCard(HTMLParser):
             self.stack.pop()
 
     def handle_data(self, data: str) -> None:
+        # SVG <title> content is accessibility metadata, not visible card text.
+        if self.stack and self.stack[-1]["tag"] == "title":
+            return
         for element in self.stack:
             element["text"] += data
 
@@ -201,8 +204,8 @@ def test_physical_print_surfaces_share_v2_renderer_while_browser_play_stays_sepa
         assert "cards-v2.js" in source
         assert "v2-heraldry.js" in source
         assert "card-rules.js" not in source
-    assert "V2Cards.inspect" in text("web/cards.js")
-    assert "V2Cards.inspect" in text("web/playtest-kit.js")
+    assert "V2Cards?.inspect" in text("web/cards.js")
+    assert "V2Cards?.inspect" in text("web/playtest-kit.js")
 
 
 def test_browser_cards_always_reserve_the_properties_row() -> None:
