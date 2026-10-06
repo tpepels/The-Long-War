@@ -171,6 +171,15 @@ def test_shared_renderer_escapes_hostile_text_and_preserves_numeric_values() -> 
 def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
     decks = json.loads(text("cards/v2/playtest-decks.json"))["decks"]
     script = text("web/playtest-kit.js")
+    html = text("web/playtest-kit.html")
+    css = text("web/cards-v2.css")
+    assert 'id="mechanics-reference"' in html
+    assert "position_vocabulary" in script
+    assert "MOVE UP TO N" in script
+    assert "OUTMATCHED" in script
+    assert "TIRELESS" in script
+    assert "EXHAUSTION" in script
+    assert ".mechanics-reference" in css
     page = text("web/playtest-kit.html")
     assert decks
     assert 'data/cards-v2-redesign.json' in script
