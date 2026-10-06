@@ -246,6 +246,10 @@ CHECK_SCRIPT = r"""
 })();
 </script>
 """
+CHECK_SCRIPT = CHECK_SCRIPT.replace(
+    "__FORMATION_SLOT_COUNT__",
+    str(TOTAL_POSITION_COUNT),
+)
 
 
 def prepare_fixture(directory: Path) -> None:
