@@ -23,6 +23,8 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 - **directly behind** - the adjacent position in the same Front one rank toward Rear. A Rear-row Formation has no position directly behind.
 - **MOVE 1 / move one position** - move the Formation to one orthogonally adjacent active position: one Front left/right in the same rank, or one rank forward/back in the same Front. Never diagonal. The destination must be empty unless the card explicitly says to swap. Move is a card effect, not a Maneuver: it does not require the Formation to be Named, costs no Maneuver Command, and Exhaustion does not stop it.
 - **Move up to N positions** - make up to N legal one-position Moves, one at a time. Every intermediate destination must be legal and empty.
+- **SWAP** - exchange the complete contents of the two specified friendly positions. Both positions must contain a Formation unless the card says otherwise. Swap is a card effect, not a Maneuver: it costs no Maneuver Command and Exhaustion does not stop it.
+- **moves / moved** - a Formation counts as moving whenever it changes battlefield position by Maneuver, Move, or Swap, regardless of which player or effect caused the relocation. This is the event used by cards that react after a Formation moves.
 - **SUPPORT +N** - the friendly Formation directly ahead has +N Strength while the support effect is active.
 - **SUPPLY** - Bonds and Names played onto the friendly Formation directly ahead cost 1 less Command, to a minimum of 1.
 - **OUTMATCHED** - an opposing Formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This is only a local card condition; it does not decide the Front.
@@ -31,7 +33,9 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 - **EXHAUSTION** - after a Front is lost, every Force that player has in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its Exhaustion token leaves with it. Tied Fronts exhaust neither player.
 - **EXHAUSTED** as a timing label is a continuous state active while that Force has an Exhaustion token.
 - **FRONT / MIDDLE / REAR** as a timing label is a continuous positional state. The text is active only while that Formation occupies that rank.
-- Multiple active **SUPPORT +N** and **RESERVE +N** effects add together. Multiple active **SUPPLY** effects each reduce the cost by 1; apply all reductions, then apply the printed minimum.
+- Multiple active **SUPPORT +N** and **RESERVE +N** effects add together. Multiple active **SUPPLY** effects each reduce the cost by 1.
+- **Command modifiers** stack. Add all applicable increases, then apply all applicable reductions. If at least one applicable reduction explicitly says "minimum 0", the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.
+- Each **Tax marker** is separate. If the next card played satisfies more than one Tax marker, all matching increases apply and all matching "next card" markers are consumed. A marker with an expiry such as "before your next turn" expires when its own text says it does.
 
 Positional and Exhaustion text should normally be one short line. The rank, token, and relationship should carry the idea; Forces should not become paragraphs that need rereading every time Strength is counted.
 
