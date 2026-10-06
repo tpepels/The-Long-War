@@ -606,6 +606,9 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
     assert "add all applicable increases" in positions["command_modifiers"]
     assert "minimum 0" in positions["command_modifiers"]
     assert "all matching increases apply" in positions["tax_markers"]
+    assert "Battle-long Strength penalty" in positions["strength_marker"]
+    assert "does not include Exhaustion" in positions["temporary_negative_marker"]
+    assert "Tax marker" in positions["temporary_negative_marker"]
 
     grey = by_id["the-grey-riders"]
     assert grey["text"].startswith("TIRELESS")
