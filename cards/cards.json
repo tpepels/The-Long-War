@@ -761,7 +761,7 @@
             "limit": null,
             "memory": [],
             "op": "self_strength",
-            "amount": 2,
+            "amount": 1,
             "requires_friendly": "directly_behind"
           }
         ],
