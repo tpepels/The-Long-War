@@ -15,7 +15,7 @@ DATA = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf
 CARDS = DATA["cards"]
 DECK_DATA = json.loads((ROOT / "cards" / "v2" / "playtest-decks.json").read_text(encoding="utf-8"))
 DECKS = DECK_DATA["decks"]
-EXPECTED_COUNTS = {"force":30,"bond":24,"name":20,"hero":11,"tactic":14,"stratagem":11,"narrative":12}
+EXPECTED_COUNTS = {"force":30,"bond":24,"name":20,"hero":11,"tactic":14,"order":6,"stratagem":11,"narrative":12}
 
 
 def effects(card: dict) -> list[dict]:
@@ -31,7 +31,7 @@ def force_mode_effects(card: dict) -> list[dict]:
 
 
 def test_v2_pool_shape_and_decks() -> None:
-    assert len(CARDS) == 122
+    assert len(CARDS) == 128
     assert Counter(card["type"] for card in CARDS) == EXPECTED_COUNTS
     known = {card["id"]: card for card in CARDS}
     assert DECK_DATA["deck_size"] == 45
@@ -762,3 +762,21 @@ def test_value_model_documents_action_and_condition_costs() -> None:
     assert "MOBILE" in model
     assert "Zero-Command cards" in model
     assert "half of a standard turn" in model
+
+
+def test_orders_are_conditional_self_support_and_all_cards_are_decked() -> None:
+    orders = [card for card in CARDS if card["type"] == "order"]
+    assert len(orders) == 6
+    assert DATA["card_type_grammar"]["order"]["scope"] == "self"
+    assert "Unrestricted 0-Command Orders are not allowed" in DATA["card_type_grammar"]["order"]["zero_cost_rule"]
+    zero_orders = [card for card in orders if card["command_cost"] == 0]
+    assert {card["id"] for card in zero_orders} == {"fresh-orders","catch-your-breath","re-form-the-line","bind-the-wound","send-a-runner"}
+    for card in zero_orders:
+        assert card.get("references"), card["id"]
+        assert card["effects"][0]["scope"] == "self"
+    runner = next(card for card in orders if card["id"] == "send-a-runner")
+    assert "Rear row" in runner["text"] and "Draw 2 cards, then discard 1 card" in runner["text"]
+    stock = next(card for card in orders if card["id"] == "take-stock")
+    assert stock["command_cost"] == 1 and "top 3 cards" in stock["text"]
+    decked = {item["id"] for deck in DECKS for item in deck["cards"]}
+    assert decked == {card["id"] for card in CARDS}
