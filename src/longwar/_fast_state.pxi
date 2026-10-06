@@ -14,6 +14,7 @@ cdef class FastState:
     cdef int16_t temporary[SLOT_COUNT]
     cdef uint8_t negative_one_markers[SLOT_COUNT]
     cdef uint8_t negative_two_markers[SLOT_COUNT]
+    cdef uint8_t negative_three_markers[SLOT_COUNT]
     cdef uint16_t suppression_mask[SLOT_COUNT]
     cdef uint8_t force_ability_used[SLOT_COUNT]
     cdef uint8_t bond_ability_used[SLOT_COUNT]
@@ -159,6 +160,7 @@ cdef class FastState:
         memset(self.temporary, 0, sizeof(self.temporary))
         memset(self.negative_one_markers, 0, sizeof(self.negative_one_markers))
         memset(self.negative_two_markers, 0, sizeof(self.negative_two_markers))
+        memset(self.negative_three_markers, 0, sizeof(self.negative_three_markers))
         memset(self.suppression_mask, 0, sizeof(self.suppression_mask))
         memset(self.force_ability_used, 0, sizeof(self.force_ability_used))
         memset(self.bond_ability_used, 0, sizeof(self.bond_ability_used))
