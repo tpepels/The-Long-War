@@ -143,6 +143,23 @@ def test_every_compiled_capability_comes_from_the_shared_registry() -> None:
         )
 
 
+def test_cost_machine_rules_match_printed_minima_and_targets() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    cards = {card["id"]: card for card in data["cards"]}
+
+    iven = cards["iven"]["design_rules"]["effects"][1]
+    assert iven["op"] == "global_discount"
+    assert iven["minimum"] == 0
+
+    salt_road = cards["the-salt-road-fleet"]["design_rules"]["effects"][0]
+    assert salt_road["op"] == "front_tactic_discount"
+    assert salt_road["minimum"] == 0
+
+    alda = cards["alda-keeper-of-the-ford"]["design_rules"]["modes"]["force"][0]
+    assert alda["op"] == "tactic_tax"
+    assert alda["target"] == "self_or_directly_behind"
+
+
 def test_canonical_cards_have_no_engine_sync_migration_channel() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     assert all("engine_sync" not in card for card in data["cards"])
