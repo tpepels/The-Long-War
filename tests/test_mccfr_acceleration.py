@@ -70,6 +70,18 @@ def test_fast_information_key_preserves_exported_id() -> None:
     assert information_set_id(state, 1) == serialized_information_set_id(state, 1)
 
 
+def test_information_set_id_distinguishes_public_exhaustion() -> None:
+    _engine, state = make_engine_and_state()
+    slot = state.slot(0, Position(Front.SECOND, Rank.MIDDLE))
+    slot.force = "the-fifty-men"
+
+    mobile = information_set_id(state, 0)
+    slot.exhausted = True
+
+    assert information_set_id(state, 0) != mobile
+    assert information_set_id(state, 0) == serialized_information_set_id(state, 0)
+
+
 def _run_kuhn(traverse, *, seed: int = 7331, rounds: int = 80):
     rng = random.Random(seed)
     nodes = {}
