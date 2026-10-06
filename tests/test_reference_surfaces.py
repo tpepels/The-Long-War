@@ -316,8 +316,8 @@ def test_story_schema_is_fully_removed_from_active_surfaces() -> None:
         "web/play.js",
         "web/play.css",
         "web/style.css",
-        "web/print-cards.js",
-        "web/print-cards.css",
+        "web/cards-v2.js",
+        "web/cards-v2.css",
         "web/balance.js",
         "web/balance.html",
     )
