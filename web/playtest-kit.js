@@ -1,68 +1,46 @@
-function esc(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+function esc(value){
+  return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 }
-
-function shortDeckLabel(name, index) {
-  const primary = String(name || "").split(" / ")[0].trim();
-  return primary || "Deck " + (index + 1);
-}
-
-function chunk(items, size) {
-  const chunks = [];
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size));
-  }
+function chunk(items,size){
+  const chunks=[];
+  for(let index=0;index<items.length;index+=size)chunks.push(items.slice(index,index+size));
   return chunks;
 }
-
-async function main() {
-  const [cardsResponse, decksResponse] = await Promise.all([
-    fetch("data/cards.json"),
-    fetch("data/reference-decks.json"),
+function expandDeck(deck){
+  return (deck.cards||[]).flatMap(entry=>Array.from({length:Number(entry.copies)||0},()=>entry.id));
+}
+function scheduleInspect(root){
+  const run=()=>window.V2Cards?.inspect(root);
+  requestAnimationFrame(run);
+  if(document.fonts?.ready)document.fonts.ready.then(run);
+}
+async function main(){
+  const [cardsResponse,decksResponse]=await Promise.all([
+    fetch("data/cards-v2-redesign.json",{cache:"no-cache"}),
+    fetch("data/v2-playtest-decks.json",{cache:"no-cache"}),
   ]);
-  if (!cardsResponse.ok || !decksResponse.ok) {
-    throw new Error("Could not load reference deck data");
-  }
-
-  const cardData = await cardsResponse.json();
-  const deckData = await decksResponse.json();
-  const decks = Array.isArray(deckData.decks) ? deckData.decks : [];
-  if (!decks.length) throw new Error("No reference decks were published");
-
-  const index = Object.fromEntries(cardData.cards.map((card) => [card.id, card]));
-  for (const deck of decks) {
-    const missing = deck.cards.filter((id) => !index[id]);
-    if (missing.length) {
-      throw new Error(deck.name + " contains unknown cards: " + missing.join(", "));
-    }
-  }
-
-  const root = document.getElementById("playtest-decks");
-  root.innerHTML = decks.map((deck, deckIndex) => {
-    const label = shortDeckLabel(deck.name, deckIndex);
-    const sheets = chunk(deck.cards, 9);
-    return '<section class="print-deck" data-deck-file="' + esc(deck.file) + '">' +
-      '<header class="deck-sheet-heading"><strong>The Long War · reference deck ' +
-      (deckIndex + 1) + ' of ' + decks.length + '</strong>' +
-      '<span>' + esc(deck.name) + ' · ' + deck.cards.length + ' cards</span></header>' +
-      sheets.map((sheet, sheetIndex) =>
-        '<div class="deck-card-grid card-sheet" data-sheet="' + (sheetIndex + 1) + '">' +
-        sheet.map((id) => window.PrintCards.markup(index[id], label)).join("") +
+  if(!cardsResponse.ok||!decksResponse.ok)throw new Error("Could not load current playtest card data");
+  const cards=(await cardsResponse.json()).cards||[];
+  const decks=(await decksResponse.json()).decks||[];
+  if(!decks.length)throw new Error("No V2 playtest decks were published");
+  const index=new Map(cards.map(card=>[card.id,card]));
+  const root=document.getElementById("playtest-decks");
+  root.innerHTML=decks.map((deck,deckIndex)=>{
+    const expanded=expandDeck(deck);
+    const missing=[...new Set(expanded.filter(id=>!index.has(id)))];
+    if(missing.length)throw new Error(deck.title+" contains unknown cards: "+missing.join(", "));
+    return '<section class="print-deck" data-deck-id="'+esc(deck.id)+'">'+
+      '<header class="deck-sheet-heading"><strong>The Long War · playtest deck '+(deckIndex+1)+' of '+decks.length+'</strong>'+
+      '<span>'+esc(deck.title)+' · '+expanded.length+' cards · pair '+esc(deck.pair||"—")+'</span></header>'+
+      chunk(expanded,8).map((sheet,sheetIndex)=>
+        '<div class="deck-card-grid print-sheet" data-sheet="'+(sheetIndex+1)+'">'+
+        sheet.map(id=>window.V2Cards.cardArticle(index.get(id),"print-card deck-card")).join("")+
         '</div>'
-      ).join("") +
+      ).join("")+
       '</section>';
   }).join("");
-
-  const totalCards = decks.reduce((total, deck) => total + deck.cards.length, 0);
-  document.getElementById("kit-count").textContent =
-    decks.length + " reference decks · " + totalCards + " cards";
-  window.CardLayoutGuard?.schedule(root);
+  const total=decks.reduce((sum,deck)=>sum+expandDeck(deck).length,0);
+  document.getElementById("kit-count").textContent=decks.length+" playtest decks · "+total+" cards";
+  scheduleInspect(root);
 }
-
-main().catch((error) => {
-  document.getElementById("playtest-decks").textContent = error.message;
-});
+main().catch(error=>{document.getElementById("playtest-decks").textContent=error.message});

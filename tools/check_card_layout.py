@@ -129,15 +129,16 @@ def browser_path() -> str | None:
 
 
 def layout_document(cards: list[dict], browser_markup: str | None = None) -> str:
-    """Exercise the shipped print renderer and CSS, including catalogue printing."""
-    style_files = ("style.css", "play.css") if browser_markup is not None else ("print-cards.css",)
+    """Exercise the browser play-card surface; physical print uses V2Cards."""
+    if browser_markup is None:
+        raise ValueError("Legacy print renderer was removed; use check_v2_layout for physical cards")
     styles = "\n".join(
         "<style>" + (ROOT / "web" / name).read_text(encoding="utf-8") + "</style>"
-        for name in style_files
+        for name in ("style.css", "play.css")
     )
     scripts = "\n".join(
         "<script>" + (ROOT / "web" / name).read_text(encoding="utf-8") + "</script>"
-        for name in ("card-rules.js", "print-cards.js", "card-layout-guard.js")
+        for name in ("card-rules.js", "card-layout-guard.js")
     )
     # A card's text must not terminate the inline JSON script element.
     card_data = json.dumps(cards).replace("<", "\\u003c")
@@ -461,7 +462,7 @@ def main() -> None:
     parser.add_argument("--pdf", type=Path, help="Also export the full print catalogue to this PDF path.")
     parser.add_argument(
         "--surface", choices=("all", "print", "browser", "v2"), default="all",
-        help="Card surface to validate (default: all legacy surfaces; v2 is separate).",
+        help="Card surface to validate (print and v2 both use the shared V2 physical renderer).",
     )
     args = parser.parse_args()
     if args.pdf and args.surface == "browser":
@@ -475,40 +476,33 @@ def main() -> None:
         return
     if args.browser and not Path(browser).is_file():
         raise SystemExit(f"Browser executable does not exist: {browser}")
-    if args.surface == "v2":
-        check_v2_layout(browser, args.pdf.expanduser().resolve() if args.pdf else None)
+    pdf_path = args.pdf.expanduser().resolve() if args.pdf else None
+    if args.surface in ("print", "v2"):
+        check_v2_layout(browser, pdf_path)
         return
 
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))["cards"]
     batch_size = 8
-    cases: list[tuple[str, list[dict], str | None]] = []
-    if args.surface in ("all", "browser"):
-        cases.append((
+    cases: list[tuple[str, list[dict], str | None]] = [
+        (
             "browser-rotated", cards[:batch_size],
             '<section class="layout-test layout-test-rotated">'
             + "".join(play_card(card) for card in cards[:batch_size]) + "</section>",
-        ))
+        )
+    ]
     for start in range(0, len(cards), batch_size):
         batch = cards[start : start + batch_size]
         number = start // batch_size + 1
-        if args.surface in ("all", "browser"):
-            cases.append((
-                f"browser-{number}", batch, '<section class="layout-test">' +
-                "".join(play_card(card) for card in batch) + "</section>",
-            ))
-        if args.surface in ("all", "print"):
-            cases.append((f"print-{number}", batch, None))
-    pdf_path = args.pdf.expanduser().resolve() if args.pdf else None
-    if pdf_path is not None:
-        pdf_path.parent.mkdir(parents=True, exist_ok=True)
-        cases.append(("print-catalogue", cards, None))
+        cases.append((
+            f"browser-{number}", batch, '<section class="layout-test">' +
+            "".join(play_card(card) for card in batch) + "</section>",
+        ))
 
     for label, batch, markup in cases:
         with tempfile.TemporaryDirectory(prefix=f"longwar-layout-{label}-") as temp_dir:
             path = Path(temp_dir) / f"card-layout-{label}.html"
             path.write_text(layout_document(batch, markup), encoding="utf-8")
-            result = run_browser(browser, path, pdf_path if label == "print-catalogue" else None)
-
+            result = run_browser(browser, path)
         if result.returncode != 0:
             raise SystemExit(
                 f"Headless browser failed during {label} card layout validation:\n" +
@@ -519,12 +513,10 @@ def main() -> None:
             details = html.unescape(match.group(1)) if match else "unknown layout failure"
             raise SystemExit(f"{label.title()} card layout failure detected: {details}")
 
-    surfaces = "browser and print" if args.surface == "all" else args.surface
-    print(f"PASS: {len(cards)} cards fit their regions on {surfaces} surfaces")
-    if pdf_path is not None:
-        if not pdf_path.is_file() or pdf_path.stat().st_size == 0:
-            raise SystemExit(f"Browser did not create the requested PDF: {pdf_path}")
-        print(f"PDF: {pdf_path}")
+    print(f"PASS: {len(cards)} browser play cards fit their fixed regions")
+    if args.surface == "all":
+        check_v2_layout(browser, pdf_path)
+
 
 
 if __name__ == "__main__":

@@ -26,16 +26,20 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     assert "card-density-" not in css
 
 
-def test_print_pages_load_the_shared_renderer_and_styles() -> None:
+def test_print_pages_load_the_shared_v2_renderer_and_styles() -> None:
     for page, renderer in (
         ("web/cards.html", "cards.js"),
         ("web/playtest-kit.html", "playtest-kit.js"),
     ):
         source = text(page)
-        assert 'href="print-cards.css"' in source
-        assert source.index('src="card-rules.js"') < source.index('src="print-cards.js"')
-        assert source.index('src="print-cards.js"') < source.index(f'src="{renderer}"')
-        assert "PrintCards.markup(" in text("web/" + renderer)
+        assert 'href="cards-v2.css' in source
+        assert source.index('src="v2-heraldry.js') < source.index('src="cards-v2.js')
+        assert source.index('src="cards-v2.js') < source.index(f'src="{renderer}')
+        assert "V2Cards.cardArticle" in text("web/" + renderer)
+        assert "print-cards.css" not in source
+        assert "print-cards.js" not in source
+    assert not (ROOT / "web" / "print-cards.css").exists()
+    assert not (ROOT / "web" / "print-cards.js").exists()
 
 
 class RenderedCard(HTMLParser):
@@ -80,22 +84,30 @@ class RenderedCard(HTMLParser):
         return elements[0]
 
 
-def render_print_cards(cards: list[dict], deck_label: str | None = None) -> list[RenderedCard]:
+def v2_effects(card: dict) -> list[dict]:
+    if card["type"] == "hero":
+        return [
+            *card.get("modes", {}).get("force", {}).get("effects", []),
+            *card.get("modes", {}).get("name", {}).get("effects", []),
+        ]
+    return card.get("effects", [])
+
+
+def render_print_cards(cards: list[dict]) -> list[RenderedCard]:
     node = shutil.which("node")
     if node is None:
-        pytest.skip("Node.js is required to exercise the shared print renderer")
+        pytest.skip("Node.js is required to exercise the shared V2 renderer")
     script = """
 const fs = require("node:fs");
 global.window = {};
-eval(fs.readFileSync("web/protocol.generated.js", "utf8"));
-eval(fs.readFileSync("web/card-rules.js", "utf8"));
-eval(fs.readFileSync("web/print-cards.js", "utf8"));
+eval(fs.readFileSync("web/v2-heraldry.js", "utf8"));
+eval(fs.readFileSync("web/cards-v2.js", "utf8"));
 const input = JSON.parse(fs.readFileSync(0, "utf8"));
-process.stdout.write(JSON.stringify(input.cards.map(card => window.PrintCards.markup(card, input.deckLabel))));
+process.stdout.write(JSON.stringify(input.cards.map(card => window.V2Cards.cardArticle(card, "print-card"))));
 """
     result = subprocess.run(
         [node, "-e", script],
-        input=json.dumps({"cards": cards, "deckLabel": deck_label}),
+        input=json.dumps({"cards": cards}),
         text=True,
         capture_output=True,
         cwd=ROOT,
@@ -106,136 +118,91 @@ process.stdout.write(JSON.stringify(input.cards.map(card => window.PrintCards.ma
     return [RenderedCard(markup) for markup in json.loads(result.stdout)]
 
 
-def test_print_renderer_preserves_catalogue_content_and_hero_modes() -> None:
-    cards = json.loads(text("cards/cards.json"))["cards"]
+def test_print_renderer_preserves_current_v2_content_and_modes() -> None:
+    cards = json.loads(text("cards/v2/cards.json"))["cards"]
     rendered = render_print_cards(cards)
     for card, output in zip(cards, rendered, strict=True):
-        assert output.one("game-card")["attrs"]["data-card-id"] == card["id"]
+        assert output.one("v2-card")["attrs"]["data-card-id"] == card["id"]
         assert output.one("card-title")["text"] == card["title"]
-        assert output.one("card-id")["text"] == card["id"]
-        assert output.one("card-version")["text"] == "vdev"
-        assert bool(output.all("unique")) == bool(card.get("unique"))
-        properties = output.one("card-properties")["text"].lower()
-        for value in card.get("classes", []):
-            if value != "hero":
-                assert value.replace("-", " ").replace("_", " ") in properties
-        if card["type"] == "force" and card.get("role"):
-            assert output.one("card-role")["text"].lower() == card["role"].replace("-", " ").replace("_", " ")
-        region_classes = ["card-meta", "card-title"]
-        if card.get("hero") or isinstance(card.get("strength"), int):
-            region_classes.append("card-stats")
-        region_classes.extend(["card-properties", "card-rule", "card-footer"])
-        regions = [output.one(name) for name in region_classes]
-        assert [output.elements.index(region) for region in regions] == sorted(
-            output.elements.index(region) for region in regions
-        )
-        for block, rendered_block in zip(card["rule_blocks"], output.all("rule-block"), strict=bool(card["rule_blocks"])):
-            assert block["text"].replace("*", "") in rendered_block["text"]
-            assert block["label"] in rendered_block["text"]
-        if card.get("hero"):
-            modes = output.all("hero-mode")
-            assert len(modes) == 2
-            assert "Force" in modes[0]["text"]
-            assert "Name" in modes[1]["text"]
-            values = output.all("stat-value")
-            for mode, expected in zip(modes, (card["strength"], card["hero_name_strength"]), strict=True):
-                assert [value["text"] for value in values if mode in value["ancestors"]] == [str(expected)]
-        elif isinstance(card.get("strength"), int):
-            assert output.one("card-stats") in output.one("strength")["ancestors"]
-            assert output.one("strength")["text"] == str(card["strength"])
-        else:
-            assert not output.all("strength")
-        if isinstance(card.get("command_cost"), int):
-            assert output.one("card-meta") in output.one("command-cost")["ancestors"]
-            assert output.one("command-cost") in output.one("command-seal")["ancestors"]
-            assert re.findall(r"-?\d+", output.one("command-cost")["text"]) == [str(card["command_cost"])]
-        else:
-            assert not output.all("command-cost")
-        if not card["rule_blocks"] and not card.get("text"):
-            assert not output.all("rule-block")
-            assert "No special rules" not in output.one("card-rule")["text"]
+        assert output.one("footer-id")["text"] == card["id"]
+        assert output.one("footer-version")["text"] == "vdev"
+        assert bool(output.one("footer-mark")["text"].strip()) == bool(card.get("unique"))
+        assert [node["text"] for node in output.all("effect-text")] == [
+            effect["text"] for effect in v2_effects(card)
+        ]
+        formation = card["type"] in {"force", "bond", "name", "hero"}
+        assert bool(output.all("stack-edge")) is formation
+        assert bool(output.all("event-crown")) is (not formation)
+        if card["type"] == "hero":
+            headings = [node["text"].strip() for node in output.all("mode-heading")]
+            assert headings == ["Force", "Name"]
+        assert output.one("cost-gem")["text"] == str(card["command_cost"])
 
 
-def test_print_renderer_keeps_zero_negative_values_and_escapes_content() -> None:
+def test_shared_renderer_escapes_hostile_text_and_preserves_numeric_values() -> None:
     hostile = '<img src=x onerror="bad()"> & </script>'
     cards = [
         {
             "id": hostile, "title": hostile, "type": "force", "strength": -1,
-            "command_cost": 0, "role": "swordsman", "classes": ["human"],
-            "unique": True,
-            "rule_blocks": [{"kind": "effect", "label": hostile, "text": "**Strength** " + hostile}],
+            "command_cost": 0, "classes": ["human"], "unique": True,
+            "effects": [{"timing": "action", "text": "Strength " + hostile}],
         },
         {
-            "id": "zero-hero", "title": "Zero Hero", "type": "force", "hero": True,
-            "strength": 0, "hero_name_strength": -2, "command_cost": 0,
-            "classes": ["hero"], "rule_blocks": [],
+            "id": "zero-hero", "title": "Zero Hero", "type": "hero",
+            "force_strength": 0, "name_strength_modifier": -2, "command_cost": 0,
+            "classes": ["human"], "unique": False,
+            "modes": {"force": {"effects": []}, "name": {"effects": []}},
         },
     ]
-    deck_label = "Deck " + hostile
-    first, hero = render_print_cards(cards, deck_label)
+    first, hero = render_print_cards(cards)
     assert first.one("card-title")["text"] == hostile
-    assert first.one("game-card")["attrs"]["data-card-id"] == hostile
-    assert first.one("card-id")["text"] == deck_label
-    assert first.one("rule-label")["text"] == hostile
-    assert first.one("rule-text")["text"] == "Strength " + hostile
-    assert deck_label in first.one("card-footer")["text"]
+    assert first.one("v2-card")["attrs"]["data-card-id"] == hostile
+    assert first.one("effect-text")["text"] == "Strength " + hostile
     assert not any(element["tag"] in {"img", "script"} for element in first.elements)
-    assert re.findall(r"-?\d+", first.one("command-cost")["text"]) == ["0"]
-    assert first.one("strength")["text"] == "-1"
-    assert [value["text"] for value in hero.all("stat-value") if hero.one("card-stats") in value["ancestors"]] == ["0", "-2"]
-    assert re.findall(r"-?\d+", hero.one("command-cost")["text"]) == ["0"]
+    assert first.one("cost-gem")["text"] == "0"
+    assert first.one("strength-mark")["text"].strip().endswith("-1")
+    assert [value["text"].strip() for value in hero.all("hero-stat")] == ["0", "-2"]
+    assert hero.one("cost-gem")["text"] == "0"
 
 
-def test_print_kit_publishes_and_renders_reference_decks() -> None:
-    from longwar.reference_decks import DECK_CATALOG
-
-    builder = text("tools/build_pages.py")
+def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
+    decks = json.loads(text("cards/v2/playtest-decks.json"))["decks"]
     script = text("web/playtest-kit.js")
     page = text("web/playtest-kit.html")
-
-    assert DECK_CATALOG
-    assert "REFERENCE_DECKS" in builder
-    assert 'data/reference-decks.json' in script
-    assert 'decks.map(' in script
-    assert 'window.PrintCards.markup(index[id], label)' in script
-    assert "Print all reference decks" in page
-    assert "chunk(deck.cards, 9)" in script
-    assert 'class="deck-card-grid card-sheet"' in script
-    assert 'data/reference-deck.json' not in builder
-    assert 'data/reference-deck.json' not in script
-    assert "chunk(cards, 9)" in text("web/cards.js")
-    assert 'class="card-sheet"' in text("web/cards.js")
+    assert decks
+    assert 'data/cards-v2-redesign.json' in script
+    assert 'data/v2-playtest-decks.json' in script
+    assert "function expandDeck(deck)" in script
+    assert "window.V2Cards.cardArticle" in script
+    assert "chunk(expanded,8)" in script
+    assert "Print all playtest decks" in page
+    assert "chunk(cards,8)" in text("web/cards.js")
+    assert 'class="print-sheet card-sheet"' in text("web/cards.js")
 
 
-def test_print_card_sheets_fit_inside_a4_with_tolerance() -> None:
-    css = text("web/print-cards.css")
-    assert "@page cards { size: A4 portrait; margin: 12mm 8mm 10mm; }" in css
-    assert "width: 193mm;" in css
-    assert "height: 272mm;" in css
-    assert "grid-template-columns: repeat(3, 63mm);" in css
-    assert "grid-auto-rows: 88mm;" in css
-    assert "gap: 4mm 2mm;" in css
-    assert "break-after: page;" in css
-    assert "page-break-after: always;" in css
-    assert "break-inside: avoid-page;" in css
-    assert "overflow: hidden;" in css
-    assert "width: 210mm;" not in css[css.index("@media print"):]
-    assert "height: 297mm;" not in css[css.index("@media print"):]
-
-    # The 3x3 grid is smaller than the printable content box in both axes.
-    assert 3 * 63 + 2 * 2 == 193
-    assert 3 * 88 + 2 * 4 == 272
-    assert 193 < 210 - 2 * 8
-    assert 272 < 297 - 12 - 10
+def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
+    css = text("web/cards-v2.css")
+    assert "@page v2cards{size:A4 landscape;margin:7mm 8mm}" in css
+    assert "width:281mm;height:196mm" in css
+    assert "grid-template-columns:repeat(4,68mm)" in css
+    assert "grid-template-rows:repeat(2,96mm)" in css
+    assert "gap:4mm 3mm" in css
+    assert "break-after:page" in css
+    assert 4 * 68 + 3 * 3 == 281
+    assert 2 * 96 + 4 == 196
+    assert 281 == 297 - 2 * 8
+    assert 196 == 210 - 2 * 7
 
 
-def test_semantic_rule_renderer_is_shared_by_all_card_surfaces() -> None:
-    helper = text("web/card-rules.js")
-    assert "rule-block rule-" in helper
-    assert "card.rule_blocks" in helper
-
-    for page in ("web/play.html", "web/cards.html", "web/playtest-kit.html"):
-        assert "card-rules.js" in text(page)
+def test_physical_print_surfaces_share_v2_renderer_while_browser_play_stays_separate() -> None:
+    assert "card-rules.js" in text("web/play.html")
+    for page in ("web/cards.html", "web/playtest-kit.html"):
+        source = text(page)
+        assert "cards-v2.js" in source
+        assert "v2-heraldry.js" in source
+        assert "card-rules.js" not in source
+    assert "V2Cards.inspect" in text("web/cards.js")
+    assert "V2Cards.inspect" in text("web/playtest-kit.js")
 
 
 def test_browser_cards_always_reserve_the_properties_row() -> None:
@@ -245,36 +212,29 @@ def test_browser_cards_always_reserve_the_properties_row() -> None:
     assert "data-card-id=" in js
 
 
-def test_card_pages_load_runtime_overflow_guard() -> None:
-    for page in ("web/play.html", "web/cards.html", "web/playtest-kit.html"):
-        assert "card-layout-guard.js" in text(page)
-
+def test_runtime_overflow_checks_match_each_surface() -> None:
+    assert "card-layout-guard.js" in text("web/play.html")
+    assert "card-layout-guard.js" not in text("web/cards.html")
+    assert "card-layout-guard.js" not in text("web/playtest-kit.html")
     guard = text("web/card-layout-guard.js")
     assert "scrollHeight > element.clientHeight" in guard
-    assert "scrollWidth > element.clientWidth" in guard
     assert "layout-overflow" in guard
-    assert "-overlap" in guard
-    assert "-outside" in guard
-
-
+    assert "function inspect(root=document)" in text("web/cards-v2.js")
 
 
 def test_print_build_version_is_stamped_everywhere() -> None:
     builder = text("tools/build_pages.py")
-    renderer = text("web/print-cards.js")
-    card_css = text("web/print-cards.css")
+    renderer = text("web/cards-v2.js")
+    card_css = text("web/cards-v2.css")
     site_css = text("web/style.css")
-
     assert "GITHUB_SHA" in builder
     assert "PRINTABLE_PAGES" in builder
     assert 'name="lw-build-version"' in builder
     assert 'class="print-version"' in builder
     for page in ("cards.html", "playtest-kit.html", "rulebook.html", "playmat.html", "tokens.html"):
         assert f'"{page}"' in builder
-
     assert 'meta[name="lw-build-version"]' in renderer
-    assert "card-version" in renderer
-    assert "v' + esc(BUILD_VERSION)" in renderer
+    assert "footer-version" in renderer
     assert ".print-version" in card_css
     assert ".print-version" in site_css
 
