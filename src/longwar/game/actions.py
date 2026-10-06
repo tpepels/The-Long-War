@@ -101,6 +101,7 @@ class EffectChoice:
     destination: BoardTarget | None = None
     card_id: str | None = None
     front: Front | None = None
+    option: str | None = None
     skip: bool = False
 
 
@@ -190,6 +191,8 @@ def action_key(action: object) -> str:
             )
         if action.front is not None:
             key += f":{ActionKeyToken.FRONT.value}:{int(action.front)}"
+        if action.option is not None:
+            key += f":{ActionKeyToken.OPTION.value}:{action.option}"
         return key
     if isinstance(action, Maneuver):
         return (
@@ -338,6 +341,7 @@ def action_from_key(key: str) -> object:
         destination: BoardTarget | None = None
         card_id: str | None = None
         front: Front | None = None
+        option: str | None = None
         index = 2
         while index < len(parts):
             label = parts[index]
@@ -356,6 +360,8 @@ def action_from_key(key: str) -> object:
                     destination = target
             elif label == ActionKeyToken.FRONT:
                 front = Front(int(value))
+            elif label == ActionKeyToken.OPTION:
+                option = value
             else:
                 raise ValueError(f"Unknown EffectChoice field: {label}")
             index += 2
@@ -365,6 +371,7 @@ def action_from_key(key: str) -> object:
             destination=destination,
             card_id=card_id,
             front=front,
+            option=option,
         )
     if parts[0] == ActionKeyToken.FORCE:
         return PlayForce(parts[1], _position(parts[2], parts[3]))
