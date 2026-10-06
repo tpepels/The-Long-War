@@ -1,6 +1,6 @@
 # V2 card catalogue
 
-122-card design/playtest proposal. The canonical engine pool remains separate.
+128-card design/playtest proposal. The canonical engine pool remains separate.
 
 ## Forces
 
@@ -125,6 +125,19 @@
 | **The Scouts Found the Gap** | Scout | 1 | - | PLAY - Choose one of your Scouts. Reveal one opposing face-down Stratagem in its Front or an adjacent Front. Its owner returns it to hand or pays 1 Command to set it face-down again. |
 | **The Stores Were Taken** | Raider | 1 | - | PLAY - Choose one opposing prepared Bond or prepared Name in a Front containing one of your Raiders. Its owner pays 2 Command or returns it to hand. |
 | **The Line Was Baited** | Skirmisher · Guard · Spearman | 1 | - | PLAY - Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Its formation gets -2 Strength this Battle. |
+
+## Orders
+
+Orders are immediate self-support cards. They consume the normal card-play Action, resolve, then go to the discard pile. Zero-Command Orders are always conditional.
+
+| Card | Involves | Command | Strength | Mechanics |
+|---|---|---:|---:|---|
+| **Fresh Orders** | Captain · King | 0 | - | PLAY - Choose one of your Captains or Kings. Draw 1 card. |
+| **Catch Your Breath** | Healer · Steward | 0 | - | PLAY - Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion. |
+| **Re-form the Line** | Captain | 0 | - | PLAY - Choose a Front containing one of your Captains. SWAP two orthogonally adjacent friendly formations in that Front. |
+| **Bind the Wound** | Healer | 0 | - | PLAY - Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front. |
+| **Send a Runner** | Scout | 0 | - | PLAY - Choose one of your Scouts in the Rear row. Draw 2 cards, then discard 1 card. |
+| **Take Stock** | Steward · Stronghold | 1 | - | PLAY - Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order. |
 
 ## Stratagems
 
