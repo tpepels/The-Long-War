@@ -6,50 +6,59 @@ The pool is evaluated on two independent axes: classification depth and mechanic
 
 | Mechanical family | Designs |
 |---|---:|
-| Marker State | 64 |
 | Strength | 38 |
-| Action Engine | 36 |
-| Command | 36 |
-| Classification Synergy | 35 |
-| Named Payoff | 31 |
-| Formation Building | 30 |
+| Marker State | 37 |
+| Named Payoff | 34 |
+| Command | 33 |
+| Classification Synergy | 30 |
+| Formation Building | 27 |
+| Action Engine | 18 |
 | Persistent State | 18 |
-| Command Recovery | 17 |
-| Protection | 16 |
-| Suppression | 14 |
-| Information | 14 |
+| Command Recovery | 15 |
+| Play Effect | 15 |
+| Positional Support | 15 |
 | Card Flow | 14 |
 | Hostile Interaction | 14 |
+| Information | 14 |
+| Protection | 14 |
 | Army Support | 12 |
 | Hidden Plan | 11 |
-| Reaction | 9 |
-| Movement | 9 |
-| Prepared Cards | 8 |
-| Tax | 8 |
-| Baseline | 7 |
+| Movement | 11 |
+| Suppression | 10 |
+| Tax | 10 |
+| Exhaustion | 8 |
+| Baseline | 6 |
+| Prepared Cards | 6 |
+| Disruption | 3 |
+| Outmatched | 2 |
+| Reserve | 2 |
 
 ## Timing coverage
 
 | Timing | Effects |
 |---|---:|
-| Action | 38 |
+| Play | 40 |
 | Becomes Named | 31 |
-| Play | 25 |
+| Action | 21 |
+| Bonded | 16 |
 | Continuous | 15 |
-| Bonded | 13 |
 | Hidden | 11 |
-| Reaction | 9 |
 | Trigger | 8 |
-| While Named | 5 |
+| While Named | 7 |
+| Front | 4 |
+| Rear | 2 |
+| Exhausted | 1 |
+| Middle | 1 |
+| Tireless | 1 |
 
-There are **0 RESOLUTION effects** and **0 bare 1/BATTLE timings** by design.
+There are **0 RESOLUTION effects**, **0 bare 1/BATTLE timings**, and **0 Bond ACTION/REACTION effects** by design.
 
 ## Physical-state pressure
 
 | Representation | Effects |
 |---|---:|
-| Used Marker | 47 |
-| Effect Marker | 20 |
+| Used Marker | 21 |
+| Effect Marker | 19 |
 | Face Up Source | 16 |
 | Face Down Source | 11 |
 | Front Marker | 9 |
@@ -78,14 +87,16 @@ There are **0 RESOLUTION effects** and **0 bare 1/BATTLE timings** by design.
 | **Builder** | Role | 2 | 0 |
 | **Heir** | Rank | 1 | 1 |
 
-## Playtest focus after the fake-choice audit
+## Playtest focus after the buried-effect audit
 
-Record whether ACTION/REACTION limits create actual decisions rather than bookkeeping. In particular:
+The physical stack should now carry almost no hidden mental load.
 
-- did a player decline or delay a REACTION because a better target might appear?
-- was spending an Action on a Force/Bond ability worth giving up another Action?
-- did any continuous discount become oppressive now that "first each Battle/turn" tracking is gone?
-- did any former automatic +Strength or free filtering effect lose necessary tactical texture after simplification?
-- were any exposed ACTION/REACTION reminders too dense to scan without lifting the stack?
+- Bonds should resolve choices on PLAY; their buried live text should be short state text only.
+- The only buried ACTION abilities should be the three strip-complete movement/repositioning cases: The Vardai, Kael as Force, and Neris as Force.
+- Check whether those movement reminders are fully playable from the exposed strip without lifting the stack.
+- Check whether one-shot PLAY conversions made former repeatable Force/Bond abilities too weak or, conversely, easier to understand without losing interesting decisions.
+- Watch The Vardai and Avaros specifically: both still create temporary +Strength from a limited use, but only as part of a larger movement or multi-formation choice.
+- Check whether positional tax/protection on Red Shields, Serekh and Alda is easier to scan than the old buried REACTION text.
+- Continue watching continuous discounts and SUPPORT / SUPPLY / RESERVE stacking for arithmetic overload.
 
 Per card, still record drawn, played, dead in hand, Command spent, Action spent, whether it changed a decision or Front result, counterplay, forgotten state, rules questions, and voluntary re-inclusion.
