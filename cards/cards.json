@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "status": "canonical",
   "rules_model": "persistent-three-row-v2",
   "formation_states": {
@@ -79,46 +79,81 @@
         "action"
       ],
       "scope": "self"
+    },
+    "order": {
+      "role": "Immediate self-support instruction. Playing it consumes the normal card-play Action; it resolves and is discarded.",
+      "allowed_timings": [
+        "play"
+      ],
+      "scope": "self",
+      "zero_cost_rule": "A 0-Command Order must have a real board, class, positional, or state requirement. Unrestricted 0-Command Orders are not allowed."
     }
   },
-  "timing_vocabulary": {
-    "play": "Resolve immediately when the card is played.",
-    "action": "Spend one Action to use this ability.",
-    "reaction": "Use when the stated event occurs; if limited, the player chooses whether to spend the use.",
-    "bonded": "A state effect active while the Formation contains Force + Bond.",
-    "while_named": "A state effect active while the Formation contains Force + Bond + Name.",
-    "becomes_named": "Resolve when the Formation transitions into the Named state.",
-    "trigger": "A visible Name reacts to the stated event.",
-    "continuous": "A visible Name or Narrative rule remains active while its source remains active.",
-    "hidden": "A face-down Stratagem reveals under its stated condition.",
-    "front": "A state effect active while the formation is in the Front row.",
-    "middle": "A state effect active while the formation is in the Middle row.",
-    "rear": "A state effect active while the formation is in the Rear row.",
-    "exhausted": "A state effect active while this Force has an Exhaustion token.",
-    "tireless": "A persistent Force ability that ignores only the Exhaustion restriction on initiating a Maneuver; every other Maneuver requirement still applies and Exhaustion remains.",
-    "mobile": "A persistent Force ability allowing it to initiate a Maneuver without being Named; other Maneuver requirements still apply."
+  "classification_vocabulary": {
+    "human": "Broadest people classification. Human support is common but deliberately modest.",
+    "ship": "Long-range support and unusual Front interaction.",
+    "stronghold": "Static support, protection, and staying power.",
+    "archer": "Ranged pressure, Strength reduction, and support from a distance.",
+    "guard": "Protection, interception, and resistance to hostile Tactics.",
+    "scout": "Information: hands, hidden Stratagems, and advance knowledge.",
+    "rider": "The main home for the game's deliberately scarce movement effects.",
+    "skirmisher": "Harassment, temporary suppression, and small Strength penalties.",
+    "raider": "Pressure on prepared cards, Command costs, and the opponent's build-up.",
+    "healer": "Removal of temporary negative state.",
+    "spearman": "Simple, dependable battlefield Strength, especially in the Front.",
+    "king": "Command, broad coordination, and high-impact Named payoffs.",
+    "captain": "Local formation-building, Bonds, Names, and action efficiency.",
+    "veteran": "Reliability, marker removal, and once-per-Battle resilience.",
+    "seer": "Deep information and deck/hidden-plan manipulation.",
+    "steward": "Command efficiency, card filtering, and resource management.",
+    "builder": "Bonds, prepared cards, and Stronghold-style development.",
+    "heir": "Succession and access to King synergies once fully established."
   },
-  "position_vocabulary": {
-    "directly_ahead": "The adjacent position in the same Front one rank toward the Front row. A Front-row formation has no position directly ahead.",
-    "directly_behind": "The adjacent position in the same Front one rank toward the Rear row. A Rear-row formation has no position directly behind.",
-    "row_restriction": "An allowed-row restriction is a hard occupancy restriction: the Force may be played only in those ranks and may not Maneuver, Move, or Swap into a forbidden rank.",
-    "move": "MOVE 1 means move the formation to one orthogonally adjacent active empty position: one Front left or right in the same rank, or one rank forward or backward in the same Front. Never diagonal. Move is a card effect, not a Maneuver, so it does not require Named status, costs no Maneuver Command, and Exhaustion does not stop it.",
-    "move_multiple": "Move up to N positions means make up to N legal one-position Moves, one at a time; every intermediate destination must be legal and empty.",
-    "swap": "SWAP means exchange the complete contents of the two specified friendly positions. Both positions must contain a formation unless the card says otherwise. Swap is a card effect, not a Maneuver, costs no Maneuver Command, and Exhaustion does not stop it.",
-    "movement_event": "A formation moves whenever it changes battlefield position by Maneuver, Move, or Swap, regardless of which player or effect caused the relocation.",
-    "support": "SUPPORT +N means the friendly formation directly ahead has +N Strength while the supporting effect is active.",
-    "supply": "SUPPLY means Bonds played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 0, and Names played onto it cost 1 less Command, to a minimum of 1.",
-    "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This local comparison does not itself decide the Front.",
-    "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
-    "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It ignores only the Exhaustion restriction; every other Maneuver requirement still applies. It keeps its Exhaustion token. TIRELESS is boolean, so multiple sources give no additional benefit.",
-    "exhaustion": "After you lose a Front, every Force you have in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its token leaves with it. A tied Front exhausts neither player.",
-    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; SUPPLY may reduce Bonds to 0 Command but may not reduce Names below 1.",
-    "command_modifiers": "Command modifiers stack: add all applicable increases, then apply all applicable reductions. If any applicable reduction explicitly allows minimum 0, the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.",
-    "tax_markers": "Each Tax marker is separate. If the next card played satisfies multiple Tax markers, all matching increases apply and all matching next-card markers are consumed. A marker with an expiry expires when its own text says it does.",
-    "strength_marker": "A -Strength marker is a temporary negative marker recording a Battle-long Strength penalty created by card text such as gets -2 Strength this Battle.",
-    "temporary_negative_marker": "A temporary negative marker is any adverse marker on a formation created by a finite-duration card effect, including -Strength, text-suppression, or ability-lock markers. It does not include Exhaustion or a Tax marker on a Front. Removing one ends that marker's effect.",
-    "directly_opposite": "The position in the same rank and same Front on the opposing player's side.",
-    "mobile": "MOBILE means this Force may initiate a Maneuver without being Named. It ignores only the Named requirement: Command cost, adjacency, legal destination, row restrictions, and Exhaustion still apply."
+  "classification_rule": "Classifications have no inherent rules. Their identity emerges only because other cards consistently refer to them.",
+  "memory_vocabulary": {
+    "used_marker": "Marks a 1/BATTLE ability after use.",
+    "effect_marker": "Marks a temporary effect on a formation/card.",
+    "suppression_marker": "Marks text or Strength that is ignored temporarily.",
+    "front_marker": "Marks a temporary rule attached to a Front.",
+    "face_down_source": "The face-down Stratagem itself is the reminder.",
+    "face_up_source": "The visible Narrative/Name itself is the reminder."
+  },
+  "font_system": {
+    "display": "EB Garamond SemiBold",
+    "body": "Gentium Book",
+    "interface": "Arial"
+  },
+  "layout_spec": {
+    "card_size_mm": [
+      68,
+      96
+    ],
+    "stack_order": [
+      "force",
+      "bond",
+      "name"
+    ],
+    "exposed_strip_height_mm": 10.5,
+    "no_lifting_rule": "A Named Formation must be fully playable without lifting, sliding, or fanning any card.",
+    "force_strip": [
+      "Force shield symbol",
+      "base Strength",
+      "classifications",
+      "placement restriction if any",
+      "complete BONDED / WHILE NAMED / 1-BATTLE reminder"
+    ],
+    "bond_strip": [
+      "Bond symbol",
+      "Strength modifier",
+      "complete BONDED / WHILE NAMED / 1-BATTLE reminder"
+    ],
+    "name_face": [
+      "Name banner symbol",
+      "Strength modifier",
+      "classifications",
+      "all live rules text"
+    ],
+    "command_cost": "One unlabeled faceted Command-cost gem in the bottom-right corner. The number is the complete visible cost treatment."
   },
   "design_limits": {
     "max_hard_row_restricted_forces": 5,
@@ -131,7 +166,9 @@
     "no_automatic_strength_pumps_as_limited_uses": true,
     "no_first_each_battle_tracking": true,
     "force_no_once_per_battle": true,
-    "zero_command_cards_still_cost_action": true
+    "zero_command_cards_still_cost_action": true,
+    "order_self_only": true,
+    "zero_command_order_requires_condition": true
   },
   "cards": [
     {
@@ -458,7 +495,7 @@
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "MOBILE",
           "text": "This formation may Maneuver while Unnamed."
         },
@@ -7401,6 +7438,397 @@
           "text": "Tactics you play targeting a Front containing one of your Raiders or Skirmishers cost 1 less Command, to a minimum of 1."
         }
       ]
+    },
+    {
+      "id": "fresh-orders",
+      "title": "Fresh Orders",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "captain",
+        "king"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Captains or Kings. Draw 1 card.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Captains or Kings. Draw 1 card.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "zero-command"
+      ],
+      "unique": false,
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "draw",
+            "draw": 1,
+            "source_classes": [
+              "captain",
+              "king"
+            ]
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose one of your Captains or Kings. Draw 1 card."
+        }
+      ]
+    },
+    {
+      "id": "catch-your-breath",
+      "title": "Catch Your Breath",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "healer",
+        "steward"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion.",
+      "design_tags": [
+        "classification-synergy",
+        "exhaustion",
+        "healing",
+        "zero-command"
+      ],
+      "unique": false,
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "remove_exhaustion",
+            "target": "friendly_exhausted_front_with_friendly_class",
+            "classes": [
+              "healer",
+              "steward"
+            ]
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion."
+        }
+      ]
+    },
+    {
+      "id": "re-form-the-line",
+      "title": "Re-form the Line",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "captain"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose a Front containing one of your Captains. SWAP two orthogonally adjacent friendly formations in that Front.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose a Front containing one of your Captains. SWAP two orthogonally adjacent friendly formations in that Front.",
+      "design_tags": [
+        "classification-synergy",
+        "movement",
+        "positional-support",
+        "zero-command"
+      ],
+      "unique": false,
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "swap",
+            "target": "friendly_pair_same_front_with_class",
+            "classes": [
+              "captain"
+            ]
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose a Front containing one of your Captains. SWAP two orthogonally adjacent friendly formations in that Front."
+        }
+      ]
+    },
+    {
+      "id": "bind-the-wound",
+      "title": "Bind the Wound",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "healer"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front.",
+      "design_tags": [
+        "classification-synergy",
+        "healing",
+        "marker-state",
+        "zero-command"
+      ],
+      "unique": false,
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "remove_negative_marker",
+            "target": "friendly_front_of_source_class",
+            "count": 1,
+            "source_classes": [
+              "healer"
+            ]
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front."
+        }
+      ]
+    },
+    {
+      "id": "send-a-runner",
+      "title": "Send a Runner",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "scout"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Scouts in the Rear row. Draw 2 cards, then discard 1 card.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Scouts in the Rear row. Draw 2 cards, then discard 1 card.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "positional-support",
+        "zero-command"
+      ],
+      "unique": false,
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "draw_discard",
+            "draw": 2,
+            "discard": 1,
+            "source_classes": [
+              "scout"
+            ],
+            "requires_rank": "rear"
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose one of your Scouts in the Rear row. Draw 2 cards, then discard 1 card."
+        }
+      ]
+    },
+    {
+      "id": "take-stock",
+      "title": "Take Stock",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "steward",
+        "stronghold"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "information"
+      ],
+      "unique": false,
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "pick_top_to_hand_bottom_rest",
+            "count": 3,
+            "pick": 1,
+            "source_classes": [
+              "steward",
+              "stronghold"
+            ]
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order."
+        }
+      ]
     }
-  ]
+  ],
+  "playtest_axes": {
+    "note": "Classification is only one axis. These overlapping design tags exist to expose mechanical coverage and help build deliberately varied playtest decks.",
+    "tags": [
+      "baseline",
+      "strength",
+      "movement",
+      "formation-building",
+      "prepared-cards",
+      "suppression",
+      "protection",
+      "command",
+      "command-recovery",
+      "card-flow",
+      "information",
+      "tax",
+      "classification-synergy",
+      "named-payoff",
+      "action-engine",
+      "hidden-plan",
+      "hostile-interaction",
+      "army-support",
+      "marker-state"
+    ]
+  },
+  "classification_groups": {
+    "kind": [
+      "human",
+      "ship",
+      "stronghold"
+    ],
+    "role": [
+      "archer",
+      "guard",
+      "scout",
+      "rider",
+      "skirmisher",
+      "raider",
+      "healer",
+      "spearman",
+      "steward",
+      "builder",
+      "seer"
+    ],
+    "rank": [
+      "king",
+      "captain",
+      "veteran",
+      "heir"
+    ]
+  },
+  "timing_vocabulary": {
+    "play": "Resolve immediately when the card is played.",
+    "action": "Spend one Action to use this ability.",
+    "reaction": "Use when the stated event occurs; if limited, the player chooses whether to spend the use.",
+    "bonded": "A state effect active while the Formation contains Force + Bond.",
+    "while_named": "A state effect active while the Formation contains Force + Bond + Name.",
+    "becomes_named": "Resolve when the Formation transitions into the Named state.",
+    "trigger": "A visible Name reacts to the stated event.",
+    "continuous": "A visible Name or Narrative rule remains active while its source remains active.",
+    "hidden": "A face-down Stratagem reveals under its stated condition.",
+    "front": "A state effect active while the formation is in the Front row.",
+    "middle": "A state effect active while the formation is in the Middle row.",
+    "rear": "A state effect active while the formation is in the Rear row.",
+    "exhausted": "A state effect active while this Force has an Exhaustion token.",
+    "tireless": "A persistent Force ability that ignores only the Exhaustion restriction on initiating a Maneuver; every other Maneuver requirement still applies and Exhaustion remains.",
+    "mobile": "A persistent Force ability allowing it to initiate a Maneuver without being Named; other Maneuver requirements still apply."
+  },
+  "position_vocabulary": {
+    "directly_ahead": "The adjacent position in the same Front one rank toward the Front row. A Front-row formation has no position directly ahead.",
+    "directly_behind": "The adjacent position in the same Front one rank toward the Rear row. A Rear-row formation has no position directly behind.",
+    "row_restriction": "An allowed-row restriction is a hard occupancy restriction: the Force may be played only in those ranks and may not Maneuver, Move, or Swap into a forbidden rank.",
+    "move": "MOVE 1 means move the formation to one orthogonally adjacent active empty position: one Front left or right in the same rank, or one rank forward or backward in the same Front. Never diagonal. Move is a card effect, not a Maneuver, so it does not require Named status, costs no Maneuver Command, and Exhaustion does not stop it.",
+    "move_multiple": "Move up to N positions means make up to N legal one-position Moves, one at a time; every intermediate destination must be legal and empty.",
+    "swap": "SWAP means exchange the complete contents of the two specified friendly positions. Both positions must contain a formation unless the card says otherwise. Swap is a card effect, not a Maneuver, costs no Maneuver Command, and Exhaustion does not stop it.",
+    "movement_event": "A formation moves whenever it changes battlefield position by Maneuver, Move, or Swap, regardless of which player or effect caused the relocation.",
+    "support": "SUPPORT +N means the friendly formation directly ahead has +N Strength while the supporting effect is active.",
+    "supply": "SUPPLY means Bonds played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 0, and Names played onto it cost 1 less Command, to a minimum of 1.",
+    "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This local comparison does not itself decide the Front.",
+    "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
+    "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It ignores only the Exhaustion restriction; every other Maneuver requirement still applies. It keeps its Exhaustion token. TIRELESS is boolean, so multiple sources give no additional benefit.",
+    "exhaustion": "After you lose a Front, every Force you have in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its token leaves with it. A tied Front exhausts neither player.",
+    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; SUPPLY may reduce Bonds to 0 Command but may not reduce Names below 1.",
+    "command_modifiers": "Command modifiers stack: add all applicable increases, then apply all applicable reductions. If any applicable reduction explicitly allows minimum 0, the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.",
+    "tax_markers": "Each Tax marker is separate. If the next card played satisfies multiple Tax markers, all matching increases apply and all matching next-card markers are consumed. A marker with an expiry expires when its own text says it does.",
+    "strength_marker": "A -Strength marker is a temporary negative marker recording a Battle-long Strength penalty created by card text such as gets -2 Strength this Battle.",
+    "temporary_negative_marker": "A temporary negative marker is any adverse marker on a formation created by a finite-duration card effect, including -Strength, text-suppression, or ability-lock markers. It does not include Exhaustion or a Tax marker on a Front. Removing one ends that marker's effect.",
+    "directly_opposite": "The position in the same rank and same Front on the opposing player's side.",
+    "mobile": "MOBILE means this Force may initiate a Maneuver without being Named. It ignores only the Named requirement: Command cost, adjacency, legal destination, row restrictions, and Exhaustion still apply."
+  }
 }
