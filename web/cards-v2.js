@@ -8,6 +8,38 @@ const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(par
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",stratagem:"Stratagem",narrative:"Narrative"};
 const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL"};
 const LIVE=new Set(["action","reaction","bonded","while_named"]);
+const RULE_TERMS=[
+  "Named Formation","Bonded Formation","Unbonded Formation","Formation",
+  "Force","Bond","Name","Hero","Tactic","Stratagem","Narrative",
+  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass",
+  "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
+  "prepared Bond","prepared Name"
+];
+const REFERENT_TERMS=[
+  "Human","Archer","Builder","Captain","Guard","Healer","Heir","King","Raider",
+  "Rider","Scout","Seer","Ship","Skirmisher","Spearman","Steward","Stronghold","Veteran",
+  "discard pile","deck","hand","card","marker","turn"
+];
+const pluralize=term=>term.endsWith("s")?term:term+"s";
+const RULE_TERM_SET=new Set(RULE_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
+const REFERENT_TERM_SET=new Set(REFERENT_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
+const EMPHASIS_TERMS=[...new Set([...RULE_TERM_SET,...REFERENT_TERM_SET])]
+  .sort((a,b)=>b.length-a.length)
+  .map(term=>term.replace(/[.*+?^$()|[\]\\{}]/g,"\\const LIVE=new Set(["action","reaction","bonded","while_named"]);
+"));
+const EMPHASIS_RE=new RegExp("\\b("+EMPHASIS_TERMS.join("|")+")\\b","gi");
+function formatRuleText(value){
+  const source=String(value??"");
+  let html="",cursor=0;
+  for(const match of source.matchAll(EMPHASIS_RE)){
+    const index=match.index??0,token=match[0],key=token.toLowerCase();
+    html+=esc(source.slice(cursor,index));
+    if(RULE_TERM_SET.has(key))html+='<strong class="rule-term">'+esc(token)+'</strong>';
+    else html+='<em class="rule-referent">'+esc(token)+'</em>';
+    cursor=index+token.length;
+  }
+  return html+esc(source.slice(cursor));
+}
 const H=()=>window.V2Heraldry;
 const signed=value=>(Number(value)>=0?"+":"")+String(value??0);
 const modeEffects=(card,mode)=>card?.modes?.[mode]?.effects||[];
@@ -86,7 +118,7 @@ function stackEdge(card){
 function eventCrown(card){return '<header class="event-crown"><span class="event-sigil">'+typeGlyph(card.type)+'</span><span class="event-family">'+esc(TYPE[card.type])+'</span><span class="event-rule"></span></header>'}
 function effectBlock(effect){
   const kind=["bonded","while_named","continuous"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
-  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+timingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div><div class="effect-text">'+esc(effect.text)+'</div></section>';
+  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+timingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div><div class="effect-text">'+formatRuleText(effect.text)+'</div></section>';
 }
 function heroModeHeading(mode){
   return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
