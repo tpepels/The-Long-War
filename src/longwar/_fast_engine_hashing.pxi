@@ -60,6 +60,13 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
             &h,
             <uint16_t>state.temporary[slot],
         )
+        _info_hash_feed(&h, state.negative_one_markers[slot])
+        _info_hash_feed(&h, state.negative_two_markers[slot])
+        _info_hash_feed_u16(&h, state.suppression_mask[slot])
+        _info_hash_feed(&h, state.force_ability_used[slot])
+        _info_hash_feed(&h, state.bond_ability_used[slot])
+        _info_hash_feed(&h, state.name_ability_used[slot])
+        _info_hash_feed(&h, state.name_suppression_immune[slot])
         _info_hash_feed(&h, state.maneuver_count[slot])
         _info_hash_feed(&h, state.maneuvered_in_operation[slot])
 
@@ -73,10 +80,29 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     for p in range(PLAYER_COUNT):
         _info_hash_feed(&h, <uint8_t>(state.stratagem[p] + 1))
         _info_hash_feed(&h, state.stratagem_revealed[p])
+        _info_hash_feed(&h, state.stratagem_known_to_mask[p])
         _info_hash_feed(&h, state.stratagem_front_mask[p])
         _info_hash_feed(&h, state.stratagem_direction[p])
         _info_hash_feed_u32(&h, state.stratagem_target_mask[p])
         _info_hash_feed(&h, state.stratagem_used[p])
+
+    _info_hash_feed(&h, state.tax_len)
+    for i in range(state.tax_len):
+        _info_hash_feed(&h, state.tax_owner[i])
+        _info_hash_feed(&h, state.tax_target_player[i])
+        _info_hash_feed(&h, state.tax_front[i])
+        _info_hash_feed(&h, state.tax_amount[i])
+        _info_hash_feed(&h, state.tax_card_type_mask[i])
+        _info_hash_feed_u32(&h, <uint32_t>state.tax_expires_turn[i])
+    _info_hash_feed(&h, state.discount_len)
+    for i in range(state.discount_len):
+        _info_hash_feed(&h, state.discount_owner[i])
+        _info_hash_feed(&h, state.discount_target_player[i])
+        _info_hash_feed(&h, state.discount_slot[i])
+        _info_hash_feed(&h, state.discount_amount[i])
+        _info_hash_feed(&h, state.discount_minimum[i])
+        _info_hash_feed(&h, state.discount_card_type_mask[i])
+        _info_hash_feed_u32(&h, <uint32_t>state.discount_expires_turn[i])
 
     _info_hash_feed(&h, state.cleanup_pending)
     _info_hash_feed(&h, state.pending_draw_count)
@@ -289,6 +315,13 @@ cdef int _fe__information_state_encode(
                 h,
                 <uint16_t>state.temporary[slot],
             )
+            _info_emit(buf, &n, h, state.negative_one_markers[slot])
+            _info_emit(buf, &n, h, state.negative_two_markers[slot])
+            _info_emit_u16(buf, &n, h, state.suppression_mask[slot])
+            _info_emit(buf, &n, h, state.force_ability_used[slot])
+            _info_emit(buf, &n, h, state.bond_ability_used[slot])
+            _info_emit(buf, &n, h, state.name_ability_used[slot])
+            _info_emit(buf, &n, h, state.name_suppression_immune[slot])
             _info_emit(buf, &n, h, state.maneuver_count[slot])
             _info_emit(
                 buf,
@@ -351,6 +384,7 @@ cdef int _fe__information_state_encode(
             if (
                 owner == player
                 or state.stratagem_revealed[owner]
+                or (state.stratagem_known_to_mask[owner] & (1 << player))
             ):
                 _info_emit(buf, &n, h, <uint8_t>(card + 1))
             else:
@@ -358,12 +392,32 @@ cdef int _fe__information_state_encode(
                 # and means "a face-down Stratagem exists".
                 _info_emit(buf, &n, h, 255)
             _info_emit(buf, &n, h, state.stratagem_revealed[owner])
+            _info_emit(buf, &n, h, state.stratagem_known_to_mask[owner])
             _info_emit(buf, &n, h, state.stratagem_front_mask[owner])
             _info_emit(buf, &n, h, state.stratagem_direction[owner])
             _info_emit_u32(buf, &n, h, state.stratagem_target_mask[owner])
 
     for owner in range(PLAYER_COUNT):
         _info_emit(buf, &n, h, state.stratagem_used[owner])
+
+    # Tax and one-shot discount markers are public board state.
+    _info_emit(buf, &n, h, state.tax_len)
+    for i in range(state.tax_len):
+        _info_emit(buf, &n, h, state.tax_owner[i])
+        _info_emit(buf, &n, h, state.tax_target_player[i])
+        _info_emit(buf, &n, h, state.tax_front[i])
+        _info_emit(buf, &n, h, state.tax_amount[i])
+        _info_emit(buf, &n, h, state.tax_card_type_mask[i])
+        _info_emit_u32(buf, &n, h, <uint32_t>state.tax_expires_turn[i])
+    _info_emit(buf, &n, h, state.discount_len)
+    for i in range(state.discount_len):
+        _info_emit(buf, &n, h, state.discount_owner[i])
+        _info_emit(buf, &n, h, state.discount_target_player[i])
+        _info_emit(buf, &n, h, state.discount_slot[i])
+        _info_emit(buf, &n, h, state.discount_amount[i])
+        _info_emit(buf, &n, h, state.discount_minimum[i])
+        _info_emit(buf, &n, h, state.discount_card_type_mask[i])
+        _info_emit_u32(buf, &n, h, <uint32_t>state.discount_expires_turn[i])
 
     # Own hidden resources are visible to the acting player.
     for card in range(self.n_cards):
