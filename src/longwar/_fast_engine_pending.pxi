@@ -298,6 +298,7 @@ cdef void _fe_consume_operation_constraints(
     while i >= 0:
         if (
             state.constraint_player[i] != actor
+            or state.constraint_activate_turn[i] == CONSTRAINT_ACTIVATE_NEXT_TURN
             or state.turn_number < state.constraint_activate_turn[i]
             or not (
                 state.constraint_flags[i]
