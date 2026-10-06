@@ -54,7 +54,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .class-sigil{width:3.8mm;height:3.8mm;display:grid;place-items:center;flex:none;color:var(--deep)}
 .class-sigil svg{width:100%;height:100%}
 .edge-live-group{min-width:0;height:6.8mm;display:flex;align-items:center;justify-content:flex-end;gap:.28mm;overflow:hidden;padding-left:.55mm;border-left:.15mm solid color-mix(in srgb,var(--accent) 34%,transparent)}
-.edge-live-group:empty{visibility:hidden;border-left:0}
+.edge-live-group:empty{border-left:0}
 .edge-placement{position:relative;display:flex;align-items:center;gap:.1mm;color:var(--deep);flex:none}
 .edge-placement>.glyph-row{width:3.9mm;height:3.9mm}
 .placement-lock{width:1.9mm;height:1.9mm;margin-left:-.95mm;margin-top:2mm;background:var(--paper);border-radius:50%;display:grid;place-items:center}
