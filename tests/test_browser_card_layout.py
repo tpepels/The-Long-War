@@ -185,16 +185,18 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
 
 def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
     css = text("web/cards-v2.css")
-    assert "@page v2cards{size:A4 landscape;margin:7mm 8mm}" in css
-    assert "width:281mm;height:196mm" in css
+    assert "@page v2cards{size:A4 landscape;margin:9mm 12.5mm}" in css
+    assert "width:272mm;height:192mm" in css
     assert "grid-template-columns:repeat(4,68mm)" in css
     assert "grid-template-rows:repeat(2,96mm)" in css
-    assert "gap:4mm 3mm" in css
+    assert "gap:0" in css
     assert "break-after:page" in css
-    assert 4 * 68 + 3 * 3 == 281
-    assert 2 * 96 + 4 == 196
-    assert 281 == 297 - 2 * 8
-    assert 196 == 210 - 2 * 7
+    assert 4 * 68 == 272
+    assert 2 * 96 == 192
+    assert 272 == 297 - 2 * 12.5
+    assert 192 == 210 - 2 * 9
+    assert ".print-card{border-radius:0}" in css
+    assert ".print-card::before{border-radius:0}" in css
 
 
 def test_physical_print_surfaces_share_v2_renderer_while_browser_play_stays_separate() -> None:
