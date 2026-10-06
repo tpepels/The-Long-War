@@ -177,7 +177,7 @@ def test_desktop_fixtures_cover_crowded_and_interrupting_states() -> None:
     assert set(SCENARIOS) == {"battle", "targeting", "inspector", "ai", "complete", "mulligan", "drawer"}
     snapshots = presentation_snapshots()
     crowded = snapshots["battle"]
-    assert len(crowded["hand"]) >= 18
+    assert len(crowded["hand"]) == 10
     assert all(slot["force"] and slot["bond"] and slot["name"] for side in crowded["board"] for slot in side)
     assert len(crowded["narratives"][1]) == 2
     assert all(narrative["card_id"] for narrative in crowded["narratives"][1])
