@@ -21,7 +21,9 @@ from longwar.game import (
     PlayForce,
     PlayName,
     PlayNarrative,
+    PlayOrder,
     PlayStratagem,
+    PlayTactic,
     Position,
     Rank,
 )
@@ -712,6 +714,55 @@ def test_v2_becomes_named_remove_exhaustion_resolves_on_chosen_formation() -> No
     engine.apply(state, choice)
 
     assert state.slot(0, target).exhausted is False
+
+
+def test_catch_your_breath_order_removes_exhaustion_and_is_discarded() -> None:
+    engine, state = setup_state(seed=4510)
+    healer = pos(1, Rank.FRONT)
+    target = pos(1, Rank.MIDDLE)
+    state.slot(0, healer).force = "the-white-hands-of-elara"
+    target_slot = state.slot(0, target)
+    target_slot.force = "the-fifty-men"
+    target_slot.exhausted = True
+    state.players[0].hand[:] = ["catch-your-breath"]
+    state.players[0].command = 5
+
+    order = next(
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, PlayOrder)
+        and action.card_id == "catch-your-breath"
+        and action.target is not None
+        and action.target.position == target
+    )
+    engine.apply(state, order)
+
+    assert state.slot(0, target).exhausted is False
+    assert "catch-your-breath" not in state.players[0].hand
+    assert "catch-your-breath" in state.players[0].discard
+
+
+def test_v2_tactic_applies_strength_marker_and_is_discarded() -> None:
+    engine, state = setup_state(seed=4511)
+    target = pos(1, Rank.FRONT)
+    state.slot(1, target).force = "the-fifty-men"
+    state.players[0].hand[:] = ["the-baggage-was-abandoned"]
+    state.players[0].command = 5
+
+    tactic = next(
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, PlayTactic)
+        and action.card_id == "the-baggage-was-abandoned"
+        and action.target is not None
+        and action.target.player == 1
+        and action.target.position == target
+    )
+    engine.apply(state, tactic)
+
+    assert state.slot(1, target).negative_strength_markers == [-2]
+    assert "the-baggage-was-abandoned" not in state.players[0].hand
+    assert "the-baggage-was-abandoned" in state.players[0].discard
 
 
 def test_lost_front_exhausts_every_force_there_and_blocks_maneuver() -> None:
