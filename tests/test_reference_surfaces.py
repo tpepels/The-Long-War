@@ -426,6 +426,13 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "Battle III+: all four" in page
     for modifier in ("+1", "+2", "+3", "-1", "-2", "-3"):
         assert modifier in page
+    assert page.count("EXHAUSTED") >= 24
+    assert "MAX 1 / FORCE" in page
+    assert "TAX +1" in page and "TAX +2" in page
+    assert "Exhaustion persists" in page
+    assert "Tax markers sit on Fronts" in page
+    assert ".state-token-grid" in css
+    assert ".tracker-sheet+.tracker-sheet" in css
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
 
