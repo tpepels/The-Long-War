@@ -4,14 +4,10 @@ cdef inline bint _fe_opponent_blocks_card_move_into_front(
     int player,
     int front,
 ) noexcept:
-    cdef int opponent = other_player(player)
-    cdef int rank, slot, bond
-    for rank in range(RANK_COUNT):
-        slot = slot_index(opponent, front, rank)
-        bond = state.bond[slot]
-        if bond >= 0 and self.bond_blocks_opponent_card_move[bond]:
-            return True
+    # V2 has no generic movement lock. Any future lock must be represented by
+    # an explicit compiled mechanic rather than a hidden role rule.
     return False
+
 
 cdef inline bint _fe_card_move_destination_legal(
     FastEngine self,
@@ -22,8 +18,7 @@ cdef inline bint _fe_card_move_destination_legal(
 ) noexcept:
     cdef int force = state.force[source]
     cdef int owner = owner_from_slot(source)
-    cdef int bond = state.bond[source]
-    if force < 0 or self.immobile_force[force]:
+    if force < 0:
         return False
     if not front_is_active(state.battle, front_from_slot(source)):
         return False
@@ -32,23 +27,14 @@ cdef inline bint _fe_card_move_destination_legal(
     if not front_is_active(state.battle, front_from_slot(dest)):
         return False
     if (
-        controller != owner
-        and bond >= 0
-        and self.bond_guarded_from_opponent_card_move[bond]
-    ):
-        return False
-    if (
         state.force[dest] >= 0
         or state.bond[dest] >= 0
         or state.name[dest] >= 0
     ):
         return False
-    if (
-        abs(front_from_slot(source) - front_from_slot(dest)) == ADJACENT_FRONT_DISTANCE
-        and _fe_opponent_blocks_card_move_into_front(self, 
-            state, owner, front_from_slot(dest)
-        )
-    ):
+    # Allowed-row restrictions are hard occupancy restrictions and therefore
+    # apply to card-effect MOVE as well as ordinary Maneuver.
+    if not _v2_force_rank_allowed(self, force, rank_from_slot(dest)):
         return False
     return True
 
@@ -131,49 +117,27 @@ cdef inline bint _fe_maneuver_source_legal(
     int player,
     int slot,
 ) noexcept:
-    cdef int force, bond, strat
+    cdef int force
     if not front_is_active(state.battle, front_from_slot(slot)):
         return False
     force = state.force[slot]
-    if force < 0 or self.immobile_force[force] or state.exhausted[slot]:
+    if force < 0:
         return False
-    if _fe_slot_complete(self, state, slot):
-        return True
-    if self.can_maneuver_unnamed[force]:
-        if not self.maneuver_requires_open_bond[force]:
-            return True
-        if state.bond[slot] >= 0 and state.name[slot] < 0:
-            return True
-    bond = state.bond[slot]
-    if (
-        bond >= 0
-        and self.bond_maneuver_adjacent_hero[bond]
-        and _fe_adjacent_hero_formation(self, state, player, slot)
+    if state.exhausted[slot] and not _v2_force_is_tireless(
+        self, state, slot
     ):
-        return True
-    strat = state.stratagem[player]
-    return strat >= 0 and self.strat_unnamed_maneuver[strat]
+        return False
+    return _v2_slot_named(state, slot) or _v2_force_is_mobile(
+        self, state, slot
+    )
+
 
 cdef inline bint _fe_maneuver_destination_legal(
     FastEngine self,
     FastState state,
     int slot,
 ) noexcept:
-    cdef int force
-    if not front_is_active(state.battle, front_from_slot(slot)):
-        return False
-    force = state.force[slot]
-    if force >= 0:
-        return (
-            not self.immobile_force[force]
-            and not self.cannot_swap_target[force]
-        )
-    # A prepared Bond/Name still occupies the position. Core Maneuver permits
-    # swapping with any own occupied position; only the initiating formation
-    # must be Named. With no Force here there is no Force-specific movement
-    # restriction to block the destination.
-    return True
-
+    return front_is_active(state.battle, front_from_slot(slot))
 
 cdef void _fe_remove_constraint_at(
     FastState state,
@@ -313,34 +277,25 @@ cdef bint _fe_basic_maneuver_locks_allow(
     int source,
     int dest,
 ) noexcept:
-    cdef int controller, narrative_slot, ix, card, front
-    front = front_from_slot(source)
-    if front_from_slot(dest) == front:
-        return True
-
-    # Ongoing Sagas can pin Named Formations in their chosen Front.
-    if _fe_slot_complete(self, state, source):
-        for controller in range(PLAYER_COUNT):
-            for narrative_slot in range(self.ongoing_narrative_limit):
-                ix = controller * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
-                card = state.narrative[ix]
-                if (
-                    card >= 0
-                    and self.narrative_no_maneuver_away[card]
-                    and state.narrative_front_mask[ix] & (1 << front)
-                ):
-                    return False
-
-    # There Was No Road Back pins every formation in the chosen Front.
-    for controller in range(PLAYER_COUNT):
-        card = state.stratagem[controller]
-        if (
-            card >= 0
-            and state.stratagem_revealed[controller]
-            and self.strat_no_maneuver_away[card]
-            and state.stratagem_front_mask[controller] & (1 << front)
-        ):
-            return False
+    cdef int force = state.force[source]
+    cdef int swapped_force = state.force[dest]
+    if force < 0:
+        return False
+    if owner_from_slot(source) != player or owner_from_slot(dest) != player:
+        return False
+    if not _v2_force_rank_allowed(
+        self, force, rank_from_slot(dest)
+    ):
+        return False
+    # A Maneuver may swap with another own occupied position. If the target
+    # contains a Force, that Force must also be legal in the source row.
+    if (
+        swapped_force >= 0
+        and not _v2_force_rank_allowed(
+            self, swapped_force, rank_from_slot(source)
+        )
+    ):
+        return False
     return True
 
 
@@ -351,41 +306,6 @@ cdef bint _fe_had_been_ordered_allows(
     int source,
     int dest,
 ) noexcept:
-    cdef int bond = state.bond[source]
-    cdef int direction, front, rank, preferred
-    if (
-        bond < 0
-        or not self.bond_momentum_direction[bond]
-        or state.maneuver_count[source] == 0
-    ):
-        return True
-    direction = state.maneuver_direction[source]
-    if direction == 0 or _fe_action_direction(
-        encode_action(TYPE_MANEUVER, -1, source, dest, player)
-    ) == direction:
-        return True
-    front = front_from_slot(source)
-    rank = rank_from_slot(source)
-    if direction == DIRECTION_LEFT:
-        if front == 0:
-            return True
-        preferred = slot_index(player, front - 1, rank)
-    else:
-        if front == LAST_FRONT_INDEX:
-            return True
-        preferred = slot_index(player, front + 1, rank)
-    if (
-        _fe_maneuver_destination_legal(self, state, preferred)
-        and _fe_basic_maneuver_locks_allow(
-            self, state, player, source, preferred
-        )
-        and _fe_command_cost_fast(
-            self,
-            state,
-            encode_action(TYPE_MANEUVER, -1, source, preferred, player),
-        ) <= state.command[player]
-    ):
-        return False
     return True
 
 
@@ -415,9 +335,6 @@ cdef bint _fe_any_maneuver_in_direction(
             and _fe_basic_maneuver_locks_allow(
                 self, state, player, source, dest
             )
-            and _fe_had_been_ordered_allows(
-                self, state, player, source, dest
-            )
         ):
             return True
     return False
@@ -430,60 +347,9 @@ cdef bint _fe_maneuver_allowed_by_continuous(
     int source,
     int dest,
 ) noexcept:
-    cdef int controller, card, requested, direction
-    cdef bint need_left=False, need_right=False
-    cdef bint left_possible=False, right_possible=False
-
-    if not _fe_basic_maneuver_locks_allow(
+    return _fe_basic_maneuver_locks_allow(
         self, state, player, source, dest
-    ):
-        return False
-    if not _fe_had_been_ordered_allows(
-        self, state, player, source, dest
-    ):
-        return False
-
-    if state.player_maneuver_count[player] > 0:
-        return True
-
-    for controller in range(PLAYER_COUNT):
-        card = state.stratagem[controller]
-        if (
-            card < 0
-            or not state.stratagem_revealed[controller]
-            or not self.strat_first_maneuver_direction[card]
-        ):
-            continue
-        requested = state.stratagem_direction[controller]
-        if requested == DIRECTION_LEFT:
-            need_left = True
-        elif requested == DIRECTION_RIGHT:
-            need_right = True
-
-    if need_left:
-        left_possible = _fe_any_maneuver_in_direction(
-            self, state, player, 1
-        )
-    if need_right:
-        right_possible = _fe_any_maneuver_in_direction(
-            self, state, player, 2
-        )
-
-    direction = _fe_action_direction(
-        encode_action(TYPE_MANEUVER, -1, source, dest, player)
     )
-    if left_possible and not right_possible:
-        return direction == DIRECTION_LEFT
-    if right_possible and not left_possible:
-        return direction == DIRECTION_RIGHT
-    if left_possible and right_possible:
-        # Conflicting directional requirements let the player satisfy either
-        # horizontal direction; a vertical Maneuver satisfies neither.
-        return direction in (DIRECTION_LEFT, DIRECTION_RIGHT)
-    # If neither requested direction can be satisfied, ordinary Maneuvers
-    # remain legal, including vertical Maneuvers.
-    return True
-
 
 cdef int _fe_filter_operation_constraints(
     FastEngine self,
