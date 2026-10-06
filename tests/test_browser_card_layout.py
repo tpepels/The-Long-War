@@ -471,3 +471,7 @@ def test_public_navigation_has_only_six_surfaces() -> None:
     assert 'href="cards.html">Cards</a>' in index
     assert 'href="playtest-kit.html">Decks</a>' in index
     assert 'href="playmat.html">Reference</a>' in index
+
+    play = text("web/play.html")
+    for label in labels:
+        assert f">{label}</a>" in play or f">{label}</span>" in play
