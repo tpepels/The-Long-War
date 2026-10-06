@@ -543,6 +543,15 @@ cdef uint32_t _v2_target_mask(
             ):
                 mask |= <uint32_t>(1 << slot)
 
+        elif target == V2_TARGET_OPPOSING_COMPONENT_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and (state.bond[slot] >= 0 or state.name[slot] >= 0)
+            ):
+                mask |= <uint32_t>(1 << slot)
+
         elif target == V2_TARGET_OPPOSING_REAR:
             if (
                 owner_from_slot(slot) == opponent
@@ -811,7 +820,7 @@ cdef bint _v2_effect_can_resolve(
             if (
                 abs(front_from_slot(dest) - front_from_slot(origin))
                 + abs(rank_from_slot(dest) - rank_from_slot(origin))
-                <= max(1, effect.steps)
+                <= (effect.steps if effect.steps > 0 else 1)
                 and dest != origin
                 and _fe_card_move_destination_legal(
                     self, state, player, origin, dest
