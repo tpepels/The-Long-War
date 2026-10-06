@@ -1049,7 +1049,7 @@ function interactionHintFor(card) {
   const actions = selectedActions();
   if (!actions.length) return "No legal play for this card right now.";
   if (actions.some((a) => a.kind === ACTION_KIND.DISCARD)) {
-    return "Discard this card, then make the normal start-of-turn draw.";
+    return "Discard this card to return to the 10-card hand limit.";
   }
   if (actions.some((a) => a.kind === ACTION_KIND.PLAY_FORCE)) {
     return "Choose a highlighted formation position for this Force.";
