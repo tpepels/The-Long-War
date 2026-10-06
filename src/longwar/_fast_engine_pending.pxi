@@ -145,7 +145,10 @@ cdef void _v2_apply_resolved_effect(
                 SUPPRESS_BOND_STRENGTH | SUPPRESS_BOND_TEXT
             )
     elif effect.op == V2_OP_SUPPRESS_NAME:
-        if target >= 0 and not state.name_suppression_immune[target]:
+        if (
+            target >= 0
+            and not _v2_name_suppression_immune(self, state, target)
+        ):
             state.suppression_mask[target] |= SUPPRESS_NAME_TEXT
     elif effect.op == V2_OP_SUPPRESS_ACTION:
         if target >= 0:
@@ -161,7 +164,12 @@ cdef void _v2_apply_resolved_effect(
         if target >= 0:
             if option == V2_OPTION_BOND:
                 state.suppression_mask[target] |= SUPPRESS_BOND_TEXT
-            elif option == V2_OPTION_NAME and not state.name_suppression_immune[target]:
+            elif (
+                option == V2_OPTION_NAME
+                and not _v2_name_suppression_immune(
+                    self, state, target
+                )
+            ):
                 state.suppression_mask[target] |= SUPPRESS_NAME_TEXT
     elif effect.op == V2_OP_NEXT_SLOT_DISCOUNT:
         if target >= 0:
