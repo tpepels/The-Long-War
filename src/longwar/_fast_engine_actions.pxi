@@ -497,8 +497,10 @@ cdef int _fe_legal_pending_effect_actions(
 ) except -1:
     cdef int n = 0
     cdef int kind, player, source, dest, front, rank, card, i, j
-    cdef uint32_t source_mask, dest_mask
+    cdef int option, source2, steps, mode, effect_index
+    cdef uint32_t source_mask, dest_mask, target_mask
     cdef uint8_t flags
+    cdef V2EffectSpec* v2_effect
     if state.pending_len == 0:
         return 0
     kind = state.pending_kind[0]
@@ -513,7 +515,340 @@ cdef int _fe_legal_pending_effect_actions(
             actions, n, encode_action(TYPE_EFFECT, -1, -1, -1, player, kind)
         )
 
-    if kind == EFFECT_FREE_MANEUVER:
+    if kind == EFFECT_V2_TARGET:
+        v2_effect = _v2_pending_effect(self, state)
+        source = state.pending_source[0]
+
+        if (
+            v2_effect.op == V2_OP_MOVE
+            and v2_effect.target == V2_TARGET_SELF
+        ):
+            steps = v2_effect.steps if v2_effect.steps > 0 else 1
+            if source >= 0 and state.force[source] >= 0:
+                for dest in range(
+                    player * POSITIONS_PER_PLAYER,
+                    player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+                ):
+                    if dest == source:
+                        continue
+                    if (
+                        abs(front_from_slot(dest) - front_from_slot(source))
+                        + abs(rank_from_slot(dest) - rank_from_slot(source))
+                        > steps
+                    ):
+                        continue
+                    if _fe_card_move_destination_legal(
+                        self, state, player, source, dest
+                    ):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_EFFECT, -1, source, dest, player, kind
+                            ),
+                        )
+
+        elif (
+            v2_effect.op == V2_OP_SWAP
+            and v2_effect.target
+            == V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS
+        ):
+            target_mask = _v2_target_mask(
+                self, state, player, source, v2_effect
+            )
+            for source2 in range(
+                player * POSITIONS_PER_PLAYER,
+                player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+            ):
+                if not (target_mask & (<uint32_t>1 << source2)):
+                    continue
+                for dest in range(source2 + 1, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
+                    if not (target_mask & (<uint32_t>1 << dest)):
+                        continue
+                    if (
+                        front_from_slot(source2) == front_from_slot(dest)
+                        and abs(rank_from_slot(source2) - rank_from_slot(dest)) == 1
+                        and _fe_basic_maneuver_locks_allow(
+                            self, state, player, source2, dest
+                        )
+                    ):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_EFFECT, -1, source2, dest, player, kind
+                            ),
+                        )
+
+        elif v2_effect.op == V2_OP_CHOOSE_STRENGTH_TARGETS:
+            target_mask = _v2_target_mask(
+                self, state, player, source, v2_effect
+            )
+            # "Up to two" includes choosing none.
+            n = _append_action(
+                actions, n,
+                encode_action(TYPE_EFFECT, -1, -1, -1, player, kind),
+            )
+            for source2 in range(SLOT_COUNT):
+                if not (target_mask & (<uint32_t>1 << source2)):
+                    continue
+                n = _append_action(
+                    actions, n,
+                    encode_action(
+                        TYPE_EFFECT, -1, source2, -1, player, kind
+                    ),
+                )
+                for dest in range(source2 + 1, SLOT_COUNT):
+                    if target_mask & (<uint32_t>1 << dest):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_EFFECT, -1, source2, dest, player, kind
+                            ),
+                        )
+
+        elif v2_effect.op == V2_OP_CHOOSE_CLASS_STRENGTH:
+            if source >= 0:
+                target_mask = _v2_target_mask(
+                    self, state, player, source, v2_effect
+                )
+                for i in range(18):
+                    for dest in range(SLOT_COUNT):
+                        if (
+                            target_mask & (<uint32_t>1 << dest)
+                            and _v2_slot_class_mask(self, state, dest)
+                            & (<uint32_t>1 << i)
+                        ):
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_EFFECT,
+                                    -1,
+                                    -1,
+                                    -1,
+                                    player,
+                                    kind
+                                    | ((i + 1) << V2_EFFECT_OPTION_SHIFT),
+                                ),
+                            )
+                            break
+
+        elif (
+            v2_effect.op == V2_OP_TAX
+            and v2_effect.front_mode == V2_FRONT_CHOOSE_ACTIVE
+        ):
+            for front in range(FRONT_COUNT):
+                if front_is_active(state.battle, front):
+                    n = _append_action(
+                        actions,
+                        n,
+                        encode_action(
+                            TYPE_EFFECT,
+                            -1,
+                            -1,
+                            -1,
+                            player,
+                            kind
+                            | ((front + 1) << V2_EFFECT_OPTION_SHIFT),
+                        ),
+                    )
+
+        elif v2_effect.op == V2_OP_ATTACH_PREPARED:
+            target_mask = _v2_target_mask(
+                self, state, player, source, v2_effect
+            )
+            for source2 in range(
+                player * POSITIONS_PER_PLAYER,
+                player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+            ):
+                if not (target_mask & (<uint32_t>1 << source2)):
+                    continue
+                if state.bond[source2] >= 0:
+                    card = state.bond[source2]
+                    for dest in range(
+                        player * POSITIONS_PER_PLAYER,
+                        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+                    ):
+                        if (
+                            state.force[dest] >= 0
+                            and state.bond[dest] < 0
+                            and front_from_slot(dest) == front_from_slot(source2)
+                        ):
+                            n = _append_action(
+                                actions, n,
+                                encode_action(
+                                    TYPE_EFFECT, card, source2, dest, player, kind
+                                ),
+                            )
+                if state.name[source2] >= 0:
+                    card = state.name[source2]
+                    for dest in range(
+                        player * POSITIONS_PER_PLAYER,
+                        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+                    ):
+                        if (
+                            state.force[dest] >= 0
+                            and state.name[dest] < 0
+                            and front_from_slot(dest) == front_from_slot(source2)
+                        ):
+                            n = _append_action(
+                                actions, n,
+                                encode_action(
+                                    TYPE_EFFECT, card, source2, dest, player, kind
+                                ),
+                            )
+
+        elif v2_effect.op == V2_OP_PLAY_BOND_FROM_HAND:
+            target_mask = _v2_target_mask(
+                self, state, player, source, v2_effect
+            )
+            for card in range(self.n_cards):
+                if (
+                    state.hand[player][card] == 0
+                    or self.card_type[card] != CARD_BOND
+                ):
+                    continue
+                for dest in range(SLOT_COUNT):
+                    if (
+                        target_mask & (<uint32_t>1 << dest)
+                        and state.force[dest] >= 0
+                        and state.bond[dest] < 0
+                    ):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_EFFECT, card, source, dest, player, kind
+                            ),
+                        )
+
+        elif v2_effect.op == V2_OP_SET_STRATAGEM_FROM_HAND:
+            if state.stratagem[player] < 0:
+                for card in range(self.n_cards):
+                    if (
+                        state.hand[player][card] > 0
+                        and self.card_type[card] == CARD_STRATAGEM
+                    ):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_EFFECT, card, source, -1, player, kind
+                            ),
+                        )
+
+        elif v2_effect.op == V2_OP_RECOVER:
+            for i in range(state.discard_len[player]):
+                card = state.discard[player][i]
+                if (
+                    v2_effect.card_type_mask == 0
+                    or _v2_card_type_mask_matches(
+                        v2_effect.card_type_mask,
+                        _v2_card_type_bit_for_play(
+                            self,
+                            (
+                                TYPE_BOND
+                                if self.card_type[card] == CARD_BOND
+                                else TYPE_NARRATIVE
+                                if self.card_type[card] == CARD_NARRATIVE
+                                else TYPE_FORCE
+                            ),
+                            card,
+                        ),
+                    )
+                ):
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT, card, -1, -1, player, kind
+                        ),
+                    )
+
+        elif v2_effect.op == V2_OP_DISCARD_DRAW:
+            for card in range(self.n_cards):
+                if state.hand[player][card] > 0:
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT, card, -1, -1, player, kind
+                        ),
+                    )
+
+        elif v2_effect.op in (
+            V2_OP_REORDER_TOP,
+            V2_OP_PICK_TOP_TO_HAND_BOTTOM_REST,
+        ):
+            # Three cards have six possible orders / pick+order outcomes.
+            for option in range(1, 7):
+                n = _append_action(
+                    actions, n,
+                    encode_action(
+                        TYPE_EFFECT,
+                        -1,
+                        -1,
+                        -1,
+                        player,
+                        kind | (option << V2_EFFECT_OPTION_SHIFT),
+                    ),
+                )
+
+        elif v2_effect.op in (
+            V2_OP_RETURN_PREPARED,
+            V2_OP_PREPARED_PAY_OR_RETURN,
+            V2_OP_SUPPRESS_COMPONENT,
+        ):
+            target_mask = _v2_target_mask(
+                self, state, player, source, v2_effect
+            )
+            for dest in range(SLOT_COUNT):
+                if not (target_mask & (<uint32_t>1 << dest)):
+                    continue
+                if state.bond[dest] >= 0:
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT,
+                            state.bond[dest],
+                            -1,
+                            dest,
+                            player,
+                            kind
+                            | (V2_OPTION_BOND << V2_EFFECT_OPTION_SHIFT),
+                        ),
+                    )
+                if state.name[dest] >= 0:
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT,
+                            state.name[dest],
+                            -1,
+                            dest,
+                            player,
+                            kind
+                            | (V2_OPTION_NAME << V2_EFFECT_OPTION_SHIFT),
+                        ),
+                    )
+
+        elif v2_effect.target != V2_TARGET_NONE:
+            target_mask = _v2_target_mask(
+                self, state, player, source, v2_effect
+            )
+            for dest in range(SLOT_COUNT):
+                if target_mask & (<uint32_t>1 << dest):
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT, -1, source, dest, player, kind
+                        ),
+                    )
+
+        else:
+            # Automatic effect: expose exactly one forced non-Action
+            # transition so search/UI state remains explicit and resumable.
+            n = _append_action(
+                actions, n,
+                encode_action(TYPE_EFFECT, -1, source, -1, player, kind),
+            )
+
+    elif kind == EFFECT_FREE_MANEUVER:
         for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if not (source_mask & (1 << source)):
                 continue
@@ -757,7 +1092,7 @@ cdef inline bint _fe_action_uses_only_active_fronts(
         return True
 
     if kind == TYPE_EFFECT:
-        choice = <int>extra
+        choice = <int>(extra & V2_EFFECT_KIND_MASK)
         if pos >= 0 and not (active & (1 << front_from_slot(pos))):
             return False
         if dest >= 0:
