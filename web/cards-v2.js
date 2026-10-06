@@ -2,7 +2,7 @@
 "use strict";
 const scriptURL=typeof document==="undefined"?"":document.currentScript?.src||"";
 const VERSION=(()=>{try{return new URL(scriptURL,window.location.href).searchParams.get("v")||"dev"}catch(_){return"dev"}})();
-const PRINT_VERSION=typeof document==="undefined"?"dev":document.querySelector('meta[name="lw-build-version"]')?.getAttribute("content")||"dev";
+const PRINT_VERSION=typeof document==="undefined"||typeof document.querySelector!=="function"?"dev":document.querySelector('meta[name="lw-build-version"]')?.getAttribute("content")||"dev";
 const esc=value=>String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(part=>part[0].toUpperCase()+part.slice(1)).join(" ");
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",stratagem:"Stratagem",narrative:"Narrative"};
