@@ -4529,7 +4529,7 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
         "rows": rows,
     }
     BENCH_ROOT.mkdir(parents=True, exist_ok=True)
-    path = BENCH_ROOT / "ismcts-speed.json"
+    path = BENCH_ROOT / f"ismcts-speed-{args.position}.json"
     path.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
