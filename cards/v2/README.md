@@ -11,6 +11,6 @@ This is a design/playtest proposal, not the canonical engine card pool.
 - `effect-audit.md` - every current card effect checked for superfluous bookkeeping and buried-card readability.
 - `value-model.md` - arithmetic sanity-check for Force baselines, ability value, applicability and Action cost.
 - `valuation-audit.md` - provisional command/value calculation for every V2 card.
-- `playtest-decks.json` / `playtest-decks.md` - four exploratory 45-card combination/playstyle decks.
+- `playtest-decks.json` / `playtest-decks.md` - four exploratory 48-card combination/playstyle decks.
 
 The existing engine cards and canonical deck files are unchanged.
