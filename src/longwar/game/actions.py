@@ -53,6 +53,23 @@ class PlayStratagem:
 
 
 @dataclass(frozen=True)
+class PlayTactic:
+    card_id: str
+    source: BoardTarget | None = None
+    target: BoardTarget | None = None
+    front: Front | None = None
+
+
+@dataclass(frozen=True)
+class ActivateAbility:
+    card_id: str
+    source: BoardTarget | None = None
+    narrative_slot: int | None = None
+    effect_index: int = 0
+    option: str | None = None
+
+
+@dataclass(frozen=True)
 class Maneuver:
     source: Position
     destination: Position
@@ -95,6 +112,8 @@ Action: TypeAlias = (
     | PlayName
     | PlayNarrative
     | PlayStratagem
+    | PlayTactic
+    | ActivateAbility
     | Maneuver
     | Cycle
     | Discard
@@ -116,6 +135,8 @@ _ACTION_KIND_BY_TYPE = {
     PlayName: ActionKind.PLAY_NAME,
     PlayNarrative: ActionKind.PLAY_NARRATIVE,
     PlayStratagem: ActionKind.PLAY_STRATAGEM,
+    PlayTactic: ActionKind.PLAY_TACTIC,
+    ActivateAbility: ActionKind.ACTIVATE_ABILITY,
 }
 
 
@@ -222,6 +243,46 @@ def action_key(action: object) -> str:
             )
         return key
 
+    if isinstance(action, PlayTactic):
+        key = f"{ActionKeyToken.TACTIC.value}:{action.card_id}"
+        if action.source is not None:
+            key += (
+                f":{ActionKeyToken.SOURCE.value}:{action.source.player},"
+                f"{int(action.source.position.front)},"
+                f"{action.source.position.rank.value}"
+            )
+        if action.target is not None:
+            key += (
+                f":{ActionKeyToken.DESTINATION.value}:{action.target.player},"
+                f"{int(action.target.position.front)},"
+                f"{action.target.position.rank.value}"
+            )
+        if action.front is not None:
+            key += f":{ActionKeyToken.FRONT.value}:{int(action.front)}"
+        return key
+    if isinstance(action, ActivateAbility):
+        source = ""
+        if action.source is not None:
+            source = (
+                f":{ActionKeyToken.SOURCE.value}:{action.source.player},"
+                f"{int(action.source.position.front)},"
+                f"{action.source.position.rank.value}"
+            )
+        slot = (
+            f":{ActionKeyToken.ONGOING.value}:{action.narrative_slot}"
+            if action.narrative_slot is not None
+            else ""
+        )
+        option = (
+            f":{ActionKeyToken.OPTION.value}:{action.option}"
+            if action.option is not None
+            else ""
+        )
+        return (
+            f"{ActionKeyToken.ABILITY.value}:{action.card_id}:"
+            f"{action.effect_index}{source}{slot}{option}"
+        )
+
     raise TypeError(f"Unsupported action type: {type(action)!r}")
 
 
@@ -303,6 +364,55 @@ def action_from_key(key: str) -> object:
         return Maneuver(
             _position(parts[1], parts[2]),
             _position(parts[3], parts[4]),
+        )
+    if parts[0] == ActionKeyToken.TACTIC:
+        card_id = parts[1]
+        source: BoardTarget | None = None
+        target: BoardTarget | None = None
+        front: Front | None = None
+        index = 2
+        while index < len(parts):
+            label = parts[index]
+            value = parts[index + 1]
+            if label in {ActionKeyToken.SOURCE, ActionKeyToken.DESTINATION}:
+                player, encoded_front, rank = value.split(",")
+                parsed = BoardTarget(int(player), _position(encoded_front, rank))
+                if label == ActionKeyToken.SOURCE:
+                    source = parsed
+                else:
+                    target = parsed
+            elif label == ActionKeyToken.FRONT:
+                front = Front(int(value))
+            else:
+                raise ValueError(f"Unknown Tactic action field: {label}")
+            index += 2
+        return PlayTactic(card_id, source=source, target=target, front=front)
+    if parts[0] == ActionKeyToken.ABILITY:
+        card_id = parts[1]
+        effect_index = int(parts[2])
+        source: BoardTarget | None = None
+        narrative_slot: int | None = None
+        option: str | None = None
+        index = 3
+        while index < len(parts):
+            label = parts[index]
+            value = parts[index + 1]
+            if label == ActionKeyToken.SOURCE:
+                player, encoded_front, rank = value.split(",")
+                source = BoardTarget(int(player), _position(encoded_front, rank))
+            elif label == ActionKeyToken.ONGOING:
+                narrative_slot = int(value)
+            elif label == ActionKeyToken.OPTION:
+                option = value
+            else:
+                raise ValueError(f"Unknown Ability action field: {label}")
+            index += 2
+        return ActivateAbility(
+            card_id,
+            source=source,
+            narrative_slot=narrative_slot,
+            effect_index=effect_index,
+            option=option,
         )
     if parts[0] == ActionKeyToken.STRATAGEM:
         card_id = parts[1]
