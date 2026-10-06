@@ -665,6 +665,7 @@ cdef struct V2EffectSpec:
     int8_t count
     int8_t steps
     int8_t minimum
+    int8_t minimum2
     int8_t activation_cost
     int8_t draw_count
     int8_t discard_count
@@ -672,6 +673,7 @@ cdef struct V2EffectSpec:
     uint8_t once_per_battle
     uint8_t rank_mask
     uint8_t card_type_mask
+    uint8_t card_type_mask2
     uint32_t class_mask
     uint32_t class_mask2
     uint32_t flags
