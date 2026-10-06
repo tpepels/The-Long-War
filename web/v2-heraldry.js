@@ -6,6 +6,7 @@
     name:'<path d="M6 21V3M6 4h13l-4 4 4 4H6M3 21h6"/>',
     hero:'<circle cx="12" cy="12" r="6"/><path d="m12 8 1.2 2.7 2.8.3-2.1 1.9.6 2.8-2.5-1.5-2.5 1.5.6-2.8L8 11l2.8-.3Z"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
     tactic:'<path d="m4 20 13-13m-1-3 4-1-1 4-2 1Zm-9 10 3 3M4 4l13 13M3 3l1 5 3-1 1-3Z"/>',
+    order:'<path d="M6 4h12v16H6Z"/><path d="M9 8h6m-6 4h6m-6 4h4M3 7h3m12 10h3"/>',
     stratagem:'<path d="m12 2 9 10-9 10L3 12ZM6 12s2.5-4 6-4 6 4 6 4-2.5 4-6 4-6-4-6-4Z"/><circle cx="12" cy="12" r="1.7"/>',
     narrative:'<path d="M6 4h11a3 3 0 0 1 3 3v1h-4V7a3 3 0 0 0-3-3M6 4a3 3 0 0 0-3 3v13h12V7M3 17h12M7 9h5m-5 4h5"/>'
   };
