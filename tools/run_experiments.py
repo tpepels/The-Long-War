@@ -4341,6 +4341,7 @@ def _prepare_ismcts_speed_position(
 def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
     """Benchmark one fixed ISMCTS decision with the exact simulation deck prior."""
     require_cython()
+    _print_card_pool_notice()
     data = load_card_file(ROOT / "cards" / "cards.json")
     engine = GameEngine(data, rules=GameRules.standard())
     deck = list(
@@ -4514,6 +4515,7 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
         "benchmark": "ismcts-fixed-position",
         "position": args.position,
         "deck": str(args.deck),
+        "card_pool": _card_pool_context(),
         "seed": args.seed,
         "iterations": list(args.iterations),
         "belief_samples": list(args.belief_samples),
@@ -4539,6 +4541,8 @@ def benchmark_ismcts_speed(args: argparse.Namespace) -> Path:
 def benchmark_ismcts_workers(args: argparse.Namespace) -> None:
     """Measure end-to-end process scaling on one fixed ISMCTS game batch."""
     from longwar.simulate import simulate_games
+
+    _print_card_pool_notice()
 
     if args.games <= 0:
         raise SystemExit("--games must be positive")
