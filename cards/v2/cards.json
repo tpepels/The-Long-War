@@ -3865,6 +3865,7 @@
   "position_vocabulary": {
     "directly_ahead": "The adjacent position in the same Front one rank toward the Front row. A Front-row formation has no position directly ahead.",
     "directly_behind": "The adjacent position in the same Front one rank toward the Rear row. A Rear-row formation has no position directly behind.",
+    "row_restriction": "An allowed-row restriction is a hard occupancy restriction: the Force may be played only in those ranks and may not Maneuver, Move, or Swap into a forbidden rank.",
     "move": "MOVE 1 means move the formation to one orthogonally adjacent active empty position: one Front left or right in the same rank, or one rank forward or backward in the same Front. Never diagonal. Move is a card effect, not a Maneuver, so it does not require Named status, costs no Maneuver Command, and Exhaustion does not stop it.",
     "move_multiple": "Move up to N positions means make up to N legal one-position Moves, one at a time; every intermediate destination must be legal and empty.",
     "swap": "SWAP means exchange the complete contents of the two specified friendly positions. Both positions must contain a formation unless the card says otherwise. Swap is a card effect, not a Maneuver, costs no Maneuver Command, and Exhaustion does not stop it.",
