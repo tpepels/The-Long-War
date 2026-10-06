@@ -58,6 +58,7 @@ class PlayTactic:
     source: BoardTarget | None = None
     target: BoardTarget | None = None
     front: Front | None = None
+    option: str | None = None
 
 
 @dataclass(frozen=True)
@@ -66,6 +67,7 @@ class PlayOrder:
     source: BoardTarget | None = None
     target: BoardTarget | None = None
     front: Front | None = None
+    option: str | None = None
 
 
 @dataclass(frozen=True)
@@ -272,6 +274,8 @@ def action_key(action: object) -> str:
             )
         if action.front is not None:
             key += f":{ActionKeyToken.FRONT.value}:{int(action.front)}"
+        if action.option is not None:
+            key += f":{ActionKeyToken.OPTION.value}:{action.option}"
         return key
     if isinstance(action, PlayOrder):
         key = f"{ActionKeyToken.ORDER.value}:{action.card_id}"
@@ -289,6 +293,8 @@ def action_key(action: object) -> str:
             )
         if action.front is not None:
             key += f":{ActionKeyToken.FRONT.value}:{int(action.front)}"
+        if action.option is not None:
+            key += f":{ActionKeyToken.OPTION.value}:{action.option}"
         return key
     if isinstance(action, ActivateAbility):
         source = ""
@@ -404,6 +410,7 @@ def action_from_key(key: str) -> object:
         source: BoardTarget | None = None
         target: BoardTarget | None = None
         front: Front | None = None
+        option: str | None = None
         index = 2
         while index < len(parts):
             label = parts[index]
@@ -417,15 +424,18 @@ def action_from_key(key: str) -> object:
                     target = parsed
             elif label == ActionKeyToken.FRONT:
                 front = Front(int(value))
+            elif label == ActionKeyToken.OPTION:
+                option = value
             else:
                 raise ValueError(f"Unknown Tactic action field: {label}")
             index += 2
-        return PlayTactic(card_id, source=source, target=target, front=front)
+        return PlayTactic(card_id, source=source, target=target, front=front, option=option)
     if parts[0] == ActionKeyToken.ORDER:
         card_id = parts[1]
         source: BoardTarget | None = None
         target: BoardTarget | None = None
         front: Front | None = None
+        option: str | None = None
         index = 2
         while index < len(parts):
             label = parts[index]
@@ -439,10 +449,12 @@ def action_from_key(key: str) -> object:
                     target = parsed
             elif label == ActionKeyToken.FRONT:
                 front = Front(int(value))
+            elif label == ActionKeyToken.OPTION:
+                option = value
             else:
                 raise ValueError(f"Unknown Order action field: {label}")
             index += 2
-        return PlayOrder(card_id, source=source, target=target, front=front)
+        return PlayOrder(card_id, source=source, target=target, front=front, option=option)
     if parts[0] == ActionKeyToken.ABILITY:
         card_id = parts[1]
         effect_index = int(parts[2])
