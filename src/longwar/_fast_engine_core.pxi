@@ -10,6 +10,7 @@ include "_fast_state.pxi"
 cdef class FastEngine
 
 include "_fast_engine_cards.pxi"
+include "_fast_engine_v2.pxi"
 include "_fast_engine_state_io.pxi"
 include "_fast_engine_strength.pxi"
 include "_fast_engine_costs.pxi"
