@@ -69,6 +69,19 @@ def test_formation_vocabulary_and_timings_are_explicit() -> None:
     assert not any(effect["timing"] == "resolution" for card in CARDS for effect in effects(card))
 
 
+def test_bond_cleanup_leaves_no_dead_limited_ability_targets() -> None:
+    bonds = [card for card in CARDS if card["type"] == "bond"]
+    assert not any(
+        effect.get("limit") == "once_per_battle"
+        for card in bonds
+        for effect in card.get("effects", [])
+    )
+
+    line_wheeled = next(card for card in CARDS if card["id"] == "the-line-wheeled")
+    assert "non-PLAY text is ignored" in line_wheeled["text"]
+    assert "1/BATTLE ability" not in line_wheeled["text"]
+
+
 def test_once_per_battle_always_modifies_real_timing() -> None:
     for card in CARDS:
         for effect in effects(card):
@@ -586,8 +599,13 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
     assert "orthogonally adjacent active empty position" in positions["move"]
     assert "Never diagonal" in positions["move"]
     assert "up to N legal one-position Moves" in positions["move_multiple"]
+    assert "exchange the complete contents" in positions["swap"]
+    assert "Maneuver, Move, or Swap" in positions["movement_event"]
     assert "add together" in positions["stacking"]
     assert "each reduce the cost by 1" in positions["stacking"]
+    assert "add all applicable increases" in positions["command_modifiers"]
+    assert "minimum 0" in positions["command_modifiers"]
+    assert "all matching increases apply" in positions["tax_markers"]
 
     grey = by_id["the-grey-riders"]
     assert grey["text"].startswith("TIRELESS")
