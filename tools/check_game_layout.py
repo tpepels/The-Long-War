@@ -77,6 +77,13 @@ def presentation_snapshots() -> dict[str, dict]:
         for card in cards
         if card["type"] == "narrative" and card.get("ongoing", False)
     )
+    unrestricted_force = next(
+        card["id"]
+        for card in cards
+        if card["type"] == "force"
+        and not card.get("hero", False)
+        and "deploy_rank" not in card.get("design_rules", {})
+    )
     session = PlaySession(card_json, deck_json, "computer", 1701, paced_ai=True)
     opening = session.snapshot(0)
     session.mulligan([], 0)
@@ -106,7 +113,7 @@ def presentation_snapshots() -> dict[str, dict]:
     # One free Force destination exercises legal-target highlighting using an
     # action encoded by the real engine, with the rest of the formations full.
     session.state.board[0][1][1].force = None
-    session.state.players[0].hand[-1] = by_type["force"][0]["id"]
+    session.state.players[0].hand[-1] = unrestricted_force
     cases["targeting"] = session.snapshot(0)
     session.state.active_player = 1
     cases["ai"] = session.snapshot(0)
