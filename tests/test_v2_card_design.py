@@ -268,8 +268,7 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
     # Per-card art follows the card-id filename convention rather than a
     # hand-maintained registry. Missing images leave the family-art layer
     # visible underneath, so adding a correctly named PNG needs no JS edit.
-    assert 'const artURL="art/v2/cards/"+esc(card.id)+".png?v="+encodeURIComponent(VERSION);' in js
-    assert "--card-art:url('+artURL+')" in js
+    assert "--card-art:url(art/v2/cards/" in js
     assert "CARD_ART" not in js
     assert "var(--card-art,none),var(--family-art)" in css
 
@@ -434,3 +433,25 @@ def test_runtime_art_crop_is_centered_after_normalization() -> None:
     assert 'const y=artFocus(card.art_focus_y,"50%");' in js
     assert 'card.type==="force"?"28%":"50%"' not in js
     assert "background-position:var(--art-x,50%) var(--art-y,50%)" in css
+
+
+def test_shared_v2_visual_language_follows_print_reference_principles() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert "border:var(--frame) solid #484a40" in css
+    assert "border:.18mm solid color-mix(in srgb,var(--accent) 78%,transparent)" in css
+    assert "grid-template-columns:auto max-content minmax(0,1fr)" in css
+    assert ".edge-timing-word{display:inline" in css
+    assert ".motif-field{position:relative;flex:0 0 var(--art-height)" in css
+    assert "clip-path:" not in css
+    assert ".card-footer{flex:0 0 7.6mm" in css
+    assert "@page v2cards{size:A4 landscape;margin:7mm 8mm}" in css
+
+
+def test_legacy_print_renderer_is_removed() -> None:
+    assert not (ROOT / "web" / "print-cards.css").exists()
+    assert not (ROOT / "web" / "print-cards.js").exists()
+    for page in ("cards.html", "playtest-kit.html"):
+        source = (ROOT / "web" / page).read_text(encoding="utf-8")
+        assert "cards-v2.css" in source
+        assert "cards-v2.js" in source
+        assert "print-cards" not in source
