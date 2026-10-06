@@ -23,9 +23,13 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 - **directly behind** - the adjacent position in the same Front one rank toward Rear.
 - **SUPPORT +N** - the friendly Formation directly ahead has +N Strength while the support effect is active.
 - **SUPPLY** - Bonds and Names played onto the friendly Formation directly ahead cost 1 less Command, to a minimum of 1.
+- **OUTMATCHED** - an opposing Formation occupies the same rank in the same Front and has greater current Strength. This is only a local card condition; it does not decide the Front.
+- **RESERVE +N** - this Formation has +N Strength while the friendly Formation directly ahead is OUTMATCHED.
+- **TIRELESS** - this Force may initiate a Maneuver while Exhausted. It keeps its Exhaustion token, so other cards may still care that it is Exhausted.
+- **EXHAUSTED** as a timing label is a continuous state active while that Force has an Exhaustion token.
 - **FRONT / MIDDLE / REAR** as a timing label is a continuous positional state. The text is active only while that Formation occupies that rank.
 
-Positional text should normally be one short line. The rank and relationship should carry the idea; Forces should not become paragraphs that need rereading every time Strength is counted.
+Positional and Exhaustion text should normally be one short line. The rank, token, and relationship should carry the idea; Forces should not become paragraphs that need rereading every time Strength is counted.
 
 A Force with an allowed-row restriction may list more than one legal rank. In particular, former Rear-only support Forces may be played in **Middle or Rear**; their **REAR** text simply does nothing in Middle.
 
@@ -53,7 +57,7 @@ Avoid invisible "the first X each Battle/turn" bookkeeping when the same identit
 
 ## Card-type grammar
 
-**Force** - base Strength and one simple battlefield identity. No rule, PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED, WHILE NAMED, or a short FRONT / MIDDLE / REAR state. Never a buried TRIGGER.
+**Force** - base Strength and one simple battlefield identity. No rule, PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED, WHILE NAMED, a short FRONT / MIDDLE / REAR / EXHAUSTED state, or TIRELESS. Never a buried TRIGGER.
 
 **Bond** - compact middle-layer support. PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED or WHILE NAMED. Never a buried TRIGGER.
 
