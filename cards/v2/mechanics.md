@@ -61,9 +61,9 @@ Avoid invisible "the first X each Battle/turn" bookkeeping when the same identit
 
 ## Card-type grammar
 
-**Force** - base Strength and one simple battlefield identity. No rule, PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED, WHILE NAMED, a short FRONT / MIDDLE / REAR / EXHAUSTED state, or TIRELESS. Never a buried TRIGGER.
+**Force** - base Strength and one simple battlefield identity. Prefer no rule, PLAY, BONDED, WHILE NAMED, or a short FRONT / MIDDLE / REAR / EXHAUSTED / TIRELESS state. A buried ACTION is reserved for very short movement/repositioning text whose complete instruction fits in the exposed edge. Force REACTION text belongs on top-visible cards.
 
-**Bond** - compact middle-layer support. PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED or WHILE NAMED. Never a buried TRIGGER.
+**Bond** - compact middle-layer support. Use PLAY for one-shot choices and BONDED / WHILE NAMED / positional state text for live effects. Bonds do not carry ACTION or REACTION abilities while buried.
 
 **Name** - visible top card. BECOMES NAMED, ACTION, REACTION, TRIGGER, CONTINUOUS or WHILE NAMED.
 
