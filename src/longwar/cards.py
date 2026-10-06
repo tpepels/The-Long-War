@@ -410,23 +410,31 @@ def validate_card_data(data: dict[str, Any]) -> None:
 
         if card_type == CardType.FORCE:
             strength = card.get(CardField.STRENGTH)
-            if type(strength) is not int or strength < 0:
-                raise ValueError(f"{card_id}: Force strength must be non-negative")
+            if type(strength) is not int or not 0 <= strength <= 127:
+                raise ValueError(
+                    f"{card_id}: Force strength must be an integer in 0..127"
+                )
         elif card_type in {CardType.BOND, CardType.NAME}:
             strength = card.get(CardField.STRENGTH_MODIFIER)
-            if type(strength) is not int:
+            if type(strength) is not int or not -128 <= strength <= 127:
                 raise ValueError(
-                    f"{card_id}: {card_type} strength_modifier must be an integer"
+                    f"{card_id}: {card_type} strength_modifier must fit signed int8"
                 )
             if card_type == CardType.NAME and not card["unique"]:
                 raise ValueError(f"{card_id}: every Name must be Unique")
         elif card_type == CardType.HERO:
             if not card["unique"]:
                 raise ValueError(f"{card_id}: every Hero must be Unique")
-            if type(card.get(CardField.FORCE_STRENGTH)) is not int:
-                raise ValueError(f"{card_id}: Hero force_strength required")
-            if type(card.get(CardField.NAME_STRENGTH_MODIFIER)) is not int:
-                raise ValueError(f"{card_id}: Hero name_strength_modifier required")
+            force_strength = card.get(CardField.FORCE_STRENGTH)
+            name_strength = card.get(CardField.NAME_STRENGTH_MODIFIER)
+            if type(force_strength) is not int or not 0 <= force_strength <= 127:
+                raise ValueError(
+                    f"{card_id}: Hero force_strength must be an integer in 0..127"
+                )
+            if type(name_strength) is not int or not -128 <= name_strength <= 127:
+                raise ValueError(
+                    f"{card_id}: Hero name_strength_modifier must fit signed int8"
+                )
             if set(card.get(CardField.MODES, {})) != {"force", "name"}:
                 raise ValueError(f"{card_id}: Hero requires force and name modes")
 
