@@ -543,6 +543,8 @@ def test_three_rank_positional_support_grammar() -> None:
     positions = DATA["position_vocabulary"]
     assert "one rank toward the Front row" in positions["directly_ahead"]
     assert "one rank toward the Rear row" in positions["directly_behind"]
+    assert "hard occupancy restriction" in positions["row_restriction"]
+    assert "Maneuver, Move, or Swap" in positions["row_restriction"]
     assert "SUPPORT +N" in positions["support"]
     assert "SUPPLY" in positions["supply"]
 
