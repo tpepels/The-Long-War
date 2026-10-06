@@ -570,6 +570,51 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                 f"{_fe_rank_key(rank_from_slot(dest))}"
             )
         return key
+    if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+        key = (
+            ("tactic:" if kind == TYPE_TACTIC else "order:")
+            + self.card_ids[card]
+        )
+        if pos >= 0:
+            key += (
+                f":source:{owner_from_slot(pos)},"
+                f"{front_from_slot(pos)},"
+                f"{_fe_rank_key(rank_from_slot(pos))}"
+            )
+        if dest >= 0:
+            key += (
+                f":destination:{owner_from_slot(dest)},"
+                f"{front_from_slot(dest)},"
+                f"{_fe_rank_key(rank_from_slot(dest))}"
+            )
+        front = <int>(extra & V2_PLAY_FRONT_MASK) - 1
+        if front >= 0:
+            key += f":front:{front}"
+        choice = <int>(
+            (extra >> V2_PLAY_COMPONENT_SHIFT)
+            & V2_PLAY_COMPONENT_MASK
+        )
+        if choice == V2_OPTION_BOND:
+            key += ":option:bond"
+        elif choice == V2_OPTION_NAME:
+            key += ":option:name"
+        elif choice == V2_OPTION_PAY:
+            key += ":option:pay"
+        elif choice == V2_OPTION_RETURN:
+            key += ":option:return"
+        return key
+    if kind == TYPE_ABILITY:
+        choice = <int>extra
+        key = f"ability:{self.card_ids[card]}:{_v2_pending_effect_index(choice)}"
+        if choice & V2_ABILITY_NARRATIVE_FLAG:
+            key += f":ongoing:{pos}"
+        elif pos >= 0:
+            key += (
+                f":source:{owner_from_slot(pos)},"
+                f"{front_from_slot(pos)},"
+                f"{_fe_rank_key(rank_from_slot(pos))}"
+            )
+        return key
     if kind == TYPE_MANEUVER:
         return (
             f"maneuver:{front_from_slot(pos)}:"
