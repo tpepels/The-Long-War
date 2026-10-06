@@ -141,7 +141,12 @@ def validate_command_costs(card_data: dict[str, Any]) -> None:
     invalid = []
     for card in card_data["cards"]:
         cost = card.get("command_cost")
-        if isinstance(cost, bool) or not isinstance(cost, int) or cost < 1:
+        minimum = 0 if card.get("type") in {"tactic", "order"} else 1
+        if (
+            isinstance(cost, bool)
+            or not isinstance(cost, int)
+            or cost < minimum
+        ):
             invalid.append(f"{card['id']}: invalid command_cost={cost!r}")
     if invalid:
         raise ValueError("Invalid Command cost: " + ", ".join(invalid))

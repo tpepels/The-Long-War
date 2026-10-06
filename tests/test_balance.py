@@ -46,10 +46,32 @@ def test_static_strength_uses_canonical_rules_not_balance_annotations() -> None:
     assert score.static_strength == 11
 
 
-def test_canonical_command_cost_validation_detects_invalid_printed_cost() -> None:
+def test_canonical_command_cost_validation_allows_zero_cost_tactics_and_orders() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     validate_command_costs(data)
+    zero_cost = {
+        card["id"]
+        for card in data["cards"]
+        if card["command_cost"] == 0
+    }
+    assert zero_cost == {
+        "they-were-gathering-there",
+        "fresh-orders",
+        "catch-your-breath",
+        "re-form-the-line",
+        "bind-the-wound",
+        "send-a-runner",
+    }
+
+
+def test_canonical_command_cost_validation_detects_invalid_printed_cost() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
     card = next(card for card in data["cards"] if card["id"] == "avaros-the-bronze-king")
     card["command_cost"] = 0
     with pytest.raises(ValueError, match="avaros-the-bronze-king: invalid command_cost=0"):
+        validate_command_costs(data)
+
+    tactic = next(card for card in data["cards"] if card["id"] == "they-were-gathering-there")
+    tactic["command_cost"] = -1
+    with pytest.raises(ValueError, match="they-were-gathering-there: invalid command_cost=-1"):
         validate_command_costs(data)
