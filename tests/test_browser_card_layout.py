@@ -178,6 +178,7 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
     assert "MOVE UP TO N" in script
     assert "SWAP" in script
     assert "MOVES / MOVED" in script
+    assert "ROW RESTRICTIONS" in script
     assert "OUTMATCHED" in script
     assert "TIRELESS" in script
     assert "EXHAUSTION" in script
