@@ -5,12 +5,12 @@ const VERSION=(()=>{try{return new URL(scriptURL,window.location.href).searchPar
 const PRINT_VERSION=typeof document==="undefined"||typeof document.querySelector!=="function"?"dev":document.querySelector('meta[name="lw-build-version"]')?.getAttribute("content")||"dev";
 const esc=value=>String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(part=>part[0].toUpperCase()+part.slice(1)).join(" ");
-const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",stratagem:"Stratagem",narrative:"Narrative"};
+const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",order:"Order",stratagem:"Stratagem",narrative:"Narrative"};
 const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL",front:"FRONT",middle:"MIDDLE",rear:"REAR",exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"};
 const LIVE=new Set(["action","reaction","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"]);
 const RULE_TERMS=[
   "Named Formation","Bonded Formation","Unbonded Formation","Formation",
-  "Force","Bond","Name","Hero","Tactic","Stratagem","Narrative",
+  "Force","Bond","Name","Hero","Tactic","Order","Stratagem","Narrative",
   "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Tireless","Mobile","Unnamed","Exhausted","Exhaustion","Exhaustion token",
   "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
   "prepared Bond","prepared Name"
