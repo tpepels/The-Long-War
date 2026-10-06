@@ -442,16 +442,62 @@ def test_maneuver_swaps_complete_contents_with_incomplete_formation() -> None:
     assert state.slot(0, source).name == "iria"
 
 
-def test_maneuver_has_no_vertical_or_non_adjacent_core_move() -> None:
+def test_maneuver_allows_orthogonal_vertical_but_not_diagonal_or_two_step() -> None:
     engine, state = setup_state()
-    source = pos(0, Rank.FRONT)
+    source = pos(1, Rank.MIDDLE)
     make_named(state, 0, source)
     state.players[0].command = 5
     legal = engine.legal_actions(state)
 
-    assert Maneuver(source, pos(0, Rank.MIDDLE)) not in legal
-    assert Maneuver(source, pos(0, Rank.REAR)) not in legal
-    assert Maneuver(source, pos(2, Rank.FRONT)) not in legal
+    assert Maneuver(source, pos(1, Rank.FRONT)) in legal
+    assert Maneuver(source, pos(1, Rank.REAR)) in legal
+    assert Maneuver(source, pos(0, Rank.MIDDLE)) in legal
+    assert Maneuver(source, pos(2, Rank.MIDDLE)) in legal
+    assert Maneuver(source, pos(0, Rank.FRONT)) not in legal
+    assert Maneuver(source, pos(2, Rank.REAR)) not in legal
+    assert Maneuver(source, pos(3, Rank.MIDDLE)) not in legal
+
+
+def test_lost_front_exhausts_every_force_there_and_blocks_maneuver() -> None:
+    engine, state = setup_state()
+    front = 1
+    for rank in Rank:
+        make_named(state, 0, pos(front, rank))
+    make_named(state, 1, pos(front, Rank.FRONT), temporary=100)
+
+    resolve_battle_by_passing(engine, state)
+
+    for rank in Rank:
+        assert state.slot(0, pos(front, rank)).exhausted is True
+    assert state.slot(1, pos(front, Rank.FRONT)).exhausted is False
+
+    state.active_player = 0
+    state.actions_this_turn = 0
+    state.pending_draw_discard_for = None
+    state.pending_draw_count = 0
+    state.pending_draw_finish_operation = False
+    exhausted_source = pos(front, Rank.MIDDLE)
+    assert not any(
+        isinstance(action, Maneuver) and action.source == exhausted_source
+        for action in engine.legal_actions(state)
+    )
+
+
+def test_exhaustion_round_trips_and_blocks_horizontal_and_vertical_maneuver() -> None:
+    engine, state = setup_state()
+    source = pos(1, Rank.MIDDLE)
+    make_named(state, 0, source).exhausted = True
+
+    cloned = state.clone()
+    assert cloned.slot(0, source).exhausted is True
+
+    packed = engine._native_core_instance.from_game_state(state)
+    exported = engine._native_core_instance.export_state(packed)
+    assert exported["board"][0][1][1]["exhausted"] is True
+
+    legal = engine.legal_actions(state)
+    assert Maneuver(source, pos(1, Rank.REAR)) not in legal
+    assert Maneuver(source, pos(2, Rank.MIDDLE)) not in legal
 
 
 def test_pass_is_forced_only_when_no_action_is_legal() -> None:

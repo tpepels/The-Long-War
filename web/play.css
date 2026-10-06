@@ -857,6 +857,17 @@ body.game-body {
   opacity: 0.45;
   border-style: dashed;
 }
+.exhaustion-token {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  padding: 2px 4px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: var(--paper);
+  font: 700 8px/1 system-ui, sans-serif;
+  letter-spacing: 0.06em;
+}
 .narrative-marker,
 .stratagem-marker {
   min-width: 0;

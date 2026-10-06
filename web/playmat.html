@@ -47,7 +47,7 @@
         <div class="rv-player you"><strong>YOU</strong><span>STRATAGEM AREA · face-down · one from hand per Battle</span></div>
         <div class="rv-language">
           <b>Active Fronts</b> = Battle I: middle 2 · Battle II: add left outer · Battle III+: all 4
-          <b>Adjacent</b> = one active Front left/right, same rank
+          <b>Adjacent</b> = shares an edge: left/right or one rank forward/back · never diagonal
           <b>Battlefield</b> = cards stay where they are unless a card or rule explicitly moves/removes them
         </div>
       </section>
@@ -58,7 +58,7 @@
           <ol>
             <li><b>Start turn:</b> draw {{TURN_DRAW_COUNT}}. If your hand rises above {{HAND_LIMIT}} cards, discard down to {{HAND_LIMIT}} before play continues. Reshuffle discard only if deck empties.</li>
             <li><b>Act:</b> take up to {{ACTIONS_PER_TURN}} Actions - play a card, Maneuver, or Cycle (discard 2, draw 1). You may repeat an Action type or end your turn early.</li>
-            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one active Front sideways in the same rank, or swap with a friendly formation.</li>
+            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one adjacent active position - left/right or one rank forward/back, never diagonal - or swap with a friendly formation. Exhausted Forces cannot Maneuver.</li>
             <li><b>Pass:</b> only when no legal Action remains after your draw. Opponent takes one full closing turn, then you take one full closing turn, then the Battle ends.</li>
           </ol>
         </section>
@@ -85,7 +85,7 @@
           <ol>
             <li>Resolve each active Front separately. Higher Strength wins; ties cost neither player Command.</li>
             <li>Resolve Battle-end effects, then clear effects that last only for this Battle.</li>
-            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost, applying the loss in full even below 0. The battlefield itself does not move or clear.</li>
+            <li>Each Force in a Front you lost gains one Exhaustion token (max 1) and can no longer Maneuver. Then lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost, applying the loss in full even below 0. The battlefield itself does not move or clear.</li>
             <li>Check Command Collapse before recovery: lower Command loses; if both are equally at/below {{COLLAPSE_THRESHOLD}}, the player who Passed loses. If the war continues, recover and the player who did not Pass starts the next Battle.</li>
           </ol>
         </section>
@@ -95,7 +95,7 @@
     <footer class="reference-v3-footer">
       <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. After Battle-end effects, lose {{LOST_FRONT_COMMAND_PENALTY}} per unprotected Front lost. If either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; if equal, the player who Passed loses.</span></div>
       <div><b>RECOVERY</b><span>If the war continues, recover the current base: <b>{{RECOVERY_SERIES}}</b>, minimum {{RECOVERY_FLOOR}}; Front losses have already reduced Command before Collapse; max total {{COMMAND_CAP}}.</span></div>
-      <div><b>BETWEEN BATTLES</b><span>The whole battlefield persists, including prepared and incomplete stacks · clear Battle-only effects and temporary Strength · refill to {{HAND_LIMIT}} · activate the next Front when appropriate · the player who did not Pass starts.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>The whole battlefield persists, including Exhaustion tokens, prepared and incomplete stacks · clear Battle-only effects and temporary Strength · refill to {{HAND_LIMIT}} · activate the next Front when appropriate · the player who did not Pass starts.</span></div>
     </footer>
   </main>
 </body>

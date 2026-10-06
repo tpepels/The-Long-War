@@ -749,6 +749,9 @@ function renderSlot(owner, front, rank) {
     '<span class="slot-strength' + (slot.force ? '' : ' inactive') + '">' +
       (slot.force ? slot.strength : "—") +
     '</span>' +
+    (slot.force && slot.exhausted
+      ? '<span class="exhaustion-token" title="Exhausted - cannot Maneuver">EXH</span>'
+      : '') +
     (targetable
       ? '<b class="legal-target-cue">' + cue + ' · ' +
         commandCostLabel(targets) + '</b>'
@@ -1170,7 +1173,7 @@ function renderInteraction() {
   if (!selectedCardId) {
     if (stagedManeuverSource) {
       title.textContent = "Maneuver";
-      hint.textContent = "Choose the highlighted adjacent destination in the same rank.";
+      hint.textContent = "Choose a highlighted adjacent destination - left, right, forward, or back; never diagonal.";
       cancel.hidden = false;
     } else if (state.pending_draw_discard_for === state.viewer) {
       title.textContent = "Hand limit";

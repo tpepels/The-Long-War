@@ -152,10 +152,12 @@ A **Maneuver** is an Action that moves one of your Named Formations.
 
 A Maneuver costs **1 Command**.
 
-Choose one of your Named Formations and move it:
+Choose one of your Named Formations and move it to one **adjacent position**:
 
-- one active Front to the left or right;
-- in the same rank.
+- one active Front to the left or right in the same rank; or
+- one rank toward the Frontline or Rear in the same Front.
+
+Diagonal movement is never adjacent.
 
 You may not Maneuver into an inactive Front.
 
@@ -165,7 +167,7 @@ If the destination contains one of your own formations, swap the two formations.
 
 Move the Force and every attached Bond and Name together.
 
-A Maneuver never changes a formation's rank unless a card explicitly says otherwise.
+A Force with an **Exhaustion token** cannot initiate a Maneuver. A Force can have at most one Exhaustion token. Exhaustion does not stop a card effect from **Moving** that Force, and an exhausted Force may still be displaced as the non-initiating formation in a swap.
 
 During the resolution of a single Action or effect, each formation may initiate at most one Maneuver.
 
@@ -225,13 +227,23 @@ For every active Front, total the Strength that counts there.
 
 Record which Fronts each player lost.
 
-### 3. Resolve Battle-end effects
+### 3. Exhaust Forces in lost Fronts
+
+For every Front you lost, place an **Exhaustion token** on each of your Forces in that Front, in every rank.
+
+A Force can have at most one Exhaustion token. If it is already exhausted, nothing further happens.
+
+Exhaustion remains on that Force between Battles and moves with it. If the Force leaves the battlefield, its Exhaustion token leaves with it.
+
+A tied Front exhausts neither player.
+
+### 4. Resolve Battle-end effects
 
 Resolve card effects that happen at Battle end while the Front results are still known.
 
 Discard effects that last only for this Battle.
 
-### 4. Lose Command for lost Fronts
+### 5. Lose Command for lost Fronts
 
 Lose **1 Command for each Front you lost**, unless a card says that Front does not reduce your Command.
 
@@ -239,9 +251,9 @@ A tied Front costs neither player Command.
 
 This loss is applied in full. Unlike voluntary spending, Battle-end Command loss may take a player below 0.
 
-Winning or losing a Front does **not** move, Retreat, or discard any battlefield cards. Unless card text says otherwise, every Force, Bond, Name, prepared card, and incomplete formation stays exactly where it is.
+Winning or losing a Front does **not** move, Retreat, or discard any battlefield cards. Unless card text says otherwise, every Force, Bond, Name, prepared card, and incomplete formation stays exactly where it is. Forces in a lost Front are exhausted as described above.
 
-### 5. Check Command Collapse
+### 6. Check Command Collapse
 
 Check for Command Collapse before anyone recovers Command.
 
@@ -253,7 +265,7 @@ If both players are at 0 or less with the same Command total, the player who **P
 
 If neither player collapses, the war continues.
 
-### 6. Recover and prepare the next Battle
+### 7. Recover and prepare the next Battle
 
 If the war continues, recover Command:
 
@@ -337,12 +349,13 @@ Words such as *Swordsman*, *Archer*, *Human*, *King*, or *Ship* are classificati
 
 A few position words appear often on cards:
 
-- **Adjacent:** one active Front left or right in the same rank.
+- **Adjacent positions:** two positions that share an edge: one active Front left or right in the same rank, or one rank forward or back in the same Front. Diagonal positions are not adjacent.
+- **Adjacent Front:** the active Front immediately to the left or right. Vertical positions in the same Front are not an adjacent Front.
 - **Directly in front of:** the next position toward the Frontline in the same Front. The Frontline is directly in front of Middle/Support; Middle/Support is directly in front of Rear.
 - **Directly behind:** the next position toward the Rear in the same Front. Middle/Support is directly behind the Frontline; the Rear is directly behind Middle/Support.
 - **Frontline**, **Middle/Support**, and **Rear** always name those specific ranks.
 
-An inactive Front is never adjacent for game purposes and cannot be chosen by an effect. The Frontline has no position directly in front of it, and the Rear has no position directly behind it.
+An inactive Front cannot be entered by Maneuver and cannot count as an adjacent Front for an effect. Vertical adjacency within an active Front is unaffected. The Frontline has no position directly in front of it, and the Rear has no position directly behind it.
 
 ## Card movement and removal {#reference}
 
@@ -350,11 +363,11 @@ Unless a card says otherwise:
 
 | Event | Result |
 | --- | --- |
-| Force is discarded | Discard its Bond and Name too. |
+| Force is discarded | Discard its Bond and Name too; remove its Exhaustion token, if any. |
 | Bond is discarded | The Force stays; return its Name to its owner's hand. |
 | Bond is returned | The Force stays; return the Bond to its owner's hand. |
 | Name is returned or discarded | The Force and Bond stay; the Bond becomes open. |
-| Force moves | Its Bond and Name move with it. |
+| Force moves | Its Bond, Name, and Exhaustion token move with it. |
 | Formation Maneuvers | Move the Force, Bond, and Name together. |
 
 Battle resolution by itself never causes any of these removals.

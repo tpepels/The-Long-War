@@ -53,6 +53,7 @@ def public_snapshot(state):
                         "force": slot.force,
                         "bond": slot.bond,
                         "name": slot.name,
+                        "exhausted": slot.exhausted,
                         "temporary_strength": slot.temporary_strength,
                         "maneuvers_this_battle": slot.maneuvers_this_battle,
                         "maneuvered_in_operation": slot.maneuvered_in_operation,
@@ -230,6 +231,25 @@ def test_native_state_hash_distinguishes_turn_number() -> None:
 
     changed = state.clone()
     changed.turn_number += 1
+
+    assert native.state_hash(native.from_game_state(changed)) != baseline
+
+
+def test_native_state_hash_distinguishes_exhaustion() -> None:
+    engine, deck, native = setup()
+    state = engine.new_game(
+        deck,
+        deck,
+        seed=9905,
+        first_player=0,
+        opening_bonus=False,
+    )
+    target = Position(Front.SECOND, Rank.MIDDLE)
+    state.slot(0, target).force = "the-fifty-men"
+    baseline = native.state_hash(native.from_game_state(state))
+
+    changed = state.clone()
+    changed.slot(0, target).exhausted = True
 
     assert native.state_hash(native.from_game_state(changed)) != baseline
 
