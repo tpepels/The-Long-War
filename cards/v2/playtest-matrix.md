@@ -1,36 +1,37 @@
 # V2 playtest and archetype matrix
 
-The pool is evaluated on classification depth, mechanical coverage, and the card-value heuristic.
+The pool is evaluated on classification depth, mechanical coverage, and the card-value heuristic. The four exploratory decks collectively cover every current V2 card.
 
 ## Mechanical coverage
 
 | Mechanical family | Designs |
 |---|---:|
 | Strength | 38 |
+| Marker State | 37 |
+| Classification Synergy | 36 |
 | Command | 36 |
-| Marker State | 36 |
 | Named Payoff | 34 |
-| Classification Synergy | 30 |
 | Formation Building | 27 |
 | Persistent State | 24 |
-| Positional Support | 20 |
+| Positional Support | 22 |
 | Action Engine | 19 |
+| Card Flow | 17 |
 | Command Recovery | 15 |
-| Card Flow | 14 |
+| Information | 15 |
 | Hostile Interaction | 14 |
-| Information | 14 |
 | Protection | 14 |
 | Army Support | 12 |
+| Movement | 12 |
 | Tax | 12 |
 | Hidden Plan | 11 |
-| Movement | 11 |
 | Suppression | 10 |
-| Exhaustion | 8 |
+| Exhaustion | 9 |
 | Play Effect | 7 |
 | Baseline | 6 |
 | Prepared Cards | 6 |
+| Zero Command | 5 |
+| Healing | 4 |
 | Disruption | 3 |
-| Healing | 2 |
 | Outmatched | 2 |
 | Reserve | 2 |
 | Prepared Pressure | 1 |
@@ -41,8 +42,8 @@ The pool is evaluated on classification depth, mechanical coverage, and the card
 
 | Timing | Effects |
 |---|---:|
+| Play | 37 |
 | Becomes_named | 31 |
-| Play | 31 |
 | Action | 22 |
 | Continuous | 21 |
 | Bonded | 16 |
@@ -93,15 +94,14 @@ There are **0 RESOLUTION effects**, **0 bare 1/BATTLE timings**, **0 regular For
 | **Heir** | Rank | 1 | 1 |
 
 
+
 ## Playtest focus after the value/breadth pass
 
 - Replace provisional applicability multipliers in `value-model.md` with observed condition-active rates.
-- Watch MOBILE + TIRELESS Grey Riders, especially with The Long March.
-- Check whether repeatable Force Actions (Vardai and White Hands) justify half a turn without becoming automatic.
-- Watch persistent taxes on Aradai, Iron Boars and Red Duelists for oppressive stacking.
-- Check whether positional information Forces reveal too much hidden Stratagem information.
-- Compare 2-Command Baggage with 1-Command conditional -2 Tactics and the 2-Command Rear-only -3 Tactic.
-- Track whether 0-Command cards are useful Action-for-selection trades rather than automatic inclusions.
-- Continue watching SUPPORT / SUPPLY / RESERVE arithmetic and zero-cost Bond chains.
+- Compare Fresh Orders with the narrower but stronger Send a Runner.
+- Check whether Catch Your Breath and Bind the Wound are useful enough despite requiring both a support class and an existing adverse state.
+- Check whether Re-form the Line creates meaningful positional turns without replacing normal Maneuver.
+- Compare 1-Command Take Stock against other card-selection engines.
+- Watch MOBILE + TIRELESS Grey Riders, persistent taxes, and zero-cost Bond chains.
 
 Per card, record drawn, played, dead in hand, Command spent, Action spent, condition-active rate, whether it changed a decision or Front result, counterplay, forgotten state, rules questions, and voluntary re-inclusion.
