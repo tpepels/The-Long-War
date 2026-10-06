@@ -10,6 +10,7 @@ from longwar.algorithms.alpha_beta import (
     SearchLimit,
     action_completed_turn,
 )
+from longwar.game.engine import GameEngine
 from longwar.game.model import Phase
 
 
@@ -44,7 +45,17 @@ class _State:
         self.pending_draw_discard_for = other.pending_draw_discard_for
 
 
-class _GraphEngine:
+class _TransitionContractEngine:
+    def transition_completed_turn(self, before, after, action):
+        return GameEngine.transition_completed_turn(
+            self,
+            before,
+            after,
+            action,
+        )
+
+
+class _GraphEngine(_TransitionContractEngine):
     rules = SimpleNamespace(actions_per_turn=1)
 
     def apply(self, state, action, *, validate):
@@ -71,7 +82,7 @@ class _GraphSearch(AlphaBetaSearch):
         return {"root": ["a", "b"], "a": ["a1", "a2"], "b": ["b1", "b2"]}[state.name]
 
 
-class _TwoActionEngine:
+class _TwoActionEngine(_TransitionContractEngine):
     rules = SimpleNamespace(actions_per_turn=2)
 
     def apply(self, state, action, *, validate):
@@ -141,7 +152,7 @@ def test_alpha_beta_depth_counts_completed_turns_not_raw_actions():
     assert value == 7.0
 
 
-class _PendingChoiceEngine:
+class _PendingChoiceEngine(_TransitionContractEngine):
     rules = SimpleNamespace(actions_per_turn=2)
 
     def apply(self, state, action, *, validate):
@@ -234,8 +245,6 @@ def test_python_state_key_includes_search_relevant_flags():
     from pathlib import Path
     import json
     from longwar.cards import load_card_file
-    from longwar.game import GameEngine
-
     root = Path(__file__).resolve().parents[1]
     engine = GameEngine(load_card_file(root / "cards/cards.json"))
     deck = json.loads((root / "decks/mobility-open-bonds.json").read_text())["cards"]
