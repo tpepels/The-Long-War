@@ -2376,14 +2376,14 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Bonded Formation. Its Bond contributes no Strength and its 1/BATTLE ability cannot be used this Battle.",
+          "text": "Choose an opposing Bonded Formation. Its Bond contributes no Strength and its non-PLAY text is ignored this Battle.",
           "scope": "opponent",
           "memory": [
             "suppression_marker"
           ]
         }
       ],
-      "text": "PLAY - Choose an opposing Bonded Formation. Its Bond contributes no Strength and its 1/BATTLE ability cannot be used this Battle.",
+      "text": "PLAY - Choose an opposing Bonded Formation. Its Bond contributes no Strength and its non-PLAY text is ignored this Battle.",
       "design_tags": [
         "formation-building",
         "hostile-interaction",
@@ -3867,12 +3867,16 @@
     "directly_behind": "The adjacent position in the same Front one rank toward the Rear row. A Rear-row formation has no position directly behind.",
     "move": "MOVE 1 means move the formation to one orthogonally adjacent active empty position: one Front left or right in the same rank, or one rank forward or backward in the same Front. Never diagonal. Move is a card effect, not a Maneuver, so it does not require Named status, costs no Maneuver Command, and Exhaustion does not stop it.",
     "move_multiple": "Move up to N positions means make up to N legal one-position Moves, one at a time; every intermediate destination must be legal and empty.",
+    "swap": "SWAP means exchange the complete contents of the two specified friendly positions. Both positions must contain a formation unless the card says otherwise. Swap is a card effect, not a Maneuver, costs no Maneuver Command, and Exhaustion does not stop it.",
+    "movement_event": "A formation moves whenever it changes battlefield position by Maneuver, Move, or Swap, regardless of which player or effect caused the relocation.",
     "support": "SUPPORT +N means the friendly formation directly ahead has +N Strength while the supporting effect is active.",
     "supply": "SUPPLY means Bonds and Names played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 1.",
     "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This local comparison does not itself decide the Front.",
     "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
     "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It ignores only the Exhaustion restriction; every other Maneuver requirement still applies. It keeps its Exhaustion token.",
     "exhaustion": "After you lose a Front, every Force you have in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its token leaves with it. A tied Front exhausts neither player.",
-    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; apply all reductions, then apply the printed minimum."
+    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1.",
+    "command_modifiers": "Command modifiers stack: add all applicable increases, then apply all applicable reductions. If any applicable reduction explicitly allows minimum 0, the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.",
+    "tax_markers": "Each Tax marker is separate. If the next card played satisfies multiple Tax markers, all matching increases apply and all matching next-card markers are consumed. A marker with an expiry expires when its own text says it does."
   }
 }
