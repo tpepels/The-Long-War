@@ -87,7 +87,7 @@ Symbols support scanning. They do not replace sentence grammar.
 
 The generated illustration is the sole illustration layer.
 
-Where a per-card illustration exists under `web/art/v2/cards/`, use it. The seven family illustrations remain fallbacks for cards that do not yet have individual art.
+Where a per-card illustration exists under `web/art/v2/cards/`, use it. The eight family illustrations remain fallbacks for cards that do not yet have individual art.
 
 No vector heraldry, watermark drawing, or second image may sit over the illustration.
 
@@ -111,7 +111,7 @@ Never use floating UI panels or card-inside-card boxes.
 
 ## Non-stacking card families
 
-Tactics, Stratagems and Narratives do not waste space on the rigid battlefield strip. They use an expressive family crown while sharing the same frame, typography, illustration treatment, icon vocabulary and cost treatment.
+Tactics, Orders, Stratagems and Narratives do not waste space on the rigid battlefield strip. They use an expressive family crown while sharing the same frame, typography, illustration treatment, icon vocabulary and cost treatment.
 
 ## Acceptance
 
