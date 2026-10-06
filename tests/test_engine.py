@@ -2604,6 +2604,9 @@ def test_banner_singers_trigger_after_narrative_command_gain() -> None:
 def test_chained_mandatory_recoveries_do_not_dead_end_after_first_consumes_target() -> None:
     engine, state = setup_state(seed=48334)
 
+    # Keep this focused on stale queued recoveries rather than hand-limit
+    # cleanup introduced by returning a card to a full opening hand.
+    state.players[0].hand.clear()
     state.players[0].discard[:] = ["followed"]
     recovery = {
         "kind": 4,  # EFFECT_RECOVER
