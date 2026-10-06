@@ -105,6 +105,7 @@ V2_EFFECT_OPS = frozenset({
     "slot_discount",
     "stratagem_visibility",
     "status_strength_aura",
+    "steal_command",
     "supply",
     "support",
     "suppress_action",
