@@ -466,3 +466,17 @@ def test_long_titles_use_print_style_density_classes() -> None:
     assert ".title-long .card-title{font-size:4.65mm;line-height:1.03}" in css
     assert ".title-very-long .card-title{font-size:4.15mm;line-height:1.01}" in css
     assert "hero-type-mark" in js
+
+
+def test_rules_panel_and_semantic_emphasis() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert "margin:.55mm -1.05mm 1.8mm" in css
+    assert ".rules{min-height:0;flex:1 1 auto;overflow:hidden;position:relative;padding:.78mm .9mm .62mm;border:.18mm solid" in css
+    assert "background:color-mix(in srgb,var(--paper) 86%,white)" in css
+    assert ".effect-text .rule-term{font-weight:700" in css
+    assert ".effect-text .rule-referent{font-style:italic" in css
+    assert "function formatRuleText(value)" in js
+    assert "formatRuleText(effect.text)" in js
+    assert "Named Formation" in js
+    assert '"Human","Archer","Builder","Captain"' in js
