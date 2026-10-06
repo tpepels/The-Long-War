@@ -100,6 +100,10 @@ cdef void _v2_apply_resolved_effect(
             self, state, player, effect.amount, source_card,
             COMMAND_DETAIL_CARD_EFFECT,
         )
+    elif effect.op == V2_OP_DRAW:
+        _fe_queue_battle_draws(
+            self, state, player, effect.draw_count
+        )
     elif effect.op == V2_OP_MOVE:
         if effect.target == V2_TARGET_SELF and source >= 0 and dest >= 0:
             _fe_move_slot(self, state, source, dest)
