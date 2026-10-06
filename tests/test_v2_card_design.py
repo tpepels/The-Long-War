@@ -471,11 +471,14 @@ def test_long_titles_use_print_style_density_classes() -> None:
 def test_rules_panel_and_semantic_emphasis() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    assert "margin:.55mm -1.05mm 1.8mm" in css
-    assert ".rules{min-height:0;flex:1 1 auto;overflow:hidden;position:relative;padding:.78mm .9mm .62mm;border:.18mm solid" in css
-    assert "background:color-mix(in srgb,var(--paper) 86%,white)" in css
+    assert "margin:.55mm -1.05mm 2.15mm" in css
+    assert ".rules{min-height:0;flex:1 1 auto;overflow:hidden;position:relative;margin:0 .35mm 1.15mm;padding:1.05mm 1.15mm .9mm;border:.11mm solid" in css
+    assert "background:color-mix(in srgb,var(--paper) 93%,white)" in css
     assert ".effect-text .rule-term{font-weight:700" in css
     assert ".effect-text .rule-referent{font-style:italic" in css
+    assert "z-index:20;width:8.65mm" in css
+    assert ".dense .rules{margin-bottom:.85mm" in css
+    assert ".very-dense .rules{margin-bottom:.65mm" in css
     assert "function formatRuleText(value)" in js
     assert "formatRuleText(effect.text)" in js
     assert "Named Formation" in js
