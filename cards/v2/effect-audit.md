@@ -135,7 +135,7 @@ This audit reviews **all 158 current card effects** for two problems:
 | The Muster Was False | tactic | play | Immediate | KEEP | Return one opposing prepared Bond or prepared Name to its owner's hand. _(One-shot immediate card; no persistent reread burden.)_ |
 | They Had Gone Too Far | tactic | play | Immediate | KEEP | Choose an opposing formation. Move it one row toward its Rear, if that position is empty. _(One-shot immediate card; no persistent reread burden.)_ |
 | All Banners Forward | tactic | play | Immediate | KEEP | Choose an opposing King or Captain. Its ACTION abilities cannot be used this Battle. _(One-shot immediate card; no persistent reread burden.)_ |
-| The Line Wheeled | tactic | play | Immediate | KEEP | Choose an opposing Bonded Formation. Its Bond contributes no Strength and its 1/BATTLE ability cannot be used this Battle. _(One-shot immediate card; no persistent reread burden.)_ |
+| The Line Wheeled | tactic | play | Immediate | KEEP | Choose an opposing Bonded Formation. Its Bond contributes no Strength and its non-PLAY text is ignored this Battle. _(One-shot immediate card; no persistent reread burden.)_ |
 | They Let Them Through | tactic | play | Immediate | KEEP | Choose an opposing Formation. Its 1/BATTLE abilities cannot be used this Battle. _(One-shot immediate card; no persistent reread burden.)_ |
 | All Reserves Forward | tactic | play | Immediate | KEEP | Choose an opposing Rear formation. It gets -2 Strength this Battle. _(One-shot immediate card; no persistent reread burden.)_ |
 | The Line Had Begun to Move | tactic | play | Immediate | KEEP | Place a Tax marker on an active Front. The next card your opponent plays there costs 2 additional Command. _(One-shot immediate card; no persistent reread burden.)_ |
