@@ -463,6 +463,7 @@ cdef int V2_TIMING_BONDED = 4
 cdef int V2_TIMING_CONTINUOUS = 5
 cdef int V2_TIMING_HIDDEN = 6
 cdef int V2_TIMING_TRIGGER = 7
+cdef int V2_TIMING_REACTION = 15
 cdef int V2_TIMING_WHILE_NAMED = 8
 cdef int V2_TIMING_FRONT = 9
 cdef int V2_TIMING_MIDDLE = 10
