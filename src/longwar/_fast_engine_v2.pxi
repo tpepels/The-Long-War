@@ -312,6 +312,20 @@ cdef void _v2_apply_immediate_play_effects(
                     card,
                     COMMAND_DETAIL_CARD_EFFECT,
                 )
+        elif effect.op in (
+            V2_OP_ATTACH_PREPARED,
+            V2_OP_CHOOSE_STRENGTH_TARGETS,
+            V2_OP_DISCARD_DRAW,
+            V2_OP_MOVE,
+            V2_OP_REMOVE_NEGATIVE_MARKER,
+            V2_OP_REMOVE_STRENGTH_MARKER,
+        ):
+            if _v2_effect_can_resolve(
+                self, state, player, origin, effect
+            ):
+                _v2_enqueue_effect(
+                    self, state, player, card, mode, i, origin
+                )
 
 
 cdef void _v2_apply_becomes_named_effects(
