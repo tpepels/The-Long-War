@@ -61,9 +61,9 @@ def fingerprint_paths() -> list[Path]:
         elif relative.parts[0] in _GAMEPLAY_DIRS and path.suffix == ".py":
             paths.append(path)
 
-    # Only canonical engine content belongs in the game identity.
-    # cards/v2 is a separate physical-design proposal and must not invalidate
-    # current-game evidence when it changes.
+    # cards/cards.json is the sole canonical card-definition source. The
+    # cards/v2 directory contains only design/playtest documentation and
+    # exploratory deck lists, so those files do not define game semantics.
     canonical_cards = ROOT / "cards" / "cards.json"
     if canonical_cards.is_file():
         paths.append(canonical_cards)

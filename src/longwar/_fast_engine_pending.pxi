@@ -483,6 +483,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_take_from_hand(self, state, actor, card, 0)
         state.force[pos] = card
         state.exhausted[pos] = 0
+        _v2_apply_immediate_play_effects(
+            self, state, actor, card, _v2_mode_for_force(self, card), pos
+        )
         if (self.card_capabilities[card] & CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE) and prepared_before:
             _fe_queue_free_maneuver(
                 self, state, actor, <uint32_t>(1 << pos),
@@ -497,6 +500,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     elif kind == TYPE_BOND:
         _fe_take_from_hand(self, state, actor, card, 0)
         state.bond[pos] = card
+        _v2_apply_immediate_play_effects(
+            self, state, actor, card, V2_MODE_DEFAULT, pos
+        )
         if state.force[pos] >= 0:
             state.temporary[pos] += self.on_bond_bonus[state.force[pos]]
         if dest >= 0:
@@ -521,6 +527,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         )
         _fe_take_from_hand(self, state, actor, card, 0)
         state.name[pos] = card
+        _v2_apply_immediate_play_effects(
+            self, state, actor, card, _v2_mode_for_name(self, card), pos
+        )
         if take_adjacent_open_bond_ready:
             _fe_queue_take_adjacent_open_bond_on_name_play(self, state, actor, pos)
         _fe_resolve_strat_event(self, state, EVENT_NAME, actor, card, pos)

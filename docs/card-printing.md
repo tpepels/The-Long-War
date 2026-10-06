@@ -31,7 +31,7 @@ Print cards use square outer corners on the sheet so the shared cut seams remain
 continuous; the normal rounded on-screen card shape is unchanged. Print at 100%
 / actual size without browser headers or footers.
 
-`cards.html` prints the complete current V2 catalogue. `playtest-kit.html`
+`cards.html` prints the complete canonical card catalogue. `playtest-kit.html`
 loads `cards/v2/playtest-decks.json`, expands copy counts, and prints those same
 card faces. There is no second print-only markup implementation.
 

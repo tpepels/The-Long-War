@@ -146,6 +146,7 @@ cdef void _v2_compile_effect(
         "slot_discount": V2_OP_SLOT_DISCOUNT,
         "stratagem_visibility": V2_OP_STRATAGEM_VISIBILITY,
         "status_strength_aura": V2_OP_STATUS_STRENGTH_AURA,
+        "steal_command": V2_OP_STEAL_COMMAND,
         "supply": V2_OP_SUPPLY,
         "support": V2_OP_SUPPORT,
         "suppress_action": V2_OP_SUPPRESS_ACTION,
@@ -351,6 +352,8 @@ cdef void _v2_compile_effect(
         out.flags |= V2_FLAG_EXCLUDE_SELF
     if effect.get("requires_opposing_exhausted_same_front"):
         out.flags |= V2_FLAG_REQUIRES_OPPOSING_EXHAUSTED
+    if effect.get("requires_opposing_supply_same_front"):
+        out.flags |= V2_FLAG_REQUIRES_OPPOSING_SUPPLY
     if effect.get("direction") == "rear":
         out.flags |= V2_FLAG_DIRECTION_REAR
     if effect.get("component") == "bond":

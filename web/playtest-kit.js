@@ -16,7 +16,7 @@ function scheduleInspect(root){
 }
 async function main(){
   const [cardsResponse,decksResponse]=await Promise.all([
-    fetch("data/cards-v2-redesign.json",{cache:"no-cache"}),
+    fetch("data/cards.json",{cache:"no-cache"}),
     fetch("data/v2-playtest-decks.json",{cache:"no-cache"}),
   ]);
   if(!cardsResponse.ok||!decksResponse.ok)throw new Error("Could not load current playtest card data");
@@ -39,6 +39,9 @@ async function main(){
       ["SUPPLY",vocabulary.supply],
       ["OUTMATCHED",vocabulary.outmatched],
       ["RESERVE +N",vocabulary.reserve],
+      ["PRESS +N",vocabulary.press],
+      ["SUPPLY RAID",vocabulary.supply_raid],
+      ["STEAL COMMAND",vocabulary.steal_command],
       ["TIRELESS",vocabulary.tireless],
       ["EXHAUSTION",vocabulary.exhaustion],
       ["EXHAUSTED",timing.exhausted],
@@ -48,7 +51,7 @@ async function main(){
       ["-STRENGTH MARKER",vocabulary.strength_marker],
       ["TEMPORARY NEGATIVE",vocabulary.temporary_negative_marker],
     ].filter(([,value])=>value);
-    reference.innerHTML='<h1>V2 mechanics quick reference</h1><div class="mechanics-grid">'+
+    reference.innerHTML='<h1>Card mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
       '</div>';
   }

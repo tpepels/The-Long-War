@@ -1,6 +1,6 @@
 # V2 effect audit
 
-This audit reviews **all 166 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
+This audit reviews **all 169 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
 
 ## Result
 
@@ -14,6 +14,9 @@ This audit reviews **all 166 current card effects** for superfluous bookkeeping,
 
 | Card | Layer | Timing | Visibility | Verdict | Effect / note |
 |---|---|---|---|---|---|
+| The Wolf Skirmishers | force | continuous | Exposed strip | KEEP | PRESS +1. _(Complete live meaning remains visible in the exposed strip.)_ |
+| The Black Pursuers | force | exhausted | Exposed strip | KEEP | PRESS +2. _(Requires this Force and at least one opposing Force in the Front to be Exhausted.)_ |
+| The Salt-Road Reavers | force | play | Buried after PLAY | KEEP | If an opposing formation in this Front provides SUPPLY, STEAL 1 COMMAND. _(Resolves before this layer can be covered.)_ |
 | Seven Black Ships | force | bonded | Exposed strip | KEEP | While this formation is in the Rear, it has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The White Hands of Elara | force | action | Exposed strip | KEEP | Remove one temporary negative marker from the friendly formation directly ahead. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Red Shields | force | front | Exposed strip | KEEP | Opposing Tactics targeting this formation cost 1 additional Command. _(Complete live meaning remains visible in the exposed strip.)_ |
@@ -141,13 +144,13 @@ This audit reviews **all 166 current card effects** for superfluous bookkeeping,
 | The King Had Given the Order | narrative | continuous | Face-up | KEEP | Bonds and Names you play into a Front containing one of your Kings or Captains cost 1 less Command, to a minimum of 1. |
 | The Ash Bowmen | force | bonded | Exposed strip | KEEP | This formation has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Lantern Scouts | force | continuous | Exposed strip | KEEP | While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front. _(Complete live meaning remains visible in the exposed strip.)_ |
-| The River Raiders | force | continuous | Exposed strip | KEEP | While an opposing Force in this Front is Exhausted, this formation has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
+| The River Raiders | force | continuous | Exposed strip | KEEP | PRESS +1. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The King's Spears | force | while_named | Exposed strip | KEEP | This formation has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Salt-Road Fleet | force | bonded | Exposed strip | KEEP | Tactics you play targeting this Front cost 1 less Command, to a minimum of 0. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Watchtowers of Eren | force | rear | Exposed strip | KEEP | You may look at opposing face-down Stratagems in any active Front. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Watched the Skies For | bond | bonded | Exposed strip | KEEP | If this formation contains an Archer or Scout, this Bond contributes +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Kept the Gate For | bond | bonded | Exposed strip | KEEP | The friendly formation directly behind is TIRELESS. _(Complete live meaning remains visible in the exposed strip.)_ |
-| Shared the Spoils With | bond | play | Buried after PLAY | KEEP | If this formation contains a Raider or Skirmisher, regain 1 Command. _(Resolves before this layer can be covered.)_ |
+| Shared the Spoils With | bond | play | Buried after PLAY | KEEP | If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command. _(Resolves before this layer can be covered.)_ |
 | Carried Messages For | bond | play | Buried after PLAY | KEEP | If this formation contains a Captain or Scout, draw 1 card, then discard 1 card. _(Resolves before this layer can be covered.)_ |
 | Supported By | bond | bonded | Exposed strip | KEEP | SUPPORT +1. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Supplied By | bond | bonded | Exposed strip | KEEP | SUPPLY. _(Complete live meaning remains visible in the exposed strip.)_ |

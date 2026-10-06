@@ -1,5 +1,7 @@
 # V2 mechanics and card grammar
 
+> Canonical card definitions live only in `cards/cards.json`. This directory contains design notes, playtest lists, and physical-card documentation.
+
 ## Formation states
 
 - **Formation** - Force present.
@@ -29,12 +31,15 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 - **SUPPLY** - Bonds played onto the friendly Formation directly ahead cost 1 less Command, to a minimum of 0; Names played onto it cost 1 less Command, to a minimum of 1.
 - **OUTMATCHED** - an opposing Formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This is only a local card condition; it does not decide the Front.
 - **RESERVE +N** - this Formation has +N Strength while the friendly Formation directly ahead is OUTMATCHED.
+- **PRESS +N** - this Formation has +N Strength while at least one opposing Force in this Front is Exhausted.
+- **SUPPLY RAID** - a card may check whether an opposing Formation in its Front currently provides SUPPLY; the raid's payoff is printed on that card and does not remove SUPPLY unless stated.
+- **STEAL N COMMAND** - the opponent loses up to N Command, never below 1, and you regain exactly the amount lost. It does not itself cause Collapse during the Battle.
 - **MOBILE** - this Force may initiate a Maneuver without being Named. It still pays the Maneuver Command cost and obeys adjacency, row, destination, and Exhaustion restrictions.
 - **TIRELESS** - this Force may initiate a Maneuver while Exhausted. TIRELESS ignores only the Exhaustion restriction: the Formation must still satisfy every other Maneuver requirement, including being Named unless another effect says otherwise, paying any Command cost, using an adjacent legal destination, and obeying movement restrictions. It keeps its Exhaustion token, so other cards may still care that it is Exhausted. TIRELESS is boolean: multiple sources do not grant any additional benefit.
 - **EXHAUSTION** - after a Front is lost, every Force that player has in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its Exhaustion token leaves with it. Tied Fronts exhaust neither player.
 - **EXHAUSTED** as a timing label is a continuous state active while that Force has an Exhaustion token.
 - **FRONT / MIDDLE / REAR** as a timing label is a continuous positional state. The text is active only while that Formation occupies that rank.
-- Multiple active **SUPPORT +N** and **RESERVE +N** effects add together. Multiple active **SUPPLY** effects each reduce the cost by 1.
+- Multiple active **SUPPORT +N**, **RESERVE +N**, and **PRESS +N** effects add together. Multiple active **SUPPLY** effects each reduce the cost by 1.
 - **Command modifiers** stack. Add all applicable increases, then apply all applicable reductions. If at least one applicable reduction explicitly says "minimum 0", the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.
 - Each **Tax marker** is separate. If the next card played satisfies more than one Tax marker, all matching increases apply and all matching "next card" markers are consumed. A marker with an expiry such as "before your next turn" expires when its own text says it does.
 - A **-Strength marker** is a temporary negative marker recording a Battle-long Strength penalty created by card text such as "gets -2 Strength this Battle".

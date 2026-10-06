@@ -11,7 +11,7 @@ const LIVE=new Set(["action","reaction","bonded","while_named","continuous","fro
 const RULE_TERMS=[
   "Named Formation","Bonded Formation","Unbonded Formation","Formation",
   "Force","Bond","Name","Hero","Tactic","Order","Stratagem","Narrative",
-  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Tireless","Mobile","Unnamed","Exhausted","Exhaustion","Exhaustion token",
+  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Press","Steal","Tireless","Mobile","Unnamed","Exhausted","Exhaustion","Exhaustion token",
   "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
   "prepared Bond","prepared Name"
 ];
@@ -80,6 +80,7 @@ function effectTokens(effect){
     [/^SUPPORT \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
     [/^SUPPLY$/,()=>token("ally")+commandToken("-1")],
     [/^RESERVE \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
+    [/^PRESS \+(\d)$/,m=>token("enemy")+strengthToken("+"+m[1])],
     [/^AHEAD TIRELESS$/,()=>token("ally")+token("move")],
     [/^MAY MANEUVER EXHAUSTED$/,()=>token("move")+token("marker")],
     [/^CAPTAIN\/SCOUT CYCLE$/,()=>classToken("captain")+classToken("scout")+token("cycle")],
@@ -211,8 +212,8 @@ function inspect(root=document){
 }
 function scheduleCheck(){const status=document.getElementById("layout-status");requestAnimationFrame(()=>requestAnimationFrame(()=>{const failures=inspect();if(failures.length){status.hidden=false;status.textContent="Layout check: "+failures.length+" rendering(s) need attention: "+failures.slice(0,8).map(f=>f.id+" ("+f.problems.join(", ")+")").join("; ")+(failures.length>8?" …":"")}else{status.hidden=true;status.textContent=""}window.V2CardLabLastCheck=failures}))}
 async function main(){
- const [cardsResponse,decksResponse]=await Promise.all([fetch("data/cards-v2-redesign.json?v="+encodeURIComponent(VERSION),{cache:"no-cache"}),fetch("data/v2-playtest-decks.json?v="+encodeURIComponent(VERSION),{cache:"no-cache"})]);
- if(!cardsResponse.ok)throw new Error("Could not load V2 card data");if(!decksResponse.ok)throw new Error("Could not load V2 playtest decks");
+ const [cardsResponse,decksResponse]=await Promise.all([fetch("data/cards.json?v="+encodeURIComponent(VERSION),{cache:"no-cache"}),fetch("data/v2-playtest-decks.json?v="+encodeURIComponent(VERSION),{cache:"no-cache"})]);
+ if(!cardsResponse.ok)throw new Error("Could not load card data");if(!decksResponse.ok)throw new Error("Could not load playtest decks");
  const cards=(await cardsResponse.json()).cards||[],decks=(await decksResponse.json()).decks||[];
  const classNames=[...new Set(cards.flatMap(card=>[...(card.classes||[]),...(card.references||[])]))].sort();
  document.getElementById("class-filter").innerHTML='<option value="all">All classes</option>'+classNames.map(name=>'<option value="'+esc(name)+'">'+esc(titleCase(name))+'</option>').join("");
