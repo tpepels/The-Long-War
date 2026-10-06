@@ -668,8 +668,17 @@ cdef struct V2EffectSpec:
     int8_t draw_count
     int8_t discard_count
     int8_t max_targets
+    uint8_t once_per_battle
     uint8_t rank_mask
     uint8_t card_type_mask
     uint32_t class_mask
     uint32_t class_mask2
     uint32_t flags
+
+# V2 pending-effect encoding.
+cdef int V2_PENDING_EFFECT_MASK = 3
+cdef int V2_PENDING_MODE_SHIFT = 2
+cdef uint8_t EFFECT_V2_SOURCE_NARRATIVE = 32
+cdef uint8_t EFFECT_V2_SOURCE_FORCE = 64
+cdef uint8_t EFFECT_V2_SOURCE_BOND = 96
+cdef uint8_t EFFECT_V2_SOURCE_NAME = 128
