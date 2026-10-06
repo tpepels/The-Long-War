@@ -226,6 +226,22 @@ cdef inline bint _fe_action_affects_front(
         return False
     if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
         return pos >= 0 and front_from_slot(pos) == front
+    if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+        if pos >= 0 and not (active & (1 << front_from_slot(pos))):
+            return False
+        if dest >= 0 and not (active & (1 << front_from_slot(dest))):
+            return False
+        if kind == TYPE_TACTIC:
+            front = <int>(extra & V2_PLAY_FRONT_MASK) - 1
+            if front >= 0 and not (active & (1 << front)):
+                return False
+        return True
+
+    if kind == TYPE_ABILITY:
+        if extra & V2_ABILITY_NARRATIVE_FLAG:
+            return True
+        return pos >= 0 and bool(active & (1 << front_from_slot(pos)))
+
     if kind == TYPE_MANEUVER:
         return (
             (pos >= 0 and front_from_slot(pos) == front)
@@ -1114,8 +1130,10 @@ cdef int _fe_legal_actions_into(
     cdef int n = 0
     cdef int player, card, second_card, slot, local, front, rank, source, dest, req, opponent, effect
     cdef int i, kept, available, narrative_slot, choice, direction
-    cdef uint32_t eligible_mask, subset
+    cdef int mode, effect_index, component_option, ix
+    cdef uint32_t eligible_mask, subset, target_mask
     cdef uint64_t action
+    cdef V2EffectSpec* v2_effect
     cdef bint constraint_enforced = False
 
     if state.phase == PHASE_COMPLETE:
@@ -1150,433 +1168,373 @@ cdef int _fe_legal_actions_into(
             continue
 
         if self.card_type[card] == CARD_FORCE:
-            # Printed Heroes are dual-mode cards with independent Force/Name
-            # allowances for the Battle.
-            if (
-                not self.hero[card]
-                or (
-                    self.hero_force_play_limit_per_battle > 0
-                    and not (state.hero_used[player] & 1)
-                )
-            ):
-                req = self.placement_rank[card]
-                for local in range(POSITIONS_PER_PLAYER):
-                    slot = player * POSITIONS_PER_PLAYER + local
-                    if state.force[slot] >= 0:
-                        continue
-                    rank = local % RANK_COUNT
-                    if req >= 0 and req != rank:
-                        continue
+            for local in range(POSITIONS_PER_PLAYER):
+                slot = player * POSITIONS_PER_PLAYER + local
+                rank = local % RANK_COUNT
+                if (
+                    state.force[slot] < 0
+                    and _v2_force_rank_allowed(self, card, rank)
+                ):
                     n = _append_action(
-                        actions,
-                        n,
+                        actions, n,
                         encode_action(TYPE_FORCE, card, slot, -1, player),
                     )
 
+        elif self.card_type[card] == CARD_HERO:
             if (
-                self.hero[card]
-                and self.hero_name_play_limit_per_battle > 0
+                self.hero_force_play_limit_per_battle > 0
+                and not (state.hero_used[player] & 1)
+            ):
+                for local in range(POSITIONS_PER_PLAYER):
+                    slot = player * POSITIONS_PER_PLAYER + local
+                    rank = local % RANK_COUNT
+                    if (
+                        state.force[slot] < 0
+                        and _v2_force_rank_allowed(self, card, rank)
+                    ):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(TYPE_FORCE, card, slot, -1, player),
+                        )
+            if (
+                self.hero_name_play_limit_per_battle > 0
                 and not (state.hero_used[player] & 2)
             ):
                 for local in range(POSITIONS_PER_PLAYER):
                     slot = player * POSITIONS_PER_PLAYER + local
                     if state.name[slot] < 0:
                         n = _append_action(
-                            actions,
-                            n,
+                            actions, n,
                             encode_action(TYPE_NAME, card, slot, -1, player),
                         )
 
         elif self.card_type[card] == CARD_BOND:
             for local in range(POSITIONS_PER_PLAYER):
                 slot = player * POSITIONS_PER_PLAYER + local
-                if state.bond[slot] >= 0:
-                    continue
-                n = _append_action(
-                    actions,
-                    n,
-                    encode_action(TYPE_BOND, card, slot, -1, player),
-                )
-                if self.bond_optional_extra_cost[card] > 0:
+                if state.bond[slot] < 0:
                     n = _append_action(
-                        actions,
-                        n,
-                        encode_action(
-                            TYPE_BOND,
-                            card,
-                            slot,
-                            -1,
-                            player,
-                            1,
-                        ),
+                        actions, n,
+                        encode_action(TYPE_BOND, card, slot, -1, player),
                     )
-                if (
-                    self.bond_move_on_play[card]
-                    and state.force[slot] >= 0
-                    and not self.immobile_force[state.force[slot]]
-                ):
-                    front = local // RANK_COUNT
-                    rank = local % RANK_COUNT
-                    if front > 0:
-                        dest = slot_index(player, front - 1, rank)
-                        if _fe_card_move_destination_legal(self, 
-                            state, player, slot, dest
-                        ):
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_BOND,
-                                    card,
-                                    slot,
-                                    dest,
-                                    player,
-                                ),
-                            )
-                    if front < FRONT_COUNT - 1:
-                        dest = slot_index(player, front + 1, rank)
-                        if _fe_card_move_destination_legal(self, 
-                            state, player, slot, dest
-                        ):
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_BOND,
-                                    card,
-                                    slot,
-                                    dest,
-                                    player,
-                                ),
-                            )
-                    if rank > RANK_FRONT:
-                        dest = slot_index(player, front, rank - 1)
-                        if _fe_card_move_destination_legal(
-                            self, state, player, slot, dest
-                        ):
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_BOND,
-                                    card,
-                                    slot,
-                                    dest,
-                                    player,
-                                ),
-                            )
-                    if rank < RANK_REAR:
-                        dest = slot_index(player, front, rank + 1)
-                        if _fe_card_move_destination_legal(
-                            self, state, player, slot, dest
-                        ):
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_BOND,
-                                    card,
-                                    slot,
-                                    dest,
-                                    player,
-                                ),
-                            )
 
         elif self.card_type[card] == CARD_NAME:
             for local in range(POSITIONS_PER_PLAYER):
                 slot = player * POSITIONS_PER_PLAYER + local
-                if state.name[slot] >= 0:
-                    continue
-                n = _append_action(
-                    actions,
-                    n,
-                    encode_action(TYPE_NAME, card, slot, -1, player),
-                )
+                if state.name[slot] < 0:
+                    n = _append_action(
+                        actions, n,
+                        encode_action(TYPE_NAME, card, slot, -1, player),
+                    )
 
         elif self.card_type[card] == CARD_NARRATIVE:
-            if self.ongoing_narrative[card]:
-                # Ongoing Narratives may carry a public Front or formation
-                # association selected when the card is played.
-                choice = self.narrative_choice_kind[card]
-                for narrative_slot in range(self.ongoing_narrative_limit):
-                    if state.narrative[player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot] >= 0:
-                        continue
-                    if choice == NARRATIVE_CHOICE_FRONT:
-                        for front in range(FRONT_COUNT):
-                            if (
-                                self.narrative_front_requires_named[card]
-                                and not _fe_front_has_named_formation(
-                                    self, state, player, front
-                                )
-                            ):
-                                continue
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_ONGOING_NARRATIVE,
-                                    card,
-                                    narrative_slot,
-                                    -1,
-                                    player,
-                                    <uint32_t>(1 << front),
-                                ),
-                            )
-                    elif (
-                        choice == NARRATIVE_CHOICE_NAMED_FORMATION
-                        or choice == NARRATIVE_CHOICE_NAMED_DIRECTION
-                    ):
-                        for local in range(POSITIONS_PER_PLAYER):
-                            slot = player * POSITIONS_PER_PLAYER + local
-                            if _fe_slot_complete(self, state, slot):
-                                if choice == NARRATIVE_CHOICE_NAMED_DIRECTION:
-                                    for direction in range(DIRECTION_COUNT):
-                                        n = _append_action(
-                                            actions,
-                                            n,
-                                            encode_action(
-                                                TYPE_ONGOING_NARRATIVE,
-                                                card,
-                                                narrative_slot,
-                                                slot,
-                                                player,
-                                                <uint32_t>(direction + 1),
-                                            ),
-                                        )
-                                else:
-                                    n = _append_action(
-                                        actions,
-                                        n,
-                                        encode_action(
-                                            TYPE_ONGOING_NARRATIVE,
-                                            card,
-                                            narrative_slot,
-                                            slot,
-                                            player,
-                                        ),
-                                    )
-                    else:
+            for narrative_slot in range(self.ongoing_narrative_limit):
+                if (
+                    state.narrative[
+                        player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+                    ] < 0
+                ):
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_ONGOING_NARRATIVE,
+                            card,
+                            narrative_slot,
+                            -1,
+                            player,
+                        ),
+                    )
+                    break
+
+        elif self.card_type[card] == CARD_STRATAGEM:
+            if (
+                state.stratagem_used[player]
+                < self.stratagem_play_limit_per_battle
+                and state.stratagem[player] < 0
+            ):
+                for front in range(FRONT_COUNT):
+                    if front_is_active(state.battle, front):
                         n = _append_action(
-                            actions,
-                            n,
+                            actions, n,
                             encode_action(
-                                TYPE_ONGOING_NARRATIVE,
+                                TYPE_STRATAGEM,
                                 card,
-                                narrative_slot,
+                                1 << front,
                                 -1,
                                 player,
                             ),
                         )
-                    # Ongoing Narrative slots are storage, not a player choice.
-                    # Use the first empty slot so GameState round-trips cannot
-                    # change the semantic action identity.
-                    break
+
+        elif self.card_type[card] == CARD_TACTIC:
+            if self.v2_effect_count[card][V2_MODE_DEFAULT] == 0:
+                continue
+            v2_effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
+            if not _v2_effect_can_resolve(
+                self, state, player, -1, v2_effect
+            ):
+                continue
+            if (
+                v2_effect.op == V2_OP_TAX
+                and v2_effect.front_mode == V2_FRONT_CHOOSE_ACTIVE
+            ):
+                for front in range(FRONT_COUNT):
+                    if front_is_active(state.battle, front):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_TACTIC,
+                                card,
+                                -1,
+                                -1,
+                                player,
+                                <uint32_t>(front + 1),
+                            ),
+                        )
+            elif v2_effect.op in (
+                V2_OP_RETURN_PREPARED,
+                V2_OP_PREPARED_PAY_OR_RETURN,
+            ):
+                target_mask = _v2_target_mask(
+                    self, state, player, -1, v2_effect
+                )
+                for dest in range(SLOT_COUNT):
+                    if not (target_mask & (<uint32_t>1 << dest)):
+                        continue
+                    if state.bond[dest] >= 0:
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_TACTIC,
+                                card,
+                                -1,
+                                dest,
+                                player,
+                                <uint32_t>(
+                                    V2_OPTION_BOND << V2_PLAY_COMPONENT_SHIFT
+                                ),
+                            ),
+                        )
+                    if state.name[dest] >= 0:
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_TACTIC,
+                                card,
+                                -1,
+                                dest,
+                                player,
+                                <uint32_t>(
+                                    V2_OPTION_NAME << V2_PLAY_COMPONENT_SHIFT
+                                ),
+                            ),
+                        )
+            elif v2_effect.target != V2_TARGET_NONE:
+                target_mask = _v2_target_mask(
+                    self, state, player, -1, v2_effect
+                )
+                for dest in range(SLOT_COUNT):
+                    if target_mask & (<uint32_t>1 << dest):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_TACTIC, card, -1, dest, player
+                            ),
+                        )
             else:
-                effect = self.narrative_play_effect[card]
-                if effect == NARRATIVE_DISCREDIT or effect == NARRATIVE_RETURN_NAME:
-                    for local in range(POSITIONS_PER_PLAYER):
-                        slot = opponent * POSITIONS_PER_PLAYER + local
+                n = _append_action(
+                    actions, n,
+                    encode_action(TYPE_TACTIC, card, -1, -1, player),
+                )
+
+        elif self.card_type[card] == CARD_ORDER:
+            if self.v2_effect_count[card][V2_MODE_DEFAULT] == 0:
+                continue
+            v2_effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
+            if not _v2_effect_can_resolve(
+                self, state, player, -1, v2_effect
+            ):
+                continue
+            if (
+                v2_effect.op == V2_OP_SWAP
+                and v2_effect.target
+                == V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS
+            ):
+                target_mask = _v2_target_mask(
+                    self, state, player, -1, v2_effect
+                )
+                for source in range(
+                    player * POSITIONS_PER_PLAYER,
+                    player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+                ):
+                    if not (target_mask & (<uint32_t>1 << source)):
+                        continue
+                    for dest in range(
+                        source + 1,
+                        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+                    ):
+                        if not (target_mask & (<uint32_t>1 << dest)):
+                            continue
                         if (
-                            state.force[slot] >= 0
-                            and not _fe_formation_protected(self, state, slot)
+                            front_from_slot(source) == front_from_slot(dest)
+                            and abs(
+                                rank_from_slot(source) - rank_from_slot(dest)
+                            ) == 1
+                            and _fe_basic_maneuver_locks_allow(
+                                self, state, player, source, dest
+                            )
                         ):
                             n = _append_action(
-                                actions,
-                                n,
+                                actions, n,
                                 encode_action(
-                                    TYPE_NARRATIVE,
-                                    card,
-                                    slot,
-                                    -1,
-                                    opponent,
-                                ),
-                            )
-                elif effect == NARRATIVE_MOVE_FORCE:
-                    for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
-                        if state.force[source] < 0:
-                            continue
-                        for dest in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
-                            if (
-                                dest == source
-                                or state.force[dest] >= 0
-                                or state.bond[dest] >= 0
-                                or state.name[dest] >= 0
-                            ):
-                                continue
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_NARRATIVE,
+                                    TYPE_ORDER,
                                     card,
                                     source,
                                     dest,
                                     player,
                                 ),
                             )
-                else:
-                    n = _append_action(
-                        actions,
-                        n,
-                        encode_action(TYPE_NARRATIVE, card, -1, -1, player),
-                    )
-                    if self.narrative_discard_count[card] == SINGLE_CARD_DISCARD_COUNT:
-                        for i in range(self.n_cards):
-                            if state.hand[player][i] <= 0:
-                                continue
-                            if i == card and state.hand[player][i] < COPIES_REQUIRED_TO_PLAY_AND_DISCARD_SAME_CARD:
-                                continue
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_NARRATIVE,
-                                    card,
-                                    -1,
-                                    -1,
-                                    player,
-                                    <uint32_t>(i + 1),
-                                ),
-                            )
+            elif v2_effect.target != V2_TARGET_NONE:
+                target_mask = _v2_target_mask(
+                    self, state, player, -1, v2_effect
+                )
+                for dest in range(SLOT_COUNT):
+                    if target_mask & (<uint32_t>1 << dest):
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_ORDER, card, -1, dest, player
+                            ),
+                        )
+            else:
+                n = _append_action(
+                    actions, n,
+                    encode_action(TYPE_ORDER, card, -1, -1, player),
+                )
 
-        elif self.card_type[card] == CARD_STRATAGEM:
-            if (
-                state.stratagem_used[player] < self.stratagem_play_limit_per_battle
-                and state.stratagem[player] < 0
+    # ACTION abilities on Forces and Names are real Actions. Their follow-up
+    # choices resolve through the V2 pending-effect layer.
+    for local in range(POSITIONS_PER_PLAYER):
+        slot = player * POSITIONS_PER_PLAYER + local
+        if state.force[slot] < 0:
+            continue
+
+        card = state.force[slot]
+        mode = _v2_mode_for_force(self, card)
+        for effect_index in range(self.v2_effect_count[card][mode]):
+            v2_effect = &self.v2_effects[card][mode][effect_index]
+            if v2_effect.timing != V2_TIMING_ACTION:
+                continue
+            if state.suppression_mask[slot] & (
+                SUPPRESS_ACTION_TURN | SUPPRESS_ACTION_BATTLE
             ):
-                choice = self.strat_choice_kind[card]
-                if choice == STRAT_CHOICE_FRONT:
-                    for front in range(FRONT_COUNT):
-                        n = _append_action(
-                            actions,
-                            n,
-                            encode_action(
-                                TYPE_STRATAGEM,
-                                card,
-                                1 << front,
-                                -1,
-                                player,
-                            ),
-                        )
-                elif choice == STRAT_CHOICE_ADJACENT_FRONTS:
-                    for front in range(ADJACENT_FRONT_PAIR_COUNT):
-                        n = _append_action(
-                            actions,
-                            n,
-                            encode_action(
-                                TYPE_STRATAGEM,
-                                card,
-                                ADJACENT_FRONT_PAIR_MASK << front,
-                                -1,
-                                player,
-                            ),
-                        )
-                elif choice == STRAT_CHOICE_EDGE_FRONT:
-                    for front in (0, 3):
-                        n = _append_action(
-                            actions,
-                            n,
-                            encode_action(
-                                TYPE_STRATAGEM,
-                                card,
-                                1 << front,
-                                -1,
-                                player,
-                            ),
-                        )
-                elif choice == STRAT_CHOICE_DIRECTION:
-                    for direction in range(DIRECTION_COUNT):
-                        n = _append_action(
-                            actions,
-                            n,
-                            encode_action(
-                                TYPE_STRATAGEM,
-                                card,
-                                -1,
-                                direction,
-                                player,
-                            ),
-                        )
-                elif choice == STRAT_CHOICE_WHEEL:
-                    for direction in range(DIRECTION_COUNT):
-                        eligible_mask = 0
-                        for local in range(POSITIONS_PER_PLAYER):
-                            source = player * POSITIONS_PER_PLAYER + local
-                            if state.force[source] < 0:
-                                continue
-                            front = local // RANK_COUNT
-                            rank = local % RANK_COUNT
-                            if direction == DIRECTION_NONE:
-                                if front == 0:
-                                    continue
-                                dest = slot_index(player, front - 1, rank)
-                            else:
-                                if front == LAST_FRONT_INDEX:
-                                    continue
-                                dest = slot_index(player, front + 1, rank)
-                            if _fe_card_move_destination_legal(self, 
-                                state, player, source, dest
-                            ):
-                                eligible_mask |= <uint32_t>(1 << source)
-                        subset = eligible_mask
-                        while True:
-                            n = _append_action(
-                                actions,
-                                n,
-                                encode_action(
-                                    TYPE_STRATAGEM,
-                                    card,
-                                    -1,
-                                    direction,
-                                    player,
-                                    subset,
-                                ),
-                            )
-                            if subset == 0:
-                                break
-                            subset = (subset - 1) & eligible_mask
-                elif choice == STRAT_CHOICE_RESERVES:
-                    eligible_mask = 0
-                    for front in range(FRONT_COUNT):
-                        source = slot_index(player, front, RANK_REAR)
-                        dest = slot_index(player, front, RANK_FRONT)
-                        if (
-                            state.force[source] >= 0
-                            and not self.immobile_force[state.force[source]]
-                            and state.force[dest] < 0
-                            and state.bond[dest] < 0
-                            and state.name[dest] < 0
-                        ):
-                            eligible_mask |= <uint32_t>(1 << source)
-                    subset = eligible_mask
-                    while True:
-                        n = _append_action(
-                            actions,
-                            n,
-                            encode_action(
-                                TYPE_STRATAGEM,
-                                card,
-                                -1,
-                                -1,
-                                player,
-                                subset,
-                            ),
-                        )
-                        if subset == 0:
-                            break
-                        subset = (subset - 1) & eligible_mask
-                else:
-                    n = _append_action(
-                        actions,
-                        n,
-                        encode_action(
-                            TYPE_STRATAGEM,
-                            card,
-                            -1,
-                            -1,
-                            player,
-                        ),
+                continue
+            if (
+                v2_effect.once_per_battle
+                and (
+                    state.force_ability_used[slot]
+                    or state.suppression_mask[slot]
+                    & SUPPRESS_LIMITED_BATTLE
+                )
+            ):
+                continue
+            if not _v2_effect_can_resolve(
+                self, state, player, slot, v2_effect
+            ):
+                continue
+            n = _append_action(
+                actions, n,
+                encode_action(
+                    TYPE_ABILITY,
+                    card,
+                    slot,
+                    -1,
+                    player,
+                    <uint32_t>(
+                        _v2_pending_aux(mode, effect_index)
+                    ),
+                ),
+            )
+
+        card = state.name[slot]
+        if (
+            card >= 0
+            and not (
+                state.suppression_mask[slot] & SUPPRESS_NAME_TEXT
+            )
+        ):
+            mode = _v2_mode_for_name(self, card)
+            for effect_index in range(self.v2_effect_count[card][mode]):
+                v2_effect = &self.v2_effects[card][mode][effect_index]
+                if v2_effect.timing != V2_TIMING_ACTION:
+                    continue
+                if state.suppression_mask[slot] & (
+                    SUPPRESS_ACTION_TURN | SUPPRESS_ACTION_BATTLE
+                ):
+                    continue
+                if (
+                    v2_effect.once_per_battle
+                    and (
+                        state.name_ability_used[slot]
+                        or state.suppression_mask[slot]
+                        & SUPPRESS_LIMITED_BATTLE
                     )
+                ):
+                    continue
+                if not _v2_effect_can_resolve(
+                    self, state, player, slot, v2_effect
+                ):
+                    continue
+                n = _append_action(
+                    actions, n,
+                    encode_action(
+                        TYPE_ABILITY,
+                        card,
+                        slot,
+                        -1,
+                        player,
+                        <uint32_t>(
+                            _v2_pending_aux(mode, effect_index)
+                        ),
+                    ),
+                )
+
+    for narrative_slot in range(self.ongoing_narrative_limit):
+        ix = player * NARRATIVE_SLOTS_PER_PLAYER + narrative_slot
+        card = state.narrative[ix]
+        if card < 0:
+            continue
+        for effect_index in range(
+            self.v2_effect_count[card][V2_MODE_DEFAULT]
+        ):
+            v2_effect = &self.v2_effects[
+                card
+            ][V2_MODE_DEFAULT][effect_index]
+            if v2_effect.timing != V2_TIMING_ACTION:
+                continue
+            if (
+                v2_effect.once_per_battle
+                and state.narrative_used[ix]
+            ):
+                continue
+            if not _v2_effect_can_resolve(
+                self, state, player, -1, v2_effect
+            ):
+                continue
+            n = _append_action(
+                actions, n,
+                encode_action(
+                    TYPE_ABILITY,
+                    card,
+                    narrative_slot,
+                    -1,
+                    player,
+                    <uint32_t>(
+                        _v2_pending_aux(
+                            V2_MODE_DEFAULT, effect_index
+                        )
+                        | V2_ABILITY_NARRATIVE_FLAG
+                    ),
+                ),
+            )
 
     # Maneuver moves to an empty position or swaps with any own occupied
     # position, including a prepared-only Bond/Name position.
