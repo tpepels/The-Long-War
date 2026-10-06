@@ -413,7 +413,12 @@ def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
         match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
         details = html.unescape(match.group(1)) if match else "validation did not complete"
         if expect_overflow:
-            if 'data-layout-check="fail"' not in result.stdout or "oversized-reminder-probe:edge-live" not in details:
+            probe_failures = [
+                item for item in details.split(";")
+                if item.startswith("oversized-reminder-probe:")
+                and ("overflow" in item or "overlap" in item)
+            ]
+            if 'data-layout-check="fail"' not in result.stdout or not probe_failures:
                 raise SystemExit("V2 oversized reminder was not flagged: " + details)
         elif 'data-layout-check="pass"' not in result.stdout:
             raise SystemExit(f"{label} card layout failure detected: {details}")
