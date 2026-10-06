@@ -691,3 +691,9 @@ cdef int V2_OPTION_BOND = 1
 cdef int V2_OPTION_NAME = 2
 cdef int V2_OPTION_PAY = 3
 cdef int V2_OPTION_RETURN = 4
+
+# Primary V2 play/ability extra payloads.
+cdef int V2_PLAY_FRONT_MASK = 7
+cdef int V2_PLAY_COMPONENT_SHIFT = 3
+cdef int V2_PLAY_COMPONENT_MASK = 3
+cdef int V2_ABILITY_NARRATIVE_FLAG = 1 << 8
