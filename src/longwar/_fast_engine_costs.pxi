@@ -415,6 +415,14 @@ cdef void _fe_resolve_new_completions_fast(
             state, player, state.name[slot], front
         )
         if state.name[slot] >= 0:
+            _v2_apply_becomes_named_effects(
+                self,
+                state,
+                player,
+                state.name[slot],
+                _v2_mode_for_name(self, state.name[slot]),
+                slot,
+            )
             if self.completion_free_maneuver_self[state.name[slot]]:
                 _fe_queue_free_maneuver(
                     self, state, player, <uint32_t>(1 << slot),

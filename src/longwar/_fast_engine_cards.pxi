@@ -599,6 +599,13 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         self.v2_effect_count[code][V2_MODE_DEFAULT] = len(mode_effects)
         for index, effect in enumerate(mode_effects):
             _v2_compile_effect(&self.v2_effects[code][V2_MODE_DEFAULT][index], effect)
+            # Battle resolution still consumes these compact fields. Populate
+            # them from the canonical V2 rules until resolution is fully
+            # table-driven.
+            if effect.get("op") == "hidden_tie_named_wins":
+                self.strat_tie_control[code] = 1
+            elif effect.get("op") == "hidden_protect_lost_fronts":
+                self.strat_front_loss_protection[code] = int(effect.get("count", 0))
 
         for mode_name, mode_effects in design.get("modes", {}).items():
             mode = mode_map[mode_name]

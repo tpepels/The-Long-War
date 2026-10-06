@@ -575,10 +575,9 @@ cdef class NativeHeuristicEvaluator:
                 continue
             typ = self.engine.card_type[card]
             if typ == CARD_FORCE:
-                if self.engine.hero[card]:
-                    hero_count += count
-                else:
-                    value += count * force_value
+                value += count * force_value
+            elif typ == CARD_HERO:
+                hero_count += count
             elif typ == CARD_BOND:
                 value += count * (
                     self.weights[HW_HAND_COMPONENT_BASE]
@@ -683,10 +682,9 @@ cdef class NativeHeuristicEvaluator:
                     affordable[0] += hand_count
 
             if typ == CARD_FORCE:
-                if self.engine.hero[card]:
-                    heroes += count
-                else:
-                    forces += count
+                forces += count
+            elif typ == CARD_HERO:
+                heroes += count
             elif typ == CARD_BOND:
                 bonds += count
             elif typ == CARD_NAME:

@@ -286,6 +286,35 @@ cdef void _v2_apply_immediate_play_effects(
                 )
 
 
+cdef void _v2_apply_becomes_named_effects(
+    FastEngine self,
+    FastState state,
+    int player,
+    int card,
+    int mode,
+    int origin,
+) except *:
+    cdef int i
+    cdef V2EffectSpec* effect
+    if card < 0:
+        return
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if effect.timing != V2_TIMING_BECOMES_NAMED:
+            continue
+        if not _v2_slot_effect_condition(self, state, origin, effect):
+            continue
+        if effect.op == V2_OP_GAIN_COMMAND:
+            _fe_gain_command_fast(
+                self,
+                state,
+                player,
+                effect.amount,
+                card,
+                COMMAND_DETAIL_COMPLETION_GAIN,
+            )
+
+
 cdef bint _v2_component_has_live_op(
     FastEngine self,
     FastState state,

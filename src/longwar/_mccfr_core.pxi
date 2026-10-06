@@ -525,13 +525,15 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             continue
 
         revealed = bool(data[i])
-        front_mask = data[i + 1]
-        direction_code = data[i + 2]
+        # known-to mask is search identity only; card_code already reflects
+        # whether this viewer may know the identity.
+        front_mask = data[i + 2]
+        direction_code = data[i + 3]
         target_mask = (
-            data[i + 3]
-            | (data[i + 4] << 8)
-            | (data[i + 5] << 16)
-            | (data[i + 6] << 24)
+            data[i + 4]
+            | (data[i + 5] << 8)
+            | (data[i + 6] << 16)
+            | (data[i + 7] << 24)
         )
         i += INFO_STRATAGEM_SEARCH_BYTES
 
