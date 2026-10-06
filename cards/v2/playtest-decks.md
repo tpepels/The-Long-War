@@ -17,7 +17,7 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 - Grey Riders and Sela remain mobile after Exhaustion through TIRELESS, while Neris can still Move formations by card effect.
 - Marched With can move a formation as the Bond lands; Dust Riders and Vardai care where that movement finishes.
 - Nara plus Stayed Behind For lets prepared cards become delayed resources instead of dead setup.
-- Kept Pace With and Carried Messages For turn Riders, Scouts and Captains into card-selection engines.
+- Kept Pace With and Carried Messages For give one-shot card filtering when the right classifications are present, without leaving buried ACTION text to remember.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -121,10 +121,10 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 
 **Interesting lines**
 
-- Aradai, Blocked the Road For, Brannoc and Rovan tax at different timings, so the best target changes with board state.
-- Iron Boars, River Raiders, The Stores Were Taken and The Muster Was False all pressure prepared cards without doing exactly the same thing.
+- Aradai and Blocked the Road For create one-shot tax windows on PLAY, while Brannoc and Rovan keep repeatable tax pressure on top-visible Names/Heroes.
+- Iron Boars pressure prepared cards; River Raiders instead exploit an already-Exhausted opposing formation, so the two Raiders now ask different questions.
 - Lysa, Mara, Lantern Scouts and Thornbow Hunters turn hidden information into a resource rather than pure guessing.
-- Ilyri, Tala and The Line Wheeled can suppress a Bond long enough for a different pressure piece to matter.
+- Ilyri gives a one-shot Bond suppression on PLAY; Tala and The Line Wheeled provide the repeatable/top-visible follow-up.
 
 | Copies | Card | Type |
 |---:|---|---|
