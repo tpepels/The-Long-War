@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8"))
+DATA = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
 CARDS = DATA["cards"]
 DECK_DATA = json.loads((ROOT / "cards" / "v2" / "playtest-decks.json").read_text(encoding="utf-8"))
 DECKS = DECK_DATA["decks"]
@@ -368,7 +368,7 @@ def test_force_uses_shared_card_layout() -> None:
 
 
 def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
-    cards = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8"))
+    cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = cards if isinstance(cards, list) else cards["cards"]
     force_ids = {card["id"] for card in cards if card["type"] == "force"}
     art_ids = {
