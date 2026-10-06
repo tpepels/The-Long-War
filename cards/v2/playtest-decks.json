@@ -1,188 +1,38 @@
 {
   "schema_version": 1,
-  "status": "diagnostic-playtest-decks",
-  "deck_size": 34,
+  "status": "exploratory-combo-playtest-decks",
+  "deck_size": 45,
   "decks": [
     {
-      "id": "leadership-build",
-      "title": "Leadership / Build",
-      "pair": "A",
-      "hypothesis": "Can Captains, Kings, Bonds and Names create satisfying construction tempo without snowballing?",
+      "id": "reposition-reuse",
+      "title": "Reposition & Reuse",
+      "playstyle": "Reconfigure positions, filter into the right follow-up, then reuse prepared pieces.",
+      "hypothesis": "Does movement become strategically interesting when it changes row payoffs, unlocks information, and feeds later attachment or card-flow decisions?",
+      "combo_notes": [
+        "Neris / Elian / Sela create multiple ways to reconfigure a Front, while The Battle Turned East converts a move into temporary Strength.",
+        "Marched With can move a formation as the Bond lands; Dust Riders and Vardai care where that movement finishes.",
+        "Nara plus Stayed Behind For lets prepared cards become delayed resources instead of dead setup.",
+        "Kept Pace With and Carried Messages For turn Riders, Scouts and Captains into card-selection engines."
+      ],
       "cards": [
         {
-          "id": "the-late-banner",
-          "copies": 3
-        },
-        {
-          "id": "the-banner-singers",
-          "copies": 3
-        },
-        {
-          "id": "the-house-of-reed",
+          "id": "the-grey-riders",
           "copies": 2
         },
         {
-          "id": "the-fifty-men",
+          "id": "the-dust-riders",
           "copies": 2
         },
         {
-          "id": "the-kings-spears",
+          "id": "the-vardai",
           "copies": 2
         },
         {
-          "id": "swore-again-to",
-          "copies": 3
-        },
-        {
-          "id": "marched-beneath-the-banner-of",
-          "copies": 3
-        },
-        {
-          "id": "followed",
+          "id": "the-serekh",
           "copies": 2
         },
         {
-          "id": "carried-messages-for",
-          "copies": 2
-        },
-        {
-          "id": "namar",
-          "copies": 1
-        },
-        {
-          "id": "oren",
-          "copies": 1
-        },
-        {
-          "id": "teren",
-          "copies": 1
-        },
-        {
-          "id": "meren",
-          "copies": 1
-        },
-        {
-          "id": "arel",
-          "copies": 1
-        },
-        {
-          "id": "eira",
-          "copies": 1
-        },
-        {
-          "id": "avaros-the-bronze-king",
-          "copies": 1
-        },
-        {
-          "id": "tovan-the-quartermaster",
-          "copies": 1
-        },
-        {
-          "id": "nara-builder-of-walls",
-          "copies": 1
-        },
-        {
-          "id": "the-king-had-given-the-order",
-          "copies": 2
-        },
-        {
-          "id": "no-one-would-be-first-to-leave",
-          "copies": 1
-        }
-      ]
-    },
-    {
-      "id": "raid-suppress",
-      "title": "Raid / Suppress",
-      "pair": "A",
-      "hypothesis": "Does temporary denial create counterplay to persistent formations without making building miserable?",
-      "cards": [
-        {
-          "id": "the-iron-boars",
-          "copies": 3
-        },
-        {
-          "id": "the-aradai",
-          "copies": 3
-        },
-        {
-          "id": "the-ilyri",
-          "copies": 3
-        },
-        {
-          "id": "the-river-raiders",
-          "copies": 3
-        },
-        {
-          "id": "seized-the-standard-of",
-          "copies": 3
-        },
-        {
-          "id": "shared-the-spoils-with",
-          "copies": 3
-        },
-        {
-          "id": "blocked-the-road-for",
-          "copies": 2
-        },
-        {
-          "id": "tala",
-          "copies": 1
-        },
-        {
-          "id": "brannoc",
-          "copies": 1
-        },
-        {
-          "id": "elian",
-          "copies": 1
-        },
-        {
-          "id": "arel",
-          "copies": 1
-        },
-        {
-          "id": "rovan-the-gatebreaker",
-          "copies": 1
-        },
-        {
-          "id": "the-muster-was-false",
-          "copies": 2
-        },
-        {
-          "id": "the-line-wheeled",
-          "copies": 2
-        },
-        {
-          "id": "the-stores-were-taken",
-          "copies": 2
-        },
-        {
-          "id": "the-line-was-baited",
-          "copies": 2
-        },
-        {
-          "id": "no-road-was-too-long",
-          "copies": 1
-        }
-      ]
-    },
-    {
-      "id": "guard-archer",
-      "title": "Guard / Archer",
-      "pair": "B",
-      "hypothesis": "Can protection and ranged pressure form a coherent package without turning Fronts into static arithmetic?",
-      "cards": [
-        {
-          "id": "the-crow-archers",
-          "copies": 3
-        },
-        {
-          "id": "the-ash-bowmen",
-          "copies": 3
-        },
-        {
-          "id": "the-red-shields",
+          "id": "the-thornbow-hunters",
           "copies": 2
         },
         {
@@ -190,192 +40,40 @@
           "copies": 2
         },
         {
-          "id": "a-hundred-shields",
-          "copies": 2
-        },
-        {
-          "id": "guarded",
-          "copies": 2
-        },
-        {
-          "id": "stood-fast-with",
-          "copies": 2
-        },
-        {
-          "id": "watched-the-skies-for",
-          "copies": 2
-        },
-        {
-          "id": "kept-the-gate-for",
-          "copies": 2
-        },
-        {
-          "id": "asha-the-shield-bearer",
+          "id": "seven-black-ships",
           "copies": 1
         },
         {
-          "id": "corin-of-the-high-wall",
+          "id": "the-white-hands-of-elara",
           "copies": 1
         },
         {
-          "id": "maelin",
+          "id": "the-late-banner",
           "copies": 1
-        },
-        {
-          "id": "edrin",
-          "copies": 1
-        },
-        {
-          "id": "serai-queen-of-crows",
-          "copies": 1
-        },
-        {
-          "id": "alda-keeper-of-the-ford",
-          "copies": 1
-        },
-        {
-          "id": "doros-the-last-spear",
-          "copies": 1
-        },
-        {
-          "id": "a-volley-before-dawn",
-          "copies": 3
-        },
-        {
-          "id": "all-reserves-forward",
-          "copies": 1
-        },
-        {
-          "id": "the-crows-came-down",
-          "copies": 1
-        },
-        {
-          "id": "the-wall-did-not-break",
-          "copies": 1
-        },
-        {
-          "id": "every-bow-was-strung",
-          "copies": 1
-        }
-      ]
-    },
-    {
-      "id": "scout-hidden",
-      "title": "Scout / Hidden Plans",
-      "pair": "B",
-      "hypothesis": "Are information and bluffing worth cards, Actions and Command in physical play?",
-      "cards": [
-        {
-          "id": "the-thornbow-hunters",
-          "copies": 3
-        },
-        {
-          "id": "the-lantern-scouts",
-          "copies": 3
-        },
-        {
-          "id": "the-watchtowers-of-eren",
-          "copies": 2
-        },
-        {
-          "id": "the-grey-riders",
-          "copies": 2
-        },
-        {
-          "id": "kept-pace-with",
-          "copies": 3
-        },
-        {
-          "id": "carried-messages-for",
-          "copies": 3
-        },
-        {
-          "id": "watched-the-skies-for",
-          "copies": 2
-        },
-        {
-          "id": "iria",
-          "copies": 1
-        },
-        {
-          "id": "mara",
-          "copies": 1
-        },
-        {
-          "id": "lysa-the-listener",
-          "copies": 1
-        },
-        {
-          "id": "kael-the-roadless",
-          "copies": 1
-        },
-        {
-          "id": "yara-the-chronicler",
-          "copies": 1
-        },
-        {
-          "id": "they-were-gathering-there",
-          "copies": 2
-        },
-        {
-          "id": "the-scouts-found-the-gap",
-          "copies": 2
-        },
-        {
-          "id": "the-scouts-had-warned-them",
-          "copies": 2
-        },
-        {
-          "id": "there-was-no-road-back",
-          "copies": 1
-        },
-        {
-          "id": "the-ground-was-held",
-          "copies": 1
-        },
-        {
-          "id": "before-sunset-the-ford-would-be-ours",
-          "copies": 1
-        },
-        {
-          "id": "they-knew-the-ground",
-          "copies": 2
-        }
-      ]
-    },
-    {
-      "id": "rider-mobility",
-      "title": "Rider / Mobility",
-      "pair": "C",
-      "hypothesis": "When movement is concentrated into one package, is it genuinely useful rather than decorative?",
-      "cards": [
-        {
-          "id": "the-grey-riders",
-          "copies": 3
-        },
-        {
-          "id": "the-dust-riders",
-          "copies": 3
-        },
-        {
-          "id": "the-vardai",
-          "copies": 3
-        },
-        {
-          "id": "the-serekh",
-          "copies": 3
         },
         {
           "id": "marched-with",
-          "copies": 3
+          "copies": 2
         },
         {
           "id": "kept-pace-with",
-          "copies": 3
+          "copies": 2
+        },
+        {
+          "id": "stayed-behind-for",
+          "copies": 1
+        },
+        {
+          "id": "swore-again-to",
+          "copies": 1
+        },
+        {
+          "id": "carried-messages-for",
+          "copies": 1
         },
         {
           "id": "followed",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "elian",
@@ -386,7 +84,15 @@
           "copies": 1
         },
         {
-          "id": "namar",
+          "id": "meren",
+          "copies": 1
+        },
+        {
+          "id": "iria",
+          "copies": 1
+        },
+        {
+          "id": "mara",
           "copies": 1
         },
         {
@@ -402,67 +108,149 @@
           "copies": 1
         },
         {
+          "id": "nara-builder-of-walls",
+          "copies": 1
+        },
+        {
           "id": "they-had-gone-too-far",
           "copies": 2
         },
         {
+          "id": "the-scouts-found-the-gap",
+          "copies": 1
+        },
+        {
+          "id": "the-line-wheeled",
+          "copies": 1
+        },
+        {
           "id": "all-banners-forward",
+          "copies": 1
+        },
+        {
+          "id": "the-battle-turned-east",
           "copies": 2
+        },
+        {
+          "id": "there-was-no-road-back",
+          "copies": 1
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 1
         },
         {
           "id": "the-long-march",
           "copies": 2
         },
         {
-          "id": "no-road-was-too-long",
-          "copies": 2
+          "id": "before-sunset-the-ford-would-be-ours",
+          "copies": 1
+        },
+        {
+          "id": "they-knew-the-ground",
+          "copies": 1
         }
       ]
     },
     {
-      "id": "baseline-control",
-      "title": "Baseline Control",
-      "pair": "C",
-      "hypothesis": "Can simple efficient cards remain competitive enough to expose mechanics that are not earning their complexity?",
+      "id": "prepare-chain",
+      "title": "Prepare & Chain",
+      "playstyle": "Build multi-card turns from preparation, discounts, naming triggers and attachment effects.",
+      "hypothesis": "Can prepared Bonds and Names create satisfying delayed sequences where the payoff is timing and chaining rather than raw efficiency?",
+      "combo_notes": [
+        "House of Reed, Tovan and The King Had Given the Order create overlapping but conditional discounts.",
+        "Oren, Torren and Nara all turn one setup card into extra attachment tempo in different ways.",
+        "Teren can set a Stratagem without another Action, then rewards another friendly formation becoming Named.",
+        "Eira, Sorin and Bought Time For keep the chain supplied without making every draw automatic."
+      ],
       "cards": [
         {
+          "id": "the-house-of-reed",
+          "copies": 2
+        },
+        {
+          "id": "the-late-banner",
+          "copies": 2
+        },
+        {
+          "id": "the-banner-singers",
+          "copies": 2
+        },
+        {
+          "id": "the-kings-spears",
+          "copies": 2
+        },
+        {
           "id": "the-fifty-men",
-          "copies": 4
-        },
-        {
-          "id": "thirty-spears",
-          "copies": 4
-        },
-        {
-          "id": "the-unnamed-host",
-          "copies": 3
-        },
-        {
-          "id": "a-hundred-shields",
-          "copies": 3
-        },
-        {
-          "id": "stood-fast-with",
-          "copies": 4
-        },
-        {
-          "id": "followed",
-          "copies": 3
-        },
-        {
-          "id": "trusted",
-          "copies": 3
-        },
-        {
-          "id": "edrin",
           "copies": 1
         },
         {
-          "id": "iven",
+          "id": "the-first-spear",
+          "copies": 2
+        },
+        {
+          "id": "the-watchtowers-of-eren",
           "copies": 1
         },
         {
-          "id": "sorin",
+          "id": "the-red-shields",
+          "copies": 1
+        },
+        {
+          "id": "the-white-hands-of-elara",
+          "copies": 1
+        },
+        {
+          "id": "the-ash-bowmen",
+          "copies": 1
+        },
+        {
+          "id": "swore-again-to",
+          "copies": 2
+        },
+        {
+          "id": "stayed-behind-for",
+          "copies": 2
+        },
+        {
+          "id": "bought-time-for",
+          "copies": 1
+        },
+        {
+          "id": "rallied-behind",
+          "copies": 1
+        },
+        {
+          "id": "marched-beneath-the-banner-of",
+          "copies": 1
+        },
+        {
+          "id": "had-been-ordered-forward",
+          "copies": 1
+        },
+        {
+          "id": "carried-messages-for",
+          "copies": 1
+        },
+        {
+          "id": "oren",
+          "copies": 1
+        },
+        {
+          "id": "teren",
+          "copies": 1
+        },
+        {
+          "id": "meren",
+          "copies": 1
+        },
+        {
+          "id": "torren",
+          "copies": 1
+        },
+        {
+          "id": "namar",
           "copies": 1
         },
         {
@@ -470,11 +258,363 @@
           "copies": 1
         },
         {
-          "id": "the-baggage-was-abandoned",
+          "id": "sorin",
+          "copies": 1
+        },
+        {
+          "id": "tovan-the-quartermaster",
+          "copies": 1
+        },
+        {
+          "id": "nara-builder-of-walls",
+          "copies": 1
+        },
+        {
+          "id": "avaros-the-bronze-king",
+          "copies": 1
+        },
+        {
+          "id": "the-muster-was-false",
+          "copies": 1
+        },
+        {
+          "id": "the-line-had-begun-to-move",
+          "copies": 1
+        },
+        {
+          "id": "they-returned-with-names",
+          "copies": 1
+        },
+        {
+          "id": "the-center-must-hold",
+          "copies": 1
+        },
+        {
+          "id": "every-banner-turned-toward-them",
+          "copies": 1
+        },
+        {
+          "id": "there-was-no-road-back",
+          "copies": 1
+        },
+        {
+          "id": "the-lines-held",
+          "copies": 1
+        },
+        {
+          "id": "the-king-had-given-the-order",
           "copies": 2
         },
         {
+          "id": "no-one-would-be-first-to-leave",
+          "copies": 1
+        },
+        {
+          "id": "the-battle-had-chosen-them",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "tax-fork",
+      "title": "Tax & Fork",
+      "playstyle": "Create several small threats at once so the opponent has to choose what to pay for, protect or abandon.",
+      "hypothesis": "Is denial more enjoyable when it presents forks - tax, information, prepared-card pressure and temporary suppression - instead of one repeated lock?",
+      "combo_notes": [
+        "Aradai, Blocked the Road For, Brannoc and Rovan tax at different timings, so the best target changes with board state.",
+        "Iron Boars, River Raiders, The Stores Were Taken and The Muster Was False all pressure prepared cards without doing exactly the same thing.",
+        "Lysa, Mara, Lantern Scouts and Thornbow Hunters turn hidden information into a resource rather than pure guessing.",
+        "Ilyri, Tala and The Line Wheeled can suppress a Bond long enough for a different pressure piece to matter."
+      ],
+      "cards": [
+        {
+          "id": "the-iron-boars",
+          "copies": 2
+        },
+        {
+          "id": "the-aradai",
+          "copies": 2
+        },
+        {
+          "id": "the-ilyri",
+          "copies": 2
+        },
+        {
+          "id": "the-river-raiders",
+          "copies": 2
+        },
+        {
+          "id": "the-red-duelists",
+          "copies": 2
+        },
+        {
+          "id": "the-lantern-scouts",
+          "copies": 1
+        },
+        {
+          "id": "the-thornbow-hunters",
+          "copies": 1
+        },
+        {
+          "id": "the-crow-archers",
+          "copies": 1
+        },
+        {
+          "id": "the-salt-road-fleet",
+          "copies": 1
+        },
+        {
+          "id": "the-old-guard",
+          "copies": 1
+        },
+        {
+          "id": "blocked-the-road-for",
+          "copies": 2
+        },
+        {
+          "id": "seized-the-standard-of",
+          "copies": 1
+        },
+        {
+          "id": "shared-the-spoils-with",
+          "copies": 1
+        },
+        {
+          "id": "kept-pace-with",
+          "copies": 1
+        },
+        {
+          "id": "guarded",
+          "copies": 1
+        },
+        {
+          "id": "carried-the-oath-of",
+          "copies": 1
+        },
+        {
+          "id": "watched-the-skies-for",
+          "copies": 1
+        },
+        {
+          "id": "brannoc",
+          "copies": 1
+        },
+        {
+          "id": "tala",
+          "copies": 1
+        },
+        {
+          "id": "lysa-the-listener",
+          "copies": 1
+        },
+        {
+          "id": "mara",
+          "copies": 1
+        },
+        {
+          "id": "iven",
+          "copies": 1
+        },
+        {
+          "id": "maelin",
+          "copies": 1
+        },
+        {
+          "id": "rovan-the-gatebreaker",
+          "copies": 1
+        },
+        {
+          "id": "serai-queen-of-crows",
+          "copies": 1
+        },
+        {
+          "id": "veyra-keeper-of-oaths",
+          "copies": 1
+        },
+        {
+          "id": "the-stores-were-taken",
+          "copies": 2
+        },
+        {
+          "id": "the-line-was-baited",
+          "copies": 1
+        },
+        {
+          "id": "the-line-wheeled",
+          "copies": 1
+        },
+        {
+          "id": "the-muster-was-false",
+          "copies": 1
+        },
+        {
+          "id": "the-scouts-found-the-gap",
+          "copies": 1
+        },
+        {
+          "id": "the-trap-closed",
+          "copies": 1
+        },
+        {
+          "id": "the-scouts-had-warned-them",
+          "copies": 1
+        },
+        {
+          "id": "no-step-back",
+          "copies": 1
+        },
+        {
+          "id": "the-archers-were-ready",
+          "copies": 1
+        },
+        {
+          "id": "the-raiders-came-home-loaded",
+          "copies": 1
+        },
+        {
+          "id": "they-knew-the-ground",
+          "copies": 1
+        },
+        {
+          "id": "no-road-was-too-long",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "protect-counter",
+      "title": "Protect & Counter",
+      "playstyle": "Invite commitment, absorb or redirect interaction, then turn the surviving formation into a counter-push.",
+      "hypothesis": "Can layered protection create timing decisions and reversals without becoming a passive wall?",
+      "combo_notes": [
+        "Red Shields, Serekh, Alda, Maelin and Veyra protect different targets or tax different kinds of opposing Tactics.",
+        "White Hands, Covered the Withdrawal Of and They Lived to Tell It convert marker pressure into cleanup choices.",
+        "Doros, Damar and Old Guard are good places to invest because each resists a different kind of disruption.",
+        "The Ground Was Held and The Battle Had Chosen Them reward surviving Named formations rather than merely piling on raw Guard cards."
+      ],
+      "cards": [
+        {
+          "id": "the-red-shields",
+          "copies": 2
+        },
+        {
+          "id": "the-old-guard",
+          "copies": 2
+        },
+        {
+          "id": "the-damar",
+          "copies": 2
+        },
+        {
+          "id": "the-serekh",
+          "copies": 2
+        },
+        {
+          "id": "the-white-hands-of-elara",
+          "copies": 2
+        },
+        {
+          "id": "the-black-company",
+          "copies": 1
+        },
+        {
+          "id": "a-hundred-shields",
+          "copies": 1
+        },
+        {
+          "id": "the-first-spear",
+          "copies": 1
+        },
+        {
+          "id": "the-crow-archers",
+          "copies": 1
+        },
+        {
+          "id": "the-kings-spears",
+          "copies": 1
+        },
+        {
+          "id": "guarded",
+          "copies": 2
+        },
+        {
+          "id": "endured-with",
+          "copies": 2
+        },
+        {
+          "id": "covered-the-withdrawal-of",
+          "copies": 1
+        },
+        {
+          "id": "kept-the-gate-for",
+          "copies": 1
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 1
+        },
+        {
+          "id": "trusted",
+          "copies": 1
+        },
+        {
+          "id": "asha-the-shield-bearer",
+          "copies": 1
+        },
+        {
+          "id": "edrin",
+          "copies": 1
+        },
+        {
+          "id": "maelin",
+          "copies": 1
+        },
+        {
+          "id": "corin-of-the-high-wall",
+          "copies": 1
+        },
+        {
+          "id": "iria",
+          "copies": 1
+        },
+        {
+          "id": "namar",
+          "copies": 1
+        },
+        {
+          "id": "arel",
+          "copies": 1
+        },
+        {
+          "id": "alda-keeper-of-the-ford",
+          "copies": 1
+        },
+        {
+          "id": "doros-the-last-spear",
+          "copies": 1
+        },
+        {
+          "id": "veyra-keeper-of-oaths",
+          "copies": 1
+        },
+        {
+          "id": "the-baggage-was-abandoned",
+          "copies": 1
+        },
+        {
+          "id": "a-volley-before-dawn",
+          "copies": 1
+        },
+        {
+          "id": "they-let-them-through",
+          "copies": 1
+        },
+        {
           "id": "all-reserves-forward",
+          "copies": 1
+        },
+        {
+          "id": "no-step-back",
           "copies": 2
         },
         {
@@ -482,7 +622,23 @@
           "copies": 1
         },
         {
+          "id": "the-flank-was-refused",
+          "copies": 1
+        },
+        {
           "id": "the-lines-held",
+          "copies": 1
+        },
+        {
+          "id": "the-wall-did-not-break",
+          "copies": 1
+        },
+        {
+          "id": "they-lived-to-tell-it",
+          "copies": 1
+        },
+        {
+          "id": "the-battle-had-chosen-them",
           "copies": 1
         }
       ]

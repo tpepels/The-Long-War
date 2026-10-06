@@ -13,7 +13,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8"))
 CARDS = DATA["cards"]
-DECKS = json.loads((ROOT / "cards" / "v2" / "playtest-decks.json").read_text(encoding="utf-8"))["decks"]
+DECK_DATA = json.loads((ROOT / "cards" / "v2" / "playtest-decks.json").read_text(encoding="utf-8"))
+DECKS = DECK_DATA["decks"]
 EXPECTED_COUNTS = {"force":30,"bond":22,"name":20,"hero":11,"tactic":14,"stratagem":11,"narrative":12}
 
 
@@ -33,9 +34,11 @@ def test_v2_pool_shape_and_decks() -> None:
     assert len(CARDS) == 120
     assert Counter(card["type"] for card in CARDS) == EXPECTED_COUNTS
     known = {card["id"]: card for card in CARDS}
-    assert len(DECKS) == 6
+    assert DECK_DATA["deck_size"] == 45
+    assert DECK_DATA["status"] == "exploratory-combo-playtest-decks"
+    assert len(DECKS) == 4
     for deck in DECKS:
-        assert sum(item["copies"] for item in deck["cards"]) == 34
+        assert sum(item["copies"] for item in deck["cards"]) == DECK_DATA["deck_size"]
         for item in deck["cards"]:
             card = known[item["id"]]
             assert item["copies"] <= (1 if card.get("unique") else 4)
@@ -483,3 +486,20 @@ def test_rules_panel_and_semantic_emphasis() -> None:
     assert "formatRuleText(effect.text)" in js
     assert "Named Formation" in js
     assert '"Human","Archer","Builder","Captain"' in js
+
+
+def test_exploratory_decks_keep_broad_card_type_mix() -> None:
+    known = {card["id"]: card for card in CARDS}
+    for deck in DECKS:
+        counts = Counter()
+        for item in deck["cards"]:
+            counts[known[item["id"]]["type"]] += item["copies"]
+        assert counts["force"] == 15
+        assert counts["name"] >= 6
+        assert counts["hero"] == 3
+        assert counts["bond"] >= 8
+        assert counts["tactic"] >= 3
+        assert counts["stratagem"] >= 4
+        assert counts["narrative"] >= 3
+        assert deck.get("combo_notes")
+        assert deck.get("playstyle")
