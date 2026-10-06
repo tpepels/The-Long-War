@@ -673,8 +673,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             elif front == V2_MODE_NAME or state.name[source] == card:
                 state.name_ability_used[source] = 1
         _v2_enqueue_effect(
-            self, state, actor, card, front, target, source,
-            command_source=card,
+            self, state, actor, card, front, target, source
         )
         _fe_resume_pending_flow(self, state)
         return
