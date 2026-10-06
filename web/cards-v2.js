@@ -25,8 +25,7 @@ const RULE_TERM_SET=new Set(RULE_TERMS.flatMap(term=>[term,pluralize(term)]).map
 const REFERENT_TERM_SET=new Set(REFERENT_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
 const EMPHASIS_TERMS=[...new Set([...RULE_TERM_SET,...REFERENT_TERM_SET])]
   .sort((a,b)=>b.length-a.length)
-  .map(term=>term.replace(/[.*+?^$()|[\]\\{}]/g,"\\const LIVE=new Set(["action","reaction","bonded","while_named"]);
-"));
+  .map(term=>term.replace(/[.*+?^$()|[\]\\{}]/g,match=>"\\\\"+match));
 const EMPHASIS_RE=new RegExp("\\b("+EMPHASIS_TERMS.join("|")+")\\b","gi");
 function formatRuleText(value){
   const source=String(value??"");
