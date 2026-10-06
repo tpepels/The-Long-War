@@ -15,6 +15,20 @@
 
 **BECOMES NAMED** is an event. Resolve it when a Formation transitions from not Named to Named.
 
+## Position and support vocabulary
+
+The three ranks in a Front are **Front**, **Middle**, and **Rear**.
+
+- **directly ahead** - the adjacent position in the same Front one rank toward Front.
+- **directly behind** - the adjacent position in the same Front one rank toward Rear.
+- **SUPPORT +N** - the friendly Formation directly ahead has +N Strength while the support effect is active.
+- **SUPPLY** - Bonds and Names played onto the friendly Formation directly ahead cost 1 less Command, to a minimum of 1.
+- **FRONT / MIDDLE / REAR** as a timing label is a continuous positional state. The text is active only while that Formation occupies that rank.
+
+Positional text should normally be one short line. The rank and relationship should carry the idea; Forces should not become paragraphs that need rereading every time Strength is counted.
+
+A Force with an allowed-row restriction may list more than one legal rank. In particular, former Rear-only support Forces may be played in **Middle or Rear**; their **REAR** text simply does nothing in Middle.
+
 ## No-lifting rule
 
 A Named Formation must be fully playable without lifting, sliding or fanning any card.
@@ -39,7 +53,7 @@ Avoid invisible "the first X each Battle/turn" bookkeeping when the same identit
 
 ## Card-type grammar
 
-**Force** - base Strength and battlefield identity. No rule, PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED or WHILE NAMED. Never a buried TRIGGER.
+**Force** - base Strength and one simple battlefield identity. No rule, PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED, WHILE NAMED, or a short FRONT / MIDDLE / REAR state. Never a buried TRIGGER.
 
 **Bond** - compact middle-layer support. PLAY, ACTION · 1/BATTLE, REACTION · 1/BATTLE, BONDED or WHILE NAMED. Never a buried TRIGGER.
 
