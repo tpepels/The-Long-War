@@ -41,7 +41,7 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 
 Positional and Exhaustion text should normally be one short line. The rank, token, and relationship should carry the idea; Forces should not become paragraphs that need rereading every time Strength is counted.
 
-A Force with an allowed-row restriction may list more than one legal rank. In particular, former Rear-only support Forces may be played in **Middle or Rear**; their **REAR** text simply does nothing in Middle.
+A Force with an allowed-row restriction may list more than one legal rank. This is a **hard occupancy restriction**, not only a deployment restriction: the Force may be played only in those ranks and may not Maneuver, Move, or Swap into a forbidden rank. In particular, former Rear-only support Forces may occupy **Middle or Rear**; their **REAR** text simply does nothing in Middle.
 
 ## No-lifting rule
 
