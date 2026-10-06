@@ -22,7 +22,7 @@ const commandGlyph=(value="")=>H()?.command(value)||"";
 const isFormationCard=card=>["force","bond","name","hero"].includes(card.type);
 
 function statGroup(card){
-  if(card.type==="hero")return '<div class="hero-stats" aria-label="Hero Force '+esc(card.force_strength)+', Name '+esc(signed(card.name_strength_modifier))+'"><span class="hero-stat hero-force-stat">'+typeGlyph("force")+'<b>'+esc(card.force_strength)+'</b></span><span class="hero-stat hero-name-stat">'+typeGlyph("name")+'<b>'+esc(signed(card.name_strength_modifier))+'</b></span></div>';
+  if(card.type==="hero")return '<div class="hero-stats" aria-label="Hero Force '+esc(card.force_strength)+', Name '+esc(signed(card.name_strength_modifier))+'"><span class="type-mark hero-type-mark">'+typeGlyph("hero")+'</span><span class="hero-stat hero-force-stat">'+typeGlyph("force")+'<b>'+esc(card.force_strength)+'</b></span><span class="hero-stat hero-name-stat">'+typeGlyph("name")+'<b>'+esc(signed(card.name_strength_modifier))+'</b></span></div>';
   const value=card.type==="force"?card.strength:["bond","name"].includes(card.type)?signed(card.strength_modifier):"";
   return '<div class="edge-stats" aria-label="'+esc(TYPE[card.type]||card.type)+' Strength '+esc(value)+'"><span class="type-mark">'+typeGlyph(card.type)+'</span><span class="strength-mark">'+strengthGlyph()+'<b>'+esc(value)+'</b></span></div>';
 }
@@ -117,8 +117,8 @@ function artStyle(card){
   return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
 }
 function cardArticle(card,extra="",options={}){
-  const density=densityClass(card),heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
-  return '<article class="v2-card card-'+esc(card.type)+density+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
+  const density=densityClass(card),titleDensity=card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":"",heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
+  return '<article class="v2-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
