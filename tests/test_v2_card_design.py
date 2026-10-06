@@ -120,8 +120,8 @@ def test_press_and_supply_raids_have_canonical_machine_rules() -> None:
     assert "not below 1" in vocab["steal_command"]
 
     assert by_id["the-river-raiders"]["text"] == "CONTINUOUS - PRESS +1."
-    assert by_id["the-fifty-men"]["title"] == "The Wolf Skirmishers"
-    assert by_id["the-fifty-men"]["design_rules"]["effects"][0]["requires_opposing_exhausted_same_front"] is True
+    assert by_id["the-ash-bowmen"]["title"] == "The Wolf Skirmishers"
+    assert by_id["the-ash-bowmen"]["design_rules"]["effects"][0]["requires_opposing_exhausted_same_front"] is True
     assert by_id["the-black-company"]["title"] == "The Black Pursuers"
     assert by_id["the-black-company"]["effects"][0]["timing"] == "exhausted"
 
