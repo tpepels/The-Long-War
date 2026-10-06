@@ -68,6 +68,16 @@ ADJACENT_POSITIONS = {
                 if int(position.front) < len(FRONTS) - 1
                 else None
             ),
+            (
+                Position(position.front, RANK_BY_INDEX[RANK_INDEX[position.rank] - 1])
+                if RANK_INDEX[position.rank] > 0
+                else None
+            ),
+            (
+                Position(position.front, RANK_BY_INDEX[RANK_INDEX[position.rank] + 1])
+                if RANK_INDEX[position.rank] < RANK_COUNT - 1
+                else None
+            ),
         )
         if candidate is not None
     )
@@ -315,6 +325,7 @@ class GameEngine:
                     target_slot.force = source_slot["force"]
                     target_slot.bond = source_slot["bond"]
                     target_slot.name = source_slot["name"]
+                    target_slot.exhausted = bool(source_slot.get("exhausted", False))
                     target_slot.temporary_strength = int(
                         source_slot["temporary_strength"]
                     )

@@ -78,6 +78,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     fast.bond[slot] = self.id_to_code[py_slot.bond]
                 if py_slot.name is not None:
                     fast.name[slot] = self.id_to_code[py_slot.name]
+                fast.exhausted[slot] = bool(py_slot.exhausted)
                 fast.temporary[slot] = py_slot.temporary_strength
                 fast.maneuver_count[slot] = int(py_slot.maneuvers_this_battle)
                 fast.maneuvered_in_operation[slot] = bool(
@@ -482,6 +483,9 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                             else self.card_ids[
                                 state.name[slot_index(p, f, r)]
                             ]
+                        ),
+                        "exhausted": bool(
+                            state.exhausted[slot_index(p, f, r)]
                         ),
                         "temporary_strength": (
                             state.temporary[slot_index(p, f, r)]

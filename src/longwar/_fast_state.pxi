@@ -10,6 +10,7 @@ cdef class FastState:
     cdef int8_t force[SLOT_COUNT]
     cdef int8_t bond[SLOT_COUNT]
     cdef int8_t name[SLOT_COUNT]
+    cdef uint8_t exhausted[SLOT_COUNT]
     cdef int16_t temporary[SLOT_COUNT]
     cdef uint8_t maneuver_count[SLOT_COUNT]
     cdef uint8_t maneuvered_in_operation[SLOT_COUNT]
@@ -129,6 +130,7 @@ cdef class FastState:
         memset(self.force, 0xff, sizeof(self.force))
         memset(self.bond, 0xff, sizeof(self.bond))
         memset(self.name, 0xff, sizeof(self.name))
+        memset(self.exhausted, 0, sizeof(self.exhausted))
         memset(self.temporary, 0, sizeof(self.temporary))
         memset(self.maneuver_count, 0, sizeof(self.maneuver_count))
         memset(self.maneuvered_in_operation, 0, sizeof(self.maneuvered_in_operation))
@@ -241,6 +243,7 @@ cdef class FastState:
         memcpy(self.force, other.force, sizeof(self.force))
         memcpy(self.bond, other.bond, sizeof(self.bond))
         memcpy(self.name, other.name, sizeof(self.name))
+        memcpy(self.exhausted, other.exhausted, sizeof(self.exhausted))
         memcpy(self.temporary, other.temporary, sizeof(self.temporary))
         memcpy(self.maneuver_count, other.maneuver_count, sizeof(self.maneuver_count))
         memcpy(self.maneuvered_in_operation, other.maneuvered_in_operation, sizeof(self.maneuvered_in_operation))

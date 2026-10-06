@@ -169,6 +169,7 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.force[dest] = state.force[source]
     state.bond[dest] = state.bond[source]
     state.name[dest] = state.name[source]
+    state.exhausted[dest] = state.exhausted[source]
     state.temporary[dest] = state.temporary[source]
     state.maneuver_count[dest] = state.maneuver_count[source]
     state.maneuvered_in_operation[dest] = state.maneuvered_in_operation[source]
@@ -176,6 +177,7 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.force[source] = -1
     state.bond[source] = -1
     state.name[source] = -1
+    state.exhausted[source] = 0
     state.temporary[source] = 0
     state.maneuver_count[source] = 0
     state.maneuvered_in_operation[source] = 0
@@ -196,6 +198,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     cdef int8_t force = state.force[a]
     cdef int8_t bond = state.bond[a]
     cdef int8_t name = state.name[a]
+    cdef uint8_t exhausted = state.exhausted[a]
     cdef int16_t temporary = state.temporary[a]
     cdef uint8_t maneuvers = state.maneuver_count[a]
     cdef uint8_t maneuvered_in_operation = state.maneuvered_in_operation[a]
@@ -203,6 +206,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.force[a] = state.force[b]
     state.bond[a] = state.bond[b]
     state.name[a] = state.name[b]
+    state.exhausted[a] = state.exhausted[b]
     state.temporary[a] = state.temporary[b]
     state.maneuver_count[a] = state.maneuver_count[b]
     state.maneuvered_in_operation[a] = state.maneuvered_in_operation[b]
@@ -210,6 +214,7 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.force[b] = force
     state.bond[b] = bond
     state.name[b] = name
+    state.exhausted[b] = exhausted
     state.temporary[b] = temporary
     state.maneuver_count[b] = maneuvers
     state.maneuvered_in_operation[b] = maneuvered_in_operation
@@ -297,6 +302,18 @@ cdef uint32_t _fe_adjacent_formation_mask(
         and front_is_active(state.battle, front + 1)
     ):
         other = slot_index(player, front + 1, rank)
+        if state.force[other] >= 0 and (
+            not named_only or _fe_slot_complete(self, state, other)
+        ):
+            mask |= <uint32_t>(1 << other)
+    if rank > RANK_FRONT:
+        other = slot_index(player, front, rank - 1)
+        if state.force[other] >= 0 and (
+            not named_only or _fe_slot_complete(self, state, other)
+        ):
+            mask |= <uint32_t>(1 << other)
+    if rank < RANK_REAR:
+        other = slot_index(player, front, rank + 1)
         if state.force[other] >= 0 and (
             not named_only or _fe_slot_complete(self, state, other)
         ):
@@ -614,6 +631,14 @@ cdef void _fe_resolve_force_move_triggers(
             destinations |= <uint32_t>(1 << other)
     if front < FRONT_COUNT - 1:
         other = slot_index(player, front + 1, rank)
+        if state.force[other] >= 0 and state.bond[other] < 0:
+            destinations |= <uint32_t>(1 << other)
+    if rank > RANK_FRONT:
+        other = slot_index(player, front, rank - 1)
+        if state.force[other] >= 0 and state.bond[other] < 0:
+            destinations |= <uint32_t>(1 << other)
+    if rank < RANK_REAR:
+        other = slot_index(player, front, rank + 1)
         if state.force[other] >= 0 and state.bond[other] < 0:
             destinations |= <uint32_t>(1 << other)
     if destinations:

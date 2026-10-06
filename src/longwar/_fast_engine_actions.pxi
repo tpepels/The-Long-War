@@ -111,6 +111,18 @@ cdef inline bint _fe_adjacent_hero_formation(
             or (name >= 0 and self.hero[name])
         ):
             return True
+    if rank > RANK_FRONT:
+        adjacent = slot_index(player, front, rank - 1)
+        force = state.force[adjacent]
+        name = state.name[adjacent]
+        if force >= 0 and (self.hero[force] or (name >= 0 and self.hero[name])):
+            return True
+    if rank < RANK_REAR:
+        adjacent = slot_index(player, front, rank + 1)
+        force = state.force[adjacent]
+        name = state.name[adjacent]
+        if force >= 0 and (self.hero[force] or (name >= 0 and self.hero[name])):
+            return True
     return False
 
 cdef inline bint _fe_maneuver_source_legal(
@@ -123,7 +135,7 @@ cdef inline bint _fe_maneuver_source_legal(
     if not front_is_active(state.battle, front_from_slot(slot)):
         return False
     force = state.force[slot]
-    if force < 0 or self.immobile_force[force]:
+    if force < 0 or self.immobile_force[force] or state.exhausted[slot]:
         return False
     if _fe_slot_complete(self, state, slot):
         return True
@@ -457,10 +469,8 @@ cdef bint _fe_maneuver_allowed_by_continuous(
             self, state, player, 2
         )
 
-    direction = (
-        1
-        if front_from_slot(dest) < front_from_slot(source)
-        else 2
+    direction = _fe_action_direction(
+        encode_action(TYPE_MANEUVER, -1, source, dest, player)
     )
     if left_possible and not right_possible:
         return direction == DIRECTION_LEFT
@@ -644,6 +654,7 @@ cdef int _fe_legal_pending_effect_actions(
                 if (
                     state.force[source] < 0
                     or self.immobile_force[state.force[source]]
+                    or state.exhausted[source]
                 ):
                     continue
             elif not _fe_maneuver_source_legal(self, 
@@ -669,6 +680,14 @@ cdef int _fe_legal_pending_effect_actions(
                         self, state, player, source, dest
                     )
                 ):
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+            if rank > RANK_FRONT:
+                dest = slot_index(player, front, rank - 1)
+                if _fe_maneuver_destination_legal(self, state, dest) and _fe_maneuver_allowed_by_continuous(self, state, player, source, dest):
+                    n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
+            if rank < RANK_REAR:
+                dest = slot_index(player, front, rank + 1)
+                if _fe_maneuver_destination_legal(self, state, dest) and _fe_maneuver_allowed_by_continuous(self, state, player, source, dest):
                     n = _append_action(actions, n, encode_action(TYPE_EFFECT, -1, source, dest, player, kind))
     elif kind == EFFECT_MOVE:
         for source in range(SLOT_COUNT):
@@ -704,7 +723,11 @@ cdef int _fe_legal_pending_effect_actions(
                 if not (dest_mask & (1 << dest)) or state.force[dest] < 0:
                     continue
                 if flags & EFFECT_ADJACENT_PAIR:
-                    if rank_from_slot(source) != rank_from_slot(dest) or abs(front_from_slot(source) - front_from_slot(dest)) != 1:
+                    if (
+                        abs(front_from_slot(source) - front_from_slot(dest))
+                        + abs(rank_from_slot(source) - rank_from_slot(dest))
+                        != 1
+                    ):
                         continue
                 if flags & EFFECT_SAME_FRONT_PAIR:
                     if front_from_slot(source) != front_from_slot(dest) or rank_from_slot(source) == rank_from_slot(dest):
@@ -1353,6 +1376,14 @@ cdef int _fe_legal_actions_into(
                     n,
                     encode_action(TYPE_MANEUVER, -1, source, dest, player),
                 )
+        if rank > RANK_FRONT:
+            dest = slot_index(player, front, rank - 1)
+            if _fe_maneuver_destination_legal(self, state, dest) and _fe_maneuver_allowed_by_continuous(self, state, player, source, dest):
+                n = _append_action(actions, n, encode_action(TYPE_MANEUVER, -1, source, dest, player))
+        if rank < RANK_REAR:
+            dest = slot_index(player, front, rank + 1)
+            if _fe_maneuver_destination_legal(self, state, dest) and _fe_maneuver_allowed_by_continuous(self, state, player, source, dest):
+                n = _append_action(actions, n, encode_action(TYPE_MANEUVER, -1, source, dest, player))
 
     # Cycling is one Action: discard any two cards, then draw one.
     if state.hand_len[player] >= 2:

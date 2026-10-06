@@ -66,6 +66,7 @@ class Slot:
     force: str | None = None
     bond: str | None = None
     name: str | None = None
+    exhausted: bool = False
     temporary_strength: int = 0
     maneuvers_this_battle: int = 0
     maneuver_direction: str | None = None
@@ -266,6 +267,7 @@ class GameState:
                         force=slot.force,
                         bond=slot.bond,
                         name=slot.name,
+                        exhausted=slot.exhausted,
                         temporary_strength=slot.temporary_strength,
                         maneuvers_this_battle=slot.maneuvers_this_battle,
                         maneuver_direction=slot.maneuver_direction,
@@ -410,6 +412,7 @@ class GameState:
                     target_slot.force = source_slot.force
                     target_slot.bond = source_slot.bond
                     target_slot.name = source_slot.name
+                    target_slot.exhausted = source_slot.exhausted
                     target_slot.temporary_strength = source_slot.temporary_strength
                     target_slot.maneuvers_this_battle = source_slot.maneuvers_this_battle
                     target_slot.maneuver_direction = source_slot.maneuver_direction

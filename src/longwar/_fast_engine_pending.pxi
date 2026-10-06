@@ -60,7 +60,13 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     if kind == EFFECT_FREE_MANEUVER:
         if not skip:
             was_empty = state.force[dest] < 0
-            moved = 1 if front_from_slot(dest) < front_from_slot(source) else 2
+            moved = (
+                DIRECTION_LEFT
+                if front_from_slot(dest) < front_from_slot(source)
+                else DIRECTION_RIGHT
+                if front_from_slot(dest) > front_from_slot(source)
+                else DIRECTION_NONE
+            )
             _fe_swap_slots(self, state, source, dest)
             state.maneuver_count[dest] += 1
             state.maneuvered_in_operation[dest] = 1
@@ -170,6 +176,14 @@ cdef void _fe_queue_take_adjacent_prepared_component_on_force_play(
             or (state.name[source] >= 0 and state.name[destination] < 0)
         ):
             sources |= <uint32_t>(1 << source)
+    if rank > RANK_FRONT:
+        source = slot_index(player, front, rank - 1)
+        if state.force[source] < 0 and ((state.bond[source] >= 0 and state.bond[destination] < 0) or (state.name[source] >= 0 and state.name[destination] < 0)):
+            sources |= <uint32_t>(1 << source)
+    if rank < RANK_REAR:
+        source = slot_index(player, front, rank + 1)
+        if state.force[source] < 0 and ((state.bond[source] >= 0 and state.bond[destination] < 0) or (state.name[source] >= 0 and state.name[destination] < 0)):
+            sources |= <uint32_t>(1 << source)
     if sources:
         _fe_enqueue_effect(self, 
             state,
@@ -210,6 +224,14 @@ cdef void _fe_queue_take_adjacent_open_bond_on_name_play(
             and state.bond[source] >= 0
             and state.name[source] < 0
         ):
+            sources |= <uint32_t>(1 << source)
+    if rank > RANK_FRONT:
+        source = slot_index(player, front, rank - 1)
+        if state.force[source] >= 0 and state.bond[source] >= 0 and state.name[source] < 0:
+            sources |= <uint32_t>(1 << source)
+    if rank < RANK_REAR:
+        source = slot_index(player, front, rank + 1)
+        if state.force[source] >= 0 and state.bond[source] >= 0 and state.name[source] < 0:
             sources |= <uint32_t>(1 << source)
     if sources:
         _fe_enqueue_effect(self, 
@@ -425,7 +447,13 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     if kind == TYPE_MANEUVER:
         target = 1 if state.force[dest] < 0 else 0
-        choice = 1 if front_from_slot(dest) < front_from_slot(pos) else 2
+        choice = (
+            DIRECTION_LEFT
+            if front_from_slot(dest) < front_from_slot(pos)
+            else DIRECTION_RIGHT
+            if front_from_slot(dest) > front_from_slot(pos)
+            else DIRECTION_NONE
+        )
         _fe_swap_slots(self, state, pos, dest)
         state.maneuver_count[dest] += 1
         state.maneuvered_in_operation[dest] = 1
@@ -454,6 +482,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         prepared_before = state.bond[pos] >= 0 or state.name[pos] >= 0
         _fe_take_from_hand(self, state, actor, card, 0)
         state.force[pos] = card
+        state.exhausted[pos] = 0
         if (self.card_capabilities[card] & CAP_PREPARED_ON_PLAY_FREE_MANEUVER_FORCE) and prepared_before:
             _fe_queue_free_maneuver(
                 self, state, actor, <uint32_t>(1 << pos),
