@@ -16,24 +16,30 @@
   },
   "card_type_grammar": {
     "force": {
-      "role": "Base Strength and one simple battlefield identity.",
+      "role": "Base Strength and at most one short battlefield identity, often positional.",
       "allowed_timings": [
         "play",
         "action",
         "reaction",
         "bonded",
-        "while_named"
+        "while_named",
+        "front",
+        "middle",
+        "rear"
       ],
       "buried_rule": "PLAY text may be covered after it resolves. ACTION/REACTION abilities, BONDED, and WHILE NAMED effects must be completely readable in the exposed strip. Force ACTION/REACTION abilities are limited to once per Battle."
     },
     "bond": {
-      "role": "Compact modifier/support in the middle of the stack.",
+      "role": "Compact relationship/support text between formations; positional Bonds should stay one short line.",
       "allowed_timings": [
         "play",
         "action",
         "reaction",
         "bonded",
-        "while_named"
+        "while_named",
+        "front",
+        "middle",
+        "rear"
       ],
       "buried_rule": "PLAY text may be covered after it resolves. ACTION/REACTION abilities, BONDED, and WHILE NAMED effects must be completely readable in the exposed strip. Bond ACTION/REACTION abilities are limited to once per Battle."
     },
@@ -207,15 +213,19 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Remove one temporary negative marker from a friendly formation in this Front.",
+          "text": "If played in the Rear, remove one temporary negative marker from the friendly formation directly ahead.",
           "scope": "self",
           "memory": []
         }
       ],
-      "placement": "rear",
-      "text": "PLAY - Remove one temporary negative marker from a friendly formation in this Front.",
+      "text": "PLAY - If played in the Rear, remove one temporary negative marker from the friendly formation directly ahead.",
       "design_tags": [
-        "protection"
+        "protection",
+        "positional-support"
+      ],
+      "allowed_rows": [
+        "middle",
+        "rear"
       ]
     },
     {
@@ -260,21 +270,16 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "action",
-          "text": "Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
-          "scope": "opponent",
-          "memory": [
-            "used_marker",
-            "effect_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · ENEMY -1"
+          "timing": "rear",
+          "text": "SUPPORT +1.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "SUPPORT +1"
         }
       ],
-      "text": "ACTION · 1/BATTLE - Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
+      "text": "REAR - SUPPORT +1.",
       "design_tags": [
-        "action-engine",
-        "marker-state",
+        "positional-support",
         "strength"
       ]
     },
@@ -290,20 +295,22 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "bonded",
-          "text": "Bonds you play in this Front cost 1 less Command, to a minimum of 1.",
+          "timing": "rear",
+          "text": "SUPPLY.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · BONDS HERE -1"
+          "exposed": "SUPPLY"
         }
       ],
-      "placement": "rear",
-      "text": "BONDED - Bonds you play in this Front cost 1 less Command, to a minimum of 1.",
+      "text": "REAR - SUPPLY.",
       "design_tags": [
         "command",
-        "command-recovery",
         "formation-building",
-        "persistent-state"
+        "positional-support"
+      ],
+      "allowed_rows": [
+        "middle",
+        "rear"
       ]
     },
     {
@@ -482,18 +489,16 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "bonded",
-          "text": "This formation has +2 Strength.",
+          "timing": "front",
+          "text": "If the position directly behind is occupied by a friendly formation, this formation has +2 Strength.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · +2"
+          "exposed": "BEHIND +2"
         }
       ],
-      "placement": "front",
-      "text": "BONDED - This formation has +2 Strength.",
+      "text": "FRONT - If the position directly behind is occupied by a friendly formation, this formation has +2 Strength.",
       "design_tags": [
-        "formation-building",
-        "persistent-state",
+        "positional-support",
         "strength"
       ]
     },
@@ -582,15 +587,16 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "This formation has +1 Strength.",
+          "text": "While this formation is in the Middle row, SUPPORT +1.",
           "scope": "self",
           "memory": [],
-          "exposed": "NAMED · +1"
+          "exposed": "MIDDLE · SUPPORT +1"
         }
       ],
-      "text": "WHILE NAMED - This formation has +1 Strength.",
+      "text": "WHILE NAMED - While this formation is in the Middle row, SUPPORT +1.",
       "design_tags": [
-        "persistent-state",
+        "named-payoff",
+        "positional-support",
         "strength"
       ]
     },
@@ -909,19 +915,19 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Remove one temporary negative marker from another friendly formation in this Front.",
+          "text": "Remove one temporary negative marker from the friendly formation directly ahead.",
           "scope": "self",
           "memory": [
             "used_marker"
           ],
           "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · CLEAR ALLY"
+          "exposed": "CLEAR AHEAD"
         }
       ],
-      "text": "ACTION · 1/BATTLE - Remove one temporary negative marker from another friendly formation in this Front.",
+      "text": "ACTION · 1/BATTLE - Remove one temporary negative marker from the friendly formation directly ahead.",
       "design_tags": [
-        "action-engine",
         "marker-state",
+        "positional-support",
         "protection"
       ]
     },
@@ -1321,7 +1327,7 @@
         },
         {
           "timing": "action",
-          "text": "Play up to two Bonds from your hand into this Front, paying their Command costs.",
+          "text": "Play one Bond from your hand onto this formation or the friendly formation directly ahead, paying its Command cost.",
           "scope": "self",
           "memory": [
             "used_marker"
@@ -1329,13 +1335,13 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "BECOMES NAMED - Draw 2 cards, then discard 1 card.\nACTION · 1/BATTLE - Play up to two Bonds from your hand into this Front, paying their Command costs.",
+      "text": "BECOMES NAMED - Draw 2 cards, then discard 1 card.\nACTION · 1/BATTLE - Play one Bond from your hand onto this formation or the friendly formation directly ahead, paying its Command cost.",
       "design_tags": [
         "action-engine",
         "card-flow",
-        "command",
-        "marker-state",
-        "named-payoff"
+        "formation-building",
+        "named-payoff",
+        "positional-support"
       ]
     },
     {
@@ -1719,7 +1725,7 @@
         },
         {
           "timing": "action",
-          "text": "Choose one friendly Bonded Formation in this Front. It gets +1 Strength this Battle.",
+          "text": "Choose the friendly formation directly ahead or directly behind. It gets +1 Strength this Battle.",
           "scope": "self",
           "memory": [
             "used_marker",
@@ -1728,13 +1734,11 @@
           "limit": "once_per_battle"
         }
       ],
-      "text": "BECOMES NAMED - Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle.\nACTION · 1/BATTLE - Choose one friendly Bonded Formation in this Front. It gets +1 Strength this Battle.",
+      "text": "BECOMES NAMED - Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle.\nACTION · 1/BATTLE - Choose the friendly formation directly ahead or directly behind. It gets +1 Strength this Battle.",
       "design_tags": [
-        "action-engine",
         "classification-synergy",
-        "formation-building",
-        "marker-state",
         "named-payoff",
+        "positional-support",
         "strength"
       ]
     },
@@ -3188,21 +3192,24 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
-          "scope": "opponent",
+          "text": "If this formation is in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+          "scope": "self",
           "memory": [
             "used_marker"
           ],
           "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · LOOK AT STRATAGEM"
+          "exposed": "REAR · LOOK STRATAGEM"
         }
       ],
-      "placement": "rear",
-      "text": "ACTION · 1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "text": "ACTION · 1/BATTLE - If this formation is in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
       "design_tags": [
         "action-engine",
         "information",
         "marker-state"
+      ],
+      "allowed_rows": [
+        "middle",
+        "rear"
       ]
     },
     {
@@ -3329,6 +3336,53 @@
         "card-flow",
         "classification-synergy",
         "marker-state"
+      ]
+    },
+    {
+      "id": "supported-by",
+      "title": "Supported By",
+      "type": "bond",
+      "classes": [],
+      "bond_kind": "support",
+      "command_cost": 1,
+      "strength_modifier": 0,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "SUPPORT +1.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "SUPPORT +1"
+        }
+      ],
+      "text": "BONDED - SUPPORT +1.",
+      "design_tags": [
+        "positional-support",
+        "strength"
+      ]
+    },
+    {
+      "id": "supplied-by",
+      "title": "Supplied By",
+      "type": "bond",
+      "classes": [],
+      "bond_kind": "logistics",
+      "command_cost": 1,
+      "strength_modifier": 0,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "SUPPLY.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "SUPPLY"
+        }
+      ],
+      "text": "BONDED - SUPPLY.",
+      "design_tags": [
+        "command",
+        "formation-building",
+        "positional-support"
       ]
     },
     {
@@ -3901,6 +3955,15 @@
     "becomes_named": "Resolve when the Formation transitions into the Named state.",
     "trigger": "A visible Name reacts to the stated event.",
     "continuous": "A visible Name or Narrative rule remains active while its source remains active.",
-    "hidden": "A face-down Stratagem reveals under its stated condition."
+    "hidden": "A face-down Stratagem reveals under its stated condition.",
+    "front": "A state effect active while the formation is in the Front row.",
+    "middle": "A state effect active while the formation is in the Middle row.",
+    "rear": "A state effect active while the formation is in the Rear row."
+  },
+  "position_vocabulary": {
+    "directly_ahead": "The adjacent position in the same Front one rank toward the Front row.",
+    "directly_behind": "The adjacent position in the same Front one rank toward the Rear row.",
+    "support": "SUPPORT +N means the friendly formation directly ahead has +N Strength while the supporting effect is active.",
+    "supply": "SUPPLY means Bonds and Names played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 1."
   }
 }
