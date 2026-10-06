@@ -52,7 +52,7 @@ def test_formation_vocabulary_and_timings_are_explicit() -> None:
     assert "state, not a trigger" in states["named_state"]
     assert "BECOMES NAMED" in states["becomes_named"]
 
-    buried = {"play", "action", "reaction", "bonded", "while_named", "front", "middle", "rear", "exhausted", "tireless", "mobile"}
+    buried = {"play", "action", "reaction", "bonded", "while_named", "front", "middle", "rear", "exhausted", "tireless", "mobile", "continuous"}
     for card in CARDS:
         if card["type"] in {"force", "bond"}:
             for effect in card["effects"]:
