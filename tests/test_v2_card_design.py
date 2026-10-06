@@ -52,7 +52,7 @@ def test_formation_vocabulary_and_timings_are_explicit() -> None:
     assert "state, not a trigger" in states["named_state"]
     assert "BECOMES NAMED" in states["becomes_named"]
 
-    buried = {"play", "action", "reaction", "bonded", "while_named"}
+    buried = {"play", "action", "reaction", "bonded", "while_named", "front", "middle", "rear", "exhausted", "tireless"}
     for card in CARDS:
         if card["type"] in {"force", "bond"}:
             for effect in card["effects"]:
@@ -561,3 +561,49 @@ def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> Non
     assert "Array.isArray(card.allowed_rows)" in js
     assert "effectTimingGlyph" in js
     assert "SUPPORT" in js and "SUPPLY" in js
+
+
+def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
+    by_id = {card["id"]: card for card in CARDS}
+    positions = DATA["position_vocabulary"]
+    assert "OUTMATCHED" in positions["outmatched"]
+    assert "RESERVE +N" in positions["reserve"]
+    assert "TIRELESS" in positions["tireless"]
+    assert "Exhaustion token" in positions["tireless"]
+
+    grey = by_id["the-grey-riders"]
+    assert grey["text"].startswith("TIRELESS")
+    assert grey["effects"][0]["timing"] == "tireless"
+
+    old_guard = by_id["the-old-guard"]
+    assert old_guard["text"] == "MIDDLE - RESERVE +2."
+    assert old_guard["effects"][0]["timing"] == "middle"
+
+    damar = by_id["the-damar"]
+    assert damar["strength"] == 4
+    assert damar["effects"][0]["timing"] == "exhausted"
+    assert "+1 Strength" in damar["text"]
+
+    held = by_id["held-the-line-for"]
+    assert held["strength_modifier"] == 1
+    assert held["text"] == "BONDED - RESERVE +1."
+
+    covered = by_id["covered-the-withdrawal-of"]
+    assert "directly ahead is TIRELESS" in covered["text"]
+
+    sela = by_id["sela"]
+    assert sela["effects"][1]["timing"] == "while_named"
+    assert "TIRELESS" in sela["effects"][1]["text"]
+
+    maelin = by_id["maelin"]
+    assert "Remove Exhaustion" in maelin["effects"][0]["text"]
+
+
+def test_renderer_knows_exhausted_and_tireless_states() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert 'exhausted:"EXHAUSTED",tireless:"TIRELESS"' in js
+    assert '"exhausted","tireless"' in js
+    assert 'name==="tireless"?utilityGlyph("move")' in js
+    assert 'name==="exhausted"?utilityGlyph("marker")' in js
+    assert "MAY MANEUVER EXHAUSTED" in js
+    assert "RESERVE" in js
