@@ -780,3 +780,11 @@ def test_orders_are_conditional_self_support_and_all_cards_are_decked() -> None:
     assert stock["command_cost"] == 1 and "top 3 cards" in stock["text"]
     decked = {item["id"] for deck in DECKS for item in deck["cards"]}
     assert decked == {card["id"] for card in CARDS}
+
+
+def test_every_card_has_command_value_audit_row() -> None:
+    audit = (ROOT / "cards" / "v2" / "valuation-audit.md").read_text(encoding="utf-8")
+    assert f"every one of the {len(CARDS)} V2 cards" in audit
+    for card in CARDS:
+        assert f"| {card['title']} |" in audit
+    assert "Repeatable ACTION text pays an Action tax" in audit
