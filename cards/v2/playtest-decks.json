@@ -9,7 +9,7 @@
       "playstyle": "Reconfigure positions, filter into the right follow-up, then reuse prepared pieces.",
       "hypothesis": "Does movement become strategically interesting when it changes row payoffs, unlocks information, and feeds later attachment or card-flow decisions?",
       "combo_notes": [
-        "Neris / Elian / Sela create multiple ways to reconfigure a Front, while The Battle Turned East converts a move into temporary Strength.",
+        "Grey Riders and Sela remain mobile after Exhaustion through TIRELESS, while Neris can still Move formations by card effect.",
         "Marched With can move a formation as the Bond lands; Dust Riders and Vardai care where that movement finishes.",
         "Nara plus Stayed Behind For lets prepared cards become delayed resources instead of dead setup.",
         "Kept Pace With and Carried Messages For turn Riders, Scouts and Captains into card-selection engines."
@@ -487,9 +487,9 @@
       "playstyle": "Invite commitment, absorb or redirect interaction, then turn the surviving formation into a counter-push.",
       "hypothesis": "Can layered protection create timing decisions and reversals without becoming a passive wall?",
       "combo_notes": [
-        "Red Shields, Serekh, Alda, Maelin and Veyra protect different targets or tax different kinds of opposing Tactics.",
-        "White Hands, Covered the Withdrawal Of and They Lived to Tell It convert marker pressure into cleanup choices.",
-        "Doros, Damar and Old Guard are good places to invest because each resists a different kind of disruption.",
+        "Old Guard and Held the Line For reward keeping a second line behind an OUTMATCHED Front formation instead of simply stacking raw Guard Strength.",
+        "Damar becomes harder after Exhaustion, while Maelin can remove Exhaustion and Covered the Withdrawal Of can keep the formation ahead TIRELESS without clearing its token.",
+        "Red Shields, Serekh, Alda and Veyra still protect different targets or tax different kinds of opposing Tactics.",
         "The Ground Was Held and The Battle Had Chosen Them reward surviving Named formations rather than merely piling on raw Guard cards."
       ],
       "cards": [
@@ -550,7 +550,7 @@
           "copies": 1
         },
         {
-          "id": "stood-fast-with",
+          "id": "held-the-line-for",
           "copies": 1
         },
         {
