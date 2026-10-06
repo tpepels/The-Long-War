@@ -20,7 +20,6 @@
       "allowed_timings": [
         "play",
         "action",
-        "reaction",
         "bonded",
         "while_named",
         "front",
@@ -29,21 +28,19 @@
         "exhausted",
         "tireless"
       ],
-      "buried_rule": "PLAY text may be covered after it resolves. ACTION/REACTION abilities, BONDED, and WHILE NAMED effects must be completely readable in the exposed strip. Force ACTION/REACTION abilities are limited to once per Battle."
+      "buried_rule": "PLAY text may be covered after it resolves. Persistent Force text must fit in the exposed strip. ACTION is reserved for short movement/repositioning text that is completely readable there; REACTION belongs on top-visible cards."
     },
     "bond": {
       "role": "Compact relationship/support text between formations; positional Bonds should stay one short line.",
       "allowed_timings": [
         "play",
-        "action",
-        "reaction",
         "bonded",
         "while_named",
         "front",
         "middle",
         "rear"
       ],
-      "buried_rule": "PLAY text may be covered after it resolves. ACTION/REACTION abilities, BONDED, and WHILE NAMED effects must be completely readable in the exposed strip. Bond ACTION/REACTION abilities are limited to once per Battle."
+      "buried_rule": "PLAY text may be covered after it resolves. All remaining Bond text must be a short state effect completely readable in the exposed strip. Bonds do not carry ACTION or REACTION abilities."
     },
     "name": {
       "role": "The readable top card and main home for persistent, recurring, and formation-completion mechanics.",
@@ -242,22 +239,18 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When an opposing Tactic targets this formation, you may ignore that Tactic's effect on this formation.",
+          "timing": "front",
+          "text": "Opposing Tactics targeting this formation cost 1 additional Command.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · IGNORE TACTIC"
+          "memory": [],
+          "exposed": "TACTICS +1"
         }
       ],
-      "text": "REACTION · 1/BATTLE - When an opposing Tactic targets this formation, you may ignore that Tactic's effect on this formation.",
+      "text": "FRONT - Opposing Tactics targeting this formation cost 1 additional Command.",
       "design_tags": [
-        "marker-state",
         "protection",
-        "reaction",
-        "suppression"
+        "positional-support",
+        "tax"
       ]
     },
     {
@@ -396,22 +389,18 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn.",
           "scope": "opponent",
           "memory": [
-            "used_marker",
             "effect_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · LOCK NAME ACTION"
+          ]
         }
       ],
-      "text": "ACTION · 1/BATTLE - Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn.",
+      "text": "PLAY - Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn.",
       "design_tags": [
-        "action-engine",
-        "marker-state",
-        "suppression"
+        "disruption",
+        "play-effect"
       ]
     },
     {
@@ -427,21 +416,16 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
           "scope": "opponent",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · LOOK AT STRATAGEM"
+          "memory": []
         }
       ],
-      "text": "ACTION · 1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "text": "PLAY - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
       "design_tags": [
-        "action-engine",
         "information",
-        "marker-state"
+        "play-effect"
       ]
     },
     {
@@ -456,23 +440,17 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
           "scope": "opponent",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · PRESS PREPARED"
+          "memory": []
         }
       ],
-      "text": "ACTION · 1/BATTLE - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "text": "PLAY - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
       "design_tags": [
-        "action-engine",
-        "command",
-        "formation-building",
-        "marker-state",
-        "prepared-cards"
+        "disruption",
+        "play-effect",
+        "prepared-pressure"
       ]
     },
     {
@@ -672,23 +650,18 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "Place a Tax marker on this Front. The next Bond your opponent plays here before your next turn costs 1 additional Command.",
           "scope": "opponent",
           "memory": [
-            "used_marker",
             "front_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · TAX NEXT BOND"
+          ]
         }
       ],
-      "text": "ACTION · 1/BATTLE - Place a Tax marker on this Front. The next Bond your opponent plays here before your next turn costs 1 additional Command.",
+      "text": "PLAY - Place a Tax marker on this Front. The next Bond your opponent plays here before your next turn costs 1 additional Command.",
       "design_tags": [
-        "action-engine",
         "command",
-        "formation-building",
-        "marker-state",
+        "play-effect",
         "tax"
       ]
     },
@@ -704,23 +677,18 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
           "scope": "opponent",
           "memory": [
-            "used_marker",
             "suppression_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · SUPPRESS BOND STR"
+          ]
         }
       ],
-      "text": "ACTION · 1/BATTLE - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+      "text": "PLAY - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
       "design_tags": [
-        "action-engine",
-        "formation-building",
-        "marker-state",
-        "strength",
+        "disruption",
+        "play-effect",
         "suppression"
       ]
     },
@@ -762,22 +730,18 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When an opposing Tactic targets another friendly formation in this Front, you may ignore that Tactic's effect on that formation.",
+          "timing": "front",
+          "text": "Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · GUARD ALLY"
+          "memory": [],
+          "exposed": "BEHIND TACTICS +1"
         }
       ],
-      "text": "REACTION · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may ignore that Tactic's effect on that formation.",
+      "text": "FRONT - Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
       "design_tags": [
-        "marker-state",
+        "positional-support",
         "protection",
-        "reaction",
-        "suppression"
+        "tax"
       ]
     },
     {
@@ -813,21 +777,16 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When a temporary negative marker would be placed on this formation, you may prevent it.",
+          "timing": "play",
+          "text": "Remove one temporary negative marker from this formation.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · PREVENT MARKER"
+          "memory": []
         }
       ],
-      "text": "REACTION · 1/BATTLE - When a temporary negative marker would be placed on this formation, you may prevent it.",
+      "text": "PLAY - Remove one temporary negative marker from this formation.",
       "design_tags": [
-        "marker-state",
-        "protection",
-        "reaction"
+        "play-effect",
+        "protection"
       ]
     },
     {
@@ -875,26 +834,20 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "If this formation contains a Rider or Scout, draw 1 card, then discard 1 card.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · RIDER/SCOUT CYCLE"
+          "memory": []
         }
       ],
       "references": [
         "rider",
         "scout"
       ],
-      "text": "ACTION · 1/BATTLE - If this formation contains a Rider or Scout, draw 1 card, then discard 1 card.",
+      "text": "PLAY - If this formation contains a Rider or Scout, draw 1 card, then discard 1 card.",
       "design_tags": [
-        "action-engine",
         "card-flow",
-        "classification-synergy",
-        "marker-state"
+        "play-effect"
       ]
     },
     {
@@ -932,22 +885,18 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command.",
           "scope": "opponent",
           "memory": [
-            "used_marker",
             "front_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · TAX NEXT CARD"
+          ]
         }
       ],
-      "text": "ACTION · 1/BATTLE - Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command.",
+      "text": "PLAY - Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command.",
       "design_tags": [
-        "action-engine",
         "command",
-        "marker-state",
+        "play-effect",
         "tax"
       ]
     },
@@ -986,26 +935,20 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
           "scope": "opponent",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · RAID LOOK 2"
+          "memory": []
         }
       ],
       "references": [
         "raider",
         "skirmisher"
       ],
-      "text": "ACTION · 1/BATTLE - If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
+      "text": "PLAY - If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
       "design_tags": [
-        "action-engine",
-        "classification-synergy",
         "information",
-        "marker-state"
+        "play-effect"
       ]
     },
     {
@@ -1065,22 +1008,16 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When a -Strength marker would be placed on this formation, you may prevent it.",
+          "timing": "play",
+          "text": "Remove one -Strength marker from this formation.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · PREVENT -STR"
+          "memory": []
         }
       ],
-      "text": "REACTION · 1/BATTLE - When a -Strength marker would be placed on this formation, you may prevent it.",
+      "text": "PLAY - Remove one -Strength marker from this formation.",
       "design_tags": [
-        "marker-state",
-        "protection",
-        "reaction",
-        "strength"
+        "play-effect",
+        "protection"
       ]
     },
     {
@@ -1139,16 +1076,17 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "This Bond contributes +1 additional Strength.",
+          "text": "This formation is TIRELESS.",
           "scope": "self",
           "memory": [],
-          "exposed": "NAMED · +1"
+          "exposed": "TIRELESS"
         }
       ],
-      "text": "WHILE NAMED - This Bond contributes +1 additional Strength.",
+      "text": "WHILE NAMED - This formation is TIRELESS.",
       "design_tags": [
-        "persistent-state",
-        "strength"
+        "exhaustion",
+        "named-payoff",
+        "persistent-state"
       ]
     },
     {
@@ -1190,22 +1128,17 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When an effect would suppress this formation's Name text, you may ignore that effect on this formation.",
+          "timing": "while_named",
+          "text": "This formation's Name text cannot be suppressed.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · PROTECT NAME"
+          "memory": [],
+          "exposed": "NAME CANNOT BE SUPPRESSED"
         }
       ],
-      "text": "REACTION · 1/BATTLE - When an effect would suppress this formation's Name text, you may ignore that effect on this formation.",
+      "text": "WHILE NAMED - This formation's Name text cannot be suppressed.",
       "design_tags": [
-        "marker-state",
-        "protection",
-        "reaction",
-        "suppression"
+        "named-payoff",
+        "protection"
       ]
     },
     {
@@ -1724,21 +1657,20 @@
         },
         {
           "timing": "action",
-          "text": "Choose the friendly formation directly ahead or directly behind. It gets +1 Strength this Battle.",
+          "text": "Swap this formation with the friendly formation directly ahead or directly behind.",
           "scope": "self",
           "memory": [
-            "used_marker",
-            "effect_marker"
+            "used_marker"
           ],
           "limit": "once_per_battle"
         }
       ],
-      "text": "BECOMES NAMED - Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle.\nACTION · 1/BATTLE - Choose the friendly formation directly ahead or directly behind. It gets +1 Strength this Battle.",
+      "text": "BECOMES NAMED - Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle.\nACTION · 1/BATTLE - Swap this formation with the friendly formation directly ahead or directly behind.",
       "design_tags": [
         "classification-synergy",
+        "movement",
         "named-payoff",
-        "positional-support",
-        "strength"
+        "positional-support"
       ]
     },
     {
@@ -1996,14 +1928,11 @@
         "force": {
           "effects": [
             {
-              "timing": "reaction",
-              "text": "When an opposing Tactic targets Alda, you may ignore that Tactic's effect on Alda.",
+              "timing": "front",
+              "text": "Opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.",
               "scope": "self",
-              "memory": [
-                "used_marker"
-              ],
-              "limit": "once_per_battle",
-              "exposed": "REACTION 1/B · IGNORE TACTIC"
+              "memory": [],
+              "exposed": "TACTICS +1 HERE/BEHIND"
             }
           ]
         },
@@ -2027,7 +1956,7 @@
           ]
         }
       },
-      "text": "AS FORCE\nREACTION · 1/BATTLE - When an opposing Tactic targets Alda, you may ignore that Tactic's effect on Alda.\n\nAS NAME\nBECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.\nTRIGGER · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+      "text": "AS FORCE\nFRONT - Opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.\n\nAS NAME\nBECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.\nTRIGGER · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
       "design_tags": [
         "marker-state",
         "named-payoff",
@@ -3077,21 +3006,16 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "action",
-          "text": "Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+          "timing": "play",
+          "text": "Look at one opposing face-down Stratagem in this Front.",
           "scope": "opponent",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · LOOK AT STRATAGEM"
+          "memory": []
         }
       ],
-      "text": "ACTION · 1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "text": "PLAY - Look at one opposing face-down Stratagem in this Front.",
       "design_tags": [
-        "action-engine",
         "information",
-        "marker-state"
+        "play-effect"
       ]
     },
     {
@@ -3106,23 +3030,20 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "action",
-          "text": "Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+          "timing": "play",
+          "text": "Choose one opposing Exhausted formation in this Front. It gets -1 Strength this Battle.",
           "scope": "opponent",
           "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · PRESS PREPARED"
+            "effect_marker"
+          ]
         }
       ],
-      "text": "ACTION · 1/BATTLE - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "text": "PLAY - Choose one opposing Exhausted formation in this Front. It gets -1 Strength this Battle.",
       "design_tags": [
-        "action-engine",
-        "command",
-        "formation-building",
-        "marker-state",
-        "prepared-cards"
+        "exhaustion",
+        "play-effect",
+        "raider-pressure",
+        "strength"
       ]
     },
     {
@@ -3190,21 +3111,17 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "action",
-          "text": "If this formation is in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+          "timing": "play",
+          "text": "If played in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REAR · LOOK STRATAGEM"
+          "memory": []
         }
       ],
-      "text": "ACTION · 1/BATTLE - If this formation is in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "text": "PLAY - If played in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
       "design_tags": [
-        "action-engine",
         "information",
-        "marker-state"
+        "play-effect",
+        "positional-support"
       ],
       "allowed_rows": [
         "middle",
@@ -3250,26 +3167,22 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When a temporary negative marker would be placed on this formation, you may prevent it.",
+          "timing": "bonded",
+          "text": "The friendly formation directly behind is TIRELESS.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · PREVENT MARKER"
+          "memory": [],
+          "exposed": "BEHIND TIRELESS"
         }
       ],
       "references": [
         "guard",
         "stronghold"
       ],
-      "text": "REACTION · 1/BATTLE - When a temporary negative marker would be placed on this formation, you may prevent it.",
+      "text": "BONDED - The friendly formation directly behind is TIRELESS.",
       "design_tags": [
-        "classification-synergy",
-        "marker-state",
-        "protection",
-        "reaction"
+        "exhaustion",
+        "positional-support",
+        "protection"
       ]
     },
     {
@@ -3282,27 +3195,20 @@
       "strength_modifier": 0,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "If this formation contains a Raider or Skirmisher, regain 1 Command.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · RAID +1 COMMAND"
+          "memory": []
         }
       ],
       "references": [
         "raider",
         "skirmisher"
       ],
-      "text": "ACTION · 1/BATTLE - If this formation contains a Raider or Skirmisher, regain 1 Command.",
+      "text": "PLAY - If this formation contains a Raider or Skirmisher, regain 1 Command.",
       "design_tags": [
-        "action-engine",
-        "classification-synergy",
         "command",
-        "command-recovery",
-        "marker-state"
+        "play-effect"
       ]
     },
     {
@@ -3315,26 +3221,20 @@
       "strength_modifier": 0,
       "effects": [
         {
-          "timing": "action",
+          "timing": "play",
           "text": "If this formation contains a Captain or Scout, draw 1 card, then discard 1 card.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · CAPTAIN/SCOUT CYCLE"
+          "memory": []
         }
       ],
       "references": [
         "captain",
         "scout"
       ],
-      "text": "ACTION · 1/BATTLE - If this formation contains a Captain or Scout, draw 1 card, then discard 1 card.",
+      "text": "PLAY - If this formation contains a Captain or Scout, draw 1 card, then discard 1 card.",
       "design_tags": [
-        "action-engine",
         "card-flow",
-        "classification-synergy",
-        "marker-state"
+        "play-effect"
       ]
     },
     {
