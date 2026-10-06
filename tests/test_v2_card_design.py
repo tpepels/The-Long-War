@@ -179,7 +179,17 @@ process.stdout.write(JSON.stringify(input.map(card=>window.V2Cards.cardArticle(c
 
 def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
     rendered = render_cards(CARDS)
-    live_timings = {"action", "reaction", "bonded", "while_named"}
+    live_timings = {
+        "action",
+        "reaction",
+        "bonded",
+        "while_named",
+        "front",
+        "middle",
+        "rear",
+        "exhausted",
+        "tireless",
+    }
 
     for card, output in zip(CARDS, rendered, strict=True):
         assert output.one("v2-card")["attrs"]["data-card-id"] == card["id"]
@@ -518,8 +528,8 @@ def test_print_cards_share_cut_seams() -> None:
 def test_three_rank_positional_support_grammar() -> None:
     by_id = {card["id"]: card for card in CARDS}
     positions = DATA["position_vocabulary"]
-    assert "directly ahead" in positions["directly_ahead"]
-    assert "directly behind" in positions["directly_behind"]
+    assert "one rank toward the Front row" in positions["directly_ahead"]
+    assert "one rank toward the Rear row" in positions["directly_behind"]
     assert "SUPPORT +N" in positions["support"]
     assert "SUPPLY" in positions["supply"]
 
