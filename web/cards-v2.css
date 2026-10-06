@@ -36,6 +36,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-name{--accent:#3c6558;--deep:#31564b;--paper:#f5f8f1;--family-art:url("art/v2/name-tattered-banner.png")}
 .card-hero{--accent:#8a6027;--deep:#6d4b1e;--paper:#fbf6e9;--family-art:url("art/v2/hero-helmet-laurel.png");border-color:#765525;border-width:.4mm}
 .card-tactic{--accent:#965244;--deep:#703a31;--paper:#fbf3eb;--family-art:url("art/v2/tactic-archer-volley.png")}
+.card-order{--accent:#806d38;--deep:#5d4c25;--paper:#fbf7e9;--family-art:url("art/v2/force-march.png")}
 .card-stratagem{--accent:#405d70;--deep:#354b5c;--paper:#f3f6f5;--family-art:url("art/v2/stratagem-war-map.png")}
 .card-narrative{--accent:#735568;--deep:#604454;--paper:#faf4f1;--family-art:url("art/v2/narrative-roadside-memorial.png")}
 
