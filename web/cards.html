@@ -4,21 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Cards — The Long War</title>
-  <link rel="stylesheet" href="print-cards.css">
+  <link rel="stylesheet" href="cards-v2.css?v=shared-print-v1">
 </head>
 <body>
   <header class="screen-toolbar">
     <a href="index.html">The Long War</a>
     <div>
-      <span id="card-count"></span>
+      <span id="card-count">Loading cards…</span>
+      <a class="button" href="cards-v2.html">Card Lab</a>
       <button type="button" onclick="window.print()">Print cards</button>
     </div>
   </header>
-  <main id="cards" class="card-sheets" aria-live="polite"></main>
-  <script src="protocol.generated.js"></script>
-  <script src="card-rules.js"></script>
-  <script src="print-cards.js"></script>
-  <script src="card-layout-guard.js"></script>
-  <script src="cards.js"></script>
+  <main id="print-catalogue" class="print-catalogue" aria-live="polite"></main>
+  <script src="v2-heraldry.js?v=shared-print-v1"></script>
+  <script src="cards-v2.js?v=shared-print-v1"></script>
+  <script src="cards.js?v=shared-print-v1"></script>
 </body>
 </html>
