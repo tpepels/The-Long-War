@@ -14,7 +14,7 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 
 **Interesting lines**
 
-- Neris / Elian / Sela create multiple ways to reconfigure a Front, while The Battle Turned East converts a move into temporary Strength.
+- Grey Riders and Sela remain mobile after Exhaustion through TIRELESS, while Neris can still Move formations by card effect.
 - Marched With can move a formation as the Bond lands; Dust Riders and Vardai care where that movement finishes.
 - Nara plus Stayed Behind For lets prepared cards become delayed resources instead of dead setup.
 - Kept Pace With and Carried Messages For turn Riders, Scouts and Captains into card-selection engines.
@@ -177,9 +177,9 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 
 **Interesting lines**
 
-- Red Shields, Serekh, Alda, Maelin and Veyra protect different targets or tax different kinds of opposing Tactics.
-- White Hands, Covered the Withdrawal Of and They Lived to Tell It convert marker pressure into cleanup choices.
-- Doros, Damar and Old Guard are good places to invest because each resists a different kind of disruption.
+- Old Guard and Held the Line For reward keeping a second line behind an OUTMATCHED Front formation instead of simply stacking raw Guard Strength.
+- Damar becomes harder after Exhaustion, while Maelin can remove Exhaustion and Covered the Withdrawal Of can keep the formation ahead TIRELESS without clearing its token.
+- Red Shields, Serekh, Alda and Veyra still protect different targets or tax different kinds of opposing Tactics.
 - The Ground Was Held and The Battle Had Chosen Them reward surviving Named formations rather than merely piling on raw Guard cards.
 
 | Copies | Card | Type |
@@ -198,7 +198,7 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 | 2 | Endured With | Bond |
 | 1 | Covered the Withdrawal of | Bond |
 | 1 | Kept the Gate For | Bond |
-| 1 | Stood Fast With | Bond |
+| 1 | Held the Line for | Bond |
 | 1 | Supported By | Bond |
 | 1 | Asha, the Shield-Bearer | Name |
 | 1 | Edrin | Name |
