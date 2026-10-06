@@ -30,6 +30,8 @@ from .model import (
     decode_slot_index,
     other_player,
     StratagemState,
+    TaxMarker,
+    SlotDiscount,
 )
 
 
@@ -329,6 +331,25 @@ class GameEngine:
                     target_slot.temporary_strength = int(
                         source_slot["temporary_strength"]
                     )
+                    target_slot.negative_strength_markers[:] = [
+                        int(value)
+                        for value in source_slot.get("negative_strength_markers", [])
+                    ]
+                    target_slot.suppression_mask = int(
+                        source_slot.get("suppression_mask", 0)
+                    )
+                    target_slot.force_ability_used = bool(
+                        source_slot.get("force_ability_used", False)
+                    )
+                    target_slot.bond_ability_used = bool(
+                        source_slot.get("bond_ability_used", False)
+                    )
+                    target_slot.name_ability_used = bool(
+                        source_slot.get("name_ability_used", False)
+                    )
+                    target_slot.name_suppression_immune = bool(
+                        source_slot.get("name_suppression_immune", False)
+                    )
                     target_slot.maneuvers_this_battle = int(
                         source_slot.get("maneuvers_this_battle", 0)
                     )
@@ -397,6 +418,7 @@ class GameEngine:
                     ),
                     targets=tuple(targets),
                     revealed=bool(stratagem.get("revealed", False)),
+                    known_to_mask=int(stratagem.get("known_to_mask", 0)),
                 )
 
         state.stratagem_used[:] = data["stratagem_used"]
@@ -492,6 +514,56 @@ class GameEngine:
         state.winner = data["winner"]
         state.turn_number = int(data["turn_number"])
         state.shuffle_seed = int(data["shuffle_seed"])
+
+        type_bits = (
+            (1, "force"),
+            (2, "bond"),
+            (4, "name"),
+            (8, "hero_force"),
+            (16, "hero_name"),
+            (32, "tactic"),
+            (64, "narrative"),
+            (128, "stratagem"),
+        )
+        state.tax_markers[:] = [
+            TaxMarker(
+                owner=int(item["owner"]),
+                target_player=int(item["target_player"]),
+                front=Front(int(item["front"])),
+                amount=int(item["amount"]),
+                card_types=(
+                    ("any",)
+                    if int(item.get("card_type_mask", 0)) == 255
+                    else tuple(
+                        name
+                        for bit, name in type_bits
+                        if int(item.get("card_type_mask", 0)) & bit
+                    )
+                ),
+                expires_turn=item.get("expires_turn"),
+            )
+            for item in data.get("tax_markers", [])
+        ]
+        state.slot_discounts[:] = [
+            SlotDiscount(
+                owner=int(item["owner"]),
+                target_player=int(item["target_player"]),
+                position=decode_slot_index(int(item["slot"]))[1],
+                amount=int(item["amount"]),
+                minimum=int(item["minimum"]),
+                card_types=(
+                    ("any",)
+                    if int(item.get("card_type_mask", 0)) == 255
+                    else tuple(
+                        name
+                        for bit, name in type_bits
+                        if int(item.get("card_type_mask", 0)) & bit
+                    )
+                ),
+                expires_turn=item.get("expires_turn"),
+            )
+            for item in data.get("slot_discounts", [])
+        ]
 
         hidden = data["known_hidden_hand"]
         for viewer in range(PLAYER_COUNT):
