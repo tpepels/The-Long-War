@@ -1,6 +1,6 @@
 # V2 exploratory combination decks
 
-These four decks are **45 cards each**. They are deliberately broader and less consistent than tournament-style lists. The point is to create interesting decision trees, combinations and different play patterns, not to maximize win rate or prove a metagame.
+These four decks are **45 cards each**. They remain combination/playstyle decks rather than optimized tournament lists. Across the four lists, **every V2 card appears at least once**, so no design is excluded from physical playtesting.
 
 ## Reposition & Reuse
 
@@ -8,28 +8,28 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 
 **Question:** Does movement become strategically interesting when it changes row payoffs, unlocks information, and feeds later attachment or card-flow decisions?
 
-**Card mix:** 15 Forces · 8 Bonds · 6 Names · 3 Heros · 5 Tactics · 4 Stratagems · 4 Narratives
+**Card mix:** 15 Forces · 8 Bonds · 6 Names · 3 Heros · 4 Tactics · 4 Stratagems · 3 Narratives · 2 Orders
 
 **Interesting lines**
 
-- Grey Riders can Maneuver before becoming Named through MOBILE and keep doing so after Exhaustion through TIRELESS.
-- Vardai trade an Action plus 1 Command for repeatable movement, while their Front-row Strength bonus is positional rather than a once-per-Battle marker.
-- Marched With, Dust Riders and positional support reward choosing where a formation finishes rather than just whether it moved.
-- Nara, Stayed Behind For, Kept Pace With and Carried Messages For keep the deck supplied with attachments and card selection.
+- Grey Riders combine MOBILE and TIRELESS, while Re-form the Line gives Captains a 0-Command way to rearrange an established column.
+- Send a Runner is stronger filtering than Fresh Orders, but requires a Scout specifically in the Rear row.
+- Vardai, Marched With and Dust Riders reward choosing where movement ends rather than merely moving.
+- The Unnamed Host provides a clean high-floor body beside the positional cards.
 
 | Copies | Card | Type |
 |---:|---|---|
 | 2 | The Grey Riders | Force |
 | 2 | The Dust Riders | Force |
 | 2 | The Vardai | Force |
-| 2 | The Serekh | Force |
+| 1 | The Serekh | Force |
 | 2 | The Thornbow Hunters | Force |
 | 2 | The First Spear | Force |
 | 1 | Seven Black Ships | Force |
 | 1 | The White Hands of Elara | Force |
 | 1 | The Late Banner | Force |
 | 2 | Marched With | Bond |
-| 2 | Kept Pace With | Bond |
+| 1 | Kept Pace With | Bond |
 | 1 | Stayed Behind For | Bond |
 | 1 | Swore Again To | Bond |
 | 1 | Carried Messages For | Bond |
@@ -43,16 +43,20 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | Neris, the Ferryman | Hero |
 | 1 | Kael, the Roadless | Hero |
 | 1 | Nara, Builder of Walls | Hero |
-| 2 | They Had Gone Too Far | Tactic |
+| 1 | They Had Gone Too Far | Tactic |
 | 1 | The Scouts Found the Gap | Tactic |
 | 1 | The Line Wheeled | Tactic |
 | 1 | All Banners Forward | Tactic |
 | 2 | The Battle Turned East | Stratagem |
 | 1 | There Was No Road Back | Stratagem |
 | 1 | The Ground Was Held | Stratagem |
-| 2 | The Long March | Narrative |
+| 1 | The Long March | Narrative |
 | 1 | Before Sunset, the Ford Would Be Ours | Narrative |
 | 1 | They Knew the Ground | Narrative |
+| 1 | The Unnamed Host | Force |
+| 1 | Trusted | Bond |
+| 1 | Re-form the Line | Order |
+| 1 | Send a Runner | Order |
 
 ## Prepare & Chain
 
@@ -60,14 +64,14 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 
 **Question:** Can prepared Bonds and Names create satisfying delayed sequences where the payoff is timing and chaining rather than raw efficiency?
 
-**Card mix:** 15 Forces · 9 Bonds · 7 Names · 3 Heros · 3 Tactics · 4 Stratagems · 4 Narratives
+**Card mix:** 15 Forces · 8 Bonds · 7 Names · 3 Heros · 3 Tactics · 4 Stratagems · 3 Narratives · 2 Orders
 
 **Interesting lines**
 
-- House of Reed and Supplied By can now reduce Bonds on the formation ahead to 0 Command, while Names still stop at 1.
-- Tovan gives the same split discount globally in Name mode, so preparation can create genuinely cheap multi-card turns.
-- Oren, Torren and Nara all turn setup cards into attachment tempo in different ways.
-- Namar now costs 3 and Sorin's repeatable card-advantage Action costs 2 Command, so the chain has real economic trade-offs.
+- Fresh Orders replaces itself for 0 Command only when a Captain or King is already established.
+- Take Stock costs 1 because top-three selection is materially stronger than replacement draw; Steward/Stronghold access keeps it build-specific.
+- Followed, House of Reed, Supplied By and Tovan explore cheap formation completion without making every attachment universally free.
+- Yara gives the Narrative package a recursion/filtering payoff alongside Oren, Torren and Teren.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -81,8 +85,8 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | The Red Shields | Force |
 | 1 | The White Hands of Elara | Force |
 | 1 | The Ash Bowmen | Force |
-| 2 | Swore Again To | Bond |
-| 2 | Stayed Behind For | Bond |
+| 1 | Swore Again To | Bond |
+| 1 | Stayed Behind For | Bond |
 | 1 | Bought Time For | Bond |
 | 1 | Rallied Behind | Bond |
 | 1 | Marched Beneath the Banner of | Bond |
@@ -96,7 +100,6 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | Eira | Name |
 | 1 | Sorin | Name |
 | 1 | Tovan, the Quartermaster | Hero |
-| 1 | Nara, Builder of Walls | Hero |
 | 1 | Avaros, the Bronze King | Hero |
 | 1 | The Muster Was False | Tactic |
 | 1 | The Line Had Begun to Move | Tactic |
@@ -105,9 +108,13 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | Every Banner Turned Toward Them | Stratagem |
 | 1 | There Was No Road Back | Stratagem |
 | 1 | The Lines Held | Stratagem |
-| 2 | The King Had Given the Order | Narrative |
+| 1 | The King Had Given the Order | Narrative |
 | 1 | No One Would Be First to Leave | Narrative |
 | 1 | The Battle Had Chosen Them | Narrative |
+| 1 | Followed | Bond |
+| 1 | Yara, the Chronicler | Hero |
+| 1 | Fresh Orders | Order |
+| 1 | Take Stock | Order |
 
 ## Tax & Fork
 
@@ -115,14 +122,14 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 
 **Question:** Is denial more enjoyable when it presents forks - tax, information, prepared-card pressure and temporary suppression - instead of one repeated lock?
 
-**Card mix:** 15 Forces · 8 Bonds · 6 Names · 3 Heros · 6 Tactics · 4 Stratagems · 3 Narratives
+**Card mix:** 15 Forces · 8 Bonds · 6 Names · 3 Heros · 3 Tactics · 4 Stratagems · 5 Narratives · 1 Order
 
 **Interesting lines**
 
-- Aradai taxes opposing Bonds continuously while Iron Boars tax attachment of prepared cards, creating two different persistent pressure patterns.
-- River Raiders are a 4-Strength threat that becomes stronger when any opposing Force in their Front is Exhausted.
-- Red Duelists tax ACTION abilities directly opposite them; Ilyri blank Bond Strength directly opposite them.
-- Thornbow Hunters, Lantern Scouts and Watchtowers make information a positional asset rather than a one-shot deployment trick.
+- They Were Gathering There remains the 0-Command hostile information card: it still requires a Scout and spends an Action.
+- Aradai, Iron Boars, Red Duelists and Ilyri pressure different resources instead of repeating one tax.
+- The Crows Came Down and Every Bow Was Strung give the Archer contingent persistent reasons to develop.
+- Catch Your Breath gives the Healer/Steward package conditional Exhaustion recovery rather than universal free recovery.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -152,11 +159,8 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | Rovan, the Gatebreaker | Hero |
 | 1 | Serai, Queen of Crows | Hero |
 | 1 | Veyra, Keeper of Oaths | Hero |
-| 2 | The Stores Were Taken | Tactic |
+| 1 | The Stores Were Taken | Tactic |
 | 1 | The Line Was Baited | Tactic |
-| 1 | The Line Wheeled | Tactic |
-| 1 | The Muster Was False | Tactic |
-| 1 | The Scouts Found the Gap | Tactic |
 | 1 | The Trap Closed | Stratagem |
 | 1 | The Scouts Had Warned Them | Stratagem |
 | 1 | No Step Back | Stratagem |
@@ -164,6 +168,10 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | The Raiders Came Home Loaded | Narrative |
 | 1 | They Knew the Ground | Narrative |
 | 1 | No Road Was Too Long | Narrative |
+| 1 | They Were Gathering There | Tactic |
+| 1 | The Crows Came Down | Narrative |
+| 1 | Every Bow Was Strung | Narrative |
+| 1 | Catch Your Breath | Order |
 
 ## Protect & Counter
 
@@ -171,18 +179,18 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 
 **Question:** Can layered protection create timing decisions and reversals without becoming a passive wall?
 
-**Card mix:** 15 Forces · 8 Bonds · 7 Names · 3 Heros · 4 Tactics · 5 Stratagems · 3 Narratives
+**Card mix:** 15 Forces · 8 Bonds · 7 Names · 3 Heros · 4 Tactics · 4 Stratagems · 3 Narratives · 1 Order
 
 **Interesting lines**
 
-- Damar now becomes a 6-Strength Veteran when Exhausted, making a lost Front create a real counter-pressure piece.
-- First Spear's supported Front bonus is +1 rather than +2, keeping formation order important without making the condition automatic power.
-- White Hands can spend Actions repeatedly to clear temporary negative markers from the formation ahead.
-- Baggage is now the expensive unconditional -2 Tactic; Volley and Line Was Baited remain cheaper conditional alternatives.
+- Thirty Spears and Stood Fast With are deliberately simple floor cards beside the conditional protection engine.
+- Had Been Ordered Forward rewards the Guard/Spearman concentration without dominating unconditional Bonds.
+- Bind the Wound costs 0 but requires a Healer and an actual temporary negative marker worth clearing.
+- Damar, White Hands and the Exhaustion package test recovery without erasing the history of a lost Front.
 
 | Copies | Card | Type |
 |---:|---|---|
-| 2 | The Red Shields | Force |
+| 1 | The Red Shields | Force |
 | 2 | The Old Guard | Force |
 | 2 | The Damar | Force |
 | 2 | The Serekh | Force |
@@ -192,8 +200,8 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | The First Spear | Force |
 | 1 | The Crow Archers | Force |
 | 1 | The King's Spears | Force |
-| 2 | Guarded | Bond |
-| 2 | Endured With | Bond |
+| 1 | Guarded | Bond |
+| 1 | Endured With | Bond |
 | 1 | Covered the Withdrawal of | Bond |
 | 1 | Kept the Gate For | Bond |
 | 1 | Held the Line for | Bond |
@@ -212,11 +220,15 @@ These four decks are **45 cards each**. They are deliberately broader and less c
 | 1 | A Volley Before Dawn | Tactic |
 | 1 | They Let Them Through | Tactic |
 | 1 | All Reserves Forward | Tactic |
-| 2 | No Step Back | Stratagem |
+| 1 | No Step Back | Stratagem |
 | 1 | The Ground Was Held | Stratagem |
 | 1 | The Flank Was Refused | Stratagem |
 | 1 | The Lines Held | Stratagem |
 | 1 | The Wall Did Not Break | Narrative |
 | 1 | They Lived to Tell It | Narrative |
 | 1 | The Battle Had Chosen Them | Narrative |
+| 1 | Thirty Spears | Force |
+| 1 | Stood Fast With | Bond |
+| 1 | Had Been Ordered Forward | Bond |
+| 1 | Bind the Wound | Order |
 
