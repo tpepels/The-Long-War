@@ -90,7 +90,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 | 1 | The First Spear | Force |
 | 1 | The Red Shields | Force |
 | 1 | The White Hands of Elara | Force |
-| 1 | The Ash Bowmen | Force |
+| 1 | The Wolf Skirmishers | Force |
 | 1 | The Unnamed Host | Force |
 | 1 | The Watchtowers of Eren | Force |
 | 1 | The Salt-Road Fleet | Force |
@@ -213,7 +213,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 | 1 | The King's Spears | Force |
 | 1 | The First Spear | Force |
 | 1 | The White Hands of Elara | Force |
-| 1 | The Ash Bowmen | Force |
+| 1 | The Wolf Skirmishers | Force |
 | 1 | The Unnamed Host | Force |
 | 1 | The Crow Archers | Force |
 | 1 | Guarded | Bond |
