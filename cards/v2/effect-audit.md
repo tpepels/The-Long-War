@@ -1,6 +1,6 @@
 # V2 effect audit
 
-This audit reviews **all 160 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
+This audit reviews **all 166 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
 
 ## Result
 
@@ -8,7 +8,7 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 - Regular Force once-per-Battle effects remaining: **0**.
 - Buried ACTION/REACTION effects remaining: **4**.
 - Bonds with buried ACTION/REACTION abilities: **0**.
-- Zero-Command cards are permitted, but playing one still consumes an Action and the card from hand.
+- Orders are immediate self-support; all five 0-Command Orders are conditional and spend the normal play Action.
 
 ## Every effect
 
@@ -27,7 +27,7 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | The Iron Boars | force | continuous | Exposed strip | KEEP | Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The First Spear | force | front | Exposed strip | KEEP | If the position directly behind is occupied by a friendly formation, this formation has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Old Guard | force | middle | Exposed strip | KEEP | RESERVE +2. _(Complete live meaning remains visible in the exposed strip.)_ |
-| The Late Banner | force | bonded | Exposed strip | KEEP | Names played onto this formation cost 1 less Command, to a minimum of 1. _(Complete live meaning remains visible in the exposed strip. Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| The Late Banner | force | bonded | Exposed strip | KEEP | Names played onto this formation cost 1 less Command, to a minimum of 1. _(Complete live meaning remains visible in the exposed strip. Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | The Banner Singers | force | while_named | Exposed strip | KEEP | While this formation is in the Middle row, SUPPORT +1. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Vardai | force | front | Exposed strip | KEEP | This formation has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Vardai | force | action | Exposed strip | KEEP | Pay 1 Command. MOVE 1. _(Complete live meaning remains visible in the exposed strip.)_ |
@@ -44,15 +44,15 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | Held the Line for | bond | bonded | Exposed strip | KEEP | RESERVE +1. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Seized the Standard of | bond | play | Buried after PLAY | KEEP | If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand. _(Resolves before this layer can be covered.)_ |
 | Stayed Behind For | bond | play | Buried after PLAY | KEEP | Choose a prepared Name in this Front. Attach it to this formation if its Name slot is empty. _(Resolves before this layer can be covered.)_ |
-| Swore Again To | bond | bonded | Exposed strip | KEEP | Names played onto this formation cost 1 less Command, to a minimum of 1. _(Complete live meaning remains visible in the exposed strip. Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Swore Again To | bond | bonded | Exposed strip | KEEP | Names played onto this formation cost 1 less Command, to a minimum of 1. _(Complete live meaning remains visible in the exposed strip. Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Endured With | bond | play | Buried after PLAY | KEEP | Remove one -Strength marker from this formation. _(Resolves before this layer can be covered.)_ |
 | Rallied Behind | bond | play | Buried after PLAY | KEEP | If you have less Command than your opponent, regain 1 Command. _(Resolves before this layer can be covered.)_ |
 | Bought Time For | bond | play | Buried after PLAY | KEEP | You may pay 1 additional Command. If you do, draw 2 cards. _(Resolves before this layer can be covered.)_ |
-| Trusted | bond | while_named | Exposed strip | KEEP | This formation is TIRELESS. _(Complete live meaning remains visible in the exposed strip. Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Trusted | bond | while_named | Exposed strip | KEEP | This formation is TIRELESS. _(Complete live meaning remains visible in the exposed strip. Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Marched Beneath the Banner of | bond | bonded | Exposed strip | KEEP | If this formation contains a Captain or King, this Bond contributes +1 additional Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Carried the Oath of | bond | while_named | Exposed strip | KEEP | This formation's Name text cannot be suppressed. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Had Been Ordered Forward | bond | bonded | Exposed strip | KEEP | If this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
-| Namar | name | becomes_named | Top-visible | KEEP | Regain 2 Command. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Namar | name | becomes_named | Top-visible | KEEP | Regain 2 Command. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Namar | name | action | Top-visible | KEEP | Pay 1 Command. Choose another friendly Human formation in this Front. The next card played onto it this turn costs 1 less Command, to a minimum of 1. |
 | Iria | name | becomes_named | Top-visible | KEEP | Look at the top 3 cards of your deck. Return them in any order. |
 | Iria | name | trigger · 1/BATTLE | Top-visible | KEEP | When your opponent sets a Stratagem in this Front, you may look at it. |
@@ -62,21 +62,21 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | Elian | name | action · 1/BATTLE | Top-visible | KEEP | Move this formation one position. |
 | Teren | name | becomes_named | Top-visible | KEEP | Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost. |
 | Teren | name | trigger | Top-visible | KEEP | When another friendly formation in this Front becomes Named, draw 1 card. |
-| Mara | name | becomes_named | Top-visible | KEEP | Look at your opponent's hand. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Mara | name | becomes_named | Top-visible | KEEP | Look at your opponent's hand. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Mara | name | trigger · 1/BATTLE | Top-visible | KEEP | When your opponent plays a Tactic in this Front, you may look at one opposing face-down Stratagem in this or an adjacent Front. |
 | Asha, the Shield-Bearer | name | becomes_named | Top-visible | KEEP | Remove all temporary negative markers from this formation. |
-| Asha, the Shield-Bearer | name | trigger · 1/BATTLE | Top-visible | KEEP | When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
-| Edrin | name | becomes_named | Top-visible | KEEP | Regain 1 Command. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Asha, the Shield-Bearer | name | trigger · 1/BATTLE | Top-visible | KEEP | When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
+| Edrin | name | becomes_named | Top-visible | KEEP | Regain 1 Command. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Edrin | name | trigger · 1/BATTLE | Top-visible | KEEP | When this formation would receive a temporary negative marker, you may ignore that marker. |
 | Sela | name | becomes_named | Top-visible | KEEP | Move this formation one row forward or backward. |
-| Sela | name | while_named | Top-visible | KEEP | This formation is TIRELESS. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
-| Meren | name | becomes_named | Top-visible | KEEP | Return one Bond from your discard pile to your hand. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Sela | name | while_named | Top-visible | KEEP | This formation is TIRELESS. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
+| Meren | name | becomes_named | Top-visible | KEEP | Return one Bond from your discard pile to your hand. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Meren | name | action · 1/BATTLE | Top-visible | KEEP | Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0. |
 | Tala | name | becomes_named | Top-visible | KEEP | Choose an opposing formation in this Front. It gets -2 Strength this Battle. |
 | Tala | name | action · 1/BATTLE | Top-visible | KEEP | Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle. |
 | Sorin | name | becomes_named | Top-visible | KEEP | Draw 2 cards, then put 1 card from your hand on top of your deck. |
 | Sorin | name | action | Top-visible | KEEP | Pay 2 Command. Discard 1 card, then draw 2 cards. |
-| Iven | name | becomes_named | Top-visible | KEEP | Regain 1 Command. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Iven | name | becomes_named | Top-visible | KEEP | Regain 1 Command. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Iven | name | continuous | Top-visible | KEEP | Your Tactics cost 1 less Command, to a minimum of 0. |
 | Arel | name | becomes_named | Top-visible | KEEP | Choose one classification among your friendly formations in this Front. Those formations get +1 Strength this Battle. |
 | Arel | name | action · 1/BATTLE | Top-visible | KEEP | Swap this formation with the friendly formation directly ahead or directly behind. |
@@ -85,7 +85,7 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | Eira | name | becomes_named | Top-visible | KEEP | If you control another Named Human Formation, draw 2 cards. |
 | Eira | name | while_named | Top-visible | KEEP | While this formation is Named, Eira also has the King classification. |
 | Avaros, the Bronze King | Hero force | play | Buried after PLAY | KEEP | Choose up to two other friendly Human formations in this Front. Each gets +1 Strength this Battle. _(Resolves before this layer can be covered.)_ |
-| Avaros, the Bronze King | Hero name | becomes_named | Top-visible | KEEP | Regain 2 Command. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Avaros, the Bronze King | Hero name | becomes_named | Top-visible | KEEP | Regain 2 Command. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Avaros, the Bronze King | Hero name | action · 1/BATTLE | Top-visible | KEEP | Choose one classification among your friendly formations in this Front. Each friendly formation here containing it gets +1 Strength this Battle. |
 | Kael, the Roadless | Hero force | action · 1/BATTLE | Exposed strip | KEEP | Move Kael up to two positions. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Kael, the Roadless | Hero name | becomes_named | Top-visible | KEEP | Look at every opposing face-down Stratagem in this Front. |
@@ -95,12 +95,12 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | Rovan, the Gatebreaker | Hero name | action · 1/BATTLE | Top-visible | KEEP | Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command. |
 | Alda, Keeper of the Ford | Hero force | front | Exposed strip | KEEP | Opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Alda, Keeper of the Ford | Hero name | becomes_named | Top-visible | KEEP | Remove all temporary negative markers from one friendly formation in this Front. |
-| Alda, Keeper of the Ford | Hero name | trigger · 1/BATTLE | Top-visible | KEEP | When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Alda, Keeper of the Ford | Hero name | trigger · 1/BATTLE | Top-visible | KEEP | When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Tovan, the Quartermaster | Hero force | play | Buried after PLAY | KEEP | Draw 2 cards, then discard 1 card. _(Resolves before this layer can be covered.)_ |
-| Tovan, the Quartermaster | Hero name | becomes_named | Top-visible | KEEP | Regain 2 Command. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Tovan, the Quartermaster | Hero name | becomes_named | Top-visible | KEEP | Regain 2 Command. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Tovan, the Quartermaster | Hero name | continuous | Top-visible | KEEP | Bonds you play cost 1 less Command, to a minimum of 0. Names you play cost 1 less Command, to a minimum of 1. |
 | Nara, Builder of Walls | Hero force | play | Buried after PLAY | KEEP | Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation in this Front. _(Resolves before this layer can be covered.)_ |
-| Nara, Builder of Walls | Hero name | becomes_named | Top-visible | KEEP | Return one Bond from your discard pile to your hand. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Nara, Builder of Walls | Hero name | becomes_named | Top-visible | KEEP | Return one Bond from your discard pile to your hand. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Nara, Builder of Walls | Hero name | action · 1/BATTLE | Top-visible | KEEP | Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation here. |
 | Neris, the Ferryman | Hero force | action · 1/BATTLE | Exposed strip | KEEP | Move Neris one position. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Neris, the Ferryman | Hero name | becomes_named | Top-visible | KEEP | Move another friendly formation in this Front one position. |
@@ -153,7 +153,7 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | Supplied By | bond | bonded | Exposed strip | KEEP | SUPPLY. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Corin of the High Wall | name | becomes_named | Top-visible | KEEP | Choose an opposing formation in this Front. It gets -1 Strength this Battle. |
 | Corin of the High Wall | name | continuous | Top-visible | KEEP | Other friendly Archers in this Front have +1 Strength. |
-| Lysa the Listener | name | becomes_named | Top-visible | KEEP | Look at your opponent's hand. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Lysa the Listener | name | becomes_named | Top-visible | KEEP | Look at your opponent's hand. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Lysa the Listener | name | action | Top-visible | KEEP | Pay 1 Command. Look at one opposing face-down Stratagem in any active Front. |
 | Brannoc | name | becomes_named | Top-visible | KEEP | Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command. |
 | Brannoc | name | action | Top-visible | KEEP | Pay 1 Command. Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand. |
@@ -163,7 +163,7 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | Serai, Queen of Crows | Hero name | becomes_named | Top-visible | KEEP | Your Archers in this Front get +1 Strength this Battle. |
 | Serai, Queen of Crows | Hero name | action | Top-visible | KEEP | Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle. |
 | Doros, the Last Spear | Hero force | bonded | Exposed strip | KEEP | While Doros is in the Front row, he has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
-| Doros, the Last Spear | Hero name | becomes_named | Top-visible | KEEP | Regain 1 Command. _(Exact text is repeated elsewhere; retained only where layer/role differs.)_ |
+| Doros, the Last Spear | Hero name | becomes_named | Top-visible | KEEP | Regain 1 Command. _(Exact text repeats elsewhere; retained only where layer/role differs.)_ |
 | Doros, the Last Spear | Hero name | continuous | Top-visible | KEEP | Opposing Tactics cannot reduce this formation's Strength. |
 | A Volley Before Dawn | tactic | play | Immediate | KEEP | Choose an opposing formation in a Front containing one of your Archers. It gets -2 Strength this Battle. |
 | The Scouts Found the Gap | tactic | play | Immediate | KEEP | Choose one of your Scouts. Reveal one opposing face-down Stratagem in its Front or an adjacent Front. Its owner returns it to hand or pays 1 Command to set it face-down again. |
@@ -174,6 +174,12 @@ This audit reviews **all 160 current card effects** for superfluous bookkeeping,
 | Every Bow Was Strung | narrative | continuous | Face-up | KEEP | Your Bonded Archer formations have +1 Strength this Battle. |
 | They Knew the Ground | narrative | action · 1/BATTLE | Face-up | KEEP | Choose one of your Scouts or Seers. Look at one opposing face-down Stratagem in any active Front. |
 | The Raiders Came Home Loaded | narrative | continuous | Face-up | KEEP | Tactics you play targeting a Front containing one of your Raiders or Skirmishers cost 1 less Command, to a minimum of 1. |
+| Fresh Orders | order | play | Immediate | KEEP | Choose one of your Captains or Kings. Draw 1 card. |
+| Catch Your Breath | order | play | Immediate | KEEP | Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion. |
+| Re-form the Line | order | play | Immediate | KEEP | Choose a Front containing one of your Captains. SWAP two orthogonally adjacent friendly formations in that Front. |
+| Bind the Wound | order | play | Immediate | KEEP | Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front. |
+| Send a Runner | order | play | Immediate | KEEP | Choose one of your Scouts in the Rear row. Draw 2 cards, then discard 1 card. |
+| Take Stock | order | play | Immediate | KEEP | Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order. |
 
 ## Repeated exact effect text
 
