@@ -442,16 +442,16 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "This formation may Maneuver while Unnamed."
+            "op": "maneuver_unnamed",
+            "target": "self"
           },
           {
             "timing": "tireless",
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "This formation may Maneuver while Exhausted."
+            "op": "tireless",
+            "target": "self"
           }
         ],
         "modes": {}
@@ -577,8 +577,9 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "The opposing formation directly opposite pays 1 additional Command to use an ACTION ability."
+            "op": "action_tax",
+            "target": "opposite",
+            "amount": 1
           }
         ],
         "modes": {}
@@ -625,8 +626,8 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "You may look at opposing face-down Stratagems in this Front or an adjacent Front."
+            "op": "stratagem_visibility",
+            "area": "same_or_adjacent"
           }
         ],
         "modes": {}
@@ -674,8 +675,9 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach."
+            "op": "prepared_attach_tax",
+            "front": "this",
+            "amount": 1
           }
         ],
         "modes": {}
@@ -892,8 +894,9 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "While this formation is in the Middle row, SUPPORT +1."
+            "op": "support",
+            "amount": 1,
+            "requires_rank": "middle"
           }
         ],
         "modes": {}
@@ -1000,8 +1003,10 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "Pay 1 Command. MOVE 1."
+            "op": "move",
+            "target": "self",
+            "steps": 1,
+            "activation_cost": 1
           }
         ],
         "modes": {}
@@ -1052,8 +1057,12 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "Opposing Bonds played into this Front cost 1 additional Command."
+            "op": "front_card_tax",
+            "card_types": [
+              "bond"
+            ],
+            "front": "this",
+            "amount": 1
           }
         ],
         "modes": {}
@@ -1099,8 +1108,9 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "The opposing formation directly opposite gets no Strength from its Bond."
+            "op": "suppress_bond_strength",
+            "target": "opposite",
+            "duration": "continuous"
           }
         ],
         "modes": {}
@@ -1146,8 +1156,8 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "This formation has +2 Strength."
+            "op": "self_strength",
+            "amount": 2
           }
         ],
         "modes": {}
@@ -2890,8 +2900,10 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "Pay 2 Command. Discard 1 card, then draw 2 cards."
+            "op": "discard_draw",
+            "discard": 1,
+            "draw": 2,
+            "activation_cost": 2
           }
         ],
         "modes": {}
@@ -3506,8 +3518,9 @@
               "scope": "opponent",
               "limit": null,
               "memory": [],
-              "op": "unimplemented",
-              "raw": "Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand."
+              "op": "prepared_pay_or_return",
+              "target": "opposing_prepared_same_front",
+              "amount": 1
             }
           ],
           "name": [
@@ -3762,8 +3775,24 @@
               "memory": [
                 "face_up_source"
               ],
-              "op": "unimplemented",
-              "raw": "Bonds you play cost 1 less Command, to a minimum of 0. Names you play cost 1 less Command, to a minimum of 1."
+              "op": "global_discount_split",
+              "discounts": [
+                {
+                  "card_types": [
+                    "bond"
+                  ],
+                  "amount": 1,
+                  "minimum": 0
+                },
+                {
+                  "card_types": [
+                    "name",
+                    "hero_name"
+                  ],
+                  "amount": 1,
+                  "minimum": 1
+                }
+              ]
             }
           ]
         }
@@ -5821,8 +5850,12 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front."
+            "op": "stratagem_visibility",
+            "area": "same_front",
+            "requires_ranks": [
+              "middle",
+              "rear"
+            ]
           }
         ],
         "modes": {}
@@ -5869,8 +5902,9 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "While an opposing Force in this Front is Exhausted, this formation has +1 Strength."
+            "op": "self_strength",
+            "amount": 1,
+            "requires_opposing_exhausted_same_front": true
           }
         ],
         "modes": {}
@@ -6016,8 +6050,8 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "unimplemented",
-            "raw": "You may look at opposing face-down Stratagems in any active Front."
+            "op": "stratagem_visibility",
+            "area": "any_active"
           }
         ],
         "modes": {}
