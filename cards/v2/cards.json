@@ -3972,6 +3972,7 @@
     "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This local comparison does not itself decide the Front.",
     "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
     "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It ignores only the Exhaustion restriction; every other Maneuver requirement still applies. It keeps its Exhaustion token.",
+    "exhaustion": "After you lose a Front, every Force you have in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its token leaves with it. A tied Front exhausts neither player.",
     "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; apply all reductions, then apply the printed minimum."
   }
 }
