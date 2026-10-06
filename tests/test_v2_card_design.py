@@ -597,6 +597,8 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
     assert "TIRELESS" in positions["tireless"]
     assert "only the Exhaustion restriction" in positions["tireless"]
     assert "Exhaustion token" in positions["tireless"]
+    assert "boolean" in positions["tireless"]
+    assert "multiple sources give no additional benefit" in positions["tireless"]
     assert "lose a Front" in positions["exhaustion"]
     assert "orthogonally adjacent active empty position" in positions["move"]
     assert "Never diagonal" in positions["move"]
