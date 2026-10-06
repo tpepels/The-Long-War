@@ -26,9 +26,11 @@
         "middle",
         "rear",
         "exhausted",
-        "tireless"
+        "tireless",
+        "continuous",
+        "mobile"
       ],
-      "buried_rule": "PLAY text may be covered after it resolves. Persistent Force text must fit in the exposed strip. ACTION is reserved for short movement/repositioning text that is completely readable there; REACTION belongs on top-visible cards."
+      "buried_rule": "PLAY text may be covered after it resolves. Persistent Force text and repeatable ACTION text must fit completely in the exposed strip. Regular Forces do not use once-per-Battle abilities; ACTION is a real repeatable choice paid for with an Action and any printed Command cost."
     },
     "bond": {
       "role": "Compact relationship/support text between formations; positional Bonds should stay one short line.",
@@ -154,7 +156,9 @@
     "no_resolution_effects": true,
     "no_bare_once_per_battle": true,
     "no_automatic_strength_pumps_as_limited_uses": true,
-    "no_first_each_battle_tracking": true
+    "no_first_each_battle_tracking": true,
+    "force_no_once_per_battle": true,
+    "zero_command_cards_still_cost_action": true
   },
   "cards": [
     {
@@ -211,16 +215,19 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "play",
-          "text": "If played in the Rear, remove one temporary negative marker from the friendly formation directly ahead.",
+          "timing": "action",
+          "text": "Remove one temporary negative marker from the friendly formation directly ahead.",
           "scope": "self",
-          "memory": []
+          "memory": [],
+          "exposed": "CLEAR AHEAD"
         }
       ],
-      "text": "PLAY - If played in the Rear, remove one temporary negative marker from the friendly formation directly ahead.",
+      "text": "ACTION - Remove one temporary negative marker from the friendly formation directly ahead.",
       "design_tags": [
-        "protection",
-        "positional-support"
+        "action-engine",
+        "healing",
+        "positional-support",
+        "protection"
       ],
       "allowed_rows": [
         "middle",
@@ -320,14 +327,21 @@
       "strength": 3,
       "effects": [
         {
+          "timing": "mobile",
+          "text": "This formation may Maneuver while Unnamed.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "MOBILE"
+        },
+        {
           "timing": "tireless",
           "text": "This formation may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "MAY MANEUVER EXHAUSTED"
+          "exposed": "TIRELESS"
         }
       ],
-      "text": "TIRELESS - This formation may Maneuver while Exhausted.",
+      "text": "MOBILE - This formation may Maneuver while Unnamed.\nTIRELESS - This formation may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
         "movement",
@@ -344,7 +358,7 @@
         "skirmisher"
       ],
       "command_cost": 2,
-      "strength": 2,
+      "strength": 3,
       "effects": [
         {
           "timing": "bonded",
@@ -389,18 +403,19 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn.",
+          "timing": "continuous",
+          "text": "The opposing formation directly opposite pays 1 additional Command to use an ACTION ability.",
           "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": [],
+          "exposed": "OPPOSITE ACTION +1"
         }
       ],
-      "text": "PLAY - Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn.",
+      "text": "CONTINUOUS - The opposing formation directly opposite pays 1 additional Command to use an ACTION ability.",
       "design_tags": [
+        "command",
         "disruption",
-        "play-effect"
+        "positional-support",
+        "tax"
       ]
     },
     {
@@ -413,19 +428,21 @@
         "scout"
       ],
       "command_cost": 2,
-      "strength": 2,
+      "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+          "timing": "rear",
+          "text": "You may look at opposing face-down Stratagems in this Front or an adjacent Front.",
           "scope": "opponent",
-          "memory": []
+          "memory": [],
+          "exposed": "LOOK STRATAGEMS HERE/ADJ"
         }
       ],
-      "text": "PLAY - Look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "text": "REAR - You may look at opposing face-down Stratagems in this Front or an adjacent Front.",
       "design_tags": [
         "information",
-        "play-effect"
+        "persistent-state",
+        "positional-support"
       ]
     },
     {
@@ -437,20 +454,23 @@
         "raider"
       ],
       "command_cost": 3,
-      "strength": 4,
+      "strength": 5,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+          "timing": "continuous",
+          "text": "Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach.",
           "scope": "opponent",
-          "memory": []
+          "memory": [],
+          "exposed": "PREPARED ATTACH +1"
         }
       ],
-      "text": "PLAY - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "text": "CONTINUOUS - Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach.",
       "design_tags": [
+        "command",
         "disruption",
-        "play-effect",
-        "prepared-pressure"
+        "persistent-state",
+        "prepared-pressure",
+        "tax"
       ]
     },
     {
@@ -467,13 +487,13 @@
       "effects": [
         {
           "timing": "front",
-          "text": "If the position directly behind is occupied by a friendly formation, this formation has +2 Strength.",
+          "text": "If the position directly behind is occupied by a friendly formation, this formation has +1 Strength.",
           "scope": "self",
           "memory": [],
-          "exposed": "BEHIND +2"
+          "exposed": "BEHIND +1"
         }
       ],
-      "text": "FRONT - If the position directly behind is occupied by a friendly formation, this formation has +2 Strength.",
+      "text": "FRONT - If the position directly behind is occupied by a friendly formation, this formation has +1 Strength.",
       "design_tags": [
         "positional-support",
         "strength"
@@ -619,22 +639,26 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "action",
-          "text": "Move this formation one position. If it ends in the Front row, it gets +1 Strength this Battle.",
+          "timing": "front",
+          "text": "This formation has +1 Strength.",
           "scope": "self",
-          "memory": [
-            "used_marker",
-            "effect_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · MOVE 1 · FRONT +1"
+          "memory": [],
+          "exposed": "FRONT +1"
+        },
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. MOVE 1.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "PAY 1 · MOVE 1"
         }
       ],
-      "text": "ACTION · 1/BATTLE - Move this formation one position. If it ends in the Front row, it gets +1 Strength this Battle.",
+      "text": "FRONT - This formation has +1 Strength.\nACTION - Pay 1 Command. MOVE 1.",
       "design_tags": [
         "action-engine",
-        "marker-state",
+        "command",
         "movement",
+        "positional-support",
         "strength"
       ]
     },
@@ -650,18 +674,17 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "Place a Tax marker on this Front. The next Bond your opponent plays here before your next turn costs 1 additional Command.",
+          "timing": "continuous",
+          "text": "Opposing Bonds played into this Front cost 1 additional Command.",
           "scope": "opponent",
-          "memory": [
-            "front_marker"
-          ]
+          "memory": [],
+          "exposed": "BONDS HERE +1"
         }
       ],
-      "text": "PLAY - Place a Tax marker on this Front. The next Bond your opponent plays here before your next turn costs 1 additional Command.",
+      "text": "CONTINUOUS - Opposing Bonds played into this Front cost 1 additional Command.",
       "design_tags": [
         "command",
-        "play-effect",
+        "persistent-state",
         "tax"
       ]
     },
@@ -677,18 +700,17 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+          "timing": "continuous",
+          "text": "The opposing formation directly opposite gets no Strength from its Bond.",
           "scope": "opponent",
-          "memory": [
-            "suppression_marker"
-          ]
+          "memory": [],
+          "exposed": "OPPOSITE BOND STR 0"
         }
       ],
-      "text": "PLAY - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+      "text": "CONTINUOUS - The opposing formation directly opposite gets no Strength from its Bond.",
       "design_tags": [
         "disruption",
-        "play-effect",
+        "positional-support",
         "suppression"
       ]
     },
@@ -705,13 +727,13 @@
       "effects": [
         {
           "timing": "exhausted",
-          "text": "This formation has +1 Strength.",
+          "text": "This formation has +2 Strength.",
           "scope": "self",
           "memory": [],
-          "exposed": "+1"
+          "exposed": "+2"
         }
       ],
-      "text": "EXHAUSTED - This formation has +1 Strength.",
+      "text": "EXHAUSTED - This formation has +2 Strength.",
       "design_tags": [
         "exhaustion",
         "persistent-state",
@@ -796,7 +818,7 @@
       "classes": [],
       "bond_kind": "resolve",
       "command_cost": 1,
-      "strength_modifier": 2,
+      "strength_modifier": 1,
       "effects": [],
       "text": "No special rules.",
       "design_tags": [
@@ -1178,7 +1200,7 @@
         "human",
         "king"
       ],
-      "command_cost": 2,
+      "command_cost": 3,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -1535,7 +1557,7 @@
         "human",
         "skirmisher"
       ],
-      "command_cost": 1,
+      "command_cost": 2,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -1588,12 +1610,12 @@
         },
         {
           "timing": "action",
-          "text": "Pay 1 Command. Discard 1 card, then draw 2 cards.",
+          "text": "Pay 2 Command. Discard 1 card, then draw 2 cards.",
           "scope": "self",
           "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Draw 2 cards, then put 1 card from your hand on top of your deck.\nACTION - Pay 1 Command. Discard 1 card, then draw 2 cards.",
+      "text": "BECOMES NAMED - Draw 2 cards, then put 1 card from your hand on top of your deck.\nACTION - Pay 2 Command. Discard 1 card, then draw 2 cards.",
       "design_tags": [
         "action-engine",
         "card-flow",
@@ -1609,7 +1631,7 @@
         "human",
         "steward"
       ],
-      "command_cost": 2,
+      "command_cost": 3,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -1621,14 +1643,14 @@
         },
         {
           "timing": "continuous",
-          "text": "Your Tactics cost 1 less Command, to a minimum of 1.",
+          "text": "Your Tactics cost 1 less Command, to a minimum of 0.",
           "scope": "self",
           "memory": [
             "face_up_source"
           ]
         }
       ],
-      "text": "BECOMES NAMED - Regain 1 Command.\nCONTINUOUS - Your Tactics cost 1 less Command, to a minimum of 1.",
+      "text": "BECOMES NAMED - Regain 1 Command.\nCONTINUOUS - Your Tactics cost 1 less Command, to a minimum of 0.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -1998,7 +2020,7 @@
             },
             {
               "timing": "continuous",
-              "text": "Bonds and Names you play cost 1 less Command, to a minimum of 1.",
+              "text": "Bonds you play cost 1 less Command, to a minimum of 0. Names you play cost 1 less Command, to a minimum of 1.",
               "scope": "self",
               "memory": [
                 "face_up_source"
@@ -2007,7 +2029,7 @@
           ]
         }
       },
-      "text": "AS FORCE\nPLAY - Draw 2 cards, then discard 1 card.\n\nAS NAME\nBECOMES NAMED - Regain 2 Command.\nCONTINUOUS - Bonds and Names you play cost 1 less Command, to a minimum of 1.",
+      "text": "AS FORCE\nPLAY - Draw 2 cards, then discard 1 card.\n\nAS NAME\nBECOMES NAMED - Regain 2 Command.\nCONTINUOUS - Bonds you play cost 1 less Command, to a minimum of 0. Names you play cost 1 less Command, to a minimum of 1.",
       "design_tags": [
         "card-flow",
         "command",
@@ -2229,7 +2251,7 @@
       "type": "tactic",
       "classes": [],
       "references": [],
-      "command_cost": 1,
+      "command_cost": 2,
       "effects": [
         {
           "timing": "play",
@@ -2279,7 +2301,7 @@
       "references": [
         "scout"
       ],
-      "command_cost": 1,
+      "command_cost": 0,
       "effects": [
         {
           "timing": "play",
@@ -2426,14 +2448,14 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Rear formation. It gets -2 Strength this Battle.",
+          "text": "Choose an opposing Rear formation. It gets -3 Strength this Battle.",
           "scope": "opponent",
           "memory": [
             "effect_marker"
           ]
         }
       ],
-      "text": "PLAY - Choose an opposing Rear formation. It gets -2 Strength this Battle.",
+      "text": "PLAY - Choose an opposing Rear formation. It gets -3 Strength this Battle.",
       "design_tags": [
         "hostile-interaction",
         "marker-state",
@@ -2919,7 +2941,7 @@
       "references": [
         "human"
       ],
-      "command_cost": 1,
+      "command_cost": 2,
       "effects": [
         {
           "timing": "continuous",
@@ -3006,16 +3028,18 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "play",
-          "text": "Look at one opposing face-down Stratagem in this Front.",
+          "timing": "continuous",
+          "text": "While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front.",
           "scope": "opponent",
-          "memory": []
+          "memory": [],
+          "exposed": "MID/REAR · LOOK HERE"
         }
       ],
-      "text": "PLAY - Look at one opposing face-down Stratagem in this Front.",
+      "text": "CONTINUOUS - While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front.",
       "design_tags": [
         "information",
-        "play-effect"
+        "persistent-state",
+        "positional-support"
       ]
     },
     {
@@ -3027,21 +3051,20 @@
         "raider"
       ],
       "command_cost": 2,
-      "strength": 3,
+      "strength": 4,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose one opposing Exhausted formation in this Front. It gets -1 Strength this Battle.",
-          "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "timing": "continuous",
+          "text": "While an opposing Force in this Front is Exhausted, this formation has +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "ENEMY EXHAUSTED +1"
         }
       ],
-      "text": "PLAY - Choose one opposing Exhausted formation in this Front. It gets -1 Strength this Battle.",
+      "text": "CONTINUOUS - While an opposing Force in this Front is Exhausted, this formation has +1 Strength.",
       "design_tags": [
         "exhaustion",
-        "play-effect",
+        "persistent-state",
         "raider-pressure",
         "strength"
       ]
@@ -3085,13 +3108,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "Tactics you play targeting this Front cost 1 less Command, to a minimum of 1.",
+          "text": "Tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · TACTICS HERE -1"
+          "exposed": "TACTICS HERE MIN 0"
         }
       ],
-      "text": "BONDED - Tactics you play targeting this Front cost 1 less Command, to a minimum of 1.",
+      "text": "BONDED - Tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -3108,19 +3131,20 @@
         "scout"
       ],
       "command_cost": 2,
-      "strength": 2,
+      "strength": 3,
       "effects": [
         {
-          "timing": "play",
-          "text": "If played in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
-          "scope": "self",
-          "memory": []
+          "timing": "rear",
+          "text": "You may look at opposing face-down Stratagems in any active Front.",
+          "scope": "opponent",
+          "memory": [],
+          "exposed": "LOOK STRATAGEMS ANYWHERE"
         }
       ],
-      "text": "PLAY - If played in the Rear, look at one opposing face-down Stratagem in this Front or an adjacent Front.",
+      "text": "REAR - You may look at opposing face-down Stratagems in any active Front.",
       "design_tags": [
         "information",
-        "play-effect",
+        "persistent-state",
         "positional-support"
       ],
       "allowed_rows": [
@@ -3403,7 +3427,7 @@
         "guard",
         "healer"
       ],
-      "command_cost": 1,
+      "command_cost": 2,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -3860,7 +3884,8 @@
     "middle": "A state effect active while the formation is in the Middle row.",
     "rear": "A state effect active while the formation is in the Rear row.",
     "exhausted": "A state effect active while this Force has an Exhaustion token.",
-    "tireless": "A persistent Force ability that ignores only the Exhaustion restriction on initiating a Maneuver; every other Maneuver requirement still applies and Exhaustion remains."
+    "tireless": "A persistent Force ability that ignores only the Exhaustion restriction on initiating a Maneuver; every other Maneuver requirement still applies and Exhaustion remains.",
+    "mobile": "A persistent Force ability allowing it to initiate a Maneuver without being Named; other Maneuver requirements still apply."
   },
   "position_vocabulary": {
     "directly_ahead": "The adjacent position in the same Front one rank toward the Front row. A Front-row formation has no position directly ahead.",
@@ -3871,15 +3896,17 @@
     "swap": "SWAP means exchange the complete contents of the two specified friendly positions. Both positions must contain a formation unless the card says otherwise. Swap is a card effect, not a Maneuver, costs no Maneuver Command, and Exhaustion does not stop it.",
     "movement_event": "A formation moves whenever it changes battlefield position by Maneuver, Move, or Swap, regardless of which player or effect caused the relocation.",
     "support": "SUPPORT +N means the friendly formation directly ahead has +N Strength while the supporting effect is active.",
-    "supply": "SUPPLY means Bonds and Names played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 1.",
+    "supply": "SUPPLY means Bonds played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 0, and Names played onto it cost 1 less Command, to a minimum of 1.",
     "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This local comparison does not itself decide the Front.",
     "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
     "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It ignores only the Exhaustion restriction; every other Maneuver requirement still applies. It keeps its Exhaustion token. TIRELESS is boolean, so multiple sources give no additional benefit.",
     "exhaustion": "After you lose a Front, every Force you have in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its token leaves with it. A tied Front exhausts neither player.",
-    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1.",
+    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; SUPPLY may reduce Bonds to 0 Command but may not reduce Names below 1.",
     "command_modifiers": "Command modifiers stack: add all applicable increases, then apply all applicable reductions. If any applicable reduction explicitly allows minimum 0, the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.",
     "tax_markers": "Each Tax marker is separate. If the next card played satisfies multiple Tax markers, all matching increases apply and all matching next-card markers are consumed. A marker with an expiry expires when its own text says it does.",
     "strength_marker": "A -Strength marker is a temporary negative marker recording a Battle-long Strength penalty created by card text such as gets -2 Strength this Battle.",
-    "temporary_negative_marker": "A temporary negative marker is any adverse marker on a formation created by a finite-duration card effect, including -Strength, text-suppression, or ability-lock markers. It does not include Exhaustion or a Tax marker on a Front. Removing one ends that marker's effect."
+    "temporary_negative_marker": "A temporary negative marker is any adverse marker on a formation created by a finite-duration card effect, including -Strength, text-suppression, or ability-lock markers. It does not include Exhaustion or a Tax marker on a Front. Removing one ends that marker's effect.",
+    "directly_opposite": "The position in the same rank and same Front on the opposing player's side.",
+    "mobile": "MOBILE means this Force may initiate a Maneuver without being Named. It ignores only the Named requirement: Command cost, adjacency, legal destination, row restrictions, and Exhaustion still apply."
   }
 }

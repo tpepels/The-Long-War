@@ -26,9 +26,10 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 - **SWAP** - exchange the complete contents of the two specified friendly positions. Both positions must contain a Formation unless the card says otherwise. Swap is a card effect, not a Maneuver: it costs no Maneuver Command and Exhaustion does not stop it.
 - **moves / moved** - a Formation counts as moving whenever it changes battlefield position by Maneuver, Move, or Swap, regardless of which player or effect caused the relocation. This is the event used by cards that react after a Formation moves.
 - **SUPPORT +N** - the friendly Formation directly ahead has +N Strength while the support effect is active.
-- **SUPPLY** - Bonds and Names played onto the friendly Formation directly ahead cost 1 less Command, to a minimum of 1.
+- **SUPPLY** - Bonds played onto the friendly Formation directly ahead cost 1 less Command, to a minimum of 0; Names played onto it cost 1 less Command, to a minimum of 1.
 - **OUTMATCHED** - an opposing Formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This is only a local card condition; it does not decide the Front.
 - **RESERVE +N** - this Formation has +N Strength while the friendly Formation directly ahead is OUTMATCHED.
+- **MOBILE** - this Force may initiate a Maneuver without being Named. It still pays the Maneuver Command cost and obeys adjacency, row, destination, and Exhaustion restrictions.
 - **TIRELESS** - this Force may initiate a Maneuver while Exhausted. TIRELESS ignores only the Exhaustion restriction: the Formation must still satisfy every other Maneuver requirement, including being Named unless another effect says otherwise, paying any Command cost, using an adjacent legal destination, and obeying movement restrictions. It keeps its Exhaustion token, so other cards may still care that it is Exhausted. TIRELESS is boolean: multiple sources do not grant any additional benefit.
 - **EXHAUSTION** - after a Front is lost, every Force that player has in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its Exhaustion token leaves with it. Tied Fronts exhaust neither player.
 - **EXHAUSTED** as a timing label is a continuous state active while that Force has an Exhaustion token.
@@ -67,7 +68,7 @@ Avoid invisible "the first X each Battle/turn" bookkeeping when the same identit
 
 ## Card-type grammar
 
-**Force** - base Strength and one simple battlefield identity. Prefer no rule, PLAY, BONDED, WHILE NAMED, or a short FRONT / MIDDLE / REAR / EXHAUSTED / TIRELESS state. A buried ACTION is reserved for very short movement/repositioning text whose complete instruction fits in the exposed edge. Force REACTION text belongs on top-visible cards.
+**Force** - base Strength and one simple battlefield identity. Prefer no rule, PLAY, a short positional/state rule, or a repeatable ACTION whose complete instruction fits in the exposed edge. Regular Forces do not use once-per-Battle abilities.
 
 **Bond** - compact middle-layer support. Use PLAY for one-shot choices and BONDED / WHILE NAMED / positional state text for live effects. Bonds do not carry ACTION or REACTION abilities while buried.
 
@@ -101,3 +102,8 @@ Exactly three font families:
 3. Arial - timings, classifications and utility labels.
 
 Each effect starts on a new line. Timing is visually distinct. Prose sits directly on parchment rather than inside a textbox.
+
+
+## Zero-Command cards
+
+A printed Command cost of **0** removes only the Command payment. Playing the card still consumes an Action and the card itself still leaves the player's hand. Zero-Command effects may therefore be broad utility, but their value budget must account for spending half a normal two-Action turn.

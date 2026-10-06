@@ -615,8 +615,9 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
     assert "Tax marker" in positions["temporary_negative_marker"]
 
     grey = by_id["the-grey-riders"]
-    assert grey["text"].startswith("TIRELESS")
-    assert grey["effects"][0]["timing"] == "tireless"
+    assert grey["text"].startswith("MOBILE")
+    assert [effect["timing"] for effect in grey["effects"]] == ["mobile", "tireless"]
+    assert "without being Named" in positions["mobile"]
 
     old_guard = by_id["the-old-guard"]
     assert old_guard["text"] == "MIDDLE - RESERVE +2."
@@ -625,7 +626,7 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
     damar = by_id["the-damar"]
     assert damar["strength"] == 4
     assert damar["effects"][0]["timing"] == "exhausted"
-    assert "+1 Strength" in damar["text"]
+    assert "+2 Strength" in damar["text"]
 
     held = by_id["held-the-line-for"]
     assert held["strength_modifier"] == 1
@@ -644,8 +645,8 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
 
 def test_renderer_knows_exhausted_and_tireless_states() -> None:
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
-    assert 'exhausted:"EXHAUSTED",tireless:"TIRELESS"' in js
-    assert '"exhausted","tireless"' in js
+    assert 'exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"' in js
+    assert '"exhausted","tireless","mobile"' in js
     assert 'name==="tireless"?utilityGlyph("move")' in js
     assert 'name==="exhausted"?utilityGlyph("marker")' in js
     assert "MAY MANEUVER EXHAUSTED" in js
@@ -674,12 +675,13 @@ def test_buried_force_and_bond_rules_are_memory_light() -> None:
 
     assert {card_id for card_id, _ in buried_active} == {
         "the-vardai",
+        "the-white-hands-of-elara",
         "kael-the-roadless",
         "neris-the-ferryman",
     }
     for _, effect in buried_active:
         assert effect["timing"] == "action"
-        assert "MOVE" in effect["exposed"].upper()
+        assert effect.get("limit") is None
         assert len(effect["exposed"]) <= 30
 
     # Live buried state text must always have an exposed-strip representation.
@@ -715,3 +717,46 @@ def test_effect_audit_covers_every_current_effect() -> None:
     assert f"all {total} current card effects" in audit
     assert "Pure `1/BATTLE -> +1 Strength` bookkeeping effects remaining: **0**" in audit
     assert "Bonds with buried ACTION/REACTION abilities: **0**" in audit
+
+
+def test_wide_balance_cleanup_and_zero_cost_space() -> None:
+    by_id = {card["id"]: card for card in CARDS}
+    for card in CARDS:
+        if card["type"] == "force":
+            assert all(effect.get("limit") != "once_per_battle" for effect in card["effects"]), card["id"]
+    assert [e["timing"] for e in by_id["the-grey-riders"]["effects"]] == ["mobile", "tireless"]
+    assert any(e["timing"] == "action" and "Pay 1 Command" in e["text"] for e in by_id["the-vardai"]["effects"])
+    assert by_id["the-dust-riders"]["strength"] == 3
+    assert by_id["the-river-raiders"]["strength"] == 4
+    assert "directly opposite" in by_id["the-red-duelists"]["text"]
+    assert by_id["the-iron-boars"]["strength"] == 5
+    assert "Opposing Bonds" in by_id["the-aradai"]["text"]
+    assert "directly opposite" in by_id["the-ilyri"]["text"]
+    assert by_id["the-thornbow-hunters"]["strength"] == 3
+    assert by_id["the-watchtowers-of-eren"]["strength"] == 3
+    assert by_id["the-white-hands-of-elara"]["effects"][0]["timing"] == "action"
+    assert "has +1 Strength" in by_id["the-first-spear"]["text"]
+    assert "has +2 Strength" in by_id["the-damar"]["text"]
+    assert "minimum of 0" in by_id["the-salt-road-fleet"]["text"]
+    assert "minimum of 0" in DATA["position_vocabulary"]["supply"]
+    assert by_id["stood-fast-with"]["strength_modifier"] == 1
+    assert by_id["the-baggage-was-abandoned"]["command_cost"] == 2
+    assert "-3 Strength" in by_id["all-reserves-forward"]["text"]
+    assert by_id["they-were-gathering-there"]["command_cost"] == 0
+    assert by_id["namar"]["command_cost"] == 3
+    assert by_id["tala"]["command_cost"] == 2
+    assert by_id["maelin"]["command_cost"] == 2
+    assert "Pay 2 Command" in by_id["sorin"]["text"]
+    assert by_id["iven"]["command_cost"] == 3
+    assert "minimum of 0" in by_id["iven"]["text"]
+    assert "Bonds you play cost 1 less Command, to a minimum of 0" in by_id["tovan-the-quartermaster"]["text"]
+    assert by_id["no-one-would-be-first-to-leave"]["command_cost"] == 2
+
+
+def test_value_model_documents_action_and_condition_costs() -> None:
+    model = (ROOT / "cards" / "v2" / "value-model.md").read_text(encoding="utf-8")
+    assert "expected value ~= printed Strength" in model
+    assert "Action tax" in model
+    assert "MOBILE" in model
+    assert "Zero-Command cards" in model
+    assert "half of a standard turn" in model

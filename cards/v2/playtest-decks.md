@@ -2,8 +2,6 @@
 
 These four decks are **45 cards each**. They are deliberately broader and less consistent than tournament-style lists. The point is to create interesting decision trees, combinations and different play patterns, not to maximize win rate or prove a metagame.
 
-Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bonds, Tactics, Stratagems and Narratives. Unique cards remain one copy; non-Unique cards stay within the four-copy rule.
-
 ## Reposition & Reuse
 
 **Playstyle:** Reconfigure positions, filter into the right follow-up, then reuse prepared pieces.
@@ -14,10 +12,10 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 
 **Interesting lines**
 
-- Grey Riders and Sela remain mobile after Exhaustion through TIRELESS, while Neris can still Move formations by card effect.
-- Marched With can move a formation as the Bond lands; Dust Riders and Vardai care where that movement finishes.
-- Nara plus Stayed Behind For lets prepared cards become delayed resources instead of dead setup.
-- Kept Pace With and Carried Messages For give one-shot card filtering when the right classifications are present, without leaving buried ACTION text to remember.
+- Grey Riders can Maneuver before becoming Named through MOBILE and keep doing so after Exhaustion through TIRELESS.
+- Vardai trade an Action plus 1 Command for repeatable movement, while their Front-row Strength bonus is positional rather than a once-per-Battle marker.
+- Marched With, Dust Riders and positional support reward choosing where a formation finishes rather than just whether it moved.
+- Nara, Stayed Behind For, Kept Pace With and Carried Messages For keep the deck supplied with attachments and card selection.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -66,10 +64,10 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 
 **Interesting lines**
 
-- House of Reed, Tovan and The King Had Given the Order create overlapping but conditional discounts.
-- Oren, Torren and Nara all turn one setup card into extra attachment tempo in different ways.
-- Teren can set a Stratagem without another Action, then rewards another friendly formation becoming Named.
-- Eira, Sorin and Bought Time For keep the chain supplied without making every draw automatic.
+- House of Reed and Supplied By can now reduce Bonds on the formation ahead to 0 Command, while Names still stop at 1.
+- Tovan gives the same split discount globally in Name mode, so preparation can create genuinely cheap multi-card turns.
+- Oren, Torren and Nara all turn setup cards into attachment tempo in different ways.
+- Namar now costs 3 and Sorin's repeatable card-advantage Action costs 2 Command, so the chain has real economic trade-offs.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -121,10 +119,10 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 
 **Interesting lines**
 
-- Aradai and Blocked the Road For create one-shot tax windows on PLAY, while Brannoc and Rovan keep repeatable tax pressure on top-visible Names/Heroes.
-- Iron Boars pressure prepared cards; River Raiders instead exploit an already-Exhausted opposing formation, so the two Raiders now ask different questions.
-- Lysa, Mara, Lantern Scouts and Thornbow Hunters turn hidden information into a resource rather than pure guessing.
-- Ilyri gives a one-shot Bond suppression on PLAY; Tala and The Line Wheeled provide the repeatable/top-visible follow-up.
+- Aradai taxes opposing Bonds continuously while Iron Boars tax attachment of prepared cards, creating two different persistent pressure patterns.
+- River Raiders are a 4-Strength threat that becomes stronger when any opposing Force in their Front is Exhausted.
+- Red Duelists tax ACTION abilities directly opposite them; Ilyri blank Bond Strength directly opposite them.
+- Thornbow Hunters, Lantern Scouts and Watchtowers make information a positional asset rather than a one-shot deployment trick.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -177,10 +175,10 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 
 **Interesting lines**
 
-- Old Guard and Held the Line For reward keeping a second line behind an OUTMATCHED Front formation instead of simply stacking raw Guard Strength.
-- Damar becomes harder after Exhaustion, while Maelin can remove Exhaustion and Covered the Withdrawal Of can keep the formation ahead TIRELESS without clearing its token.
-- Red Shields, Serekh, Alda and Veyra still protect different targets or tax different kinds of opposing Tactics.
-- The Ground Was Held and The Battle Had Chosen Them reward surviving Named formations rather than merely piling on raw Guard cards.
+- Damar now becomes a 6-Strength Veteran when Exhausted, making a lost Front create a real counter-pressure piece.
+- First Spear's supported Front bonus is +1 rather than +2, keeping formation order important without making the condition automatic power.
+- White Hands can spend Actions repeatedly to clear temporary negative markers from the formation ahead.
+- Baggage is now the expensive unconditional -2 Tactic; Volley and Line Was Baited remain cheaper conditional alternatives.
 
 | Copies | Card | Type |
 |---:|---|---|
