@@ -30,6 +30,8 @@ async function main(){
     const rows=[
       ["MOVE",vocabulary.move],
       ["MOVE UP TO N",vocabulary.move_multiple],
+      ["SWAP",vocabulary.swap],
+      ["MOVES / MOVED",vocabulary.movement_event],
       ["DIRECTLY AHEAD",vocabulary.directly_ahead],
       ["DIRECTLY BEHIND",vocabulary.directly_behind],
       ["SUPPORT +N",vocabulary.support],
@@ -40,6 +42,8 @@ async function main(){
       ["EXHAUSTION",vocabulary.exhaustion],
       ["EXHAUSTED",timing.exhausted],
       ["STACKING",vocabulary.stacking],
+      ["COMMAND MODIFIERS",vocabulary.command_modifiers],
+      ["TAX MARKERS",vocabulary.tax_markers],
     ].filter(([,value])=>value);
     reference.innerHTML='<h1>V2 mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
