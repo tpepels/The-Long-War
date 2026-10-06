@@ -117,7 +117,7 @@
 | **The Muster Was False** | - | 1 | - | PLAY - Return one opposing prepared Bond or prepared Name to its owner's hand. |
 | **They Had Gone Too Far** | - | 1 | - | PLAY - Choose an opposing formation. Move it one row toward its Rear, if that position is empty. |
 | **All Banners Forward** | King · Captain | 2 | - | PLAY - Choose an opposing King or Captain. Its ACTION abilities cannot be used this Battle. |
-| **The Line Wheeled** | - | 1 | - | PLAY - Choose an opposing Bonded Formation. Its Bond contributes no Strength and its 1/BATTLE ability cannot be used this Battle. |
+| **The Line Wheeled** | - | 1 | - | PLAY - Choose an opposing Bonded Formation. Its Bond contributes no Strength and its non-PLAY text is ignored this Battle. |
 | **They Let Them Through** | - | 1 | - | PLAY - Choose an opposing Formation. Its 1/BATTLE abilities cannot be used this Battle. |
 | **All Reserves Forward** | - | 2 | - | PLAY - Choose an opposing Rear formation. It gets -2 Strength this Battle. |
 | **The Line Had Begun to Move** | - | 2 | - | PLAY - Place a Tax marker on an active Front. The next card your opponent plays there costs 2 additional Command. |
