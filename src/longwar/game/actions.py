@@ -61,6 +61,14 @@ class PlayTactic:
 
 
 @dataclass(frozen=True)
+class PlayOrder:
+    card_id: str
+    source: BoardTarget | None = None
+    target: BoardTarget | None = None
+    front: Front | None = None
+
+
+@dataclass(frozen=True)
 class ActivateAbility:
     card_id: str
     source: BoardTarget | None = None
@@ -113,6 +121,7 @@ Action: TypeAlias = (
     | PlayNarrative
     | PlayStratagem
     | PlayTactic
+    | PlayOrder
     | ActivateAbility
     | Maneuver
     | Cycle
@@ -136,6 +145,7 @@ _ACTION_KIND_BY_TYPE = {
     PlayNarrative: ActionKind.PLAY_NARRATIVE,
     PlayStratagem: ActionKind.PLAY_STRATAGEM,
     PlayTactic: ActionKind.PLAY_TACTIC,
+    PlayOrder: ActionKind.PLAY_ORDER,
     ActivateAbility: ActionKind.ACTIVATE_ABILITY,
 }
 
@@ -245,6 +255,23 @@ def action_key(action: object) -> str:
 
     if isinstance(action, PlayTactic):
         key = f"{ActionKeyToken.TACTIC.value}:{action.card_id}"
+        if action.source is not None:
+            key += (
+                f":{ActionKeyToken.SOURCE.value}:{action.source.player},"
+                f"{int(action.source.position.front)},"
+                f"{action.source.position.rank.value}"
+            )
+        if action.target is not None:
+            key += (
+                f":{ActionKeyToken.DESTINATION.value}:{action.target.player},"
+                f"{int(action.target.position.front)},"
+                f"{action.target.position.rank.value}"
+            )
+        if action.front is not None:
+            key += f":{ActionKeyToken.FRONT.value}:{int(action.front)}"
+        return key
+    if isinstance(action, PlayOrder):
+        key = f"{ActionKeyToken.ORDER.value}:{action.card_id}"
         if action.source is not None:
             key += (
                 f":{ActionKeyToken.SOURCE.value}:{action.source.player},"
@@ -387,6 +414,28 @@ def action_from_key(key: str) -> object:
                 raise ValueError(f"Unknown Tactic action field: {label}")
             index += 2
         return PlayTactic(card_id, source=source, target=target, front=front)
+    if parts[0] == ActionKeyToken.ORDER:
+        card_id = parts[1]
+        source: BoardTarget | None = None
+        target: BoardTarget | None = None
+        front: Front | None = None
+        index = 2
+        while index < len(parts):
+            label = parts[index]
+            value = parts[index + 1]
+            if label in {ActionKeyToken.SOURCE, ActionKeyToken.DESTINATION}:
+                player, encoded_front, rank = value.split(",")
+                parsed = BoardTarget(int(player), _position(encoded_front, rank))
+                if label == ActionKeyToken.SOURCE:
+                    source = parsed
+                else:
+                    target = parsed
+            elif label == ActionKeyToken.FRONT:
+                front = Front(int(value))
+            else:
+                raise ValueError(f"Unknown Order action field: {label}")
+            index += 2
+        return PlayOrder(card_id, source=source, target=target, front=front)
     if parts[0] == ActionKeyToken.ABILITY:
         card_id = parts[1]
         effect_index = int(parts[2])
