@@ -245,6 +245,7 @@ def test_python_state_key_includes_search_relevant_flags():
     from pathlib import Path
     import json
     from longwar.cards import load_card_file
+    from longwar.game.model import Front, Position, Rank
     root = Path(__file__).resolve().parents[1]
     engine = GameEngine(load_card_file(root / "cards/cards.json"))
     deck = json.loads((root / "decks/mobility-open-bonds.json").read_text())["cards"]
@@ -274,6 +275,13 @@ def test_python_state_key_includes_search_relevant_flags():
     acted = state.clone()
     acted.actions_this_turn = 1
     assert AlphaBetaSearch.state_key(acted) != key
+
+    exhausted = state.clone()
+    exhausted.slot(
+        0,
+        Position(Front.FIRST, Rank.FRONT),
+    ).exhausted = True
+    assert AlphaBetaSearch.state_key(exhausted) != key
 
     revealed = state.clone()
     from longwar.game.model import StratagemState
@@ -352,7 +360,7 @@ def test_python_state_key_tracks_every_game_state_field() -> None:
             "already-free Maneuver, but does not affect legality, cost, or evaluation"
         ),
         "players": "nested PlayerState fields verified individually above and by construction",
-        "board": "nested Slot fields (force/bond/name/temporary_strength) all represented above",
+        "board": "nested Slot fields (force/bond/name/exhausted/temporary_strength and Maneuver state) are represented above",
         "narratives": "nested NarrativeState card ids are represented above",
         "stratagems": "nested StratagemState card ids are represented above",
     }
