@@ -21,6 +21,7 @@ import urllib.request
 from urllib.parse import quote
 from pathlib import Path
 
+from longwar.game.model import TOTAL_POSITION_COUNT
 from longwar.reference_decks import DEFAULT_DECK_PATH
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -203,7 +204,7 @@ CHECK_SCRIPT = r"""
     if (scenario !== "mulligan") {
       essential($("battlefield"), "battlefield");
       if (rect($("battlefield")).height < innerHeight * .38) fail("battlefield-too-small");
-      if (document.querySelectorAll(".digital-slot").length !== 16) fail("formation-positions-missing");
+      if (document.querySelectorAll(".digital-slot").length !== __FORMATION_SLOT_COUNT__) fail("formation-positions-missing");
       if (document.querySelectorAll(".narrative-marker").length !== 4) fail("narrative-slots-missing");
       if (!document.querySelector(".stratagem-marker:not(.hidden)")) fail("public-stratagem-zone-missing");
       document.querySelectorAll(".narrative-marker [data-inspect-card]").forEach((card) => { if (!card.dataset.inspectCard) fail("narrative-card-not-public"); });
