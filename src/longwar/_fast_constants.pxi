@@ -682,3 +682,11 @@ cdef uint8_t EFFECT_V2_SOURCE_NARRATIVE = 32
 cdef uint8_t EFFECT_V2_SOURCE_FORCE = 64
 cdef uint8_t EFFECT_V2_SOURCE_BOND = 96
 cdef uint8_t EFFECT_V2_SOURCE_NAME = 128
+
+cdef int V2_EFFECT_KIND_MASK = 255
+cdef int V2_EFFECT_OPTION_SHIFT = 8
+cdef int V2_OPTION_NONE = 0
+cdef int V2_OPTION_BOND = 1
+cdef int V2_OPTION_NAME = 2
+cdef int V2_OPTION_PAY = 3
+cdef int V2_OPTION_RETURN = 4
