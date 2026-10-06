@@ -944,10 +944,18 @@ def test_baggage_warning_can_discard_another_card_to_regain_command() -> None:
     assert "the-baggage-was-abandoned" in state.players[0].discard
 
 
-def test_marched_with_can_move_formation_when_played_onto_force() -> None:
+@pytest.mark.parametrize(
+    "destination",
+    [
+        pos(2, Rank.FRONT),
+        pos(1, Rank.MIDDLE),
+    ],
+)
+def test_marched_with_can_move_formation_when_played_onto_force(
+    destination: Position,
+) -> None:
     engine, state = setup_state()
     source = pos(1, Rank.FRONT)
-    destination = pos(2, Rank.FRONT)
     state.slot(0, source).force = "the-fifty-men"
     state.players[0].hand = ["marched-with"]
 
@@ -2737,10 +2745,18 @@ def test_guarded_blocks_an_opponents_pending_card_move() -> None:
     assert all(choice.skip for choice in choices)
 
 
-def test_eira_succession_resolver_moves_name_then_drives_off_source() -> None:
+@pytest.mark.parametrize(
+    "destination",
+    [
+        pos(1, Rank.FRONT),
+        pos(0, Rank.MIDDLE),
+    ],
+)
+def test_eira_succession_resolver_moves_name_then_drives_off_source(
+    destination: Position,
+) -> None:
     engine, state = setup_state(seed=4835)
     source = pos(0, Rank.FRONT)
-    destination = pos(1, Rank.FRONT)
     make_named(state, 0, source, name="eira")
     target = state.slot(0, destination)
     target.force = "the-fifty-men"

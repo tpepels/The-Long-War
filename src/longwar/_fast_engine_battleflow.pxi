@@ -43,22 +43,17 @@ cdef uint32_t _fe_succession_destinations(
     int player,
     int slot,
 ) noexcept:
-    cdef int front = front_from_slot(slot)
-    cdef int rank = rank_from_slot(slot)
     cdef int dest
+    cdef uint32_t adjacent = _fe_adjacent_formation_mask(
+        self, state, player, slot, False
+    )
     cdef uint32_t mask = 0
-    if front > 0:
-        dest = slot_index(player, front - 1, rank)
+    for dest in range(
+        player * POSITIONS_PER_PLAYER,
+        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+    ):
         if (
-            state.force[dest] >= 0
-            and state.bond[dest] >= 0
-            and state.name[dest] < 0
-        ):
-            mask |= <uint32_t>(1 << dest)
-    if front < FRONT_COUNT - 1:
-        dest = slot_index(player, front + 1, rank)
-        if (
-            state.force[dest] >= 0
+            adjacent & (1 << dest)
             and state.bond[dest] >= 0
             and state.name[dest] < 0
         ):

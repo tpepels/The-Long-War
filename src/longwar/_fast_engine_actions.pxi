@@ -476,9 +476,12 @@ cdef bint _fe_maneuver_allowed_by_continuous(
         return direction == DIRECTION_LEFT
     if right_possible and not left_possible:
         return direction == DIRECTION_RIGHT
-    # If both requirements are satisfiable but conflict, the rulebook permits
-    # choosing one satisfiable requirement. If neither can be satisfied,
-    # ordinary Maneuvers remain legal.
+    if left_possible and right_possible:
+        # Conflicting directional requirements let the player satisfy either
+        # horizontal direction; a vertical Maneuver satisfies neither.
+        return direction in (DIRECTION_LEFT, DIRECTION_RIGHT)
+    # If neither requested direction can be satisfied, ordinary Maneuvers
+    # remain legal, including vertical Maneuvers.
     return True
 
 
@@ -1033,6 +1036,38 @@ cdef int _fe_legal_actions_into(
                         dest = slot_index(player, front + 1, rank)
                         if _fe_card_move_destination_legal(self, 
                             state, player, slot, dest
+                        ):
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_BOND,
+                                    card,
+                                    slot,
+                                    dest,
+                                    player,
+                                ),
+                            )
+                    if rank > RANK_FRONT:
+                        dest = slot_index(player, front, rank - 1)
+                        if _fe_card_move_destination_legal(
+                            self, state, player, slot, dest
+                        ):
+                            n = _append_action(
+                                actions,
+                                n,
+                                encode_action(
+                                    TYPE_BOND,
+                                    card,
+                                    slot,
+                                    dest,
+                                    player,
+                                ),
+                            )
+                    if rank < RANK_REAR:
+                        dest = slot_index(player, front, rank + 1)
+                        if _fe_card_move_destination_legal(
+                            self, state, player, slot, dest
                         ):
                             n = _append_action(
                                 actions,

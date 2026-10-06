@@ -112,9 +112,11 @@ const TERM_HINTS = {
   "force": "The unit or place that activates a formation's Strength and Force-dependent Bond or Name text.",
   "forces": "Cards that activate formations in Frontline, Middle/Support, or Rear positions.",
   "prepared": "A Bond or Name already placed before its Force. It remains inactive where text depends on a Force.",
-  "adjacent": "Immediately left or right in the same rank.",
-  "adjacent force": "A Force immediately left or right in the same rank.",
-  "adjacent forces": "Forces immediately left or right in the same rank.",
+  "adjacent": "Sharing an edge: immediately left or right in the same rank, or one rank forward or back in the same Front. Never diagonal.",
+  "adjacent force": "A Force in an orthogonally adjacent position: left, right, one rank forward, or one rank back.",
+  "adjacent forces": "Forces in orthogonally adjacent positions; diagonal positions are not adjacent.",
+  "exhausted": "A Force with an Exhaustion token. It cannot initiate a Maneuver.",
+  "exhaustion": "A persistent token gained by Forces in a lost Front. A Force can have at most one and cannot initiate a Maneuver while exhausted.",
   "return": "Move a card from the battlefield back to its owner's hand."
 };
 
