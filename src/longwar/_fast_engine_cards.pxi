@@ -292,6 +292,7 @@ cdef void _v2_compile_effect(
     out.draw_count = int(effect.get("draw", 0))
     out.discard_count = int(effect.get("discard", 0))
     out.max_targets = int(effect.get("max_targets", 0))
+    out.once_per_battle = 1 if effect.get("limit") == "once_per_battle" else 0
     value = effect.get("requires_ranks")
     if value is None and effect.get("requires_rank") is not None:
         value = [effect.get("requires_rank")]
