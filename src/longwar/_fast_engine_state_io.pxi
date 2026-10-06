@@ -87,6 +87,9 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 fast.negative_two_markers[slot] = sum(
                     1 for marker in py_slot.negative_strength_markers if int(marker) == -2
                 )
+                fast.negative_three_markers[slot] = sum(
+                    1 for marker in py_slot.negative_strength_markers if int(marker) == -3
+                )
                 fast.suppression_mask[slot] = int(py_slot.suppression_mask)
                 fast.force_ability_used[slot] = bool(py_slot.force_ability_used)
                 fast.bond_ability_used[slot] = bool(py_slot.bond_ability_used)
@@ -538,6 +541,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                         "negative_strength_markers": (
                             [-1] * state.negative_one_markers[slot_index(p, f, r)]
                             + [-2] * state.negative_two_markers[slot_index(p, f, r)]
+                            + [-3] * state.negative_three_markers[slot_index(p, f, r)]
                         ),
                         "suppression_mask": state.suppression_mask[slot_index(p, f, r)],
                         "force_ability_used": bool(state.force_ability_used[slot_index(p, f, r)]),
