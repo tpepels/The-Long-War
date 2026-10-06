@@ -272,6 +272,7 @@ cdef int _v2_position_strength_no_reserve(
     value += state.temporary[slot]
     value -= state.negative_one_markers[slot]
     value -= 2 * state.negative_two_markers[slot]
+    value -= 3 * state.negative_three_markers[slot]
 
     value += _v2_component_strength_effects(
         self, state, slot, force, _v2_mode_for_force(self, force), 0
