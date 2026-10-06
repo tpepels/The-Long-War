@@ -109,6 +109,11 @@ cdef bint _v2_slot_effect_condition(
     cdef int other, other_player_id, other_rank
     if effect.rank_mask and not (effect.rank_mask & (1 << rank)):
         return False
+    if (
+        effect.condition == V2_CONDITION_COMMAND_LOWER
+        and state.command[player] >= state.command[other_player(player)]
+    ):
+        return False
     if effect.flags & V2_FLAG_REQUIRES_NAMED and not _v2_slot_named(state, slot):
         return False
     if effect.flags & V2_FLAG_REQUIRES_BONDED and not _v2_slot_bonded(state, slot):
