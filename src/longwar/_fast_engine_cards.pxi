@@ -272,7 +272,10 @@ cdef void _v2_compile_effect(
     out.op = op_map[effect["op"]]
     out.timing = timing_map[effect["timing"]]
     out.target = target_map.get(effect.get("target"), V2_TARGET_NONE)
-    out.target2 = target_map.get(effect.get("destination"), V2_TARGET_NONE)
+    value = effect.get("destination")
+    if value is None:
+        value = effect.get("requires_friendly")
+    out.target2 = target_map.get(value, V2_TARGET_NONE)
     out.area = area_map.get(effect.get("area"), V2_AREA_NONE)
     out.front_mode = front_map.get(effect.get("front"), V2_FRONT_NONE)
     out.duration = duration_map.get(effect.get("duration"), V2_DURATION_NONE)
