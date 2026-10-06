@@ -450,6 +450,16 @@ def test_art_focus_defaults_and_overrides() -> None:
     assert "background-position:var(--art-x,50%) var(--art-y,50%),var(--art-x,50%) var(--art-y,50%)" in css
 
 
+def test_every_canonical_card_has_per_card_art() -> None:
+    art_dir = ROOT / "web" / "art" / "v2" / "cards"
+    missing = sorted(
+        card["id"]
+        for card in CARDS
+        if not (art_dir / f"{card['id']}.png").is_file()
+    )
+    assert missing == []
+
+
 def test_contact_sheet_art_promotions_are_canonical() -> None:
     art_dir = ROOT / "web" / "art" / "v2" / "cards"
     promoted = {
