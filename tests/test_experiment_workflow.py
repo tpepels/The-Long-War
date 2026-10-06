@@ -91,10 +91,10 @@ def test_ismcts_records_non_executable_v2_card_pool_gap(capsys):
     assert context["engine_card_count"] == 95
     assert context["v2_pool"] == "cards/v2/cards.json"
     assert context["v2_status"] == "mechanical-redesign-proposal"
-    assert context["v2_card_count"] == 122
+    assert context["v2_card_count"] == 128
     assert context["v2_overlap_count"] == 95
     assert context["v2_changed_overlap_count"] == 95
-    assert context["v2_extra_card_count"] == 27
+    assert context["v2_extra_card_count"] == 33
     assert context["v2_executable"] is False
 
     runner._print_card_pool_notice()
