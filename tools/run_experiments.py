@@ -81,56 +81,20 @@ COMMAND_RECOVERY_CANDIDATES = (
 
 
 def _card_pool_context() -> dict[str, Any]:
-    """Identify the executable card pool and any divergent V2 proposal."""
+    """Identify the sole executable canonical card pool."""
     canonical_path = ROOT / "cards" / "cards.json"
-    v2_path = ROOT / "cards" / "v2" / "cards.json"
     canonical = json.loads(canonical_path.read_text(encoding="utf-8"))
-    canonical_cards = canonical.get("cards", [])
-    context: dict[str, Any] = {
+    return {
         "engine_pool": "cards/cards.json",
-        "engine_card_count": len(canonical_cards),
+        "engine_status": canonical.get("status"),
+        "engine_card_count": len(canonical.get("cards", [])),
+        "canonical_sources": 1,
     }
-    if not v2_path.is_file():
-        return context
-
-    v2 = json.loads(v2_path.read_text(encoding="utf-8"))
-    v2_cards = v2.get("cards", [])
-    canonical_by_id = {card["id"]: card for card in canonical_cards}
-    v2_by_id = {card["id"]: card for card in v2_cards}
-    overlap = set(canonical_by_id) & set(v2_by_id)
-    changed = sum(
-        1
-        for card_id in overlap
-        if canonical_by_id[card_id].get("text", "").strip()
-        != v2_by_id[card_id].get("text", "").strip()
-    )
-    context.update(
-        {
-            "v2_pool": "cards/v2/cards.json",
-            "v2_status": v2.get("status"),
-            "v2_card_count": len(v2_cards),
-            "v2_overlap_count": len(overlap),
-            "v2_changed_overlap_count": changed,
-            "v2_extra_card_count": len(set(v2_by_id) - set(canonical_by_id)),
-            "v2_executable": False,
-        }
-    )
-    return context
 
 
 def _print_card_pool_notice() -> None:
-    context = _card_pool_context()
-    if not context.get("v2_pool"):
-        return
-    print(
-        "Card-pool notice: ISMCTS uses "
-        f"{context['engine_pool']} ({context['engine_card_count']} cards). "
-        f"{context['v2_pool']} is {context.get('v2_status')!r} "
-        f"({context['v2_card_count']} cards; "
-        f"{context['v2_changed_overlap_count']} changed overlapping cards; "
-        f"{context['v2_extra_card_count']} extra) and is not executable."
-    )
-
+    """No warning is needed: the repository has one canonical card source."""
+    return
 
 def canonical_ismcts_tournament_config() -> dict[str, Any]:
     """Production ISMCTS settings, excluding the shared wall-clock budget."""
