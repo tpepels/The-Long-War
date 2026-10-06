@@ -11,7 +11,7 @@ const LIVE=new Set(["action","reaction","bonded","while_named","continuous","fro
 const RULE_TERMS=[
   "Named Formation","Bonded Formation","Unbonded Formation","Formation",
   "Force","Bond","Name","Hero","Tactic","Order","Stratagem","Narrative",
-  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Tireless","Mobile","Unnamed","Exhausted","Exhaustion","Exhaustion token",
+  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Press","Steal","Tireless","Mobile","Unnamed","Exhausted","Exhaustion","Exhaustion token",
   "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
   "prepared Bond","prepared Name"
 ];
@@ -80,6 +80,7 @@ function effectTokens(effect){
     [/^SUPPORT \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
     [/^SUPPLY$/,()=>token("ally")+commandToken("-1")],
     [/^RESERVE \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
+    [/^PRESS \+(\d)$/,m=>token("enemy")+strengthToken("+"+m[1])],
     [/^AHEAD TIRELESS$/,()=>token("ally")+token("move")],
     [/^MAY MANEUVER EXHAUSTED$/,()=>token("move")+token("marker")],
     [/^CAPTAIN\/SCOUT CYCLE$/,()=>classToken("captain")+classToken("scout")+token("cycle")],
