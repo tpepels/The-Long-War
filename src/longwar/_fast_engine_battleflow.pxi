@@ -36,6 +36,7 @@ cdef void _fe_discard_slot_components(
     state.temporary[slot] = 0
     state.negative_one_markers[slot] = 0
     state.negative_two_markers[slot] = 0
+    state.negative_three_markers[slot] = 0
     state.suppression_mask[slot] = 0
     state.force_ability_used[slot] = 0
     state.bond_ability_used[slot] = 0
@@ -111,6 +112,7 @@ cdef void _fe_finish_pending_drive_off(
     state.temporary[slot] = 0
     state.negative_one_markers[slot] = 0
     state.negative_two_markers[slot] = 0
+    state.negative_three_markers[slot] = 0
     state.suppression_mask[slot] = 0
     state.force_ability_used[slot] = 0
     state.bond_ability_used[slot] = 0
@@ -289,6 +291,7 @@ cdef inline void _fe_clear_battle_temporary_strength(
         state.temporary[slot] = 0
         state.negative_one_markers[slot] = 0
         state.negative_two_markers[slot] = 0
+        state.negative_three_markers[slot] = 0
         state.suppression_mask[slot] = 0
         state.force_ability_used[slot] = 0
         state.bond_ability_used[slot] = 0
