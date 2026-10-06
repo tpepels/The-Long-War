@@ -91,7 +91,7 @@ Where a per-card illustration exists under `web/art/v2/cards/`, use it. The seve
 
 No vector heraldry, watermark drawing, or second image may sit over the illustration.
 
-All card families, including Force, use the shared **20 mm illustration window** and shared card-body layout. Sparse/dense states may never change illustration geometry. Artwork focus is controlled independently through `--art-x` / `--art-y`: non-Force cards default to `50% 50%`, while Force defaults to the top-biased `50% 28%` to keep faces and heads inside the wide crop. Optional card data fields `art_focus_x` and `art_focus_y` override those defaults without changing the window.
+All card families, including Force, use the shared **20 mm illustration window** and shared card-body layout. The effective shared art aperture is 62.36 × 20 mm (3.118:1). Force source illustrations are normalized offline to a canonical 1248 × 400 raster matching that aperture, with the subject-preserving crop baked into the PNG. Runtime artwork therefore defaults to centered `50% 50%`. Optional card data fields `art_focus_x` and `art_focus_y` remain available only as escape hatches; they must not be used instead of normalizing inconsistent source dimensions.
 
 ## Rules
 

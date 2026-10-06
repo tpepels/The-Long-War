@@ -111,7 +111,7 @@ function artFocus(value,fallback){
 }
 function artStyle(card){
   const x=artFocus(card.art_focus_x,"50%");
-  const y=artFocus(card.art_focus_y,card.type==="force"?"28%":"50%");
+  const y=artFocus(card.art_focus_y,"50%");
   const artURL="art/v2/cards/"+esc(card.id)+".png?v="+encodeURIComponent(VERSION);
   return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
 }

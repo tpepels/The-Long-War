@@ -388,7 +388,8 @@ def test_art_focus_defaults_and_overrides() -> None:
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert "function artFocus(value,fallback)" in js
-    assert 'card.type==="force"?"28%":"50%"' in js
+    assert 'card.type==="force"?"28%":"50%"' not in js
+    assert 'const y=artFocus(card.art_focus_y,"50%");' in js
     assert "card.art_focus_x" in js
     assert "card.art_focus_y" in js
     assert "--art-x:" in js and "--art-y:" in js
@@ -413,3 +414,22 @@ def test_contact_sheet_art_promotions_are_canonical() -> None:
         "the-crow-archers", "the-white-hands-of-elara",
     }
     assert all((art_dir / f"{card_id}.png").is_file() for card_id in promoted)
+
+
+def test_force_art_normalizer_matches_shared_window() -> None:
+    normalizer = (ROOT / "tools" / "normalize_v2_art.py").read_text(encoding="utf-8")
+    assert "ART_WIDTH_MM = (" in normalizer
+    assert "ART_HEIGHT_MM = 20.0" in normalizer
+    assert "OUTPUT_WIDTH = 1248" in normalizer
+    assert "OUTPUT_HEIGHT = 400" in normalizer
+    assert '"the-black-company": 0.12' in normalizer
+    assert '"the-first-spear": 0.18' in normalizer
+    assert "DEFAULT_FORCE_FOCUS_Y = 0.28" in normalizer
+
+
+def test_runtime_art_crop_is_centered_after_normalization() -> None:
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    assert 'const y=artFocus(card.art_focus_y,"50%");' in js
+    assert 'card.type==="force"?"28%":"50%"' not in js
+    assert "background-position:var(--art-x,50%) var(--art-y,50%)" in css
