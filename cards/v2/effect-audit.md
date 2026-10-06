@@ -1,6 +1,6 @@
 # V2 effect audit
 
-This audit reviews **all 169 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
+This audit reviews **all 168 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
 
 ## Result
 
@@ -142,7 +142,6 @@ This audit reviews **all 169 current card effects** for superfluous bookkeeping,
 | The Battle Had Chosen Them | narrative | continuous | Face-up | KEEP | Your Heroes and Named Formations have +1 Strength this Battle. |
 | No One Would Be First to Leave | narrative | continuous | Face-up | KEEP | Your Bonded Human Formations have +1 Strength this Battle. |
 | The King Had Given the Order | narrative | continuous | Face-up | KEEP | Bonds and Names you play into a Front containing one of your Kings or Captains cost 1 less Command, to a minimum of 1. |
-| The Ash Bowmen | force | bonded | Exposed strip | KEEP | This formation has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Lantern Scouts | force | continuous | Exposed strip | KEEP | While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The River Raiders | force | continuous | Exposed strip | KEEP | PRESS +1. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The King's Spears | force | while_named | Exposed strip | KEEP | This formation has +1 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
