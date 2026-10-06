@@ -58,6 +58,7 @@ def information_set_key(state: GameState, player: int) -> dict[str, Any]:
                     slot.bond,
                     slot.name,
                     slot.temporary_strength,
+                    slot.exhausted,
                 ]
             )
 
