@@ -305,10 +305,9 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
         path.stem
         for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png")
     )
-    assert len(art_ids) == 119
     known = {card["id"] for card in CARDS}
-    assert art_ids
-    assert set(art_ids) <= known
+    assert len(art_ids) == len(known) == 128
+    assert set(art_ids) == known
 
 def test_multi_effect_heroes_receive_dense_layout() -> None:
     rendered = render_cards([c for c in CARDS if c["type"] == "hero" and len(effects(c)) >= 3])
@@ -375,10 +374,9 @@ def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
         path.stem
         for path in (ROOT / "web" / "art" / "v2" / "cards").glob("*.png")
     }
-    # Every Force with matching generated art in the repository is promoted to
-    # the normal per-card art path. The Red Shields has no matching generated
-    # file yet and therefore deliberately retains the Force family fallback.
-    assert force_ids - art_ids == {"the-red-shields"}
+    # Every current Force has exact-id per-card art. Family art remains only as
+    # a renderer fallback for future cards before their individual art lands.
+    assert force_ids <= art_ids
 
 
 def test_dense_hero_rules_fit_shared_layout_regression() -> None:
