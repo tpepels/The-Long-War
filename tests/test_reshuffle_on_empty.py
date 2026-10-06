@@ -99,12 +99,14 @@ def test_empty_pile_reshuffle_is_deterministic_for_same_shuffle_seed() -> None:
     assert first.shuffle_seed == second.shuffle_seed
 
 
-def test_battle_end_does_not_recycle_discard_without_a_draw() -> None:
+def test_next_battle_turn_draw_reshuffles_before_overflow_cleanup() -> None:
     engine, state = setup_state()
 
     # Player 1 is unable to act and becomes the passer. Player 0 is the
     # non-passer: its first closing-turn draw uses the one existing deck card
-    # to reach 10 cards, leaving the public discard untouched.
+    # to reach 10 cards. Battle-end refill needs no card, but the next Battle's
+    # normal turn draw still happens. With an empty deck, that draw reshuffles
+    # the discard pile before hand-limit cleanup.
     state.active_player = 1
     state.players[1].hand.clear()
     state.players[1].deck.clear()
@@ -123,8 +125,8 @@ def test_battle_end_does_not_recycle_discard_without_a_draw() -> None:
 
     assert state.battle == 2
     assert state.active_player == 0
-    assert state.players[0].discard == ["followed", "swore-again-to", "namar"]
-    assert state.deck_reshuffles[0] == 0
-    # The next Battle starts with player 0 at the hand limit, so its normal
-    # turn draw pauses for discard-before-draw without recycling anything yet.
+    assert state.deck_reshuffles[0] == 1
+    assert state.players[0].discard == []
+    assert len(state.players[0].hand) == engine.hand_limit + 1
+    assert len(state.players[0].deck) == 2
     assert state.pending_draw_discard_for == 0
