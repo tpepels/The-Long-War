@@ -144,8 +144,8 @@ def test_native_engine_accepts_largest_current_legal_deck(data):
         for _ in range(1 if card["unique"] else 4)
     ]
 
-    # Current pool: 28 Unique cards + 67 non-Unique cards x4.
-    assert len(maximal_legal) == 296
+    # Current V2 pool: 31 Unique cards + 97 non-Unique cards x4.
+    assert len(maximal_legal) == 419
     engine.validate_deck(maximal_legal)
 
     state = engine.new_game(
@@ -155,9 +155,8 @@ def test_native_engine_accepts_largest_current_legal_deck(data):
         first_player=0,
         opening_bonus=False,
     )
-    # Opening hands leave 286 cards in each draw pile, which exceeded the old
-    # uint8/254 native deck representation.
-    assert len(state.players[0].deck) == 286
+    # Opening hands leave 409 cards in each draw pile.
+    assert len(state.players[0].deck) == 409
     native = engine._native_core()
     packed = native.from_game_state(state)
     key = native.information_key(packed, 0)
@@ -174,7 +173,7 @@ def _expanded_pool(data, size):
 
 
 def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
-    engine = GameEngine(_expanded_pool(data, 127))
+    engine = GameEngine(_expanded_pool(data, 128))
     deck = json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
     state = engine.new_game(
         deck,
@@ -183,22 +182,16 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
         first_player=0,
         opening_bonus=False,
     )
-    # The 127-card native cap leaves 32 synthetic Bonds on top of the
-    # canonical pool. Combine those with the canonical Bonds so the legal
-    # action set still exceeds the historical 256-action buffer.
+    # The canonical 128-card pool itself now exercises the widened card-code
+    # field. Twenty distinct Bonds also keep the legal action set above the
+    # historical 256-action buffer without approaching MAX_ACTIONS.
     state.players[0].deck = []
     bond_ids = [
         card_id
         for card_id, card in engine.cards.items()
         if card["type"] == "bond"
     ]
-    # Keep enough distinct cards to exceed the historical 256-action buffer
-    # without creating an unrealistic all-pool hand whose Cycle combinations
-    # alone exceed the production MAX_ACTIONS capacity.
-    state.players[0].hand = [
-        *[card_id for card_id in bond_ids if card_id != "test-bond-126"][:19],
-        "test-bond-126",
-    ]
+    state.players[0].hand = bond_ids[:20]
     legal = engine.legal_actions(state)
     assert len(legal) > 256
     card_actions = [
@@ -207,15 +200,15 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
     ]
     assert card_actions
     assert any(
-        getattr(action, "card_id", None) == "test-bond-126"
+        getattr(action, "card_id", None) == bond_ids[19]
         for action in card_actions
     )
     for player in state.players:
         player.deck = []
         player.hand = []
         # Native card zones cover the full four-copy wire-format pool:
-        # 127 possible card identities x 4 copies.
-        player.discard = ["followed"] * (127 * 4)
+        # 128 possible card identities x 4 copies.
+        player.discard = ["followed"] * (128 * 4)
     native = engine._native_core()
     key = native.information_key(native.from_game_state(state), 0)
     assert len(key) > 1024
@@ -226,5 +219,6 @@ def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
 
 
 def test_card_identity_capacity_is_checked_before_packing(data):
-    with pytest.raises(ValueError, match="at most 127"):
-        GameEngine(_expanded_pool(data, 128))
+    GameEngine(_expanded_pool(data, 128))
+    with pytest.raises(ValueError, match="at most 128"):
+        GameEngine(_expanded_pool(data, 129))
