@@ -56,6 +56,7 @@ def project_state(state: GameState) -> dict[str, object]:
                         "force": slot.force,
                         "bond": slot.bond,
                         "name": slot.name,
+                        "exhausted": slot.exhausted,
                         "temporary_strength": slot.temporary_strength,
                     }
                     for slot in front
