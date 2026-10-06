@@ -11,6 +11,7 @@ cdef class FastEngine:
     cdef int name_count
     cdef int narrative_count
     cdef int stratagem_count
+    cdef int tactic_count
     cdef int hero_count
     cdef int name_mode_count
     cdef int16_t force_codes[MAX_CARDS]
@@ -18,6 +19,7 @@ cdef class FastEngine:
     cdef int16_t name_codes[MAX_CARDS]
     cdef int16_t narrative_codes[MAX_CARDS]
     cdef int16_t stratagem_codes[MAX_CARDS]
+    cdef int16_t tactic_codes[MAX_CARDS]
     cdef int16_t hero_codes[MAX_CARDS]
     cdef int16_t name_mode_codes[MAX_CARDS]
     cdef int opening_hand_size
@@ -54,6 +56,11 @@ cdef class FastEngine:
     cdef int8_t strength[MAX_CARDS]
     cdef int8_t name_strength[MAX_CARDS]
     cdef uint8_t hero[MAX_CARDS]
+    cdef uint32_t class_mask[MAX_CARDS]
+    cdef uint8_t allowed_rank_mask[MAX_CARDS]
+    cdef int8_t bond_strength_modifier[MAX_CARDS]
+    cdef int8_t v2_effect_count[MAX_CARDS][3]
+    cdef V2EffectSpec v2_effects[MAX_CARDS][3][2]
     cdef uint64_t card_capabilities[MAX_CARDS]
     cdef int8_t placement_rank[MAX_CARDS]
     cdef int8_t force_text_effect[MAX_CARDS]
