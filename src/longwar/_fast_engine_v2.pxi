@@ -502,6 +502,17 @@ cdef uint32_t _v2_target_mask(
                 ):
                     mask |= <uint32_t>(1 << slot)
 
+        elif target == V2_TARGET_SELF_OR_DIRECTLY_BEHIND:
+            if origin >= 0 and owner_from_slot(slot) == player:
+                if slot == origin and state.force[slot] >= 0:
+                    mask |= <uint32_t>(1 << slot)
+                elif (
+                    front == front_from_slot(origin)
+                    and rank == rank_from_slot(origin) + 1
+                    and state.force[slot] >= 0
+                ):
+                    mask |= <uint32_t>(1 << slot)
+
         elif target == V2_TARGET_SELF_VERTICAL_FRIEND:
             if (
                 origin >= 0
