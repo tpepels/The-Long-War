@@ -176,9 +176,14 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
     assert 'id="mechanics-reference"' in html
     assert "position_vocabulary" in script
     assert "MOVE UP TO N" in script
+    assert "SWAP" in script
+    assert "MOVES / MOVED" in script
     assert "OUTMATCHED" in script
     assert "TIRELESS" in script
     assert "EXHAUSTION" in script
+    assert "COMMAND MODIFIERS" in script
+    assert "TAX MARKERS" in script
+    assert "TEMPORARY NEGATIVE" in script
     assert ".mechanics-reference" in css
     page = text("web/playtest-kit.html")
     assert decks
