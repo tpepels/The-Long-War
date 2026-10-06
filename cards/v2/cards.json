@@ -3877,6 +3877,8 @@
     "exhaustion": "After you lose a Front, every Force you have in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its token leaves with it. A tied Front exhausts neither player.",
     "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1.",
     "command_modifiers": "Command modifiers stack: add all applicable increases, then apply all applicable reductions. If any applicable reduction explicitly allows minimum 0, the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.",
-    "tax_markers": "Each Tax marker is separate. If the next card played satisfies multiple Tax markers, all matching increases apply and all matching next-card markers are consumed. A marker with an expiry expires when its own text says it does."
+    "tax_markers": "Each Tax marker is separate. If the next card played satisfies multiple Tax markers, all matching increases apply and all matching next-card markers are consumed. A marker with an expiry expires when its own text says it does.",
+    "strength_marker": "A -Strength marker is a temporary negative marker recording a Battle-long Strength penalty created by card text such as gets -2 Strength this Battle.",
+    "temporary_negative_marker": "A temporary negative marker is any adverse marker on a formation created by a finite-duration card effect, including -Strength, text-suppression, or ability-lock markers. It does not include Exhaustion or a Tax marker on a Front. Removing one ends that marker's effect."
   }
 }
