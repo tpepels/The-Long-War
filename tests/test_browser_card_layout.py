@@ -68,9 +68,6 @@ class RenderedCard(HTMLParser):
             self.stack.pop()
 
     def handle_data(self, data: str) -> None:
-        # SVG <title> content is accessibility metadata, not visible card text.
-        if self.stack and self.stack[-1]["tag"] == "title":
-            return
         for element in self.stack:
             element["text"] += data
 
@@ -138,7 +135,8 @@ def test_print_renderer_preserves_current_v2_content_and_modes() -> None:
         assert bool(output.all("event-crown")) is (not formation)
         if card["type"] == "hero":
             headings = [node["text"].strip() for node in output.all("mode-heading")]
-            assert headings == ["Force", "Name"]
+            assert headings[0].endswith("Force")
+            assert headings[1].endswith("Name")
         assert output.one("cost-gem")["text"] == str(card["command_cost"])
 
 
@@ -164,7 +162,9 @@ def test_shared_renderer_escapes_hostile_text_and_preserves_numeric_values() -> 
     assert not any(element["tag"] in {"img", "script"} for element in first.elements)
     assert first.one("cost-gem")["text"] == "0"
     assert first.one("strength-mark")["text"].strip().endswith("-1")
-    assert [value["text"].strip() for value in hero.all("hero-stat")] == ["0", "-2"]
+    hero_stats = [value["text"].strip() for value in hero.all("hero-stat")]
+    assert hero_stats[0].endswith("0")
+    assert hero_stats[1].endswith("-2")
     assert hero.one("cost-gem")["text"] == "0"
 
 

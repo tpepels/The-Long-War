@@ -39,31 +39,31 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-stratagem{--accent:#405d70;--deep:#354b5c;--paper:#f3f6f5;--family-art:url("art/v2/stratagem-war-map.png")}
 .card-narrative{--accent:#735568;--deep:#604454;--paper:#faf4f1;--family-art:url("art/v2/narrative-roadside-memorial.png")}
 
-.stack-edge{flex:0 0 calc(var(--exposed-edge) - var(--frame));height:calc(var(--exposed-edge) - var(--frame));position:relative;z-index:4;display:grid;grid-template-columns:auto max-content minmax(0,1fr);align-items:center;column-gap:1.25mm;padding:.7mm 2.15mm .65mm;border-bottom:.22mm solid color-mix(in srgb,var(--accent) 70%,#777);background:color-mix(in srgb,var(--paper) 92%,white);box-shadow:inset 0 -.45mm .7mm rgba(35,36,29,.035)}
-.edge-stats,.hero-stats{display:flex;align-items:center;gap:.48mm;height:6.8mm;flex:none;color:var(--deep)}
+.stack-edge{flex:0 0 calc(var(--exposed-edge) - var(--frame));height:calc(var(--exposed-edge) - var(--frame));position:relative;z-index:4;display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1.35fr);align-items:center;column-gap:.85mm;padding:.7mm 2.15mm .65mm;border-bottom:.22mm solid color-mix(in srgb,var(--accent) 70%,#777);background:color-mix(in srgb,var(--paper) 92%,white);box-shadow:inset 0 -.45mm .7mm rgba(35,36,29,.035)}
+.edge-stats,.hero-stats{display:flex;align-items:center;gap:.48mm;height:6.8mm;min-height:6.8mm;flex:none;color:var(--deep)}
 .type-mark{width:4.25mm;height:4.25mm;display:grid;place-items:center}
 .type-mark svg{width:100%;height:100%}
 .strength-mark{display:flex;align-items:center;gap:.3mm;padding-left:.58mm;border-left:.15mm solid color-mix(in srgb,var(--accent) 48%,transparent)}
 .strength-mark svg{width:3.45mm;height:3.45mm}
 .strength-mark b{font:600 4.2mm/.9 var(--display)}
-.hero-stat{display:flex;align-items:center;gap:.18mm}
-.hero-stat+.hero-stat{padding-left:.45mm;border-left:.15mm solid color-mix(in srgb,var(--accent) 48%,transparent)}
+.hero-stat{display:flex;align-items:center;gap:.18mm;height:4.25mm}
+.hero-force-stat{padding-left:.58mm;border-left:.15mm solid color-mix(in srgb,var(--accent) 48%,transparent)}.hero-stat+.hero-stat{padding-left:.45mm;border-left:.15mm solid color-mix(in srgb,var(--accent) 48%,transparent)}
 .hero-stat svg{width:3.8mm;height:3.8mm}
 .hero-stat b{font:600 3.8mm/.9 var(--display)}
-.edge-identity{min-width:0;display:flex;align-items:center;justify-content:center;gap:.56mm;overflow:hidden;padding:0 .25mm}
+.edge-identity{min-width:0;height:6.8mm;display:flex;align-items:center;justify-content:center;gap:.46mm;overflow:hidden;padding:0 .2mm}
 .class-sigil{width:3.8mm;height:3.8mm;display:grid;place-items:center;flex:none;color:var(--deep)}
 .class-sigil svg{width:100%;height:100%}
-.edge-live-group{min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:.46mm;overflow:hidden;padding-left:.7mm;border-left:.15mm solid color-mix(in srgb,var(--accent) 34%,transparent)}
-.edge-live-group:empty{display:none}
+.edge-live-group{min-width:0;height:6.8mm;display:flex;align-items:center;justify-content:flex-end;gap:.28mm;overflow:hidden;padding-left:.55mm;border-left:.15mm solid color-mix(in srgb,var(--accent) 34%,transparent)}
+.edge-live-group:empty{border-left:0}
 .edge-placement{position:relative;display:flex;align-items:center;gap:.1mm;color:var(--deep);flex:none}
 .edge-placement>.glyph-row{width:3.9mm;height:3.9mm}
 .placement-lock{width:1.9mm;height:1.9mm;margin-left:-.95mm;margin-top:2mm;background:var(--paper);border-radius:50%;display:grid;place-items:center}
 .placement-lock svg{width:100%;height:100%}
-.edge-mechanic{display:flex;align-items:center;gap:.34mm;min-width:0;flex:none}
-.edge-timing{width:3.45mm;height:3.45mm;display:grid;place-items:center;color:var(--deep)}
+.edge-mechanic{display:flex;align-items:center;gap:.28mm;min-width:0;flex:1 1 0;overflow:hidden}
+.edge-timing{width:3.15mm;height:3.15mm;display:grid;place-items:center;color:var(--deep);flex:none}
 .edge-timing svg{width:100%;height:100%}
-.edge-timing-word{display:inline;color:var(--deep);font:700 1.42mm/1 var(--utility);letter-spacing:.045em;white-space:nowrap}
-.edge-live-text{max-width:20mm;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--deep);font:700 1.45mm/1.04 var(--utility);letter-spacing:.015em;text-transform:uppercase}
+.edge-timing-word{display:inline;color:var(--deep);font:700 1.25mm/1 var(--utility);letter-spacing:.035em;white-space:nowrap;flex:none}
+.edge-live-text{min-width:0;max-width:none;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--deep);font:700 1.28mm/1.04 var(--utility);letter-spacing:.01em;text-transform:uppercase}
 .use-socket{width:2.45mm;height:2.45mm;border:.28mm solid var(--deep);border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 .3mm color-mix(in srgb,var(--paper) 78%,white);flex:none}
 .edge-effect-tokens{display:flex;align-items:center;gap:.3mm;min-width:0}
 .edge-token{display:flex;align-items:center;gap:.15mm;color:var(--deep);height:4mm}
@@ -81,7 +81,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 
 .card-body{flex:1 1 auto;min-height:0;padding:1.55mm 3.45mm .75mm;display:flex;flex-direction:column;position:relative;z-index:2}
 .card-identity{flex:0 0 var(--identity-height);height:var(--identity-height);min-height:var(--identity-height);overflow:hidden;display:flex;flex-direction:column}
-.card-title{flex:0 0 10.4mm;max-height:10.4mm;margin:.15mm 0 0;color:var(--deep);font:600 5.25mm/1.04 var(--display);letter-spacing:-.025em;text-wrap:balance;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-title{flex:0 0 10.4mm;max-height:10.4mm;margin:.15mm 0 0;color:var(--deep);font:600 5.25mm/1.04 var(--display);letter-spacing:-.025em;text-wrap:balance;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.title-long .card-title{font-size:4.65mm;line-height:1.03}.title-very-long .card-title{font-size:4.15mm;line-height:1.01}
 .class-line{flex:0 0 4mm;height:4mm;min-height:4mm;margin:.35mm 0 0;display:flex;align-items:center;gap:.48mm;color:#55584c;white-space:nowrap;overflow:hidden}
 .class-line-prefix{margin-right:.25mm;font:italic 1.85mm/1 var(--text);color:#6a6b60}
 .class-body-item{display:flex;align-items:center;gap:.22mm;font:italic 2.05mm/1 var(--text)}
