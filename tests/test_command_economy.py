@@ -203,6 +203,23 @@ def test_play_refund_does_not_make_card_cost_negative() -> None:
     assert state.players[0].command == 1
     assert state.command_spent_this_battle[0] == 1
 
+def test_rallied_behind_refunds_only_while_behind() -> None:
+    engine, state = standard_game()
+    target = Position(Front.FIRST, Rank.FRONT)
+    GameScenario(state).formation(
+        0,
+        target,
+        force="the-fifty-men",
+    ).commands(5, 5).hand(0, "rallied-behind")
+
+    action = PlayBond("rallied-behind", target)
+    assert engine.command_cost_for_action(state, action) == 1
+    engine.apply(state, action)
+
+    assert state.players[0].command == 4
+    assert state.command_spent_this_battle[0] == 1
+
+
 def test_arithmetic_recovery_formula_can_be_overridden() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     rules = GameRules.standard().with_overrides(
