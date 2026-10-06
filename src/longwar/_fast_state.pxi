@@ -12,6 +12,13 @@ cdef class FastState:
     cdef int8_t name[SLOT_COUNT]
     cdef uint8_t exhausted[SLOT_COUNT]
     cdef int16_t temporary[SLOT_COUNT]
+    cdef uint8_t negative_one_markers[SLOT_COUNT]
+    cdef uint8_t negative_two_markers[SLOT_COUNT]
+    cdef uint16_t suppression_mask[SLOT_COUNT]
+    cdef uint8_t force_ability_used[SLOT_COUNT]
+    cdef uint8_t bond_ability_used[SLOT_COUNT]
+    cdef uint8_t name_ability_used[SLOT_COUNT]
+    cdef uint8_t name_suppression_immune[SLOT_COUNT]
     cdef uint8_t maneuver_count[SLOT_COUNT]
     cdef uint8_t maneuvered_in_operation[SLOT_COUNT]
 
@@ -23,6 +30,7 @@ cdef class FastState:
     cdef uint8_t narrative_trigger_mask[NARRATIVE_COUNT]
     cdef int8_t stratagem[PLAYER_COUNT]
     cdef uint8_t stratagem_revealed[PLAYER_COUNT]
+    cdef uint8_t stratagem_known_to_mask[PLAYER_COUNT]
     cdef uint8_t stratagem_front_mask[PLAYER_COUNT]
     cdef uint8_t stratagem_direction[PLAYER_COUNT]
     cdef uint32_t stratagem_target_mask[PLAYER_COUNT]
@@ -43,6 +51,23 @@ cdef class FastState:
     cdef uint8_t constraint_len
 
     cdef uint8_t known_hidden[PLAYER_COUNT][PLAYER_COUNT][MAX_CARDS]
+
+    cdef uint8_t tax_owner[MAX_TAX_MARKERS]
+    cdef uint8_t tax_target_player[MAX_TAX_MARKERS]
+    cdef uint8_t tax_front[MAX_TAX_MARKERS]
+    cdef uint8_t tax_amount[MAX_TAX_MARKERS]
+    cdef uint8_t tax_card_type_mask[MAX_TAX_MARKERS]
+    cdef int32_t tax_expires_turn[MAX_TAX_MARKERS]
+    cdef uint8_t tax_len
+
+    cdef uint8_t discount_owner[MAX_SLOT_DISCOUNTS]
+    cdef uint8_t discount_target_player[MAX_SLOT_DISCOUNTS]
+    cdef uint8_t discount_slot[MAX_SLOT_DISCOUNTS]
+    cdef uint8_t discount_amount[MAX_SLOT_DISCOUNTS]
+    cdef uint8_t discount_minimum[MAX_SLOT_DISCOUNTS]
+    cdef uint8_t discount_card_type_mask[MAX_SLOT_DISCOUNTS]
+    cdef int32_t discount_expires_turn[MAX_SLOT_DISCOUNTS]
+    cdef uint8_t discount_len
 
     cdef uint8_t passed[PLAYER_COUNT]
     cdef int8_t pass_order[PLAYER_COUNT]
@@ -132,6 +157,13 @@ cdef class FastState:
         memset(self.name, 0xff, sizeof(self.name))
         memset(self.exhausted, 0, sizeof(self.exhausted))
         memset(self.temporary, 0, sizeof(self.temporary))
+        memset(self.negative_one_markers, 0, sizeof(self.negative_one_markers))
+        memset(self.negative_two_markers, 0, sizeof(self.negative_two_markers))
+        memset(self.suppression_mask, 0, sizeof(self.suppression_mask))
+        memset(self.force_ability_used, 0, sizeof(self.force_ability_used))
+        memset(self.bond_ability_used, 0, sizeof(self.bond_ability_used))
+        memset(self.name_ability_used, 0, sizeof(self.name_ability_used))
+        memset(self.name_suppression_immune, 0, sizeof(self.name_suppression_immune))
         memset(self.maneuver_count, 0, sizeof(self.maneuver_count))
         memset(self.maneuvered_in_operation, 0, sizeof(self.maneuvered_in_operation))
         memset(self.narrative, 0xff, sizeof(self.narrative))
@@ -142,6 +174,7 @@ cdef class FastState:
         memset(self.narrative_trigger_mask, 0, sizeof(self.narrative_trigger_mask))
         memset(self.stratagem, 0xff, sizeof(self.stratagem))
         memset(self.stratagem_revealed, 0, sizeof(self.stratagem_revealed))
+        memset(self.stratagem_known_to_mask, 0, sizeof(self.stratagem_known_to_mask))
         memset(self.stratagem_front_mask, 0, sizeof(self.stratagem_front_mask))
         memset(self.stratagem_direction, 0, sizeof(self.stratagem_direction))
         memset(self.stratagem_target_mask, 0, sizeof(self.stratagem_target_mask))
@@ -160,6 +193,21 @@ cdef class FastState:
         memset(self.constraint_flags, 0, sizeof(self.constraint_flags))
         self.constraint_len = 0
         memset(self.known_hidden, 0, sizeof(self.known_hidden))
+        memset(self.tax_owner, 0, sizeof(self.tax_owner))
+        memset(self.tax_target_player, 0, sizeof(self.tax_target_player))
+        memset(self.tax_front, 0, sizeof(self.tax_front))
+        memset(self.tax_amount, 0, sizeof(self.tax_amount))
+        memset(self.tax_card_type_mask, 0, sizeof(self.tax_card_type_mask))
+        memset(self.tax_expires_turn, 0xff, sizeof(self.tax_expires_turn))
+        self.tax_len = 0
+        memset(self.discount_owner, 0, sizeof(self.discount_owner))
+        memset(self.discount_target_player, 0, sizeof(self.discount_target_player))
+        memset(self.discount_slot, 0, sizeof(self.discount_slot))
+        memset(self.discount_amount, 0, sizeof(self.discount_amount))
+        memset(self.discount_minimum, 0, sizeof(self.discount_minimum))
+        memset(self.discount_card_type_mask, 0, sizeof(self.discount_card_type_mask))
+        memset(self.discount_expires_turn, 0xff, sizeof(self.discount_expires_turn))
+        self.discount_len = 0
         memset(self.passed, 0, sizeof(self.passed))
         memset(self.pass_order, 0xff, sizeof(self.pass_order))
         memset(self.discarded_this_battle, 0, sizeof(self.discarded_this_battle))
@@ -245,6 +293,13 @@ cdef class FastState:
         memcpy(self.name, other.name, sizeof(self.name))
         memcpy(self.exhausted, other.exhausted, sizeof(self.exhausted))
         memcpy(self.temporary, other.temporary, sizeof(self.temporary))
+        memcpy(self.negative_one_markers, other.negative_one_markers, sizeof(self.negative_one_markers))
+        memcpy(self.negative_two_markers, other.negative_two_markers, sizeof(self.negative_two_markers))
+        memcpy(self.suppression_mask, other.suppression_mask, sizeof(self.suppression_mask))
+        memcpy(self.force_ability_used, other.force_ability_used, sizeof(self.force_ability_used))
+        memcpy(self.bond_ability_used, other.bond_ability_used, sizeof(self.bond_ability_used))
+        memcpy(self.name_ability_used, other.name_ability_used, sizeof(self.name_ability_used))
+        memcpy(self.name_suppression_immune, other.name_suppression_immune, sizeof(self.name_suppression_immune))
         memcpy(self.maneuver_count, other.maneuver_count, sizeof(self.maneuver_count))
         memcpy(self.maneuvered_in_operation, other.maneuvered_in_operation, sizeof(self.maneuvered_in_operation))
         memcpy(self.narrative, other.narrative, sizeof(self.narrative))
@@ -255,6 +310,7 @@ cdef class FastState:
         memcpy(self.narrative_trigger_mask, other.narrative_trigger_mask, sizeof(self.narrative_trigger_mask))
         memcpy(self.stratagem, other.stratagem, sizeof(self.stratagem))
         memcpy(self.stratagem_revealed, other.stratagem_revealed, sizeof(self.stratagem_revealed))
+        memcpy(self.stratagem_known_to_mask, other.stratagem_known_to_mask, sizeof(self.stratagem_known_to_mask))
         memcpy(self.stratagem_front_mask, other.stratagem_front_mask, sizeof(self.stratagem_front_mask))
         memcpy(self.stratagem_direction, other.stratagem_direction, sizeof(self.stratagem_direction))
         memcpy(self.stratagem_target_mask, other.stratagem_target_mask, sizeof(self.stratagem_target_mask))
@@ -273,6 +329,21 @@ cdef class FastState:
         memcpy(self.constraint_flags, other.constraint_flags, sizeof(self.constraint_flags))
         self.constraint_len = other.constraint_len
         memcpy(self.known_hidden, other.known_hidden, sizeof(self.known_hidden))
+        memcpy(self.tax_owner, other.tax_owner, sizeof(self.tax_owner))
+        memcpy(self.tax_target_player, other.tax_target_player, sizeof(self.tax_target_player))
+        memcpy(self.tax_front, other.tax_front, sizeof(self.tax_front))
+        memcpy(self.tax_amount, other.tax_amount, sizeof(self.tax_amount))
+        memcpy(self.tax_card_type_mask, other.tax_card_type_mask, sizeof(self.tax_card_type_mask))
+        memcpy(self.tax_expires_turn, other.tax_expires_turn, sizeof(self.tax_expires_turn))
+        self.tax_len = other.tax_len
+        memcpy(self.discount_owner, other.discount_owner, sizeof(self.discount_owner))
+        memcpy(self.discount_target_player, other.discount_target_player, sizeof(self.discount_target_player))
+        memcpy(self.discount_slot, other.discount_slot, sizeof(self.discount_slot))
+        memcpy(self.discount_amount, other.discount_amount, sizeof(self.discount_amount))
+        memcpy(self.discount_minimum, other.discount_minimum, sizeof(self.discount_minimum))
+        memcpy(self.discount_card_type_mask, other.discount_card_type_mask, sizeof(self.discount_card_type_mask))
+        memcpy(self.discount_expires_turn, other.discount_expires_turn, sizeof(self.discount_expires_turn))
+        self.discount_len = other.discount_len
         memcpy(self.passed, other.passed, sizeof(self.passed))
         memcpy(self.pass_order, other.pass_order, sizeof(self.pass_order))
         memcpy(self.discarded_this_battle, other.discarded_this_battle, sizeof(self.discarded_this_battle))
