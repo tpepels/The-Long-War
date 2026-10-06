@@ -16,7 +16,7 @@
   },
   "card_type_grammar": {
     "force": {
-      "role": "Base Strength and at most one short battlefield identity, often positional.",
+      "role": "Base Strength and at most one short battlefield identity, usually positional, reactive, or exhaustion-related.",
       "allowed_timings": [
         "play",
         "action",
@@ -25,7 +25,9 @@
         "while_named",
         "front",
         "middle",
-        "rear"
+        "rear",
+        "exhausted",
+        "tireless"
       ],
       "buried_rule": "PLAY text may be covered after it resolves. ACTION/REACTION abilities, BONDED, and WHILE NAMED effects must be completely readable in the exposed strip. Force ACTION/REACTION abilities are limited to once per Battle."
     },
@@ -325,21 +327,18 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "action",
-          "text": "Move this formation one position.",
+          "timing": "tireless",
+          "text": "This formation may Maneuver while Exhausted.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "ACTION 1/B · MOVE 1"
+          "memory": [],
+          "exposed": "MAY MANEUVER EXHAUSTED"
         }
       ],
-      "text": "ACTION · 1/BATTLE - Move this formation one position.",
+      "text": "TIRELESS - This formation may Maneuver while Exhausted.",
       "design_tags": [
-        "action-engine",
-        "marker-state",
-        "movement"
+        "exhaustion",
+        "movement",
+        "persistent-state"
       ]
     },
     {
@@ -515,21 +514,19 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When a temporary negative marker would be placed on this formation, you may prevent it.",
+          "timing": "middle",
+          "text": "RESERVE +2.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · PREVENT MARKER"
+          "memory": [],
+          "exposed": "RESERVE +2"
         }
       ],
-      "text": "REACTION · 1/BATTLE - When a temporary negative marker would be placed on this formation, you may prevent it.",
+      "text": "MIDDLE - RESERVE +2.",
       "design_tags": [
-        "marker-state",
-        "protection",
-        "reaction"
+        "outmatched",
+        "positional-support",
+        "reserve",
+        "strength"
       ]
     },
     {
@@ -736,24 +733,20 @@
         "veteran"
       ],
       "command_cost": 2,
-      "strength": 5,
+      "strength": 4,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When a -Strength marker would be placed on this formation, you may prevent it.",
+          "timing": "exhausted",
+          "text": "This formation has +1 Strength.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "REACTION 1/B · PREVENT -STR"
+          "memory": [],
+          "exposed": "+1"
         }
       ],
-      "text": "REACTION · 1/BATTLE - When a -Strength marker would be placed on this formation, you may prevent it.",
+      "text": "EXHAUSTED - This formation has +1 Strength.",
       "design_tags": [
-        "marker-state",
-        "protection",
-        "reaction",
+        "exhaustion",
+        "persistent-state",
         "strength"
       ]
     },
@@ -914,19 +907,17 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "action",
-          "text": "Remove one temporary negative marker from the friendly formation directly ahead.",
+          "timing": "bonded",
+          "text": "The friendly formation directly ahead is TIRELESS.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle",
-          "exposed": "CLEAR AHEAD"
+          "memory": [],
+          "exposed": "AHEAD TIRELESS"
         }
       ],
-      "text": "ACTION · 1/BATTLE - Remove one temporary negative marker from the friendly formation directly ahead.",
+      "text": "BONDED - The friendly formation directly ahead is TIRELESS.",
       "design_tags": [
-        "marker-state",
+        "exhaustion",
+        "movement",
         "positional-support",
         "protection"
       ]
@@ -967,11 +958,22 @@
       "classes": [],
       "bond_kind": "resolve",
       "command_cost": 1,
-      "strength_modifier": 2,
-      "effects": [],
-      "text": "No special rules.",
+      "strength_modifier": 1,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "RESERVE +1.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "RESERVE +1"
+        }
+      ],
+      "text": "BONDED - RESERVE +1.",
       "design_tags": [
-        "baseline"
+        "formation-building",
+        "outmatched",
+        "reserve",
+        "strength"
       ]
     },
     {
@@ -1538,21 +1540,18 @@
           "memory": []
         },
         {
-          "timing": "action",
-          "text": "Move this formation one row forward or backward.",
+          "timing": "while_named",
+          "text": "This formation is TIRELESS.",
           "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle"
+          "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nACTION · 1/BATTLE - Move this formation one row forward or backward.",
+      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nWHILE NAMED - This formation is TIRELESS.",
       "design_tags": [
-        "action-engine",
-        "marker-state",
+        "exhaustion",
         "movement",
-        "named-payoff"
+        "named-payoff",
+        "persistent-state"
       ]
     },
     {
@@ -3510,7 +3509,7 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "Remove all temporary negative markers from one friendly formation in this Front.",
+          "text": "Remove Exhaustion from one friendly formation in this Front.",
           "scope": "self",
           "memory": []
         },
@@ -3523,9 +3522,10 @@
           ]
         }
       ],
-      "text": "BECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.\nCONTINUOUS - Opposing Tactics that target another friendly formation in this Front cost 1 additional Command.",
+      "text": "BECOMES NAMED - Remove Exhaustion from one friendly formation in this Front.\nCONTINUOUS - Opposing Tactics that target another friendly formation in this Front cost 1 additional Command.",
       "design_tags": [
-        "command",
+        "exhaustion",
+        "healing",
         "named-payoff",
         "tax"
       ]
@@ -3958,12 +3958,17 @@
     "hidden": "A face-down Stratagem reveals under its stated condition.",
     "front": "A state effect active while the formation is in the Front row.",
     "middle": "A state effect active while the formation is in the Middle row.",
-    "rear": "A state effect active while the formation is in the Rear row."
+    "rear": "A state effect active while the formation is in the Rear row.",
+    "exhausted": "A state effect active while this Force has an Exhaustion token.",
+    "tireless": "A persistent Force ability allowing it to initiate a Maneuver while Exhausted; Exhaustion remains."
   },
   "position_vocabulary": {
     "directly_ahead": "The adjacent position in the same Front one rank toward the Front row.",
     "directly_behind": "The adjacent position in the same Front one rank toward the Rear row.",
     "support": "SUPPORT +N means the friendly formation directly ahead has +N Strength while the supporting effect is active.",
-    "supply": "SUPPLY means Bonds and Names played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 1."
+    "supply": "SUPPLY means Bonds and Names played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 1.",
+    "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength. This local comparison does not itself decide the Front.",
+    "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
+    "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It keeps its Exhaustion token."
   }
 }
