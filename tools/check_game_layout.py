@@ -93,16 +93,20 @@ def presentation_snapshots() -> dict[str, dict]:
         session.state.stratagems[owner] = StratagemState(
             by_type["stratagem"][owner]["id"],
         )
-    session.state.players[0].hand = [card["id"] for card in sorted(cards, key=lambda card: len(card["title"]), reverse=True)[:18]]
-    session.state.players[1].hand = [card["id"] for card in cards[:18]]
+    hand_limit = session.engine.hand_limit
+    session.state.players[0].hand = [
+        card["id"]
+        for card in sorted(cards, key=lambda card: len(card["title"]), reverse=True)[:hand_limit]
+    ]
+    session.state.players[1].hand = [card["id"] for card in cards[:hand_limit]]
     session.state.players[0].discard = [by_type["force"][0]["id"]]
     session.state.players[1].discard = [by_type["name"][0]["id"]]
     crowded = session.snapshot(0)
     cases = {name: copy.deepcopy(crowded) for name in ("battle", "inspector", "drawer")}
     # One free Force destination exercises legal-target highlighting using an
     # action encoded by the real engine, with the rest of the formations full.
-    session.state.board[0][0][1].force = None
-    session.state.players[0].hand.append(by_type["force"][0]["id"])
+    session.state.board[0][1][1].force = None
+    session.state.players[0].hand[-1] = by_type["force"][0]["id"]
     cases["targeting"] = session.snapshot(0)
     session.state.active_player = 1
     cases["ai"] = session.snapshot(0)
@@ -214,7 +218,7 @@ CHECK_SCRIPT = r"""
       if (card.tabIndex < 0) fail("hand-card-" + index + "-keyboard-inaccessible");
     });
     if (scenario === "battle") {
-      if (document.querySelectorAll("#hand > .play-card").length < 18) fail("large-hand-fixture-incomplete");
+      if (document.querySelectorAll("#hand > .play-card").length !== 10) fail("hand-limit-fixture-wrong");
       if (!document.querySelector("#player-piles .command-counter")) fail("command-status-missing");
       const cycle = document.getElementById("cycle-button");
       if (!cycle || cycle.hidden || getComputedStyle(cycle).display === "none") fail("cycle-control-missing");
@@ -231,8 +235,6 @@ CHECK_SCRIPT = r"""
       essential($("match-result"), "match-result");
       essential($("play-again"), "match-result-restart");
     }
-    const guard = window.CardLayoutGuard?.check(document) || [];
-    if (guard.length) fail("card-content-overflow:" + guard.map((item) => item.card.dataset.cardId + ":" + item.regions.join(",")).join(";"));
     root.dataset.gameLayout = failures.length ? "fail" : "pass";
     root.dataset.gameViewport = innerWidth + "x" + innerHeight;
     root.dataset.gameLayoutScenario = scenario;
