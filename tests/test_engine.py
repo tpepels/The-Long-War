@@ -458,6 +458,66 @@ def test_maneuver_allows_orthogonal_vertical_but_not_diagonal_or_two_step() -> N
     assert Maneuver(source, pos(3, Rank.MIDDLE)) not in legal
 
 
+def test_press_strength_tracks_opposing_exhaustion_in_same_front() -> None:
+    engine, state = setup_state()
+    own = pos(1, Rank.FRONT)
+    enemy = pos(1, Rank.REAR)
+
+    state.slot(0, own).force = "the-ash-bowmen"
+    state.slot(1, enemy).force = "the-fifty-men"
+
+    assert engine.position_strength(state, 0, own) == 4
+
+    state.slot(1, enemy).exhausted = True
+    assert engine.position_strength(state, 0, own) == 5
+
+    state.slot(1, enemy).exhausted = False
+    assert engine.position_strength(state, 0, own) == 4
+
+
+def test_supply_raid_steals_command_and_respects_floor() -> None:
+    engine, state = setup_state()
+    target = pos(1, Rank.FRONT)
+    enemy_supply = pos(1, Rank.REAR)
+
+    state.players[0].hand = ["the-unnamed-host"]
+    state.players[0].command = 5
+    state.players[1].command = 5
+    state.slot(1, enemy_supply).force = "the-house-of-reed"
+
+    engine.apply(state, PlayForce("the-unnamed-host", target))
+
+    assert state.players[0].command == 4
+    assert state.players[1].command == 4
+
+    engine, state = setup_state()
+    state.players[0].hand = ["the-unnamed-host"]
+    state.players[0].command = 5
+    state.players[1].command = 1
+    state.slot(1, enemy_supply).force = "the-house-of-reed"
+
+    engine.apply(state, PlayForce("the-unnamed-host", target))
+
+    assert state.players[0].command == 3
+    assert state.players[1].command == 1
+
+
+def test_supply_raid_does_not_trigger_without_live_supply() -> None:
+    engine, state = setup_state()
+    target = pos(1, Rank.FRONT)
+    enemy = pos(1, Rank.REAR)
+
+    state.players[0].hand = ["the-unnamed-host"]
+    state.players[0].command = 5
+    state.players[1].command = 5
+    state.slot(1, enemy).force = "the-fifty-men"
+
+    engine.apply(state, PlayForce("the-unnamed-host", target))
+
+    assert state.players[0].command == 3
+    assert state.players[1].command == 5
+
+
 def test_lost_front_exhausts_every_force_there_and_blocks_maneuver() -> None:
     engine, state = setup_state()
     front = 1
