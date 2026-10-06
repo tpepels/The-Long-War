@@ -8,6 +8,7 @@ import pytest
 
 from longwar.cards import load_card_file
 from longwar.game import (
+    ActivateAbility,
     Cycle,
     Discard,
     EffectChoice,
@@ -648,6 +649,69 @@ def test_shared_spoils_refund_requires_class_and_enemy_supply() -> None:
     state.slot(0, target).force = "the-unnamed-host"
     engine.apply(state, PlayBond("shared-the-spoils-with", target))
     assert state.players[0].command == 4
+
+
+def test_v2_name_action_discount_changes_the_next_attachment_cost() -> None:
+    engine, state = setup_state(seed=4508)
+    source = pos(1, Rank.FRONT)
+    target = pos(1, Rank.MIDDLE)
+    make_named(state, 0, source, name="meren")
+    state.slot(0, target).force = "the-fifty-men"
+    state.players[0].hand[:] = ["followed"]
+    state.players[0].command = 5
+
+    ability = next(
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, ActivateAbility)
+        and action.card_id == "meren"
+    )
+    engine.apply(state, ability)
+
+    choice = next(
+        action
+        for action in effect_choices(engine, state)
+        if action.destination is not None
+        and action.destination.player == 0
+        and action.destination.position == target
+    )
+    engine.apply(state, choice)
+
+    assert engine.command_cost_for_action(
+        state, PlayBond("followed", target)
+    ) == 0
+    assert not any(
+        isinstance(action, ActivateAbility)
+        and action.card_id == "meren"
+        for action in engine.legal_actions(state)
+    )
+
+
+def test_v2_becomes_named_remove_exhaustion_resolves_on_chosen_formation() -> None:
+    engine, state = setup_state(seed=4509)
+    source = pos(1, Rank.FRONT)
+    target = pos(1, Rank.MIDDLE)
+    source_slot = state.slot(0, source)
+    source_slot.force = "the-fifty-men"
+    source_slot.bond = "followed"
+    target_slot = state.slot(0, target)
+    target_slot.force = "the-fifty-men"
+    target_slot.exhausted = True
+    state.players[0].hand[:] = ["maelin"]
+    state.players[0].command = 5
+
+    engine.apply(state, PlayName("maelin", source))
+
+    choice = next(
+        action
+        for action in effect_choices(engine, state)
+        if action.destination is not None
+        and action.destination.player == 0
+        and action.destination.position == target
+    )
+    engine.apply(state, choice)
+
+    assert state.slot(0, target).exhausted is False
 
 
 def test_lost_front_exhausts_every_force_there_and_blocks_maneuver() -> None:
