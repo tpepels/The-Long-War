@@ -19,6 +19,7 @@ on:
       - "tools/build_lab_report.py"
       - "tools/build_browser_runtime.py"
       - "tools/check_web_static.py"
+      - "tools/check_card_layout.py"
       - ".github/workflows/pages.yml"
 
 permissions:
