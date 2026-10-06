@@ -20,8 +20,31 @@ async function main(){
     fetch("data/v2-playtest-decks.json",{cache:"no-cache"}),
   ]);
   if(!cardsResponse.ok||!decksResponse.ok)throw new Error("Could not load current playtest card data");
-  const cards=(await cardsResponse.json()).cards||[];
+  const cardData=await cardsResponse.json();
+  const cards=cardData.cards||[];
   const decks=(await decksResponse.json()).decks||[];
+  const vocabulary=cardData.position_vocabulary||{};
+  const timing=cardData.timing_vocabulary||{};
+  const reference=document.getElementById("mechanics-reference");
+  if(reference){
+    const rows=[
+      ["MOVE",vocabulary.move],
+      ["MOVE UP TO N",vocabulary.move_multiple],
+      ["DIRECTLY AHEAD",vocabulary.directly_ahead],
+      ["DIRECTLY BEHIND",vocabulary.directly_behind],
+      ["SUPPORT +N",vocabulary.support],
+      ["SUPPLY",vocabulary.supply],
+      ["OUTMATCHED",vocabulary.outmatched],
+      ["RESERVE +N",vocabulary.reserve],
+      ["TIRELESS",vocabulary.tireless],
+      ["EXHAUSTION",vocabulary.exhaustion],
+      ["EXHAUSTED",timing.exhausted],
+      ["STACKING",vocabulary.stacking],
+    ].filter(([,value])=>value);
+    reference.innerHTML='<h1>V2 mechanics quick reference</h1><div class="mechanics-grid">'+
+      rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
+      '</div>';
+  }
   if(!decks.length)throw new Error("No V2 playtest decks were published");
   const index=new Map(cards.map(card=>[card.id,card]));
   const root=document.getElementById("playtest-decks");
