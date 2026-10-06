@@ -17,10 +17,6 @@ class CardType(StrEnum):
     ORDER = "order"
     NARRATIVE = "narrative"
     STRATAGEM = "stratagem"
-    TACTIC = "tactic"
-    ORDER = "order"
-    ABILITY = "ability"
-    OPTION = "option"
 
 
 class AgentKind(StrEnum):
@@ -211,6 +207,10 @@ class ActionKeyToken(StrEnum):
     NAME = "name"
     NARRATIVE = "narrative"
     STRATAGEM = "stratagem"
+    TACTIC = "tactic"
+    ORDER = "order"
+    ABILITY = "ability"
+    OPTION = "option"
     SKIP = "skip"
     CARD = "card"
     SOURCE = "source"
@@ -223,13 +223,6 @@ class ActionKeyToken(StrEnum):
     EXTRA = "extra"
     DISCARD_FIELD = "discard"
     ONGOING = "ongoing"
-    EFFECTS = "effects"
-    MODES = "modes"
-    ALLOWED_ROWS = "allowed_rows"
-    REFERENCES = "references"
-    DURATION = "duration"
-    BOND_KIND = "bond_kind"
-    DESIGN_TAGS = "design_tags"
 
 
 class ForceRole(StrEnum):
@@ -291,6 +284,13 @@ class CardField(StrEnum):
     BASELINE_FOR = "baseline_for"
     NARRATIVE_FORM = "narrative_form"
     ONGOING = "ongoing"
+    EFFECTS = "effects"
+    MODES = "modes"
+    ALLOWED_ROWS = "allowed_rows"
+    REFERENCES = "references"
+    DURATION = "duration"
+    BOND_KIND = "bond_kind"
+    DESIGN_TAGS = "design_tags"
 
 
 class DesignField(StrEnum):
