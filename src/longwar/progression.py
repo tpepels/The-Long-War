@@ -1437,7 +1437,7 @@ class ProgressionTelemetry:
             "definitions": {
                 "lifecycle_action": (
                     "Formation timing counts Battle decision actions, including effect choices, "
-                    "but excludes mandatory discard-before-draw substeps."
+                    "but excludes mandatory hand-limit cleanup substeps."
                 ),
                 "formation_identity": (
                     "A formation lifecycle is anchored to its Force. Explicit Maneuvers "
