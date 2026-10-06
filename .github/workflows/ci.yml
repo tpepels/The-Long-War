@@ -10,6 +10,8 @@ on:
       - "src/**"
       - "tests/**"
       - "tools/**"
+      - "web/**"
+      - "rules/**"
       - "cards/**"
       - "decks/**"
       - "setup.py"
