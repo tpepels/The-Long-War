@@ -62,6 +62,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         )
         _info_hash_feed(&h, state.negative_one_markers[slot])
         _info_hash_feed(&h, state.negative_two_markers[slot])
+        _info_hash_feed(&h, state.negative_three_markers[slot])
         _info_hash_feed_u16(&h, state.suppression_mask[slot])
         _info_hash_feed(&h, state.force_ability_used[slot])
         _info_hash_feed(&h, state.bond_ability_used[slot])
@@ -177,6 +178,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
+    # v17 adds explicit Battle-long -3 Strength marker state.
     # v15 adds public persistent per-Force Exhaustion state.
     # v13 widens in-progress Front-loss Command penalties to 16 bits.
     # v12 widened observable deck/discard counts to 16 bits so every legal
@@ -317,6 +319,7 @@ cdef int _fe__information_state_encode(
             )
             _info_emit(buf, &n, h, state.negative_one_markers[slot])
             _info_emit(buf, &n, h, state.negative_two_markers[slot])
+            _info_emit(buf, &n, h, state.negative_three_markers[slot])
             _info_emit_u16(buf, &n, h, state.suppression_mask[slot])
             _info_emit(buf, &n, h, state.force_ability_used[slot])
             _info_emit(buf, &n, h, state.bond_ability_used[slot])
