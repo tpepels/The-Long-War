@@ -3013,7 +3013,7 @@
               "tactic"
             ],
             "amount": 1,
-            "minimum": 1
+            "minimum": 0
           }
         ],
         "modes": {}
@@ -3681,7 +3681,7 @@
               "limit": null,
               "memory": [],
               "op": "tactic_tax",
-              "target": "directly_behind",
+              "target": "self_or_directly_behind",
               "amount": 1
             }
           ],
@@ -6037,7 +6037,7 @@
             "memory": [],
             "op": "front_tactic_discount",
             "amount": 1,
-            "minimum": 1
+            "minimum": 0
           }
         ],
         "modes": {}
