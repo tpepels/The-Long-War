@@ -119,7 +119,7 @@ process.stdout.write(JSON.stringify(input.cards.map(card => window.V2Cards.cardA
 
 
 def test_print_renderer_preserves_current_v2_content_and_modes() -> None:
-    cards = json.loads(text("cards/v2/cards.json"))["cards"]
+    cards = json.loads(text("cards/cards.json"))["cards"]
     rendered = render_print_cards(cards)
     for card, output in zip(cards, rendered, strict=True):
         assert output.one("v2-card")["attrs"]["data-card-id"] == card["id"]
