@@ -179,6 +179,34 @@ cdef inline bint _v2_effect_is_live_timing(
 
 
 
+cdef int _v2_component_supply_amount(
+    FastEngine self,
+    FastState state,
+    int slot,
+    int card,
+    int mode,
+    int suppression_bit,
+) noexcept:
+    cdef int i, amount, total = 0
+    cdef V2EffectSpec* effect
+    if card < 0:
+        return 0
+    if suppression_bit and (state.suppression_mask[slot] & suppression_bit):
+        return 0
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if (
+            effect.op == V2_OP_SUPPLY
+            and _v2_effect_is_live_timing(state, slot, effect)
+            and _v2_slot_effect_condition(self, state, slot, effect)
+        ):
+            amount = effect.amount
+            if amount <= 0:
+                amount = 1
+            total += amount
+    return total
+
+
 cdef bint _v2_component_provides_supply(
     FastEngine self,
     FastState state,
@@ -187,23 +215,12 @@ cdef bint _v2_component_provides_supply(
     int mode,
     int suppression_bit,
 ) noexcept:
-    cdef int i
-    cdef V2EffectSpec* effect
-    if card < 0:
-        return False
-    if suppression_bit and (state.suppression_mask[slot] & suppression_bit):
-        return False
-    for i in range(self.v2_effect_count[card][mode]):
-        effect = &self.v2_effects[card][mode][i]
-        if (
-            effect.op == V2_OP_SUPPLY
-            and _v2_effect_is_live_timing(state, slot, effect)
-        ):
-            return True
-    return False
+    return _v2_component_supply_amount(
+        self, state, slot, card, mode, suppression_bit
+    ) > 0
 
 
-cdef bint _v2_slot_provides_supply(
+cdef int _v2_slot_supply_amount(
     FastEngine self,
     FastState state,
     int slot,
@@ -211,21 +228,27 @@ cdef bint _v2_slot_provides_supply(
     cdef int force = state.force[slot]
     cdef int bond = state.bond[slot]
     cdef int name = state.name[slot]
+    cdef int total = 0
     if force < 0:
-        return False
-    if _v2_component_provides_supply(
+        return 0
+    total += _v2_component_supply_amount(
         self, state, slot, force, _v2_mode_for_force(self, force), 0
-    ):
-        return True
-    if _v2_component_provides_supply(
+    )
+    total += _v2_component_supply_amount(
         self, state, slot, bond, V2_MODE_DEFAULT, SUPPRESS_BOND_TEXT
-    ):
-        return True
-    if _v2_component_provides_supply(
+    )
+    total += _v2_component_supply_amount(
         self, state, slot, name, _v2_mode_for_name(self, name), SUPPRESS_NAME_TEXT
-    ):
-        return True
-    return False
+    )
+    return total
+
+
+cdef bint _v2_slot_provides_supply(
+    FastEngine self,
+    FastState state,
+    int slot,
+) noexcept:
+    return _v2_slot_supply_amount(self, state, slot) > 0
 
 
 cdef bint _v2_front_has_opposing_supply(

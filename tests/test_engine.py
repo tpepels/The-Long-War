@@ -518,6 +518,138 @@ def test_supply_raid_does_not_trigger_without_live_supply() -> None:
     assert state.players[1].command == 5
 
 
+def test_supply_discounts_only_the_formation_directly_ahead() -> None:
+    engine, state = setup_state()
+    rear = pos(1, Rank.REAR)
+    middle = pos(1, Rank.MIDDLE)
+    front = pos(1, Rank.FRONT)
+    other_middle = pos(2, Rank.MIDDLE)
+
+    state.slot(0, rear).force = "the-house-of-reed"
+    state.players[0].hand = ["followed", "namar"]
+
+    assert engine.command_cost_for_action(state, PlayBond("followed", middle)) == 0
+    assert engine.command_cost_for_action(state, PlayName("namar", middle)) == 2
+    assert engine.command_cost_for_action(state, PlayBond("followed", front)) == 1
+    assert (
+        engine.command_cost_for_action(state, PlayBond("followed", other_middle))
+        == 1
+    )
+
+
+def test_supply_from_middle_can_discount_front_attachments() -> None:
+    engine, state = setup_state()
+    middle = pos(1, Rank.MIDDLE)
+    front = pos(1, Rank.FRONT)
+
+    state.slot(0, middle).force = "the-fifty-men"
+    state.slot(0, middle).bond = "supplied-by"
+
+    assert engine.command_cost_for_action(state, PlayBond("followed", front)) == 0
+    assert engine.command_cost_for_action(state, PlayName("namar", front)) == 2
+
+
+def test_supplied_by_requires_bonded_and_stops_when_bond_text_is_suppressed() -> None:
+    engine, state = setup_state()
+    rear = pos(1, Rank.REAR)
+    middle = pos(1, Rank.MIDDLE)
+    source = state.slot(0, rear)
+    source.bond = "supplied-by"
+
+    assert engine.command_cost_for_action(state, PlayBond("followed", middle)) == 1
+
+    source.force = "the-fifty-men"
+    assert engine.command_cost_for_action(state, PlayBond("followed", middle)) == 0
+
+    # SUPPRESS_BOND_TEXT is the native bit value 2; state IO intentionally
+    # exposes the mask so black-box tests can verify suppressed card text.
+    source.suppression_mask = 2
+    assert engine.command_cost_for_action(state, PlayBond("followed", middle)) == 1
+
+
+def test_multiple_supply_effects_stack_with_bond_zero_and_name_one_minima() -> None:
+    engine, state = setup_state()
+    rear = pos(1, Rank.REAR)
+    middle = pos(1, Rank.MIDDLE)
+    source = state.slot(0, rear)
+    source.force = "the-house-of-reed"
+    source.bond = "supplied-by"
+
+    assert engine.command_cost_for_action(state, PlayBond("followed", middle)) == 0
+    assert engine.command_cost_for_action(state, PlayName("iria", middle)) == 1
+    assert engine.command_cost_for_action(state, PlayName("namar", middle)) == 1
+
+
+def test_supply_raid_ignores_inactive_or_suppressed_supply() -> None:
+    engine, state = setup_state()
+    target = pos(1, Rank.FRONT)
+    enemy_rear = pos(1, Rank.REAR)
+    state.players[0].hand = ["the-unnamed-host"]
+    state.players[0].command = 5
+    state.players[1].command = 5
+
+    state.slot(1, pos(1, Rank.MIDDLE)).force = "the-house-of-reed"
+    engine.apply(state, PlayForce("the-unnamed-host", target))
+    assert state.players[0].command == 3
+    assert state.players[1].command == 5
+
+    engine, state = setup_state()
+    state.players[0].hand = ["the-unnamed-host"]
+    state.players[0].command = 5
+    state.players[1].command = 5
+    source = state.slot(1, enemy_rear)
+    source.force = "the-fifty-men"
+    source.bond = "supplied-by"
+    source.suppression_mask = 2
+
+    engine.apply(state, PlayForce("the-unnamed-host", target))
+    assert state.players[0].command == 3
+    assert state.players[1].command == 5
+
+
+def test_supply_steal_gives_exactly_what_was_taken_above_floor_one() -> None:
+    engine, state = setup_state()
+    target = pos(1, Rank.FRONT)
+    enemy_supply = pos(1, Rank.REAR)
+    state.players[0].hand = ["the-unnamed-host"]
+    state.players[0].command = 5
+    state.players[1].command = 2
+    state.slot(1, enemy_supply).force = "the-house-of-reed"
+
+    engine.apply(state, PlayForce("the-unnamed-host", target))
+
+    assert state.players[0].command == 4
+    assert state.players[1].command == 1
+
+
+def test_shared_spoils_refund_requires_class_and_enemy_supply() -> None:
+    target = pos(1, Rank.FRONT)
+    enemy_supply = pos(1, Rank.REAR)
+
+    engine, state = setup_state()
+    state.players[0].hand = ["shared-the-spoils-with"]
+    state.players[0].command = 5
+    state.slot(0, target).force = "the-unnamed-host"
+    state.slot(1, enemy_supply).force = "the-house-of-reed"
+    engine.apply(state, PlayBond("shared-the-spoils-with", target))
+    assert state.players[0].command == 5
+
+    engine, state = setup_state()
+    state.players[0].hand = ["shared-the-spoils-with"]
+    state.players[0].command = 5
+    state.slot(0, target).force = "the-fifty-men"
+    state.slot(1, enemy_supply).force = "the-house-of-reed"
+    engine.apply(state, PlayBond("shared-the-spoils-with", target))
+    assert state.players[0].command == 4
+
+    engine, state = setup_state()
+    state.players[0].hand = ["shared-the-spoils-with"]
+    state.players[0].command = 5
+    state.slot(0, target).force = "the-unnamed-host"
+    engine.apply(state, PlayBond("shared-the-spoils-with", target))
+    assert state.players[0].command == 4
+
+
 def test_lost_front_exhausts_every_force_there_and_blocks_maneuver() -> None:
     engine, state = setup_state()
     front = 1

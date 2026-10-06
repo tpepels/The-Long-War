@@ -83,6 +83,7 @@ cdef inline int _fe_command_cost_fast(
 ) noexcept:
     cdef int kind, card, pos, target_front=-1, cost, discount, rear, support, strat
     cdef int selected, i, controller, dest, direction, before_cost, saved
+    cdef int target_rank=-1, supply_slot=-1, supply_discount=0, supply_minimum_cost=0
     cdef int source_card=-1, local_source=-1, local_discount=0, discount_detail=0
     cdef int discount_minimum_cost=0, local_minimum_cost=0
     cdef uint32_t extra
@@ -310,6 +311,27 @@ cdef inline int _fe_command_cost_fast(
                     self, COMMAND_DIAG_DISCOUNT, discount_detail,
                     player, source_card, saved, before_cost,
                 )
+
+        # SUPPLY is positional and cumulative. Apply it after the existing
+        # modifiers so its printed minima are final: Bonds may reach 0
+        # Command, while Names never go below 1.
+        if (kind == TYPE_BOND or kind == TYPE_NAME) and pos >= 0 and cost > 0:
+            target_rank = rank_from_slot(pos)
+            if target_rank < RANK_REAR:
+                supply_slot = slot_index(player, target_front, target_rank + 1)
+                supply_discount = _v2_slot_supply_amount(self, state, supply_slot)
+                if supply_discount > 0:
+                    before_cost = cost
+                    cost -= supply_discount
+                    supply_minimum_cost = 1 if kind == TYPE_NAME else 0
+                    if cost < supply_minimum_cost:
+                        cost = supply_minimum_cost
+                    saved = before_cost - cost
+                    if saved > 0:
+                        _fe_record_command_diag(
+                            self, COMMAND_DIAG_DISCOUNT, COMMAND_DETAIL_SUPPLY_DISCOUNT,
+                            player, -1, saved, before_cost,
+                        )
     return cost if cost > 0 else 0
 
 cdef int _fe_command_cost(FastEngine self, FastState state, uint64_t action):
