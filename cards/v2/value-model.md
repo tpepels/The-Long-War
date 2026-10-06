@@ -47,6 +47,8 @@ Conditions should normally create upside, not rescue a card with an unusably low
 
 ## Zero-Command cards
 
-A 0-Command card is not free. Playing it still consumes one card from hand and one Action - normally half of a standard turn. This makes 0 Command useful for broadly applicable selection, recovery, positioning, or setup, but not for unconditional permanent Strength or Command profit.
+A 0-Command card is not free. Playing it still consumes one card from hand and one Action - normally half of a standard turn. In this pool, 0-Command self-support is carried by **Orders**, and every 0-Command Order has a real eligibility condition. The space is for selection, recovery, positioning, or setup - never unconditional permanent Strength, Command profit, or unrestricted card selection.
+
+`Send a Runner` is intentionally stronger filtering than `Fresh Orders`: it sees two cards rather than one, so it requires a **Scout specifically in the Rear row**. `Take Stock` is stronger again because it selects one of the top three and keeps it; it therefore costs **1 Command** and requires a Steward or Stronghold.
 
 For telemetry, record condition-active rate, use rate, Action spent, Command spent/saved, cards gained/lost, whether the effect changed a Front result, and voluntary re-inclusion. Those observed rates should eventually replace the applicability estimates above.
