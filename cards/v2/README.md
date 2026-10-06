@@ -8,6 +8,6 @@ This is a design/playtest proposal, not the canonical engine card pool.
 - `catalogue.md` - all 120 proposed cards.
 - `cards.json` - machine-readable proposal used by the Card Lab.
 - `playtest-matrix.md` - mechanical and classification coverage.
-- `playtest-decks.json` / `playtest-decks.md` - six diagnostic 34-card decks.
+- `playtest-decks.json` / `playtest-decks.md` - four exploratory 45-card combination/playstyle decks.
 
 The existing engine cards and canonical deck files are unchanged.
