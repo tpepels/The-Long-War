@@ -9,10 +9,10 @@
       "playstyle": "Reconfigure positions, filter into the right follow-up, then reuse prepared pieces.",
       "hypothesis": "Does movement become strategically interesting when it changes row payoffs, unlocks information, and feeds later attachment or card-flow decisions?",
       "combo_notes": [
-        "Grey Riders can Maneuver before becoming Named through MOBILE and keep doing so after Exhaustion through TIRELESS.",
-        "Vardai trade an Action plus 1 Command for repeatable movement, while their Front-row Strength bonus is positional rather than a once-per-Battle marker.",
-        "Marched With, Dust Riders and positional support reward choosing where a formation finishes rather than just whether it moved.",
-        "Nara, Stayed Behind For, Kept Pace With and Carried Messages For keep the deck supplied with attachments and card selection."
+        "Grey Riders combine MOBILE and TIRELESS, while Re-form the Line gives Captains a 0-Command way to rearrange an established column.",
+        "Send a Runner is stronger filtering than Fresh Orders, but requires a Scout specifically in the Rear row.",
+        "Vardai, Marched With and Dust Riders reward choosing where movement ends rather than merely moving.",
+        "The Unnamed Host provides a clean high-floor body beside the positional cards."
       ],
       "cards": [
         {
@@ -29,7 +29,7 @@
         },
         {
           "id": "the-serekh",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-thornbow-hunters",
@@ -57,7 +57,7 @@
         },
         {
           "id": "kept-pace-with",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "stayed-behind-for",
@@ -113,7 +113,7 @@
         },
         {
           "id": "they-had-gone-too-far",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-scouts-found-the-gap",
@@ -141,7 +141,7 @@
         },
         {
           "id": "the-long-march",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "before-sunset-the-ford-would-be-ours",
@@ -149,6 +149,22 @@
         },
         {
           "id": "they-knew-the-ground",
+          "copies": 1
+        },
+        {
+          "id": "the-unnamed-host",
+          "copies": 1
+        },
+        {
+          "id": "trusted",
+          "copies": 1
+        },
+        {
+          "id": "re-form-the-line",
+          "copies": 1
+        },
+        {
+          "id": "send-a-runner",
           "copies": 1
         }
       ]
@@ -159,10 +175,10 @@
       "playstyle": "Build multi-card turns from preparation, discounts, naming triggers and attachment effects.",
       "hypothesis": "Can prepared Bonds and Names create satisfying delayed sequences where the payoff is timing and chaining rather than raw efficiency?",
       "combo_notes": [
-        "House of Reed and Supplied By can now reduce Bonds on the formation ahead to 0 Command, while Names still stop at 1.",
-        "Tovan gives the same split discount globally in Name mode, so preparation can create genuinely cheap multi-card turns.",
-        "Oren, Torren and Nara all turn setup cards into attachment tempo in different ways.",
-        "Namar now costs 3 and Sorin's repeatable card-advantage Action costs 2 Command, so the chain has real economic trade-offs."
+        "Fresh Orders replaces itself for 0 Command only when a Captain or King is already established.",
+        "Take Stock costs 1 because top-three selection is materially stronger than replacement draw; Steward/Stronghold access keeps it build-specific.",
+        "Followed, House of Reed, Supplied By and Tovan explore cheap formation completion without making every attachment universally free.",
+        "Yara gives the Narrative package a recursion/filtering payoff alongside Oren, Torren and Teren."
       ],
       "cards": [
         {
@@ -207,11 +223,11 @@
         },
         {
           "id": "swore-again-to",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "stayed-behind-for",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "bought-time-for",
@@ -266,10 +282,6 @@
           "copies": 1
         },
         {
-          "id": "nara-builder-of-walls",
-          "copies": 1
-        },
-        {
           "id": "avaros-the-bronze-king",
           "copies": 1
         },
@@ -303,7 +315,7 @@
         },
         {
           "id": "the-king-had-given-the-order",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "no-one-would-be-first-to-leave",
@@ -311,6 +323,22 @@
         },
         {
           "id": "the-battle-had-chosen-them",
+          "copies": 1
+        },
+        {
+          "id": "followed",
+          "copies": 1
+        },
+        {
+          "id": "yara-the-chronicler",
+          "copies": 1
+        },
+        {
+          "id": "fresh-orders",
+          "copies": 1
+        },
+        {
+          "id": "take-stock",
           "copies": 1
         }
       ]
@@ -321,10 +349,10 @@
       "playstyle": "Create several small threats at once so the opponent has to choose what to pay for, protect or abandon.",
       "hypothesis": "Is denial more enjoyable when it presents forks - tax, information, prepared-card pressure and temporary suppression - instead of one repeated lock?",
       "combo_notes": [
-        "Aradai taxes opposing Bonds continuously while Iron Boars tax attachment of prepared cards, creating two different persistent pressure patterns.",
-        "River Raiders are a 4-Strength threat that becomes stronger when any opposing Force in their Front is Exhausted.",
-        "Red Duelists tax ACTION abilities directly opposite them; Ilyri blank Bond Strength directly opposite them.",
-        "Thornbow Hunters, Lantern Scouts and Watchtowers make information a positional asset rather than a one-shot deployment trick."
+        "They Were Gathering There remains the 0-Command hostile information card: it still requires a Scout and spends an Action.",
+        "Aradai, Iron Boars, Red Duelists and Ilyri pressure different resources instead of repeating one tax.",
+        "The Crows Came Down and Every Bow Was Strung give the Archer contingent persistent reasons to develop.",
+        "Catch Your Breath gives the Healer/Steward package conditional Exhaustion recovery rather than universal free recovery."
       ],
       "cards": [
         {
@@ -433,22 +461,10 @@
         },
         {
           "id": "the-stores-were-taken",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-line-was-baited",
-          "copies": 1
-        },
-        {
-          "id": "the-line-wheeled",
-          "copies": 1
-        },
-        {
-          "id": "the-muster-was-false",
-          "copies": 1
-        },
-        {
-          "id": "the-scouts-found-the-gap",
           "copies": 1
         },
         {
@@ -478,6 +494,22 @@
         {
           "id": "no-road-was-too-long",
           "copies": 1
+        },
+        {
+          "id": "they-were-gathering-there",
+          "copies": 1
+        },
+        {
+          "id": "the-crows-came-down",
+          "copies": 1
+        },
+        {
+          "id": "every-bow-was-strung",
+          "copies": 1
+        },
+        {
+          "id": "catch-your-breath",
+          "copies": 1
         }
       ]
     },
@@ -487,15 +519,15 @@
       "playstyle": "Invite commitment, absorb or redirect interaction, then turn the surviving formation into a counter-push.",
       "hypothesis": "Can layered protection create timing decisions and reversals without becoming a passive wall?",
       "combo_notes": [
-        "Damar now becomes a 6-Strength Veteran when Exhausted, making a lost Front create a real counter-pressure piece.",
-        "First Spear's supported Front bonus is +1 rather than +2, keeping formation order important without making the condition automatic power.",
-        "White Hands can spend Actions repeatedly to clear temporary negative markers from the formation ahead.",
-        "Baggage is now the expensive unconditional -2 Tactic; Volley and Line Was Baited remain cheaper conditional alternatives."
+        "Thirty Spears and Stood Fast With are deliberately simple floor cards beside the conditional protection engine.",
+        "Had Been Ordered Forward rewards the Guard/Spearman concentration without dominating unconditional Bonds.",
+        "Bind the Wound costs 0 but requires a Healer and an actual temporary negative marker worth clearing.",
+        "Damar, White Hands and the Exhaustion package test recovery without erasing the history of a lost Front."
       ],
       "cards": [
         {
           "id": "the-red-shields",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-old-guard",
@@ -535,11 +567,11 @@
         },
         {
           "id": "guarded",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "endured-with",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "covered-the-withdrawal-of",
@@ -615,7 +647,7 @@
         },
         {
           "id": "no-step-back",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-ground-was-held",
@@ -639,6 +671,22 @@
         },
         {
           "id": "the-battle-had-chosen-them",
+          "copies": 1
+        },
+        {
+          "id": "thirty-spears",
+          "copies": 1
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 1
+        },
+        {
+          "id": "had-been-ordered-forward",
+          "copies": 1
+        },
+        {
+          "id": "bind-the-wound",
           "copies": 1
         }
       ]
