@@ -4733,7 +4733,7 @@
             ],
             "op": "add_strength_marker",
             "target": "opposing_rear",
-            "amount": -2,
+            "amount": -3,
             "duration": "battle"
           }
         ],
