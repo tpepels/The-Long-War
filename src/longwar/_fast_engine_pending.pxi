@@ -84,12 +84,18 @@ cdef void _v2_apply_resolved_effect(
     V2EffectSpec* effect,
     uint64_t action,
 ) except *:
+    cdef int kind = action_kind(action)
     cdef int selected_card = action_card(action)
     cdef int source = action_pos(action)
     cdef int dest = action_dest(action)
     cdef int target = dest
-    cdef int option = <int>(action_extra(action) >> V2_EFFECT_OPTION_SHIFT)
-    cdef int slot, i, before_mask
+    cdef uint32_t extra = action_extra(action)
+    cdef int option = (
+        <int>((extra >> V2_PLAY_COMPONENT_SHIFT) & V2_PLAY_COMPONENT_MASK)
+        if kind == TYPE_TACTIC or kind == TYPE_ORDER
+        else <int>(extra >> V2_EFFECT_OPTION_SHIFT)
+    )
+    cdef int slot, i, before_mask, owner, component
     cdef uint32_t class_bit
 
     if target < 0 and effect.target == V2_TARGET_SELF:
@@ -176,6 +182,19 @@ cdef void _v2_apply_resolved_effect(
                 else -1
             )
             state.discount_len += 1
+    elif effect.op == V2_OP_RETURN_PREPARED:
+        if target >= 0:
+            owner = owner_from_slot(target)
+            if option == V2_OPTION_BOND:
+                component = state.bond[target]
+                if component >= 0:
+                    state.bond[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
+            elif option == V2_OPTION_NAME:
+                component = state.name[target]
+                if component >= 0:
+                    state.name[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
     elif effect.op == V2_OP_RECOVER:
         if (
             selected_card >= 0
@@ -679,6 +698,35 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _v2_enqueue_effect(
             self, state, actor, card, front, target, source
         )
+        _fe_resume_pending_flow(self, state)
+        return
+
+    if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+        _fe_take_from_hand(self, state, actor, card, 0)
+        if self.v2_effect_count[card][V2_MODE_DEFAULT] > 0:
+            v2_effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
+            if v2_effect.op == V2_OP_DISCARD_DRAW:
+                _v2_enqueue_effect(
+                    self, state, actor, card, V2_MODE_DEFAULT, 0, pos
+                )
+            elif v2_effect.op in (
+                V2_OP_ADD_STRENGTH_MARKER,
+                V2_OP_DRAW,
+                V2_OP_REMOVE_EXHAUSTION,
+                V2_OP_REMOVE_NEGATIVE_MARKER,
+                V2_OP_RETURN_PREPARED,
+                V2_OP_SUPPRESS_ACTION,
+                V2_OP_SUPPRESS_BOND,
+                V2_OP_SUPPRESS_BOND_STRENGTH,
+                V2_OP_SUPPRESS_LIMITED,
+                V2_OP_SUPPRESS_NAME,
+                V2_OP_SWAP,
+            ):
+                _v2_apply_resolved_effect(
+                    self, state, actor, card, pos, v2_effect, action
+                )
+        _fe_append_discard(self, state, actor, card, True)
+        _fe_consume_operation_constraints(self, state, actor, action)
         _fe_resume_pending_flow(self, state)
         return
 
