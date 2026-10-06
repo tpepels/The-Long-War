@@ -765,6 +765,64 @@ def test_v2_tactic_applies_strength_marker_and_is_discarded() -> None:
     assert "the-baggage-was-abandoned" in state.players[0].discard
 
 
+def test_v2_veyra_becomes_named_grants_name_suppression_immunity() -> None:
+    engine, state = setup_state(seed=4512)
+    source = pos(1, Rank.FRONT)
+    source_slot = state.slot(0, source)
+    source_slot.force = "the-fifty-men"
+    source_slot.bond = "followed"
+    state.players[0].hand[:] = ["veyra-keeper-of-oaths"]
+    state.players[0].command = 5
+
+    engine.apply(state, PlayName("veyra-keeper-of-oaths", source))
+
+    assert state.slot(0, source).name_suppression_immune is True
+
+
+def test_v2_carried_oath_blocks_name_suppression_while_named() -> None:
+    engine, state = setup_state(seed=4513)
+    target = pos(1, Rank.FRONT)
+    make_named(
+        state,
+        0,
+        target,
+        bond="carried-the-oath-of",
+        name="namar",
+    )
+    state.active_player = 1
+    state.players[1].hand[:] = ["they-returned-with-names"]
+    state.players[1].command = 5
+
+    tactic = next(
+        action
+        for action in engine.legal_actions(state)
+        if isinstance(action, PlayTactic)
+        and action.card_id == "they-returned-with-names"
+        and action.target is not None
+        and action.target.player == 0
+        and action.target.position == target
+    )
+    engine.apply(state, tactic)
+
+    assert state.slot(0, target).suppression_mask & 4 == 0
+
+
+def test_v2_serai_becomes_named_marks_friendly_archers_in_front() -> None:
+    engine, state = setup_state(seed=4514)
+    source = pos(1, Rank.FRONT)
+    archer = pos(1, Rank.MIDDLE)
+    source_slot = state.slot(0, source)
+    source_slot.force = "the-fifty-men"
+    source_slot.bond = "followed"
+    state.slot(0, archer).force = "the-crow-archers"
+    state.players[0].hand[:] = ["serai-queen-of-crows"]
+    state.players[0].command = 5
+
+    engine.apply(state, PlayName("serai-queen-of-crows", source))
+
+    assert state.slot(0, archer).temporary_strength == 1
+
+
 def test_lost_front_exhausts_every_force_there_and_blocks_maneuver() -> None:
     engine, state = setup_state()
     front = 1
