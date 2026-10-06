@@ -577,9 +577,17 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
     by_id = {card["id"]: card for card in CARDS}
     positions = DATA["position_vocabulary"]
     assert "OUTMATCHED" in positions["outmatched"]
+    assert "tie is not OUTMATCHED" in positions["outmatched"]
     assert "RESERVE +N" in positions["reserve"]
     assert "TIRELESS" in positions["tireless"]
+    assert "only the Exhaustion restriction" in positions["tireless"]
     assert "Exhaustion token" in positions["tireless"]
+    assert "lose a Front" in positions["exhaustion"]
+    assert "orthogonally adjacent active empty position" in positions["move"]
+    assert "Never diagonal" in positions["move"]
+    assert "up to N legal one-position Moves" in positions["move_multiple"]
+    assert "add together" in positions["stacking"]
+    assert "each reduce the cost by 1" in positions["stacking"]
 
     grey = by_id["the-grey-riders"]
     assert grey["text"].startswith("TIRELESS")
