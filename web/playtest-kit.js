@@ -34,6 +34,7 @@ async function main(){
       ["MOVES / MOVED",vocabulary.movement_event],
       ["DIRECTLY AHEAD",vocabulary.directly_ahead],
       ["DIRECTLY BEHIND",vocabulary.directly_behind],
+      ["ROW RESTRICTIONS",vocabulary.row_restriction],
       ["SUPPORT +N",vocabulary.support],
       ["SUPPLY",vocabulary.supply],
       ["OUTMATCHED",vocabulary.outmatched],
