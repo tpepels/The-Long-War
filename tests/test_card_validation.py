@@ -71,6 +71,13 @@ def test_strength_and_command_cost_fit_the_native_schema(data, value):
             validate_card_data(card)
 
 
+def test_unknown_v2_target_selector_is_rejected(data):
+    card = next(card for card in data["cards"] if card["id"] == "the-red-shields")
+    card["design_rules"]["effects"][0]["target"] = "slightly-behind-ish"
+    with pytest.raises(ValueError, match="unsupported target"):
+        validate_card_data(data)
+
+
 def test_force_roles_are_optional_descriptive_labels(data):
     force = next(card for card in data["cards"] if card["type"] == "force")
     force.pop("role", None)
