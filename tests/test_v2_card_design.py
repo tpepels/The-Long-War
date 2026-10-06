@@ -519,13 +519,16 @@ def test_exploratory_decks_keep_broad_card_type_mix() -> None:
         counts = Counter()
         for item in deck["cards"]:
             counts[known[item["id"]]["type"]] += item["copies"]
-        assert counts["force"] >= 14
-        assert counts["name"] >= 6
-        assert counts["hero"] == 3
-        assert counts["bond"] >= 8
-        assert counts["tactic"] >= 3
-        assert counts["stratagem"] >= 4
-        assert counts["narrative"] >= 3
+        assert counts == {
+            "force": 16,
+            "bond": 8,
+            "name": 6,
+            "hero": 3,
+            "tactic": 4,
+            "stratagem": 4,
+            "narrative": 4,
+            "order": 3,
+        }
         assert deck.get("combo_notes")
         assert deck.get("playstyle")
 
