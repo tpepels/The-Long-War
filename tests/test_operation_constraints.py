@@ -44,8 +44,8 @@ def fresh(*, rules: GameRules | None = None):
     state.players[0].command = 20
     state.players[1].command = 20
     state.battle = 3
-    # Keep turn-flow tests below out of the mandatory discard-before-draw
-    # substep. Individual tests install the exact cards they need.
+    # Keep turn-flow tests below out of mandatory hand-limit cleanup.
+    # Individual tests install the exact cards they need.
     state.players[0].hand.clear()
     state.players[1].hand.clear()
     return engine, state
