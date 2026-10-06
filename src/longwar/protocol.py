@@ -12,8 +12,13 @@ class CardType(StrEnum):
     FORCE = "force"
     BOND = "bond"
     NAME = "name"
+    HERO = "hero"
+    TACTIC = "tactic"
     NARRATIVE = "narrative"
     STRATAGEM = "stratagem"
+    TACTIC = "tactic"
+    ABILITY = "ability"
+    OPTION = "option"
 
 
 class AgentKind(StrEnum):
@@ -119,6 +124,9 @@ class ObservationZone(StrEnum):
 
 
 class EffectKind(StrEnum):
+    ACTIVATE_ABILITY = "activate-ability"
+    V2_TARGET = "v2-target"
+    V2_CHOICE = "v2-choice"
     FREE_MANEUVER = "free-maneuver"
     MOVE = "move"
     SWAP = "swap"
@@ -184,6 +192,8 @@ class ActionKind(StrEnum):
     PLAY_NAME = "PlayName"
     PLAY_NARRATIVE = "PlayNarrative"
     PLAY_STRATAGEM = "PlayStratagem"
+    PLAY_TACTIC = "PlayTactic"
+    ACTIVATE_ABILITY = "ActivateAbility"
 
 
 class ActionKeyToken(StrEnum):
@@ -210,6 +220,13 @@ class ActionKeyToken(StrEnum):
     EXTRA = "extra"
     DISCARD_FIELD = "discard"
     ONGOING = "ongoing"
+    EFFECTS = "effects"
+    MODES = "modes"
+    ALLOWED_ROWS = "allowed_rows"
+    REFERENCES = "references"
+    DURATION = "duration"
+    BOND_KIND = "bond_kind"
+    DESIGN_TAGS = "design_tags"
 
 
 class ForceRole(StrEnum):
@@ -259,6 +276,9 @@ class CardField(StrEnum):
     UNIQUE = "unique"
     HERO = "hero"
     HERO_NAME_STRENGTH = "hero_name_strength"
+    FORCE_STRENGTH = "force_strength"
+    NAME_STRENGTH_MODIFIER = "name_strength_modifier"
+    STRENGTH_MODIFIER = "strength_modifier"
     ROLE = "role"
     CLASSES = "classes"
     TEXT = "text"
