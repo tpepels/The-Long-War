@@ -1379,7 +1379,7 @@ function layoutHand() {
   cancelAnimationFrame(handLayoutFrame);
   hand.classList.add("laying-out");
   const elements = [...hand.querySelectorAll(".play-card")];
-  const scale = Math.min(.9, Math.max(.5, (hand.clientHeight - 18) / 286));
+  const scale = Math.min(.9, Math.max(.45, (hand.clientHeight - 28) / 286));
   const spread = Math.max(
     0,
     Math.min(
@@ -1391,8 +1391,8 @@ function layoutHand() {
   elements.forEach((el, index) => {
     const t = middle ? (index - middle) / middle : 0;
     el.style.setProperty("--fan-x", ((index - middle) * spread) + "px");
-    el.style.setProperty("--fan-y", (Math.abs(t) * 10) + "px");
-    el.style.setProperty("--fan-rot", (t * 5) + "deg");
+    el.style.setProperty("--fan-y", (Math.abs(t) * 5) + "px");
+    el.style.setProperty("--fan-rot", (t * 3) + "deg");
     el.style.setProperty("--fan-scale", String(scale));
     el.style.setProperty("--fan-order", String(index + 1));
   });
