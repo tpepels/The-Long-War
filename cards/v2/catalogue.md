@@ -1,12 +1,12 @@
 # V2 card catalogue
 
-128-card design/playtest proposal. The canonical engine pool remains separate.
+128-card canonical gameplay pool. Card definitions live in `cards/cards.json`; this catalogue is a human-readable design reference.
 
 ## Forces
 
 | Card | Classifications / references | Cost | Strength | Mechanics |
 |---|---|---:|---:|---|
-| **The Fifty Men** | Human · Spearman | 2 | 4 | No special rules. |
+| **The Wolf Skirmishers** | Human · Skirmisher | 2 | 4 | CONTINUOUS - **PRESS +1.** |
 | **Seven Black Ships** | Ship · Raider | 2 | 4 | BONDED - While this formation is in the Rear, it has +1 Strength. |
 | **The White Hands of Elara** | Human · Healer | 1 | 2 | **MIDDLE / REAR ONLY.** ACTION - Remove one temporary negative marker from the friendly formation directly ahead. |
 | **The Red Shields** | Human · Guard | 2 | 4 | FRONT - Opposing Tactics targeting this formation cost 1 additional Command. |
@@ -14,13 +14,13 @@
 | **The House of Reed** | Stronghold · Builder | 2 | 3 | **MIDDLE / REAR ONLY. REAR - SUPPLY.** |
 | **The Grey Riders** | Human · Rider | 2 | 3 | MOBILE - This formation may Maneuver while Unnamed.<br>TIRELESS - This formation may Maneuver while Exhausted. |
 | **The Dust Riders** | Human · Rider · Skirmisher | 2 | 3 | BONDED - While this formation is in the Front or Middle row, it has +1 Strength. |
-| **The Black Company** | Human · Veteran | 2 | 5 | No special rules. |
+| **The Black Pursuers** | Human · Veteran · Skirmisher | 2 | 5 | EXHAUSTED - **PRESS +2.** |
 | **The Red Duelists** | Human · Skirmisher | 2 | 3 | CONTINUOUS - The opposing formation directly opposite pays 1 additional Command to use an ACTION ability. |
 | **The Thornbow Hunters** | Human · Archer · Scout | 2 | 3 | REAR - You may look at opposing face-down Stratagems in this Front or an adjacent Front. |
 | **The Iron Boars** | Human · Raider | 3 | 5 | CONTINUOUS - Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach. |
 | **The First Spear** | Human · Guard · Spearman | 2 | 4 | FRONT - If the position directly behind is occupied by a friendly formation, this formation has +1 Strength. |
 | **The Old Guard** | Human · Guard · Veteran | 2 | 3 | **MIDDLE - RESERVE +2.** |
-| **The Unnamed Host** | Human | 2 | 5 | No special rules. |
+| **The Salt-Road Reavers** | Human · Raider | 2 | 5 | PLAY - If an opposing formation in this Front provides SUPPLY, **STEAL 1 COMMAND.** |
 | **The Late Banner** | Human · Captain | 2 | 3 | BONDED - Names played onto this formation cost 1 less Command, to a minimum of 1. |
 | **The Banner Singers** | Human · Captain | 1 | 2 | WHILE NAMED - While this formation is in the Middle row, SUPPORT +1. |
 | **Thirty Spears** | Human · Spearman | 1 | 3 | No special rules. |
@@ -32,7 +32,7 @@
 | **The Serekh** | Human · Guard | 2 | 3 | FRONT - Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command. |
 | **The Ash Bowmen** | Human · Archer | 2 | 3 | BONDED - This formation has +1 Strength. |
 | **The Lantern Scouts** | Human · Scout | 1 | 2 | CONTINUOUS - While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front. |
-| **The River Raiders** | Human · Raider | 2 | 4 | CONTINUOUS - While an opposing Force in this Front is Exhausted, this formation has +1 Strength. |
+| **The River Raiders** | Human · Raider | 2 | 4 | CONTINUOUS - **PRESS +1.** |
 | **The King's Spears** | Human · Guard · Spearman | 2 | 4 | WHILE NAMED - This formation has +1 Strength. |
 | **The Salt-Road Fleet** | Ship · Raider | 2 | 4 | BONDED - Tactics you play targeting this Front cost 1 less Command, to a minimum of 0. |
 | **The Watchtowers of Eren** | Stronghold · Scout | 2 | 3 | **MIDDLE / REAR ONLY.** REAR - You may look at opposing face-down Stratagems in any active Front. |
@@ -61,7 +61,7 @@
 | **Had Been Ordered Forward** | Guard · Spearman | 1 | +1 | BONDED - If this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength. |
 | **Watched the Skies For** | Archer · Scout | 1 | +0 | BONDED - If this formation contains an Archer or Scout, this Bond contributes +1 Strength. |
 | **Kept the Gate For** | Guard · Stronghold | 1 | +1 | BONDED - The friendly formation directly behind is TIRELESS. |
-| **Shared the Spoils With** | Raider · Skirmisher | 1 | +0 | PLAY - If this formation contains a Raider or Skirmisher, regain 1 Command. |
+| **Shared the Spoils With** | Raider · Skirmisher | 1 | +0 | PLAY - If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command. |
 | **Carried Messages For** | Captain · Scout | 1 | +0 | PLAY - If this formation contains a Captain or Scout, draw 1 card, then discard 1 card. |
 | **Supported By** | - | 1 | +0 | BONDED - SUPPORT +1. |
 | **Supplied By** | - | 1 | +0 | BONDED - SUPPLY. |

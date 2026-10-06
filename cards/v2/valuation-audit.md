@@ -10,7 +10,7 @@ This audit applies the provisional arithmetic in `value-model.md` to **every one
 
 | Card | Type | Command | Est. value | Target | Δ | Fit |
 |---|---|---:|---:|---:|---:|---|
-| The Fifty Men | Force | 2 | 4.00 | 5.00 | -1.00 | LOW |
+| The Wolf Skirmishers | Force | 2 | 4.50 | 5.00 | -0.50 | IN BAND |
 | Seven Black Ships | Force | 2 | 4.65 | 5.00 | -0.35 | IN BAND |
 | The White Hands of Elara | Force | 1 | 2.11 | 3.00 | -0.89 | IN BAND |
 | The Red Shields | Force | 2 | 4.60 | 5.00 | -0.40 | IN BAND |
@@ -18,13 +18,13 @@ This audit applies the provisional arithmetic in `value-model.md` to **every one
 | The House of Reed | Force | 2 | 3.34 | 5.00 | -1.66 | LOW |
 | The Grey Riders | Force | 2 | 4.60 | 5.00 | -0.40 | IN BAND |
 | The Dust Riders | Force | 2 | 3.65 | 5.00 | -1.35 | LOW |
-| The Black Company | Force | 2 | 5.00 | 5.00 | +0.00 | IN BAND |
+| The Black Pursuers | Force | 2 | 5.20 | 5.00 | +0.20 | IN BAND |
 | The Red Duelists | Force | 2 | 3.60 | 5.00 | -1.40 | LOW |
 | The Thornbow Hunters | Force | 2 | 3.23 | 5.00 | -1.77 | LOW |
 | The Iron Boars | Force | 3 | 5.80 | 6.00 | -0.20 | IN BAND |
 | The First Spear | Force | 2 | 4.56 | 5.00 | -0.44 | IN BAND |
 | The Old Guard | Force | 2 | 3.34 | 5.00 | -1.66 | LOW |
-| The Unnamed Host | Force | 2 | 5.00 | 5.00 | +0.00 | IN BAND |
+| The Salt-Road Reavers | Force | 2 | 5.55 | 5.00 | +0.55 | IN BAND |
 | The Late Banner | Force | 2 | 3.52 | 5.00 | -1.48 | LOW |
 | The Banner Singers | Force | 1 | 2.23 | 3.00 | -0.77 | IN BAND |
 | Thirty Spears | Force | 1 | 3.00 | 3.00 | +0.00 | IN BAND |
@@ -107,13 +107,13 @@ This audit applies the provisional arithmetic in `value-model.md` to **every one
 | The King Had Given the Order | Narrative | 2 | 0.64 | 2.80 | -2.16 | LOW |
 | The Ash Bowmen | Force | 2 | 3.65 | 5.00 | -1.35 | LOW |
 | The Lantern Scouts | Force | 1 | 2.30 | 3.00 | -0.70 | IN BAND |
-| The River Raiders | Force | 2 | 5.00 | 5.00 | +0.00 | IN BAND |
+| The River Raiders | Force | 2 | 4.50 | 5.00 | -0.50 | IN BAND |
 | The King's Spears | Force | 2 | 4.50 | 5.00 | -0.50 | IN BAND |
 | The Salt-Road Fleet | Force | 2 | 4.52 | 5.00 | -0.48 | IN BAND |
 | The Watchtowers of Eren | Force | 2 | 3.23 | 5.00 | -1.77 | LOW |
 | Watched the Skies For | Bond | 1 | 1.39 | 2.00 | -0.61 | IN BAND |
 | Kept the Gate For | Bond | 1 | 2.19 | 2.00 | +0.19 | IN BAND |
-| Shared the Spoils With | Bond | 1 | 1.34 | 2.00 | -0.66 | IN BAND |
+| Shared the Spoils With | Bond | 1 | 1.18 | 2.00 | -0.82 | IN BAND |
 | Carried Messages For | Bond | 1 | 1.26 | 2.00 | -0.74 | IN BAND |
 | Supported By | Bond | 1 | 1.29 | 2.00 | -0.71 | IN BAND |
 | Supplied By | Bond | 1 | 1.29 | 2.00 | -0.71 | IN BAND |

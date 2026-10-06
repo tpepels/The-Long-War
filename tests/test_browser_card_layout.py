@@ -119,7 +119,7 @@ process.stdout.write(JSON.stringify(input.cards.map(card => window.V2Cards.cardA
 
 
 def test_print_renderer_preserves_current_v2_content_and_modes() -> None:
-    cards = json.loads(text("cards/v2/cards.json"))["cards"]
+    cards = json.loads(text("cards/cards.json"))["cards"]
     rendered = render_print_cards(cards)
     for card, output in zip(cards, rendered, strict=True):
         assert output.one("v2-card")["attrs"]["data-card-id"] == card["id"]
@@ -188,12 +188,12 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
     assert ".mechanics-reference" in css
     page = text("web/playtest-kit.html")
     assert decks
-    assert 'data/cards-v2-redesign.json' in script
+    assert 'data/cards.json' in script
     assert 'data/v2-playtest-decks.json' in script
     assert "function expandDeck(deck)" in script
     assert "window.V2Cards.cardArticle" in script
     assert "chunk(expanded,8)" in script
-    assert "Print all playtest decks" in page
+    assert "Print all decks" in page
     assert "chunk(cards,8)" in text("web/cards.js")
     assert 'class="print-sheet card-sheet"' in text("web/cards.js")
 
@@ -457,3 +457,17 @@ def test_battle_resolution_banner_uses_rules_active_front_count() -> None:
     assert "renderedState.active_fronts?.length" in script
     assert '" Front resolved"' in script
     assert '" Fronts resolved"' in script
+
+
+def test_public_navigation_has_only_six_surfaces() -> None:
+    index = text("web/index.html")
+    labels = ("Webgame", "Cards", "Decks", "Reference", "Rules", "Balance Lab")
+    for label in labels:
+        assert f">{label}</a>" in index
+    assert "V2 card lab" not in index
+    assert "V2 Force style lab" not in index
+    assert "Physical markers" not in index
+    assert "Print playtest kit" not in index
+    assert 'href="cards.html">Cards</a>' in index
+    assert 'href="playtest-kit.html">Decks</a>' in index
+    assert 'href="playmat.html">Reference</a>' in index

@@ -140,6 +140,9 @@ cdef bint _v2_slot_effect_condition(
                 break
         else:
             return False
+    if effect.flags & V2_FLAG_REQUIRES_OPPOSING_SUPPLY:
+        if not _v2_front_has_opposing_supply(self, state, player, front):
+            return False
     return True
 
 
@@ -168,6 +171,119 @@ cdef inline bint _v2_effect_is_live_timing(
     if effect.timing == V2_TIMING_MOBILE:
         return True
     return False
+
+
+
+cdef bint _v2_component_provides_supply(
+    FastEngine self,
+    FastState state,
+    int slot,
+    int card,
+    int mode,
+    int suppression_bit,
+) noexcept:
+    cdef int i
+    cdef V2EffectSpec* effect
+    if card < 0:
+        return False
+    if suppression_bit and (state.suppression_mask[slot] & suppression_bit):
+        return False
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if (
+            effect.op == V2_OP_SUPPLY
+            and _v2_effect_is_live_timing(state, slot, effect)
+        ):
+            return True
+    return False
+
+
+cdef bint _v2_slot_provides_supply(
+    FastEngine self,
+    FastState state,
+    int slot,
+) noexcept:
+    cdef int force = state.force[slot]
+    cdef int bond = state.bond[slot]
+    cdef int name = state.name[slot]
+    if force < 0:
+        return False
+    if _v2_component_provides_supply(
+        self, state, slot, force, _v2_mode_for_force(self, force), 0
+    ):
+        return True
+    if _v2_component_provides_supply(
+        self, state, slot, bond, V2_MODE_DEFAULT, SUPPRESS_BOND_TEXT
+    ):
+        return True
+    if _v2_component_provides_supply(
+        self, state, slot, name, _v2_mode_for_name(self, name), SUPPRESS_NAME_TEXT
+    ):
+        return True
+    return False
+
+
+cdef bint _v2_front_has_opposing_supply(
+    FastEngine self,
+    FastState state,
+    int player,
+    int front,
+) noexcept:
+    cdef int opponent = other_player(player)
+    cdef int rank, slot
+    for rank in range(RANK_COUNT):
+        slot = slot_index(opponent, front, rank)
+        if _v2_slot_provides_supply(self, state, slot):
+            return True
+    return False
+
+
+cdef void _v2_apply_immediate_play_effects(
+    FastEngine self,
+    FastState state,
+    int player,
+    int card,
+    int mode,
+    int origin,
+) except *:
+    cdef int i, opponent, available, stolen, floor
+    cdef V2EffectSpec* effect
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if effect.timing != V2_TIMING_PLAY:
+            continue
+        if not _v2_slot_effect_condition(self, state, origin, effect):
+            continue
+        if effect.op == V2_OP_GAIN_COMMAND:
+            _fe_gain_command_fast(
+                self,
+                state,
+                player,
+                effect.amount,
+                card,
+                COMMAND_DETAIL_CARD_EFFECT,
+            )
+        elif effect.op == V2_OP_STEAL_COMMAND:
+            opponent = other_player(player)
+            floor = effect.minimum
+            if floor < 1:
+                floor = 1
+            available = state.command[opponent] - floor
+            if available < 0:
+                available = 0
+            stolen = effect.amount
+            if stolen > available:
+                stolen = available
+            if stolen > 0:
+                state.command[opponent] -= stolen
+                _fe_gain_command_fast(
+                    self,
+                    state,
+                    player,
+                    stolen,
+                    card,
+                    COMMAND_DETAIL_CARD_EFFECT,
+                )
 
 
 cdef bint _v2_component_has_live_op(
@@ -794,6 +910,7 @@ cdef bint _v2_effect_can_resolve(
     cdef int slot, dest, front, rank
     if effect.op in (
         V2_OP_GAIN_COMMAND,
+        V2_OP_STEAL_COMMAND,
         V2_OP_OPTIONAL_EXTRA_PAYMENT_DRAW,
         V2_OP_REORDER_TOP,
         V2_OP_DRAW_PUT_TOP,

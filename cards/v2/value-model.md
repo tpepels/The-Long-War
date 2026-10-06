@@ -7,7 +7,7 @@ This is a **diagnostic heuristic**, not a formula that dictates card design. It 
 | Command | Approximate target Force value | Baseline example |
 |---:|---:|---|
 | 1 | 3 | Thirty Spears - 3 Strength |
-| 2 | 5 | The Unnamed Host / Black Company - 5 Strength |
+| 2 | 5 | The Salt-Road Reavers / The Black Pursuers - 5 Strength |
 | 3 | 6 | A Hundred Shields - 6 Strength |
 
 For a Force:
@@ -21,6 +21,9 @@ For a Force:
 | +1 persistent Strength | 1.00 |
 | SUPPORT +1 | 0.75 |
 | RESERVE +1 | 0.50 |
+| PRESS +1 | 0.40-0.60 |
+| regain 1 Command from a live Supply raid | 0.45-0.70 |
+| STEAL 1 COMMAND from a live Supply raid | 1.20-1.40 |
 | save / deny 1 Command | 0.70 |
 | MOVE 1 | 0.75-1.00 |
 | MOBILE | 1.00-1.25 |

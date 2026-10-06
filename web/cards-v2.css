@@ -15,6 +15,13 @@ button{cursor:pointer}
 .button,.screen-toolbar button{padding:7px 10px;border:1px solid #a9aa9f;color:inherit;background:transparent;text-decoration:none}
 .brandline{display:flex;align-items:baseline;gap:13px}
 .brandline span{font:10px/1 var(--utility);text-transform:uppercase;letter-spacing:.15em;color:#c7c8bd}
+
+.site-links{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:10px 0 0;font:600 11px/1 var(--utility);letter-spacing:.04em}
+.site-links a,.site-links span{padding:5px 0;color:#e7e5dc;text-decoration:none}
+.site-links a:hover{text-decoration:underline}
+.site-links span[aria-current="page"]{color:#fff;border-bottom:1px solid currentColor}
+.screen-toolbar>.site-links{margin:0}
+
 .toolbar-controls{display:flex;flex-wrap:wrap;align-items:end;gap:11px;margin-top:15px}
 .toolbar label{display:grid;gap:4px;color:#c4c5b8;font:10px/1.2 var(--utility)}
 .toolbar select,.toolbar input{min-height:29px;padding:4px 8px;border:1px solid #737b70;color:#f9f5e9;background:#343d34}

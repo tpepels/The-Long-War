@@ -9,7 +9,7 @@ function scheduleInspect(root){
   if(document.fonts?.ready)document.fonts.ready.then(run);
 }
 async function main(){
-  const response=await fetch("data/cards-v2-redesign.json",{cache:"no-cache"});
+  const response=await fetch("data/cards.json",{cache:"no-cache"});
   if(!response.ok)throw new Error("Could not load current card data");
   const cards=(await response.json()).cards||[];
   document.getElementById("card-count").textContent=cards.length+" current cards";
