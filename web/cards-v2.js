@@ -6,12 +6,12 @@ const PRINT_VERSION=typeof document==="undefined"||typeof document.querySelector
 const esc=value=>String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(part=>part[0].toUpperCase()+part.slice(1)).join(" ");
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",stratagem:"Stratagem",narrative:"Narrative"};
-const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL",front:"FRONT",middle:"MIDDLE",rear:"REAR"};
-const LIVE=new Set(["action","reaction","bonded","while_named","front","middle","rear"]);
+const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL",front:"FRONT",middle:"MIDDLE",rear:"REAR",exhausted:"EXHAUSTED",tireless:"TIRELESS"};
+const LIVE=new Set(["action","reaction","bonded","while_named","front","middle","rear","exhausted","tireless"]);
 const RULE_TERMS=[
   "Named Formation","Bonded Formation","Unbonded Formation","Formation",
   "Force","Bond","Name","Hero","Tactic","Stratagem","Narrative",
-  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply",
+  "Command","Strength","Action","Reaction","Battle","Front","Maneuver","Pass","Support","Supply","Outmatched","Reserve","Tireless","Exhausted","Exhaustion token",
   "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
   "prepared Bond","prepared Name"
 ];
@@ -49,7 +49,7 @@ const timingGlyph=name=>H()?.timing(name)||"";
 const utilityGlyph=name=>H()?.utility(name)||"";
 const strengthGlyph=()=>H()?.strength()||"";
 const rowGlyph=name=>H()?.row(name)||"";
-const effectTimingGlyph=name=>["front","middle","rear"].includes(name)?rowGlyph(name):timingGlyph(name);
+const effectTimingGlyph=name=>["front","middle","rear"].includes(name)?rowGlyph(name):name==="tireless"?utilityGlyph("move"):name==="exhausted"?utilityGlyph("marker"):timingGlyph(name);
 const commandGlyph=(value="")=>H()?.command(value)||"";
 const isFormationCard=card=>["force","bond","name","hero"].includes(card.type);
 
@@ -76,6 +76,9 @@ function effectTokens(effect){
   const patterns=[
     [/^SUPPORT \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
     [/^SUPPLY$/,()=>token("ally")+commandToken("-1")],
+    [/^RESERVE \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
+    [/^AHEAD TIRELESS$/,()=>token("ally")+token("move")],
+    [/^MAY MANEUVER EXHAUSTED$/,()=>token("move")+token("marker")],
     [/^CAPTAIN\/SCOUT CYCLE$/,()=>classToken("captain")+classToken("scout")+token("cycle")],
     [/^RIDER\/SCOUT CYCLE$/,()=>classToken("rider")+classToken("scout")+token("cycle")],
     [/^LOOK AT STRATAGEM$/,()=>token("eye")+typeToken("stratagem")],
@@ -125,7 +128,7 @@ function stackEdge(card){
 }
 function eventCrown(card){return '<header class="event-crown"><span class="event-sigil">'+typeGlyph(card.type)+'</span><span class="event-family">'+esc(TYPE[card.type])+'</span><span class="event-rule"></span></header>'}
 function effectBlock(effect){
-  const kind=["bonded","while_named","continuous","front","middle","rear"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
+  const kind=["bonded","while_named","continuous","front","middle","rear","exhausted","tireless"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
   return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+timingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div><div class="effect-text">'+formatRuleText(effect.text)+'</div></section>';
 }
 function heroModeHeading(mode){
