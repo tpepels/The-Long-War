@@ -308,6 +308,8 @@ cdef void _v2_compile_effect(
         value = effect.get("required_any_class")
     if value is None:
         value = effect.get("source_classes")
+    if value is None and effect.get("class") is not None:
+        value = [effect.get("class")]
     out.class_mask = _v2_class_mask(value)
 
     value = effect.get("target_classes")
