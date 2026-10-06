@@ -36,6 +36,8 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 - Multiple active **SUPPORT +N** and **RESERVE +N** effects add together. Multiple active **SUPPLY** effects each reduce the cost by 1.
 - **Command modifiers** stack. Add all applicable increases, then apply all applicable reductions. If at least one applicable reduction explicitly says "minimum 0", the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.
 - Each **Tax marker** is separate. If the next card played satisfies more than one Tax marker, all matching increases apply and all matching "next card" markers are consumed. A marker with an expiry such as "before your next turn" expires when its own text says it does.
+- A **-Strength marker** is a temporary negative marker recording a Battle-long Strength penalty created by card text such as "gets -2 Strength this Battle".
+- A **temporary negative marker** is any adverse marker on a Formation created by a card effect with a finite duration, including -Strength, text-suppression, or ability-lock markers. It does **not** include Exhaustion or a Tax marker on a Front. When a card removes a temporary negative marker, remove one such adverse marker and end that marker's effect.
 
 Positional and Exhaustion text should normally be one short line. The rank, token, and relationship should carry the idea; Forces should not become paragraphs that need rereading every time Strength is counted.
 
