@@ -172,6 +172,7 @@ cdef void _v2_compile_effect(
         "continuous": V2_TIMING_CONTINUOUS,
         "hidden": V2_TIMING_HIDDEN,
         "trigger": V2_TIMING_TRIGGER,
+        "reaction": V2_TIMING_REACTION,
         "while_named": V2_TIMING_WHILE_NAMED,
         "front": V2_TIMING_FRONT,
         "middle": V2_TIMING_MIDDLE,
@@ -212,6 +213,9 @@ cdef void _v2_compile_effect(
         "self_or_directly_ahead": V2_TARGET_SELF_OR_DIRECTLY_AHEAD,
         "self_vertical_friend": V2_TARGET_SELF_VERTICAL_FRIEND,
         "unbonded_friendly_same_front": V2_TARGET_UNBONDED_FRIENDLY_SAME_FRONT,
+        "friendly_exhausted_front_with_friendly_class": V2_TARGET_FRIENDLY_EXHAUSTED_FRONT_WITH_FRIENDLY_CLASS,
+        "friendly_pair_same_front_with_class": V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS,
+        "friendly_front_of_source_class": V2_TARGET_FRIENDLY_FRONT_OF_SOURCE_CLASS,
     }
     cdef dict area_map = {
         None: V2_AREA_NONE,
@@ -346,6 +350,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     self.narrative_count = 0
     self.stratagem_count = 0
     self.tactic_count = 0
+    self.order_count = 0
     self.hero_count = 0
     self.name_mode_count = 0
     memset(self.card_type, 0, sizeof(self.card_type))
@@ -484,6 +489,7 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         CardType.NAME: CARD_NAME,
         CardType.HERO: CARD_HERO,
         CardType.TACTIC: CARD_TACTIC,
+        CardType.ORDER: CARD_ORDER,
         CardType.NARRATIVE: CARD_NARRATIVE,
         CardType.STRATAGEM: CARD_STRATAGEM,
     }
@@ -553,6 +559,9 @@ cdef void _fe___init__(FastEngine self, engine) except *:
         elif self.card_type[code] == CARD_TACTIC:
             self.tactic_codes[self.tactic_count] = code
             self.tactic_count += 1
+        elif self.card_type[code] == CARD_ORDER:
+            self.order_codes[self.order_count] = code
+            self.order_count += 1
         elif self.card_type[code] == CARD_NARRATIVE:
             self.narrative_codes[self.narrative_count] = code
             self.narrative_count += 1
