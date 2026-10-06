@@ -108,6 +108,8 @@ def test_battlefield_renders_all_three_canonical_ranks() -> None:
     assert ".opponent-army .rank-middle" in css
     assert ".player-army .rank-middle" in css
     assert "middle=Middle/Support" in play
+    assert "TOTAL_POSITION_COUNT" in text("tools/check_game_layout.py")
+    assert '.digital-slot").length !== 16' not in text("tools/check_game_layout.py")
 
 
 def test_battlefield_has_minimum_visual_scale_and_public_card_inspection() -> None:
