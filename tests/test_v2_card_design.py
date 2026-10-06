@@ -52,7 +52,7 @@ def test_formation_vocabulary_and_timings_are_explicit() -> None:
     assert "state, not a trigger" in states["named_state"]
     assert "BECOMES NAMED" in states["becomes_named"]
 
-    buried = {"play", "action", "reaction", "bonded", "while_named", "front", "middle", "rear", "exhausted", "tireless"}
+    buried = {"play", "action", "reaction", "bonded", "while_named", "front", "middle", "rear", "exhausted", "tireless", "mobile"}
     for card in CARDS:
         if card["type"] in {"force", "bond"}:
             for effect in card["effects"]:
@@ -652,7 +652,7 @@ def test_renderer_knows_exhausted_and_tireless_states() -> None:
     js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
     assert 'exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"' in js
     assert '"exhausted","tireless","mobile"' in js
-    assert 'name==="tireless"?utilityGlyph("move")' in js
+    assert '["tireless","mobile"].includes(name)?utilityGlyph("move")' in js
     assert 'name==="exhausted"?utilityGlyph("marker")' in js
     assert "MAY MANEUVER EXHAUSTED" in js
     assert "RESERVE" in js
@@ -684,9 +684,13 @@ def test_buried_force_and_bond_rules_are_memory_light() -> None:
         "kael-the-roadless",
         "neris-the-ferryman",
     }
-    for _, effect in buried_active:
+    for card_id, effect in buried_active:
         assert effect["timing"] == "action"
-        assert effect.get("limit") is None
+        if card_id in {"kael-the-roadless", "neris-the-ferryman"}:
+            assert effect.get("limit") == "once_per_battle"
+            assert "used_marker" in effect.get("memory", [])
+        else:
+            assert effect.get("limit") is None
         assert len(effect["exposed"]) <= 30
 
     # Live buried state text must always have an exposed-strip representation.
