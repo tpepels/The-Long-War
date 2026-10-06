@@ -7,11 +7,14 @@ from .actions import (
     EffectChoice,
     Maneuver,
     Pass,
+    ActivateAbility,
     PlayBond,
     PlayForce,
     PlayName,
     PlayNarrative,
+    PlayOrder,
     PlayStratagem,
+    PlayTactic,
 )
 from .engine import GameEngine, IllegalAction
 from .model import (
@@ -26,6 +29,7 @@ from .model import (
 
 __all__ = [
     "Action",
+    "ActivateAbility",
     "BoardTarget",
     "Cycle",
     "Discard",
@@ -44,7 +48,9 @@ __all__ = [
     "PlayForce",
     "PlayName",
     "PlayNarrative",
+    "PlayOrder",
     "PlayStratagem",
+    "PlayTactic",
     "Position",
     "Rank",
 ]
