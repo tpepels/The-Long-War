@@ -98,6 +98,19 @@ def normalize_force(path: Path, card_id: str) -> dict:
         original_mode = image.mode
         width, height = image.size
         focus_y = FORCE_FOCUS_Y.get(card_id, DEFAULT_FORCE_FOCUS_Y)
+
+        # Keep the build idempotent. Pages refreshes the audit on every relevant
+        # main push so newly added Force art is normalized, but an already
+        # normalized 1248x400 raster must not be cropped/resampled again.
+        if (width, height) == (OUTPUT_WIDTH, OUTPUT_HEIGHT):
+            return {
+                "focus_x": DEFAULT_FOCUS_X,
+                "focus_y": focus_y,
+                "crop_box": [0, 0, width, height],
+                "original_mode": original_mode,
+                "changed": False,
+            }
+
         box = crop_box(width, height, DEFAULT_FOCUS_X, focus_y)
         crop = image.crop(box)
         if crop.mode not in {"RGB", "RGBA"}:
@@ -110,6 +123,7 @@ def normalize_force(path: Path, card_id: str) -> dict:
         "focus_y": focus_y,
         "crop_box": list(box),
         "original_mode": original_mode,
+        "changed": True,
     }
 
 
