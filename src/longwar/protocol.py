@@ -14,9 +14,11 @@ class CardType(StrEnum):
     NAME = "name"
     HERO = "hero"
     TACTIC = "tactic"
+    ORDER = "order"
     NARRATIVE = "narrative"
     STRATAGEM = "stratagem"
     TACTIC = "tactic"
+    ORDER = "order"
     ABILITY = "ability"
     OPTION = "option"
 
@@ -193,6 +195,7 @@ class ActionKind(StrEnum):
     PLAY_NARRATIVE = "PlayNarrative"
     PLAY_STRATAGEM = "PlayStratagem"
     PLAY_TACTIC = "PlayTactic"
+    PLAY_ORDER = "PlayOrder"
     ACTIVATE_ABILITY = "ActivateAbility"
 
 
