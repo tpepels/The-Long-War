@@ -829,6 +829,11 @@ def test_recovery_variant_candidates_keep_forced_pass_closing_canonical(monkeypa
     assert args.variants == list(runner.RECOVERY_RULE_VARIANTS)
 
 
+def test_ismcts_speed_keeps_positions_in_separate_artifacts():
+    source = inspect.getsource(runner.benchmark_ismcts_speed)
+    assert 'f"ismcts-speed-{args.position}.json"' in source
+
+
 def test_canonical_ismcts_benchmarks_have_no_retired_pass_variant_controls(
     monkeypatch,
 ):
