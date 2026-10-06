@@ -180,17 +180,17 @@
         "skirmisher"
       ],
       "command_cost": 2,
-      "strength": 3,
+      "strength": 4,
       "effects": [
         {
           "timing": "continuous",
-          "text": "PRESS +2.",
+          "text": "PRESS +1.",
           "scope": "self",
           "memory": [],
-          "exposed": "PRESS +2"
+          "exposed": "PRESS +1"
         }
       ],
-      "text": "CONTINUOUS - PRESS +2.",
+      "text": "CONTINUOUS - PRESS +1.",
       "design_tags": [
         "exhaustion",
         "hostile-interaction",
@@ -206,7 +206,7 @@
             "limit": null,
             "memory": [],
             "op": "self_strength",
-            "amount": 2,
+            "amount": 1,
             "requires_opposing_exhausted_same_front": true
           }
         ],
@@ -216,7 +216,7 @@
         {
           "kind": "continuous",
           "label": "CONTINUOUS",
-          "text": "PRESS +2."
+          "text": "PRESS +1."
         }
       ]
     },
@@ -595,7 +595,7 @@
         "skirmisher"
       ],
       "command_cost": 2,
-      "strength": 4,
+      "strength": 5,
       "effects": [
         {
           "timing": "exhausted",
@@ -888,7 +888,7 @@
         "raider"
       ],
       "command_cost": 2,
-      "strength": 4,
+      "strength": 5,
       "effects": [
         {
           "timing": "play",
