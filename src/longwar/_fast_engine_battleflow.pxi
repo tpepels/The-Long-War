@@ -34,6 +34,13 @@ cdef void _fe_discard_slot_components(
     state.bond[slot] = -1
     state.name[slot] = -1
     state.temporary[slot] = 0
+    state.negative_one_markers[slot] = 0
+    state.negative_two_markers[slot] = 0
+    state.suppression_mask[slot] = 0
+    state.force_ability_used[slot] = 0
+    state.bond_ability_used[slot] = 0
+    state.name_ability_used[slot] = 0
+    state.name_suppression_immune[slot] = 0
     state.maneuver_count[slot] = 0
     state.maneuvered_in_operation[slot] = 0
 
@@ -102,6 +109,13 @@ cdef void _fe_finish_pending_drive_off(
     state.bond[slot] = -1
     state.name[slot] = -1
     state.temporary[slot] = 0
+    state.negative_one_markers[slot] = 0
+    state.negative_two_markers[slot] = 0
+    state.suppression_mask[slot] = 0
+    state.force_ability_used[slot] = 0
+    state.bond_ability_used[slot] = 0
+    state.name_ability_used[slot] = 0
+    state.name_suppression_immune[slot] = 0
     state.maneuver_count[slot] = 0
     state.maneuvered_in_operation[slot] = 0
 
@@ -261,6 +275,7 @@ cdef void _fe_discard_battle_stratagems(FastEngine self, FastState state) noexce
             _fe_append_discard(self, state, player, card, False)
         state.stratagem[player] = -1
         state.stratagem_revealed[player] = 0
+        state.stratagem_known_to_mask[player] = 0
         state.stratagem_front_mask[player] = 0
         state.stratagem_direction[player] = 0
         state.stratagem_target_mask[player] = 0
@@ -272,6 +287,13 @@ cdef inline void _fe_clear_battle_temporary_strength(
     cdef int slot
     for slot in range(SLOT_COUNT):
         state.temporary[slot] = 0
+        state.negative_one_markers[slot] = 0
+        state.negative_two_markers[slot] = 0
+        state.suppression_mask[slot] = 0
+        state.force_ability_used[slot] = 0
+        state.bond_ability_used[slot] = 0
+        state.name_ability_used[slot] = 0
+        state.name_suppression_immune[slot] = 0
 
 cdef inline bint _fe_forced_substep_pending(
     FastState state,
