@@ -84,6 +84,26 @@ def test_game_fingerprint_tracks_trajectory_inputs_only(tmp_path, monkeypatch):
     assert fingerprint.current_game_fingerprint() == previous
 
 
+def test_ismcts_records_non_executable_v2_card_pool_gap(capsys):
+    context = runner._card_pool_context()
+
+    assert context["engine_pool"] == "cards/cards.json"
+    assert context["engine_card_count"] == 95
+    assert context["v2_pool"] == "cards/v2/cards.json"
+    assert context["v2_status"] == "mechanical-redesign-proposal"
+    assert context["v2_card_count"] == 122
+    assert context["v2_overlap_count"] == 95
+    assert context["v2_changed_overlap_count"] == 95
+    assert context["v2_extra_card_count"] == 27
+    assert context["v2_executable"] is False
+
+    runner._print_card_pool_notice()
+    notice = capsys.readouterr().out
+    assert "ISMCTS uses cards/cards.json (95 cards)" in notice
+    assert "cards/v2/cards.json" in notice
+    assert "is not executable" in notice
+
+
 def test_artifact_fingerprint_guard_rejects_missing_stale_and_invalid_json(tmp_path):
     artifact = tmp_path / "artifact.json"
 
