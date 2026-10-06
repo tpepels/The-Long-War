@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
   "status": "exploratory-combo-playtest-decks",
-  "deck_size": 45,
+  "deck_size": 48,
   "decks": [
     {
       "id": "reposition-reuse",
-      "title": "Reposition & Reuse",
-      "playstyle": "Reconfigure positions, filter into the right follow-up, then reuse prepared pieces.",
-      "hypothesis": "Does movement become strategically interesting when it changes row payoffs, unlocks information, and feeds later attachment or card-flow decisions?",
+      "title": "Maneuver & Relief",
+      "playstyle": "Use row changes, MOBILE/TIRELESS movement, local support and information to keep reshaping a Front after both players have committed.",
+      "hypothesis": "Do movement and relief effects create a real positional puzzle when the deck has enough Riders, Scouts and rank-sensitive support to make rearranging the line worth an Action?",
       "combo_notes": [
-        "Grey Riders combine MOBILE and TIRELESS, while Re-form the Line gives Captains a 0-Command way to rearrange an established column.",
-        "Send a Runner is stronger filtering than Fresh Orders, but requires a Scout specifically in the Rear row.",
-        "Vardai, Marched With and Dust Riders reward choosing where movement ends rather than merely moving.",
-        "The Unnamed Host provides a clean high-floor body beside the positional cards."
+        "Grey Riders + The Long March gives cheap early movement; TIRELESS then lets those Riders remain useful after a lost Front.",
+        "Re-form the Line, Neris, Kael, Elian and Sela provide different kinds of repositioning, so the deck can rotate a damaged line rather than simply add Strength.",
+        "Crow Archers, Banner Singers, Supported By and First Spear reward building an actual Front/Middle/Rear order.",
+        "Rear Scouts turn Send a Runner, The Scouts Found the Gap and hidden-information cards into a secondary engine rather than isolated tricks."
       ],
       "cards": [
         {
@@ -28,23 +28,39 @@
           "copies": 2
         },
         {
-          "id": "the-serekh",
+          "id": "the-thornbow-hunters",
           "copies": 1
         },
         {
-          "id": "the-thornbow-hunters",
-          "copies": 2
+          "id": "the-lantern-scouts",
+          "copies": 1
+        },
+        {
+          "id": "the-watchtowers-of-eren",
+          "copies": 1
         },
         {
           "id": "the-first-spear",
-          "copies": 2
+          "copies": 1
         },
         {
-          "id": "seven-black-ships",
+          "id": "the-crow-archers",
+          "copies": 1
+        },
+        {
+          "id": "the-banner-singers",
           "copies": 1
         },
         {
           "id": "the-white-hands-of-elara",
+          "copies": 1
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 1
+        },
+        {
+          "id": "seven-black-ships",
           "copies": 1
         },
         {
@@ -60,11 +76,11 @@
           "copies": 1
         },
         {
-          "id": "stayed-behind-for",
+          "id": "covered-the-withdrawal-of",
           "copies": 1
         },
         {
-          "id": "swore-again-to",
+          "id": "supported-by",
           "copies": 1
         },
         {
@@ -72,7 +88,11 @@
           "copies": 1
         },
         {
-          "id": "supported-by",
+          "id": "trusted",
+          "copies": 1
+        },
+        {
+          "id": "watched-the-skies-for",
           "copies": 1
         },
         {
@@ -84,7 +104,7 @@
           "copies": 1
         },
         {
-          "id": "meren",
+          "id": "mara",
           "copies": 1
         },
         {
@@ -92,7 +112,7 @@
           "copies": 1
         },
         {
-          "id": "mara",
+          "id": "oren",
           "copies": 1
         },
         {
@@ -108,7 +128,7 @@
           "copies": 1
         },
         {
-          "id": "nara-builder-of-walls",
+          "id": "yara-the-chronicler",
           "copies": 1
         },
         {
@@ -120,23 +140,27 @@
           "copies": 1
         },
         {
+          "id": "they-were-gathering-there",
+          "copies": 1
+        },
+        {
           "id": "the-line-wheeled",
           "copies": 1
         },
         {
-          "id": "all-banners-forward",
+          "id": "the-battle-turned-east",
           "copies": 1
         },
         {
-          "id": "the-battle-turned-east",
-          "copies": 2
-        },
-        {
-          "id": "there-was-no-road-back",
+          "id": "the-scouts-had-warned-them",
           "copies": 1
         },
         {
           "id": "the-ground-was-held",
+          "copies": 1
+        },
+        {
+          "id": "no-step-back",
           "copies": 1
         },
         {
@@ -152,11 +176,7 @@
           "copies": 1
         },
         {
-          "id": "the-unnamed-host",
-          "copies": 1
-        },
-        {
-          "id": "trusted",
+          "id": "the-battle-had-chosen-them",
           "copies": 1
         },
         {
@@ -166,19 +186,23 @@
         {
           "id": "send-a-runner",
           "copies": 1
+        },
+        {
+          "id": "catch-your-breath",
+          "copies": 1
         }
       ]
     },
     {
       "id": "prepare-chain",
-      "title": "Prepare & Chain",
-      "playstyle": "Build multi-card turns from preparation, discounts, naming triggers and attachment effects.",
-      "hypothesis": "Can prepared Bonds and Names create satisfying delayed sequences where the payoff is timing and chaining rather than raw efficiency?",
+      "title": "Build & Chain",
+      "playstyle": "Prepare pieces, reduce attachment costs, complete formations in bursts and turn naming/attachment events into card and Command flow.",
+      "hypothesis": "Can a player plan one or two turns ahead and then cash prepared Bonds, Names and discounts into satisfying multi-card sequences without the deck becoming a pure efficiency engine?",
       "combo_notes": [
-        "Fresh Orders replaces itself for 0 Command only when a Captain or King is already established.",
-        "Take Stock costs 1 because top-three selection is materially stronger than replacement draw; Steward/Stronghold access keeps it build-specific.",
-        "Followed, House of Reed, Supplied By and Tovan explore cheap formation completion without making every attachment universally free.",
-        "Yara gives the Narrative package a recursion/filtering payoff alongside Oren, Torren and Teren."
+        "House of Reed, Supplied By and Tovan can take Bonds to 0 Command, while Late Banner, Swore Again To and the King package make Names easier to finish.",
+        "Stayed Behind For, Nara, Torren and Oren convert prepared or unbonded positions into completed formations without requiring every piece to arrive in order.",
+        "Teren, There Was No Road Back and Fresh Orders reward the moment formations become Named and help the chain keep moving.",
+        "Take Stock, Sorin and Yara-like selection effects are deliberately paid or conditional, so the deck must spend Actions to assemble its best turns."
       ],
       "cards": [
         {
@@ -198,15 +222,7 @@
           "copies": 2
         },
         {
-          "id": "the-fifty-men",
-          "copies": 1
-        },
-        {
           "id": "the-first-spear",
-          "copies": 2
-        },
-        {
-          "id": "the-watchtowers-of-eren",
           "copies": 1
         },
         {
@@ -222,11 +238,39 @@
           "copies": 1
         },
         {
+          "id": "the-unnamed-host",
+          "copies": 1
+        },
+        {
+          "id": "the-watchtowers-of-eren",
+          "copies": 1
+        },
+        {
+          "id": "the-salt-road-fleet",
+          "copies": 1
+        },
+        {
+          "id": "a-hundred-shields",
+          "copies": 1
+        },
+        {
+          "id": "supplied-by",
+          "copies": 2
+        },
+        {
           "id": "swore-again-to",
           "copies": 1
         },
         {
           "id": "stayed-behind-for",
+          "copies": 1
+        },
+        {
+          "id": "followed",
+          "copies": 1
+        },
+        {
+          "id": "carried-messages-for",
           "copies": 1
         },
         {
@@ -238,19 +282,7 @@
           "copies": 1
         },
         {
-          "id": "marched-beneath-the-banner-of",
-          "copies": 1
-        },
-        {
-          "id": "supplied-by",
-          "copies": 1
-        },
-        {
-          "id": "carried-messages-for",
-          "copies": 1
-        },
-        {
-          "id": "oren",
+          "id": "namar",
           "copies": 1
         },
         {
@@ -266,7 +298,7 @@
           "copies": 1
         },
         {
-          "id": "namar",
+          "id": "sorin",
           "copies": 1
         },
         {
@@ -274,11 +306,11 @@
           "copies": 1
         },
         {
-          "id": "sorin",
+          "id": "tovan-the-quartermaster",
           "copies": 1
         },
         {
-          "id": "tovan-the-quartermaster",
+          "id": "nara-builder-of-walls",
           "copies": 1
         },
         {
@@ -290,11 +322,15 @@
           "copies": 1
         },
         {
-          "id": "the-line-had-begun-to-move",
+          "id": "they-returned-with-names",
           "copies": 1
         },
         {
-          "id": "they-returned-with-names",
+          "id": "all-banners-forward",
+          "copies": 1
+        },
+        {
+          "id": "the-line-had-begun-to-move",
           "copies": 1
         },
         {
@@ -326,16 +362,12 @@
           "copies": 1
         },
         {
-          "id": "followed",
-          "copies": 1
-        },
-        {
-          "id": "yara-the-chronicler",
+          "id": "the-wall-did-not-break",
           "copies": 1
         },
         {
           "id": "fresh-orders",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "take-stock",
@@ -345,14 +377,14 @@
     },
     {
       "id": "tax-fork",
-      "title": "Tax & Fork",
-      "playstyle": "Create several small threats at once so the opponent has to choose what to pay for, protect or abandon.",
-      "hypothesis": "Is denial more enjoyable when it presents forks - tax, information, prepared-card pressure and temporary suppression - instead of one repeated lock?",
+      "title": "Pressure & Intelligence",
+      "playstyle": "Use Raiders, Skirmishers, Scouts and Archers to make several different kinds of pressure visible at once: taxes, suppression, prepared-card attacks and hidden-information leverage.",
+      "hypothesis": "Does denial stay interactive when the opponent is choosing among several small problems rather than repeatedly hitting one lock effect?",
       "combo_notes": [
-        "They Were Gathering There remains the 0-Command hostile information card: it still requires a Scout and spends an Action.",
-        "Aradai, Iron Boars, Red Duelists and Ilyri pressure different resources instead of repeating one tax.",
-        "The Crows Came Down and Every Bow Was Strung give the Archer contingent persistent reasons to develop.",
-        "Catch Your Breath gives the Healer/Steward package conditional Exhaustion recovery rather than universal free recovery."
+        "Iron Boars and Aradai attack future attachment costs, while Red Duelists and Ilyri care about the opposing formation directly across from them.",
+        "River Raiders turn existing Exhaustion into pressure instead of requiring a one-shot trigger; Seven Black Ships and Salt-Road Fleet give the Raider package other plans when nothing is Exhausted.",
+        "Thornbow Hunters, Lantern Scouts, Lysa and The Scouts Had Warned Them make hidden Stratagem information actionable.",
+        "Serai plus the Archer Narratives and A Volley Before Dawn creates a parallel Strength-control line, so the deck is not forced to win only through taxation."
       ],
       "cards": [
         {
@@ -376,7 +408,11 @@
           "copies": 2
         },
         {
-          "id": "the-lantern-scouts",
+          "id": "the-salt-road-fleet",
+          "copies": 1
+        },
+        {
+          "id": "seven-black-ships",
           "copies": 1
         },
         {
@@ -384,15 +420,15 @@
           "copies": 1
         },
         {
-          "id": "the-crow-archers",
+          "id": "the-lantern-scouts",
           "copies": 1
         },
         {
-          "id": "the-salt-road-fleet",
+          "id": "the-watchtowers-of-eren",
           "copies": 1
         },
         {
-          "id": "the-old-guard",
+          "id": "the-dust-riders",
           "copies": 1
         },
         {
@@ -408,27 +444,27 @@
           "copies": 1
         },
         {
-          "id": "kept-pace-with",
-          "copies": 1
-        },
-        {
-          "id": "guarded",
-          "copies": 1
-        },
-        {
-          "id": "carried-the-oath-of",
-          "copies": 1
-        },
-        {
           "id": "watched-the-skies-for",
           "copies": 1
         },
         {
-          "id": "brannoc",
+          "id": "carried-messages-for",
+          "copies": 1
+        },
+        {
+          "id": "kept-pace-with",
+          "copies": 1
+        },
+        {
+          "id": "stood-fast-with",
           "copies": 1
         },
         {
           "id": "tala",
+          "copies": 1
+        },
+        {
+          "id": "brannoc",
           "copies": 1
         },
         {
@@ -444,7 +480,7 @@
           "copies": 1
         },
         {
-          "id": "maelin",
+          "id": "corin-of-the-high-wall",
           "copies": 1
         },
         {
@@ -468,15 +504,15 @@
           "copies": 1
         },
         {
+          "id": "a-volley-before-dawn",
+          "copies": 1
+        },
+        {
+          "id": "the-line-had-begun-to-move",
+          "copies": 1
+        },
+        {
           "id": "the-trap-closed",
-          "copies": 1
-        },
-        {
-          "id": "the-scouts-had-warned-them",
-          "copies": 1
-        },
-        {
-          "id": "no-step-back",
           "copies": 1
         },
         {
@@ -484,11 +520,11 @@
           "copies": 1
         },
         {
-          "id": "the-raiders-came-home-loaded",
+          "id": "the-flank-was-refused",
           "copies": 1
         },
         {
-          "id": "they-knew-the-ground",
+          "id": "the-scouts-had-warned-them",
           "copies": 1
         },
         {
@@ -496,7 +532,7 @@
           "copies": 1
         },
         {
-          "id": "they-were-gathering-there",
+          "id": "the-raiders-came-home-loaded",
           "copies": 1
         },
         {
@@ -508,26 +544,34 @@
           "copies": 1
         },
         {
-          "id": "catch-your-breath",
+          "id": "send-a-runner",
+          "copies": 1
+        },
+        {
+          "id": "fresh-orders",
+          "copies": 1
+        },
+        {
+          "id": "take-stock",
           "copies": 1
         }
       ]
     },
     {
       "id": "protect-counter",
-      "title": "Protect & Counter",
-      "playstyle": "Invite commitment, absorb or redirect interaction, then turn the surviving formation into a counter-push.",
-      "hypothesis": "Can layered protection create timing decisions and reversals without becoming a passive wall?",
+      "title": "Hold & Counter",
+      "playstyle": "Build resilient columns, let the opponent commit into them, then turn Exhaustion, Reserve, protection and second-line support into the counter-push.",
+      "hypothesis": "Can a defensive deck remain active and positional when its payoff is rotating and reinforcing damaged lines rather than simply preventing interaction?",
       "combo_notes": [
-        "Thirty Spears and Stood Fast With are deliberately simple floor cards beside the conditional protection engine.",
-        "Had Been Ordered Forward rewards the Guard/Spearman concentration without dominating unconditional Bonds.",
-        "Bind the Wound costs 0 but requires a Healer and an actual temporary negative marker worth clearing.",
-        "Damar, White Hands and the Exhaustion package test recovery without erasing the history of a lost Front."
+        "Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the strength of the line ahead.",
+        "Damar becomes dangerous after Exhaustion, while Maelin and Catch Your Breath decide whether to keep that exhausted payoff or clear the token for mobility.",
+        "Serekh, Red Shields, Alda, Veyra and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield.",
+        "Bind the Wound and White Hands spend Actions on recovery, while Had Been Ordered Forward and Doros reward the Guard/Spearman core for surviving long enough to counter."
       ],
       "cards": [
         {
           "id": "the-red-shields",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-old-guard",
@@ -539,14 +583,14 @@
         },
         {
           "id": "the-serekh",
-          "copies": 2
-        },
-        {
-          "id": "the-white-hands-of-elara",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-black-company",
+          "copies": 1
+        },
+        {
+          "id": "thirty-spears",
           "copies": 1
         },
         {
@@ -554,7 +598,23 @@
           "copies": 1
         },
         {
+          "id": "the-kings-spears",
+          "copies": 1
+        },
+        {
           "id": "the-first-spear",
+          "copies": 1
+        },
+        {
+          "id": "the-white-hands-of-elara",
+          "copies": 1
+        },
+        {
+          "id": "the-ash-bowmen",
+          "copies": 1
+        },
+        {
+          "id": "the-unnamed-host",
           "copies": 1
         },
         {
@@ -562,11 +622,11 @@
           "copies": 1
         },
         {
-          "id": "the-kings-spears",
+          "id": "guarded",
           "copies": 1
         },
         {
-          "id": "guarded",
+          "id": "held-the-line-for",
           "copies": 1
         },
         {
@@ -574,15 +634,19 @@
           "copies": 1
         },
         {
-          "id": "covered-the-withdrawal-of",
+          "id": "marched-beneath-the-banner-of",
+          "copies": 1
+        },
+        {
+          "id": "carried-the-oath-of",
+          "copies": 1
+        },
+        {
+          "id": "had-been-ordered-forward",
           "copies": 1
         },
         {
           "id": "kept-the-gate-for",
-          "copies": 1
-        },
-        {
-          "id": "held-the-line-for",
           "copies": 1
         },
         {
@@ -602,19 +666,15 @@
           "copies": 1
         },
         {
-          "id": "corin-of-the-high-wall",
+          "id": "arel",
+          "copies": 1
+        },
+        {
+          "id": "oren",
           "copies": 1
         },
         {
           "id": "iria",
-          "copies": 1
-        },
-        {
-          "id": "namar",
-          "copies": 1
-        },
-        {
-          "id": "arel",
           "copies": 1
         },
         {
@@ -634,10 +694,6 @@
           "copies": 1
         },
         {
-          "id": "a-volley-before-dawn",
-          "copies": 1
-        },
-        {
           "id": "they-let-them-through",
           "copies": 1
         },
@@ -646,7 +702,15 @@
           "copies": 1
         },
         {
+          "id": "the-line-wheeled",
+          "copies": 1
+        },
+        {
           "id": "no-step-back",
+          "copies": 1
+        },
+        {
+          "id": "the-lines-held",
           "copies": 1
         },
         {
@@ -655,10 +719,6 @@
         },
         {
           "id": "the-flank-was-refused",
-          "copies": 1
-        },
-        {
-          "id": "the-lines-held",
           "copies": 1
         },
         {
@@ -674,19 +734,19 @@
           "copies": 1
         },
         {
-          "id": "thirty-spears",
-          "copies": 1
-        },
-        {
-          "id": "stood-fast-with",
-          "copies": 1
-        },
-        {
-          "id": "had-been-ordered-forward",
+          "id": "no-one-would-be-first-to-leave",
           "copies": 1
         },
         {
           "id": "bind-the-wound",
+          "copies": 1
+        },
+        {
+          "id": "catch-your-breath",
+          "copies": 1
+        },
+        {
+          "id": "re-form-the-line",
           "copies": 1
         }
       ]
