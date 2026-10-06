@@ -68,6 +68,12 @@ class Slot:
     name: str | None = None
     exhausted: bool = False
     temporary_strength: int = 0
+    negative_strength_markers: list[int] = field(default_factory=list)
+    suppression_mask: int = 0
+    force_ability_used: bool = False
+    bond_ability_used: bool = False
+    name_ability_used: bool = False
+    name_suppression_immune: bool = False
     maneuvers_this_battle: int = 0
     maneuver_direction: str | None = None
     maneuvered_in_operation: bool = False
@@ -128,6 +134,28 @@ class StratagemState:
     direction: str | None = None
     targets: tuple[tuple[int, Position], ...] = ()
     revealed: bool = False
+    known_to_mask: int = 0
+
+
+@dataclass
+class TaxMarker:
+    owner: int
+    target_player: int
+    front: Front
+    amount: int
+    card_types: tuple[str, ...] = ("any",)
+    expires_turn: int | None = None
+
+
+@dataclass
+class SlotDiscount:
+    owner: int
+    target_player: int
+    position: Position
+    amount: int
+    minimum: int
+    card_types: tuple[str, ...] = ("any",)
+    expires_turn: int | None = None
 
 
 @dataclass
@@ -248,6 +276,8 @@ class GameState:
     known_hidden_hand: list[list[dict[str, int]]] = field(
         default_factory=empty_known_hidden
     )
+    tax_markers: list[TaxMarker] = field(default_factory=list)
+    slot_discounts: list[SlotDiscount] = field(default_factory=list)
 
     def clone(self) -> "GameState":
         players = [
@@ -269,6 +299,12 @@ class GameState:
                         name=slot.name,
                         exhausted=slot.exhausted,
                         temporary_strength=slot.temporary_strength,
+                        negative_strength_markers=list(slot.negative_strength_markers),
+                        suppression_mask=slot.suppression_mask,
+                        force_ability_used=slot.force_ability_used,
+                        bond_ability_used=slot.bond_ability_used,
+                        name_ability_used=slot.name_ability_used,
+                        name_suppression_immune=slot.name_suppression_immune,
                         maneuvers_this_battle=slot.maneuvers_this_battle,
                         maneuver_direction=slot.maneuver_direction,
                         maneuvered_in_operation=slot.maneuvered_in_operation,
@@ -305,6 +341,7 @@ class GameState:
                     direction=stratagem.direction,
                     targets=tuple(stratagem.targets),
                     revealed=stratagem.revealed,
+                    known_to_mask=stratagem.known_to_mask,
                 )
             )
             for stratagem in self.stratagems
@@ -392,6 +429,29 @@ class GameState:
                 [dict(self.known_hidden_hand[v][o]) for o in range(PLAYER_COUNT)]
                 for v in range(PLAYER_COUNT)
             ],
+            tax_markers=[
+                TaxMarker(
+                    owner=item.owner,
+                    target_player=item.target_player,
+                    front=item.front,
+                    amount=item.amount,
+                    card_types=tuple(item.card_types),
+                    expires_turn=item.expires_turn,
+                )
+                for item in self.tax_markers
+            ],
+            slot_discounts=[
+                SlotDiscount(
+                    owner=item.owner,
+                    target_player=item.target_player,
+                    position=item.position,
+                    amount=item.amount,
+                    minimum=item.minimum,
+                    card_types=tuple(item.card_types),
+                    expires_turn=item.expires_turn,
+                )
+                for item in self.slot_discounts
+            ],
         )
 
     def copy_from(self, source: "GameState") -> "GameState":
@@ -414,6 +474,12 @@ class GameState:
                     target_slot.name = source_slot.name
                     target_slot.exhausted = source_slot.exhausted
                     target_slot.temporary_strength = source_slot.temporary_strength
+                    target_slot.negative_strength_markers[:] = source_slot.negative_strength_markers
+                    target_slot.suppression_mask = source_slot.suppression_mask
+                    target_slot.force_ability_used = source_slot.force_ability_used
+                    target_slot.bond_ability_used = source_slot.bond_ability_used
+                    target_slot.name_ability_used = source_slot.name_ability_used
+                    target_slot.name_suppression_immune = source_slot.name_suppression_immune
                     target_slot.maneuvers_this_battle = source_slot.maneuvers_this_battle
                     target_slot.maneuver_direction = source_slot.maneuver_direction
                     target_slot.maneuvered_in_operation = (
@@ -444,6 +510,7 @@ class GameState:
                     direction=source_stratagem.direction,
                     targets=tuple(source_stratagem.targets),
                     revealed=source_stratagem.revealed,
+                    known_to_mask=source_stratagem.known_to_mask,
                 )
             )
 
@@ -522,6 +589,29 @@ class GameState:
         self.turn_number = source.turn_number
         self.shuffle_seed = source.shuffle_seed
         self.observations[:] = source.observations
+        self.tax_markers[:] = [
+            TaxMarker(
+                owner=item.owner,
+                target_player=item.target_player,
+                front=item.front,
+                amount=item.amount,
+                card_types=tuple(item.card_types),
+                expires_turn=item.expires_turn,
+            )
+            for item in source.tax_markers
+        ]
+        self.slot_discounts[:] = [
+            SlotDiscount(
+                owner=item.owner,
+                target_player=item.target_player,
+                position=item.position,
+                amount=item.amount,
+                minimum=item.minimum,
+                card_types=tuple(item.card_types),
+                expires_turn=item.expires_turn,
+            )
+            for item in source.slot_discounts
+        ]
         for viewer in range(PLAYER_COUNT):
             for owner in range(PLAYER_COUNT):
                 self.known_hidden_hand[viewer][owner].clear()
