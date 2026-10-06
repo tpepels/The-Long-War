@@ -72,7 +72,7 @@
           "copies": 1
         },
         {
-          "id": "followed",
+          "id": "supported-by",
           "copies": 1
         },
         {
@@ -226,7 +226,7 @@
           "copies": 1
         },
         {
-          "id": "had-been-ordered-forward",
+          "id": "supplied-by",
           "copies": 1
         },
         {
@@ -554,7 +554,7 @@
           "copies": 1
         },
         {
-          "id": "trusted",
+          "id": "supported-by",
           "copies": 1
         },
         {
