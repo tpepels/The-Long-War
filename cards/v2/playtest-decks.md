@@ -35,7 +35,7 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 | 1 | Stayed Behind For | Bond |
 | 1 | Swore Again To | Bond |
 | 1 | Carried Messages For | Bond |
-| 1 | Followed | Bond |
+| 1 | Supported By | Bond |
 | 1 | Elian | Name |
 | 1 | Sela | Name |
 | 1 | Meren | Name |
@@ -88,7 +88,7 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 | 1 | Bought Time For | Bond |
 | 1 | Rallied Behind | Bond |
 | 1 | Marched Beneath the Banner of | Bond |
-| 1 | Had Been Ordered Forward | Bond |
+| 1 | Supplied By | Bond |
 | 1 | Carried Messages For | Bond |
 | 1 | Oren | Name |
 | 1 | Teren | Name |
@@ -199,7 +199,7 @@ Each deck uses 15 Forces, 6-7 printed Names, 3 Heroes, and a mixed package of Bo
 | 1 | Covered the Withdrawal of | Bond |
 | 1 | Kept the Gate For | Bond |
 | 1 | Stood Fast With | Bond |
-| 1 | Trusted | Bond |
+| 1 | Supported By | Bond |
 | 1 | Asha, the Shield-Bearer | Name |
 | 1 | Edrin | Name |
 | 1 | Maelin | Name |
