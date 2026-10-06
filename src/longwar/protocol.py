@@ -45,7 +45,7 @@ class SearchBackend(StrEnum):
     PYTHON = "python"
 
 
-MCCFR_POLICY_SCHEMA_VERSION = 4
+MCCFR_POLICY_SCHEMA_VERSION = 5
 
 
 class GameMode(StrEnum):
