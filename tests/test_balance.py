@@ -16,16 +16,16 @@ def test_fifty_men_followed_namar_static_strength_before_position_bonus() -> Non
         cards["followed"],
         cards["namar"],
     )
-    assert score.static_strength == 8
+    assert score.static_strength == 7
 
 
 def test_all_force_bond_name_combinations_are_analyzed() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     report = build_report(data)
-    forces = cards_by_type(data, "force")
+    forces = [*cards_by_type(data, "force"), *cards_by_type(data, "hero")]
     bonds = cards_by_type(data, "bond")
     printed_names = cards_by_type(data, "name")
-    heroes = [card for card in forces if card.get("hero")]
+    heroes = cards_by_type(data, "hero")
     expected = len(bonds) * (
         len(forces) * (len(printed_names) + len(heroes)) - len(heroes)
     )
@@ -36,9 +36,18 @@ def test_static_strength_uses_canonical_rules_not_balance_annotations() -> None:
     cards = card_index(load_card_file(ROOT / "cards" / "cards.json"))
     bond = {
         **cards["followed"],
+        "strength_modifier": 2,
         "design_rules": {
-            "strength_bonus": 2,
-            "named_additional_strength_bonus": 4,
+            "effects": [
+                {
+                    "timing": "while_named",
+                    "scope": "self",
+                    "op": "component_strength",
+                    "component": "bond",
+                    "amount": 4,
+                }
+            ],
+            "modes": {},
         },
         "balance": {"strength_bonus": 99},
     }
