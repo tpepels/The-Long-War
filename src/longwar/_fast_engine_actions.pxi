@@ -221,27 +221,26 @@ cdef inline bint _fe_action_affects_front(
     cdef int card
     cdef int pos = action_pos(action)
     cdef int dest = action_dest(action)
+    cdef int selected_front
     cdef uint32_t extra = action_extra(action)
     if front < 0:
         return False
     if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
         return pos >= 0 and front_from_slot(pos) == front
     if kind == TYPE_TACTIC or kind == TYPE_ORDER:
-        if pos >= 0 and not (active & (1 << front_from_slot(pos))):
-            return False
-        if dest >= 0 and not (active & (1 << front_from_slot(dest))):
-            return False
-        if kind == TYPE_TACTIC:
-            front = <int>(extra & V2_PLAY_FRONT_MASK) - 1
-            if front >= 0 and not (active & (1 << front)):
-                return False
-        return True
-
+        if pos >= 0 and front_from_slot(pos) == front:
+            return True
+        if dest >= 0 and front_from_slot(dest) == front:
+            return True
+        selected_front = <int>(extra & V2_PLAY_FRONT_MASK) - 1
+        return selected_front == front
     if kind == TYPE_ABILITY:
+        # Formation abilities affect their source Front. Narrative abilities
+        # have no board-position source; their effect-specific choices are
+        # resolved as forced substeps after the Action.
         if extra & V2_ABILITY_NARRATIVE_FLAG:
             return True
-        return pos >= 0 and bool(active & (1 << front_from_slot(pos)))
-
+        return pos >= 0 and front_from_slot(pos) == front
     if kind == TYPE_MANEUVER:
         return (
             (pos >= 0 and front_from_slot(pos) == front)
@@ -262,7 +261,6 @@ cdef inline bint _fe_action_affects_front(
     if kind == TYPE_STRATAGEM:
         return pos >= 0 and bool(pos & (1 << front))
     return False
-
 
 cdef inline bint _fe_constraint_satisfied(
     FastEngine self,
@@ -1048,6 +1046,24 @@ cdef inline bint _fe_action_uses_only_active_fronts(
         if dest >= 0 and not (active & (1 << front_from_slot(dest))):
             return False
         return True
+
+    if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+        if pos >= 0 and not (active & (1 << front_from_slot(pos))):
+            return False
+        if dest >= 0 and not (active & (1 << front_from_slot(dest))):
+            return False
+        front = <int>(extra & V2_PLAY_FRONT_MASK) - 1
+        if front >= 0 and not (active & (1 << front)):
+            return False
+        return True
+
+    if kind == TYPE_ABILITY:
+        if extra & V2_ABILITY_NARRATIVE_FLAG:
+            return True
+        return (
+            pos >= 0
+            and bool(active & (1 << front_from_slot(pos)))
+        )
 
     if kind == TYPE_MANEUVER:
         return (
