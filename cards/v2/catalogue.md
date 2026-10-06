@@ -12,14 +12,14 @@
 | **The Red Shields** | Human · Guard | 2 | 4 | REACTION · 1/BATTLE - When an opposing Tactic targets this formation, you may ignore that Tactic's effect on this formation. |
 | **The Crow Archers** | Human · Archer | 2 | 3 | **REAR - SUPPORT +1.** |
 | **The House of Reed** | Stronghold · Builder | 2 | 3 | **MIDDLE / REAR ONLY. REAR - SUPPLY.** |
-| **The Grey Riders** | Human · Rider | 2 | 3 | ACTION · 1/BATTLE - Move this formation one position. |
+| **The Grey Riders** | Human · Rider | 2 | 3 | **TIRELESS** - This formation may Maneuver while Exhausted. |
 | **The Dust Riders** | Human · Rider · Skirmisher | 2 | 2 | BONDED - While this formation is in the Front or Middle row, it has +1 Strength. |
 | **The Black Company** | Human · Veteran | 2 | 5 | No special rules. |
 | **The Red Duelists** | Human · Skirmisher | 2 | 3 | ACTION · 1/BATTLE - Choose an opposing Named Formation in this Front. Its ACTION abilities cannot be used this turn. |
 | **The Thornbow Hunters** | Human · Archer · Scout | 2 | 2 | ACTION · 1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front. |
 | **The Iron Boars** | Human · Raider | 3 | 4 | ACTION · 1/BATTLE - Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand. |
 | **The First Spear** | Human · Guard · Spearman | 2 | 4 | **FRONT** - If the position directly behind is occupied by a friendly formation, this formation has +2 Strength. |
-| **The Old Guard** | Human · Guard · Veteran | 2 | 3 | REACTION · 1/BATTLE - When a temporary negative marker would be placed on this formation, you may prevent it. |
+| **The Old Guard** | Human · Guard · Veteran | 2 | 3 | **MIDDLE - RESERVE +2.** |
 | **The Unnamed Host** | Human | 2 | 5 | No special rules. |
 | **The Late Banner** | Human · Captain | 2 | 3 | BONDED - Names played onto this formation cost 1 less Command, to a minimum of 1. |
 | **The Banner Singers** | Human · Captain | 1 | 2 | WHILE NAMED - While this formation is in the Middle row, SUPPORT +1. |
@@ -28,7 +28,7 @@
 | **The Vardai** | Human · Rider | 2 | 3 | ACTION · 1/BATTLE - Move this formation one position. If it ends in the Front row, it gets +1 Strength this Battle. |
 | **The Aradai** | Human · Raider | 2 | 3 | ACTION · 1/BATTLE - Place a Tax marker on this Front. The next Bond your opponent plays here before your next turn costs 1 additional Command. |
 | **The Ilyri** | Human · Skirmisher | 2 | 3 | ACTION · 1/BATTLE - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle. |
-| **The Damar** | Human · Veteran | 2 | 5 | REACTION · 1/BATTLE - When a -Strength marker would be placed on this formation, you may prevent it. |
+| **The Damar** | Human · Veteran | 2 | 4 | **EXHAUSTED** - This formation has +1 Strength. |
 | **The Serekh** | Human · Guard | 2 | 3 | REACTION · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may ignore that Tactic's effect on that formation. |
 | **The Ash Bowmen** | Human · Archer | 2 | 3 | BONDED - This formation has +1 Strength. |
 | **The Lantern Scouts** | Human · Scout | 1 | 2 | ACTION · 1/BATTLE - Look at one opposing face-down Stratagem in this Front or an adjacent Front. |
@@ -46,9 +46,9 @@
 | **Stood Fast With** | - | 1 | +2 | No special rules. |
 | **Marched With** | - | 1 | +1 | PLAY - Move this formation one position. |
 | **Kept Pace With** | Rider · Scout | 1 | +1 | ACTION · 1/BATTLE - If this formation contains a Rider or Scout, draw 1 card, then discard 1 card. |
-| **Covered the Withdrawal of** | - | 1 | +1 | ACTION · 1/BATTLE - Remove one temporary negative marker from the friendly formation directly ahead. |
+| **Covered the Withdrawal of** | - | 1 | +1 | BONDED - The friendly formation directly ahead is **TIRELESS**. |
 | **Blocked the Road for** | - | 1 | +1 | ACTION · 1/BATTLE - Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command. |
-| **Held the Line for** | - | 1 | +2 | No special rules. |
+| **Held the Line for** | - | 1 | +1 | BONDED - **RESERVE +1.** |
 | **Seized the Standard of** | Raider · Skirmisher | 1 | +1 | ACTION · 1/BATTLE - If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand. |
 | **Stayed Behind For** | - | 1 | +0 | PLAY - Choose a prepared Name in this Front. Attach it to this formation if its Name slot is empty. |
 | **Swore Again To** | - | 1 | +1 | BONDED - Names played onto this formation cost 1 less Command, to a minimum of 1. |
@@ -78,7 +78,7 @@
 | **Mara** | Human · Scout | 1 | +1 | BECOMES NAMED - Look at your opponent's hand.<br>TRIGGER · 1/BATTLE - When your opponent plays a Tactic in this Front, you may look at one opposing face-down Stratagem in this or an adjacent Front. |
 | **Asha, the Shield-Bearer** | Human · Guard | 1 | +1 | BECOMES NAMED - Remove all temporary negative markers from this formation.<br>TRIGGER · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal. |
 | **Edrin** | Human · Veteran | 1 | +1 | BECOMES NAMED - Regain 1 Command.<br>TRIGGER · 1/BATTLE - When this formation would receive a temporary negative marker, you may ignore that marker. |
-| **Sela** | Human · Rider | 1 | +1 | BECOMES NAMED - Move this formation one row forward or backward.<br>ACTION · 1/BATTLE - Move this formation one row forward or backward. |
+| **Sela** | Human · Rider | 1 | +1 | BECOMES NAMED - Move this formation one row forward or backward.<br>WHILE NAMED - This formation is **TIRELESS**. |
 | **Meren** | Human · Captain | 2 | +1 | BECOMES NAMED - Return one Bond from your discard pile to your hand.<br>ACTION · 1/BATTLE - Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0. |
 | **Tala** | Human · Skirmisher | 1 | +1 | BECOMES NAMED - Choose an opposing formation in this Front. It gets -2 Strength this Battle.<br>ACTION · 1/BATTLE - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle. |
 | **Sorin** | Human · Steward | 2 | +1 | BECOMES NAMED - Draw 2 cards, then put 1 card from your hand on top of your deck.<br>ACTION - Pay 1 Command. Discard 1 card, then draw 2 cards. |
@@ -89,7 +89,7 @@
 | **Corin of the High Wall** | Human · Archer · Captain | 2 | +1 | BECOMES NAMED - Choose an opposing formation in this Front. It gets -1 Strength this Battle.<br>CONTINUOUS - Other friendly Archers in this Front have +1 Strength. |
 | **Lysa the Listener** | Human · Scout · Seer | 1 | +1 | BECOMES NAMED - Look at your opponent's hand.<br>ACTION - Pay 1 Command. Look at one opposing face-down Stratagem in any active Front. |
 | **Brannoc** | Human · Raider · Captain | 2 | +1 | BECOMES NAMED - Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command.<br>ACTION - Pay 1 Command. Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand. |
-| **Maelin** | Human · Guard · Healer | 1 | +1 | BECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.<br>CONTINUOUS - Opposing Tactics that target another friendly formation in this Front cost 1 additional Command. |
+| **Maelin** | Human · Guard · Healer | 1 | +1 | BECOMES NAMED - Remove Exhaustion from one friendly formation in this Front.<br>CONTINUOUS - Opposing Tactics that target another friendly formation in this Front cost 1 additional Command. |
 
 ## Heroes
 
