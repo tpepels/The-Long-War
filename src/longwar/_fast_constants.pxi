@@ -552,6 +552,7 @@ cdef int V2_OP_TRIGGER_DRAW = 75
 cdef int V2_OP_TRIGGER_DRAW_DISCARD = 76
 cdef int V2_OP_TRIGGER_GAIN_COMMAND = 77
 cdef int V2_OP_TRIGGER_LOOK_STRATAGEM = 78
+cdef int V2_OP_STEAL_COMMAND = 79
 
 # Generic V2 selector/condition codes.
 cdef int V2_TARGET_NONE = 0
@@ -646,6 +647,7 @@ cdef uint32_t V2_FLAG_DIRECTION_REAR = 1024
 cdef uint32_t V2_FLAG_COMPONENT_BOND = 2048
 cdef uint32_t V2_FLAG_STATUS_HERO = 4096
 cdef uint32_t V2_FLAG_STATUS_NAMED = 8192
+cdef uint32_t V2_FLAG_REQUIRES_OPPOSING_SUPPLY = 16384
 
 cdef struct V2EffectSpec:
     int16_t op
