@@ -171,6 +171,16 @@ A Force with an **Exhaustion token** cannot initiate a Maneuver. A Force can hav
 
 During the resolution of a single Action or effect, each formation may initiate at most one Maneuver.
 
+### Positional card shorthand
+
+**SUPPLY** reduces the cost of Bonds played onto the friendly formation directly ahead by 1, to a minimum of 0, and Names by 1, to a minimum of 1.
+
+**PRESS +N** gives that formation +N Strength while at least one opposing Force in the same Front is Exhausted. PRESS bonuses stack.
+
+A formation **provides SUPPLY** only while its SUPPLY effect is currently active and not suppressed. A raid does not remove SUPPLY unless its card says so.
+
+**STEAL N COMMAND** makes the opponent lose up to N Command, but never below 1, and you regain exactly the amount lost. Command stolen during a Battle does not by itself cause Collapse.
+
 There is no automatic Maneuver between Battles.
 
 ## Cycling cards
