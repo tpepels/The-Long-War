@@ -226,7 +226,7 @@ cdef void _fe_project_front_losses_fast(
 
 
 cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
-    cdef int front, a, b, p, strat, protected, protected_card, card
+    cdef int front, rank, slot, a, b, p, strat, protected, protected_card, card
     cdef int controller, mask
     cdef int losses0, losses1
     cdef uint16_t projected_lost0=0, projected_lost1=0
@@ -319,6 +319,17 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     state.last_lost_mask[0] = state.resolution_lost_mask[0] & FRONT_MASK
     state.last_lost_mask[1] = state.resolution_lost_mask[1] & FRONT_MASK
 
+    # Losing a Front exhausts every Force currently in that Front. Exhaustion
+    # is persistent and boolean, so repeated losses cannot stack extra tokens.
+    for p in range(PLAYER_COUNT):
+        for front in range(FRONT_COUNT):
+            if not (state.resolution_lost_mask[p] & (1 << front)):
+                continue
+            for rank in range(RANK_COUNT):
+                slot = slot_index(p, front, rank)
+                if state.force[slot] >= 0:
+                    state.exhausted[slot] = 1
+
     losses0 = popcount16(state.resolution_lost_mask[0] & FRONT_MASK)
     losses1 = popcount16(state.resolution_lost_mask[1] & FRONT_MASK)
     state.resolution_front_loss_command_penalty[0] = (
@@ -401,8 +412,8 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
 
     # The battlefield persists. Ordinary Battle resolution never clears an
     # incomplete position and never Retreats or drives off a formation merely
-    # because its Front was lost. Explicit card effects may still use the
-    # Retreat/drive-off primitives.
+    # because its Front was lost. It does exhaust Forces in lost Fronts.
+    # Explicit card effects may still use the Retreat/drive-off primitives.
     state.resolution_stage = RESOLUTION_NARRATIVES
     state.resolution_cursor = 0
 

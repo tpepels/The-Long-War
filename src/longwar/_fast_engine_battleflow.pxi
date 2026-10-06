@@ -30,6 +30,7 @@ cdef void _fe_discard_slot_components(
     if card >= 0:
         _fe_append_discard(self, state, player, card, False)
     state.force[slot] = -1
+    state.exhausted[slot] = 0
     state.bond[slot] = -1
     state.name[slot] = -1
     state.temporary[slot] = 0
@@ -82,6 +83,7 @@ cdef void _fe_finish_pending_drive_off(
     if bond >= 0:
         if self.driven_bond_stays[bond]:
             state.force[slot] = -1
+            state.exhausted[slot] = 0
             if name >= 0:
                 _fe_return_to_hand(self, state, player, name)
             state.name[slot] = -1
@@ -101,6 +103,7 @@ cdef void _fe_finish_pending_drive_off(
             _fe_append_discard(self, state, player, name, False)
 
     state.force[slot] = -1
+    state.exhausted[slot] = 0
     state.bond[slot] = -1
     state.name[slot] = -1
     state.temporary[slot] = 0
@@ -219,26 +222,19 @@ cdef void _fe_retreat_slot(
             True,
         )
 
-    # An adjacent-retreat trigger activates from an adjacent formation in
-    # the same Rear rank after the Retreat has resolved.
-    if front > 0:
-        other = slot_index(player, front - 1, rank)
+    # An adjacent-retreat trigger uses orthogonal position adjacency.
+    destinations = _fe_adjacent_formation_mask(
+        self, state, player, destination, False
+    )
+    for other in range(
+        player * POSITIONS_PER_PLAYER,
+        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+    ):
+        if not (destinations & (1 << other)):
+            continue
         other_bond = state.bond[other]
         if (
-            state.force[other] >= 0
-            and other_bond >= 0
-            and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
-        ):
-            _fe_queue_free_maneuver(
-                self, state, player, <uint32_t>(1 << other),
-                True, False, other_bond
-            )
-    if front < FRONT_COUNT - 1:
-        other = slot_index(player, front + 1, rank)
-        other_bond = state.bond[other]
-        if (
-            state.force[other] >= 0
-            and other_bond >= 0
+            other_bond >= 0
             and (self.card_capabilities[other_bond] & CAP_ADJACENT_RETREAT_FREE_MANEUVER)
         ):
             _fe_queue_free_maneuver(

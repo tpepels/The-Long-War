@@ -302,6 +302,7 @@ class PlaySession:
                         "force": slot.force,
                         "bond": slot.bond,
                         "name": slot.name,
+                        "exhausted": slot.exhausted,
                         "complete": slot.complete,
                         "strength": self.engine.position_strength(
                             state,
@@ -840,8 +841,8 @@ class PlaySession:
             return "Resolve the pending printed card effect."
         if isinstance(action, Maneuver):
             return (
-                "Move this Named Formation one adjacent Front in the same rank "
-                "for 1 Command."
+                "Move this Named Formation to one orthogonally adjacent active "
+                "position for 1 Command."
             )
         if isinstance(action, PlayForce):
             return "This position can receive this Force."

@@ -55,6 +55,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, <uint8_t>(state.force[slot] + 1))
         _info_hash_feed(&h, <uint8_t>(state.bond[slot] + 1))
         _info_hash_feed(&h, <uint8_t>(state.name[slot] + 1))
+        _info_hash_feed(&h, state.exhausted[slot])
         _info_hash_feed_u16(
             &h,
             <uint16_t>state.temporary[slot],
@@ -150,6 +151,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
+    # v15 adds public persistent per-Force Exhaustion state.
     # v13 widens in-progress Front-loss Command penalties to 16 bits.
     # v12 widened observable deck/discard counts to 16 bits so every legal
     # deck size is representable.
@@ -280,6 +282,7 @@ cdef int _fe__information_state_encode(
                 h,
                 <uint8_t>(state.name[slot] + 1),
             )
+            _info_emit(buf, &n, h, state.exhausted[slot])
             _info_emit_u16(
                 buf,
                 &n,

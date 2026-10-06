@@ -454,10 +454,11 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             force_code = data[i] - 1
             bond_code = data[i + 1] - 1
             name_code = data[i + 2] - 1
-            temporary = data[i + 3] | (data[i + 4] << 8)
+            exhausted = bool(data[i + 3])
+            temporary = data[i + 4] | (data[i + 5] << 8)
             if temporary >= 32768:
                 temporary -= 65536
-            i += INFO_BOARD_SLOT_BASE_BYTES
+            i += INFO_BOARD_SLOT_BASE_BYTES + 1
             i += 1  # per-slot Maneuver count
             i += 1  # per-operation Maneuver-chain flag
             board[owner].append([
@@ -467,6 +468,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
                 None if bond_code < 0 else card_ids[bond_code],
                 None if name_code < 0 else card_ids[name_code],
                 temporary,
+                exhausted,
             ])
 
     narratives = [[] for _ in range(PLAYER_COUNT)]
