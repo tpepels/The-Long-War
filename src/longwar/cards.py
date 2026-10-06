@@ -144,6 +144,44 @@ V2_TIMINGS = frozenset({
 
 V2_EFFECT_LIMITS = frozenset({None, "once_per_battle"})
 
+V2_TARGETS = frozenset({
+    "self",
+    "directly_ahead",
+    "directly_behind",
+    "friendly_any_class",
+    "friendly_same_front",
+    "opponent_all",
+    "opponent_random",
+    "opposing_any",
+    "opposing_any_class",
+    "opposing_bonded_any",
+    "opposing_bonded_same_front",
+    "opposing_class_front_with_friendly_class",
+    "opposing_component_same_front",
+    "opposing_front_with_friendly_class",
+    "opposing_named_any",
+    "opposing_prepared_any",
+    "opposing_prepared_front_with_friendly_class",
+    "opposing_prepared_same_front",
+    "opposing_rear",
+    "opposing_same_front",
+    "opposing_same_front_without_negative_strength",
+    "opposite",
+    "other_friendly_human_same_front",
+    "other_friendly_same_front",
+    "prepared_component_same_front",
+    "prepared_name_same_front",
+    "same_front",
+    "self_or_directly_ahead",
+    "self_or_directly_behind",
+    "self_vertical_friend",
+    "unbonded_friendly_same_front",
+    "friendly_exhausted_front_with_friendly_class",
+    "friendly_pair_same_front_with_class",
+    "friendly_front_of_source_class",
+})
+
+
 
 def class_mask(values: list[str] | tuple[str, ...]) -> int:
     mask = 0
@@ -183,6 +221,13 @@ def _validate_effect_spec(
         raise ValueError(f"{card_id}.{path}: effect is not executable")
     if op not in V2_EFFECT_OPS:
         raise ValueError(f"{card_id}.{path}: unsupported operation {op!r}")
+
+    for selector_key in ("target", "destination", "requires_friendly"):
+        selector = effect.get(selector_key)
+        if selector is not None and selector not in V2_TARGETS:
+            raise ValueError(
+                f"{card_id}.{path}: unsupported {selector_key} {selector!r}"
+            )
 
     for key in (
         "classes",
