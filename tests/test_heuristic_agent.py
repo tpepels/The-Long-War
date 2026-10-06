@@ -507,7 +507,7 @@ def test_complete_named_formation_is_distinguished_from_force_plus_name() -> Non
     incomplete_slot.name = "namar"
     # Equalize current Strength with the complete comparison state so the
     # difference is the Named Formation rule, not raw Strength.
-    incomplete_slot.temporary_strength = 2
+    incomplete_slot.temporary_strength = 1
 
     complete = state.clone()
     complete_slot = complete.slot(0, target)

@@ -128,11 +128,19 @@ def test_all_current_cards_have_native_safe_command_costs() -> None:
     costs = [card["command_cost"] for card in cards]
     assert costs
     assert all(type(cost) is int and 0 <= cost < 128 for cost in costs)
-    assert all(
-        card["type"] == "order"
+    zero_cost = {
+        card["id"]: card["type"]
         for card in cards
         if card["command_cost"] == 0
-    )
+    }
+    assert zero_cost == {
+        "they-were-gathering-there": "tactic",
+        "fresh-orders": "order",
+        "catch-your-breath": "order",
+        "re-form-the-line": "order",
+        "bind-the-wound": "order",
+        "send-a-runner": "order",
+    }
 
 
 
@@ -210,13 +218,13 @@ def test_rallied_behind_refunds_only_while_behind() -> None:
         0,
         target,
         force="the-fifty-men",
-    ).commands(5, 5).hand(0, "rallied-behind")
+    ).commands(6, 5).hand(0, "rallied-behind")
 
     action = PlayBond("rallied-behind", target)
     assert engine.command_cost_for_action(state, action) == 1
     engine.apply(state, action)
 
-    assert state.players[0].command == 4
+    assert state.players[0].command == 5
     assert state.command_spent_this_battle[0] == 1
 
 

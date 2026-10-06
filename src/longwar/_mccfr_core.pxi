@@ -579,6 +579,14 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     ]
     i += PLAYER_COUNT
 
+    # Public Tax and one-shot discount markers are search identity. They are
+    # omitted from the compact diagnostic observation, but must still be
+    # consumed before the own-hand/deck section.
+    tax_len = data[i]
+    i += 1 + tax_len * INFO_TAX_MARKER_BYTES
+    discount_len = data[i]
+    i += 1 + discount_len * INFO_DISCOUNT_MARKER_BYTES
+
     own_hand_counts = []
     for card_code in range(n_cards):
         count = data[i]
