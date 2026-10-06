@@ -122,7 +122,7 @@ def test_information_key_supports_legal_deck_counts_above_one_byte() -> None:
         for card in data["cards"]
         for _ in range(1 if card["unique"] else 4)
     ]
-    assert len(maximal_legal) == 296
+    assert len(maximal_legal) == 419
 
     state = engine.new_game(
         maximal_legal,
@@ -131,7 +131,7 @@ def test_information_key_supports_legal_deck_counts_above_one_byte() -> None:
         first_player=0,
         opening_bonus=False,
     )
-    assert len(state.players[1].deck) == 286
+    assert len(state.players[1].deck) == 409
 
     fast = FastEngine(engine)
     packed = fast.from_game_state(state)
