@@ -284,11 +284,12 @@ cdef void _v2_compile_effect(
     out.trigger = trigger_map.get(effect.get("trigger"), V2_TRIGGER_NONE)
     out.reveal = reveal_map.get(effect.get("reveal"), V2_REVEAL_NONE)
     out.condition = condition_map.get(effect.get("condition"), V2_CONDITION_NONE)
-    out.amount = int(effect.get("amount", 0))
+    out.amount = int(effect.get("amount", effect.get("cost", 0)))
     out.amount2 = int(effect.get("amount2", 0))
     out.count = int(effect.get("count", 0))
     out.steps = int(effect.get("steps", 0))
     out.minimum = int(effect.get("minimum", 0))
+    out.minimum2 = int(effect.get("minimum2", 0))
     out.activation_cost = int(effect.get("activation_cost", 0))
     out.draw_count = int(effect.get("draw", 0))
     out.discard_count = int(effect.get("discard", 0))
@@ -301,6 +302,17 @@ cdef void _v2_compile_effect(
     out.card_type_mask = _v2_card_type_mask(
         effect.get("card_types", effect.get("card_type"))
     )
+    out.card_type_mask2 = 0
+    if effect.get("discounts"):
+        value = effect.get("discounts")
+        if len(value) > 0:
+            out.card_type_mask = _v2_card_type_mask(value[0].get("card_types"))
+            out.amount = int(value[0].get("amount", 0))
+            out.minimum = int(value[0].get("minimum", 0))
+        if len(value) > 1:
+            out.card_type_mask2 = _v2_card_type_mask(value[1].get("card_types"))
+            out.amount2 = int(value[1].get("amount", 0))
+            out.minimum2 = int(value[1].get("minimum", 0))
 
     # Primary class mask is the subject/condition; secondary is target/support.
     value = effect.get("classes")
