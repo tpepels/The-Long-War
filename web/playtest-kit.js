@@ -31,7 +31,7 @@ async function main(){
     if(missing.length)throw new Error(deck.title+" contains unknown cards: "+missing.join(", "));
     return '<section class="print-deck" data-deck-id="'+esc(deck.id)+'">'+
       '<header class="deck-sheet-heading"><strong>The Long War · playtest deck '+(deckIndex+1)+' of '+decks.length+'</strong>'+
-      '<span>'+esc(deck.title)+' · '+expanded.length+' cards · pair '+esc(deck.pair||"—")+'</span></header>'+
+      '<span>'+esc(deck.title)+' · '+expanded.length+' cards · '+esc(deck.playstyle||"Exploratory")+'</span></header>'+
       chunk(expanded,8).map((sheet,sheetIndex)=>
         '<div class="deck-card-grid print-sheet" data-sheet="'+(sheetIndex+1)+'">'+
         sheet.map(id=>window.V2Cards.cardArticle(index.get(id),"print-card deck-card")).join("")+
