@@ -20,7 +20,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-CARDS_JSON = ROOT / "cards" / "v2" / "cards.json"
+CARDS_JSON = ROOT / "cards" / "cards.json"
 ART_DIR = ROOT / "web" / "art" / "v2" / "cards"
 AUDIT_JSON = ROOT / "web" / "art" / "v2" / "art-audit.json"
 AUDIT_CSV = ROOT / "web" / "art" / "v2" / "art-audit.csv"
