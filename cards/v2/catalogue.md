@@ -1,6 +1,6 @@
 # V2 card catalogue
 
-120-card design/playtest proposal. The canonical engine pool remains separate.
+122-card design/playtest proposal. The canonical engine pool remains separate.
 
 ## Forces
 
