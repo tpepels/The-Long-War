@@ -79,6 +79,14 @@
         "action"
       ],
       "scope": "self"
+    },
+    "order": {
+      "role": "Immediate self-support instruction. Playing it consumes the normal card-play Action; it resolves and is discarded.",
+      "allowed_timings": [
+        "play"
+      ],
+      "scope": "self",
+      "zero_cost_rule": "A 0-Command Order must have a real board, class, positional, or state requirement. Unrestricted 0-Command Orders are not allowed."
     }
   },
   "classification_vocabulary": {
@@ -158,7 +166,9 @@
     "no_automatic_strength_pumps_as_limited_uses": true,
     "no_first_each_battle_tracking": true,
     "force_no_once_per_battle": true,
-    "zero_command_cards_still_cost_action": true
+    "zero_command_cards_still_cost_action": true,
+    "order_self_only": true,
+    "zero_command_order_requires_condition": true
   },
   "cards": [
     {
@@ -3817,6 +3827,157 @@
         "classification-synergy",
         "command",
         "command-recovery"
+      ]
+    },
+    {
+      "id": "fresh-orders",
+      "title": "Fresh Orders",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "captain",
+        "king"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Captains or Kings. Draw 1 card.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Captains or Kings. Draw 1 card.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "zero-command"
+      ]
+    },
+    {
+      "id": "catch-your-breath",
+      "title": "Catch Your Breath",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "healer",
+        "steward"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion.",
+      "design_tags": [
+        "classification-synergy",
+        "exhaustion",
+        "healing",
+        "zero-command"
+      ]
+    },
+    {
+      "id": "re-form-the-line",
+      "title": "Re-form the Line",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "captain"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose a Front containing one of your Captains. SWAP two orthogonally adjacent friendly formations in that Front.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose a Front containing one of your Captains. SWAP two orthogonally adjacent friendly formations in that Front.",
+      "design_tags": [
+        "classification-synergy",
+        "movement",
+        "positional-support",
+        "zero-command"
+      ]
+    },
+    {
+      "id": "bind-the-wound",
+      "title": "Bind the Wound",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "healer"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front.",
+      "design_tags": [
+        "classification-synergy",
+        "healing",
+        "marker-state",
+        "zero-command"
+      ]
+    },
+    {
+      "id": "send-a-runner",
+      "title": "Send a Runner",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "scout"
+      ],
+      "command_cost": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Scouts in the Rear row. Draw 2 cards, then discard 1 card.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Scouts in the Rear row. Draw 2 cards, then discard 1 card.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "positional-support",
+        "zero-command"
+      ]
+    },
+    {
+      "id": "take-stock",
+      "title": "Take Stock",
+      "type": "order",
+      "classes": [],
+      "references": [
+        "steward",
+        "stronghold"
+      ],
+      "command_cost": 1,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.",
+      "design_tags": [
+        "card-flow",
+        "classification-synergy",
+        "information"
       ]
     }
   ],
