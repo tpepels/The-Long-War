@@ -132,6 +132,7 @@ V2_TIMINGS = frozenset({
     "continuous",
     "hidden",
     "trigger",
+    "reaction",
     "while_named",
     "front",
     "middle",
@@ -304,7 +305,7 @@ def _validate_effect_presentation(card: dict[str, Any]) -> None:
 def validate_card_data(data: dict[str, Any]) -> None:
     if not isinstance(data, dict):
         raise ValueError("Card data must be an object")
-    if data.get("schema_version") != 2:
+    if data.get("schema_version") != 4:
         raise ValueError("Unsupported card schema_version")
     if data.get("status") != "canonical":
         raise ValueError("Canonical card data must have status='canonical'")
