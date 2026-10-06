@@ -291,8 +291,9 @@ def test_multi_effect_heroes_receive_dense_layout() -> None:
 
 def test_exposed_row_preserves_classification_icons_before_reminder_width() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
-    assert "grid-template-columns:auto max-content minmax(0,1fr)" in css
-    assert ".edge-live-text{max-width:20mm;" in css
+    assert "grid-template-columns:auto minmax(0,1fr) minmax(0,1.35fr)" in css
+    assert ".edge-live-group{min-width:0;height:6.8mm;" in css
+    assert ".edge-live-text{min-width:0;max-width:none;flex:1 1 auto;" in css
 
 
 
@@ -440,7 +441,7 @@ def test_shared_v2_visual_language_follows_print_reference_principles() -> None:
     css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
     assert "border:var(--frame) solid #484a40" in css
     assert "border:.18mm solid color-mix(in srgb,var(--accent) 78%,transparent)" in css
-    assert "grid-template-columns:auto max-content minmax(0,1fr)" in css
+    assert "grid-template-columns:auto minmax(0,1fr) minmax(0,1.35fr)" in css
     assert ".edge-timing-word{display:inline" in css
     assert ".motif-field{position:relative;flex:0 0 var(--art-height)" in css
     assert "clip-path:" not in css
@@ -456,3 +457,12 @@ def test_legacy_print_renderer_is_removed() -> None:
         assert "cards-v2.css" in source
         assert "cards-v2.js" in source
         assert "print-cards" not in source
+
+
+def test_long_titles_use_print_style_density_classes() -> None:
+    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    js = (ROOT / "web" / "cards-v2.js").read_text(encoding="utf-8")
+    assert 'card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":""' in js
+    assert ".title-long .card-title{font-size:4.65mm;line-height:1.03}" in css
+    assert ".title-very-long .card-title{font-size:4.15mm;line-height:1.01}" in css
+    assert "hero-type-mark" in js
