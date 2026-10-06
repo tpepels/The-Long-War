@@ -3960,15 +3960,18 @@
     "middle": "A state effect active while the formation is in the Middle row.",
     "rear": "A state effect active while the formation is in the Rear row.",
     "exhausted": "A state effect active while this Force has an Exhaustion token.",
-    "tireless": "A persistent Force ability allowing it to initiate a Maneuver while Exhausted; Exhaustion remains."
+    "tireless": "A persistent Force ability that ignores only the Exhaustion restriction on initiating a Maneuver; every other Maneuver requirement still applies and Exhaustion remains."
   },
   "position_vocabulary": {
-    "directly_ahead": "The adjacent position in the same Front one rank toward the Front row.",
-    "directly_behind": "The adjacent position in the same Front one rank toward the Rear row.",
+    "directly_ahead": "The adjacent position in the same Front one rank toward the Front row. A Front-row formation has no position directly ahead.",
+    "directly_behind": "The adjacent position in the same Front one rank toward the Rear row. A Rear-row formation has no position directly behind.",
+    "move": "MOVE 1 means move the formation to one orthogonally adjacent active empty position: one Front left or right in the same rank, or one rank forward or backward in the same Front. Never diagonal. Move is a card effect, not a Maneuver, so it does not require Named status, costs no Maneuver Command, and Exhaustion does not stop it.",
+    "move_multiple": "Move up to N positions means make up to N legal one-position Moves, one at a time; every intermediate destination must be legal and empty.",
     "support": "SUPPORT +N means the friendly formation directly ahead has +N Strength while the supporting effect is active.",
     "supply": "SUPPLY means Bonds and Names played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 1.",
-    "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength. This local comparison does not itself decide the Front.",
+    "outmatched": "A formation is OUTMATCHED while an opposing formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This local comparison does not itself decide the Front.",
     "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
-    "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It keeps its Exhaustion token."
+    "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It ignores only the Exhaustion restriction; every other Maneuver requirement still applies. It keeps its Exhaustion token.",
+    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; apply all reductions, then apply the printed minimum."
   }
 }
