@@ -1202,7 +1202,7 @@ function choiceLabel(action) {
     const ids = action.cycle_card_ids || [];
     return "Cycle " + ids.map((id) => cardTitle(id)).join(" + ");
   }
-  if (action.kind === ACTION_KIND.DISCARD) return "Discard, then draw";
+  if (action.kind === ACTION_KIND.DISCARD) return "Discard for hand limit";
   if (card?.hero && action.kind === ACTION_KIND.PLAY_FORCE) {
     return "Deploy as Force";
   }
