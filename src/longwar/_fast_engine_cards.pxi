@@ -211,6 +211,7 @@ cdef void _v2_compile_effect(
         "prepared_name_same_front": V2_TARGET_PREPARED_NAME_SAME_FRONT,
         "same_front": V2_TARGET_SAME_FRONT,
         "self_or_directly_ahead": V2_TARGET_SELF_OR_DIRECTLY_AHEAD,
+        "self_or_directly_behind": V2_TARGET_SELF_OR_DIRECTLY_BEHIND,
         "self_vertical_friend": V2_TARGET_SELF_VERTICAL_FRIEND,
         "unbonded_friendly_same_front": V2_TARGET_UNBONDED_FRIENDLY_SAME_FRONT,
         "friendly_exhausted_front_with_friendly_class": V2_TARGET_FRIENDLY_EXHAUSTED_FRONT_WITH_FRIENDLY_CLASS,
