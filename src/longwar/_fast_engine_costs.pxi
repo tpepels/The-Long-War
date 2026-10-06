@@ -312,14 +312,14 @@ cdef inline int _v2_cost_apply_effect(
             ):
                 cost = amount if amount > 0 else 0
 
-    if cost != before:
+    if cost < before:
         _fe_record_command_diag(
             self,
-            COMMAND_DIAG_TAX if cost > before else COMMAND_DIAG_DISCOUNT,
+            COMMAND_DIAG_DISCOUNT,
             COMMAND_DETAIL_CARD_EFFECT,
             player,
             source_card,
-            abs(cost - before),
+            before - cost,
             before,
         )
     return cost
@@ -479,7 +479,7 @@ cdef inline int _v2_ability_command_cost(
     mode = _v2_pending_mode(aux)
     effect_index = _v2_pending_effect_index(aux)
     if (
-        mode < 0 or mode >= V2_MODE_COUNT
+        mode < V2_MODE_DEFAULT or mode > V2_MODE_NAME
         or effect_index < 0
         or effect_index >= self.v2_effect_count[card][mode]
     ):
