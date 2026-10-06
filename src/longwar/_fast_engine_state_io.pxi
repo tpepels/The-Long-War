@@ -52,6 +52,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         if strat is not None:
             fast.stratagem[p] = self.id_to_code[strat.card_id]
             fast.stratagem_revealed[p] = bool(strat.revealed)
+            fast.stratagem_known_to_mask[p] = int(strat.known_to_mask)
             for front_choice in strat.fronts:
                 fast.stratagem_front_mask[p] |= 1 << int(front_choice)
             if strat.direction == Direction.LEFT:
@@ -80,6 +81,17 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                     fast.name[slot] = self.id_to_code[py_slot.name]
                 fast.exhausted[slot] = bool(py_slot.exhausted)
                 fast.temporary[slot] = py_slot.temporary_strength
+                fast.negative_one_markers[slot] = sum(
+                    1 for marker in py_slot.negative_strength_markers if int(marker) == -1
+                )
+                fast.negative_two_markers[slot] = sum(
+                    1 for marker in py_slot.negative_strength_markers if int(marker) == -2
+                )
+                fast.suppression_mask[slot] = int(py_slot.suppression_mask)
+                fast.force_ability_used[slot] = bool(py_slot.force_ability_used)
+                fast.bond_ability_used[slot] = bool(py_slot.bond_ability_used)
+                fast.name_ability_used[slot] = bool(py_slot.name_ability_used)
+                fast.name_suppression_immune[slot] = bool(py_slot.name_suppression_immune)
                 fast.maneuver_count[slot] = int(py_slot.maneuvers_this_battle)
                 fast.maneuvered_in_operation[slot] = bool(
                     py_slot.maneuvered_in_operation
@@ -217,6 +229,39 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
             counter = state.known_hidden_counter(viewer, owner, ObservationZone.HAND)
             for card_id, count in counter.items():
                 fast.known_hidden[viewer][owner][self.id_to_code[card_id]] = count
+
+    if len(state.tax_markers) > MAX_TAX_MARKERS:
+        raise ValueError("Too many V2 Tax markers for native state")
+    for i, marker in enumerate(state.tax_markers[:MAX_TAX_MARKERS]):
+        fast.tax_owner[i] = int(marker.owner)
+        fast.tax_target_player[i] = int(marker.target_player)
+        fast.tax_front[i] = int(marker.front)
+        fast.tax_amount[i] = int(marker.amount)
+        fast.tax_card_type_mask[i] = _v2_card_type_mask(marker.card_types)
+        fast.tax_expires_turn[i] = (
+            -1 if marker.expires_turn is None else int(marker.expires_turn)
+        )
+        fast.tax_len += 1
+
+    if len(state.slot_discounts) > MAX_SLOT_DISCOUNTS:
+        raise ValueError("Too many V2 slot discounts for native state")
+    for i, discount in enumerate(state.slot_discounts[:MAX_SLOT_DISCOUNTS]):
+        fast.discount_owner[i] = int(discount.owner)
+        fast.discount_target_player[i] = int(discount.target_player)
+        fast.discount_slot[i] = slot_index(
+            int(discount.target_player),
+            int(discount.position.front),
+            RANK_FRONT if discount.position.rank is Rank.FRONT
+            else RANK_MIDDLE if discount.position.rank is Rank.MIDDLE
+            else RANK_REAR,
+        )
+        fast.discount_amount[i] = int(discount.amount)
+        fast.discount_minimum[i] = int(discount.minimum)
+        fast.discount_card_type_mask[i] = _v2_card_type_mask(discount.card_types)
+        fast.discount_expires_turn[i] = (
+            -1 if discount.expires_turn is None else int(discount.expires_turn)
+        )
+        fast.discount_len += 1
 
     snapshot = state.last_battle_snapshot
     if snapshot is not None:
@@ -490,6 +535,15 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                         "temporary_strength": (
                             state.temporary[slot_index(p, f, r)]
                         ),
+                        "negative_strength_markers": (
+                            [-1] * state.negative_one_markers[slot_index(p, f, r)]
+                            + [-2] * state.negative_two_markers[slot_index(p, f, r)]
+                        ),
+                        "suppression_mask": state.suppression_mask[slot_index(p, f, r)],
+                        "force_ability_used": bool(state.force_ability_used[slot_index(p, f, r)]),
+                        "bond_ability_used": bool(state.bond_ability_used[slot_index(p, f, r)]),
+                        "name_ability_used": bool(state.name_ability_used[slot_index(p, f, r)]),
+                        "name_suppression_immune": bool(state.name_suppression_immune[slot_index(p, f, r)]),
                         "maneuvers_this_battle": (
                             state.maneuver_count[slot_index(p, f, r)]
                         ),
@@ -545,6 +599,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                     "direction": state.stratagem_direction[p],
                     "target_mask": state.stratagem_target_mask[p],
                     "revealed": bool(state.stratagem_revealed[p]),
+                    "known_to_mask": state.stratagem_known_to_mask[p],
                 }
             )
             for p in range(PLAYER_COUNT)
@@ -733,6 +788,35 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
         "pass_order": [
             state.pass_order[i]
             for i in range(state.pass_len)
+        ],
+        "tax_markers": [
+            {
+                "owner": state.tax_owner[i],
+                "target_player": state.tax_target_player[i],
+                "front": state.tax_front[i],
+                "amount": state.tax_amount[i],
+                "card_type_mask": state.tax_card_type_mask[i],
+                "expires_turn": (
+                    None if state.tax_expires_turn[i] < 0
+                    else state.tax_expires_turn[i]
+                ),
+            }
+            for i in range(state.tax_len)
+        ],
+        "slot_discounts": [
+            {
+                "owner": state.discount_owner[i],
+                "target_player": state.discount_target_player[i],
+                "slot": state.discount_slot[i],
+                "amount": state.discount_amount[i],
+                "minimum": state.discount_minimum[i],
+                "card_type_mask": state.discount_card_type_mask[i],
+                "expires_turn": (
+                    None if state.discount_expires_turn[i] < 0
+                    else state.discount_expires_turn[i]
+                ),
+            }
+            for i in range(state.discount_len)
         ],
         "known_hidden_hand": [
             [
