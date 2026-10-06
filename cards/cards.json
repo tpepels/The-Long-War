@@ -97,8 +97,8 @@
     "guard": "Protection, interception, and resistance to hostile Tactics.",
     "scout": "Information: hands, hidden Stratagems, and advance knowledge.",
     "rider": "The main home for the game's deliberately scarce movement effects.",
-    "skirmisher": "Harassment, temporary suppression, and small Strength penalties.",
-    "raider": "Pressure on prepared cards, Command costs, and the opponent's build-up.",
+    "skirmisher": "Harassment, temporary suppression, and pressure against already Exhausted enemies.",
+    "raider": "Pressure on prepared cards, Supply lines, Command costs, and the opponent's build-up.",
     "healer": "Removal of temporary negative state.",
     "spearman": "Simple, dependable battlefield Strength, especially in the Front.",
     "king": "Command, broad coordination, and high-impact Named payoffs.",
@@ -173,25 +173,52 @@
   "cards": [
     {
       "id": "the-fifty-men",
-      "title": "The Fifty Men",
+      "title": "The Wolf Skirmishers",
       "type": "force",
       "classes": [
         "human",
-        "spearman"
+        "skirmisher"
       ],
       "command_cost": 2,
-      "strength": 4,
-      "effects": [],
-      "text": "No special rules.",
+      "strength": 3,
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "PRESS +2.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "PRESS +2"
+        }
+      ],
+      "text": "CONTINUOUS - PRESS +2.",
       "design_tags": [
-        "baseline"
+        "exhaustion",
+        "hostile-interaction",
+        "persistent-state",
+        "strength"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
+        "effects": [
+          {
+            "timing": "continuous",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "self_strength",
+            "amount": 2,
+            "requires_opposing_exhausted_same_front": true
+          }
+        ],
         "modes": {}
       },
-      "rule_blocks": []
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "CONTINUOUS",
+          "text": "PRESS +2."
+        }
+      ]
     },
     {
       "id": "seven-black-ships",
@@ -560,25 +587,53 @@
     },
     {
       "id": "the-black-company",
-      "title": "The Black Company",
+      "title": "The Black Pursuers",
       "type": "force",
       "classes": [
         "human",
-        "veteran"
+        "veteran",
+        "skirmisher"
       ],
       "command_cost": 2,
-      "strength": 5,
-      "effects": [],
-      "text": "No special rules.",
+      "strength": 4,
+      "effects": [
+        {
+          "timing": "exhausted",
+          "text": "PRESS +2.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "PRESS +2"
+        }
+      ],
+      "text": "EXHAUSTED - PRESS +2.",
       "design_tags": [
-        "baseline"
+        "exhaustion",
+        "hostile-interaction",
+        "persistent-state",
+        "strength"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
+        "effects": [
+          {
+            "timing": "exhausted",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "self_strength",
+            "amount": 2,
+            "requires_opposing_exhausted_same_front": true
+          }
+        ],
         "modes": {}
       },
-      "rule_blocks": []
+      "rule_blocks": [
+        {
+          "kind": "continuous",
+          "label": "EXHAUSTED",
+          "text": "PRESS +2."
+        }
+      ]
     },
     {
       "id": "the-red-duelists",
@@ -826,24 +881,53 @@
     },
     {
       "id": "the-unnamed-host",
-      "title": "The Unnamed Host",
+      "title": "The Salt-Road Reavers",
       "type": "force",
       "classes": [
-        "human"
+        "human",
+        "raider"
       ],
       "command_cost": 2,
-      "strength": 5,
-      "effects": [],
-      "text": "No special rules.",
+      "strength": 4,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If an opposing formation in this Front provides SUPPLY, STEAL 1 COMMAND.",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "text": "PLAY - If an opposing formation in this Front provides SUPPLY, STEAL 1 COMMAND.",
       "design_tags": [
-        "baseline"
+        "command",
+        "hostile-interaction",
+        "play-effect",
+        "raider-pressure",
+        "supply"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "steal_command",
+            "amount": 1,
+            "minimum": 1,
+            "requires_opposing_supply_same_front": true
+          }
+        ],
         "modes": {}
       },
-      "rule_blocks": []
+      "rule_blocks": [
+        {
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "If an opposing formation in this Front provides SUPPLY, STEAL 1 COMMAND."
+        }
+      ]
     },
     {
       "id": "the-late-banner",
@@ -5918,13 +6002,13 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "While an opposing Force in this Front is Exhausted, this formation has +1 Strength.",
+          "text": "PRESS +1.",
           "scope": "self",
           "memory": [],
-          "exposed": "ENEMY EXHAUSTED +1"
+          "exposed": "PRESS +1"
         }
       ],
-      "text": "CONTINUOUS - While an opposing Force in this Front is Exhausted, this formation has +1 Strength.",
+      "text": "CONTINUOUS - PRESS +1.",
       "design_tags": [
         "exhaustion",
         "persistent-state",
@@ -5950,7 +6034,7 @@
         {
           "kind": "continuous",
           "label": "CONTINUOUS",
-          "text": "While an opposing Force in this Front is Exhausted, this formation has +1 Strength."
+          "text": "PRESS +1."
         }
       ]
     },
@@ -6216,7 +6300,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If this formation contains a Raider or Skirmisher, regain 1 Command.",
+          "text": "If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command.",
           "scope": "self",
           "memory": []
         }
@@ -6225,10 +6309,12 @@
         "raider",
         "skirmisher"
       ],
-      "text": "PLAY - If this formation contains a Raider or Skirmisher, regain 1 Command.",
+      "text": "PLAY - If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command.",
       "design_tags": [
         "command",
-        "play-effect"
+        "play-effect",
+        "raider-pressure",
+        "supply"
       ],
       "unique": false,
       "design_rules": {
@@ -6243,7 +6329,8 @@
             "requires_any_class": [
               "raider",
               "skirmisher"
-            ]
+            ],
+            "requires_opposing_supply_same_front": true
           }
         ],
         "modes": {}
@@ -6252,7 +6339,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "If this formation contains a Raider or Skirmisher, regain 1 Command."
+          "text": "If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command."
         }
       ]
     },
@@ -7823,12 +7910,15 @@
     "reserve": "RESERVE +N means this formation has +N Strength while the friendly formation directly ahead is OUTMATCHED.",
     "tireless": "TIRELESS means this Force may initiate a Maneuver while Exhausted. It ignores only the Exhaustion restriction; every other Maneuver requirement still applies. It keeps its Exhaustion token. TIRELESS is boolean, so multiple sources give no additional benefit.",
     "exhaustion": "After you lose a Front, every Force you have in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its token leaves with it. A tied Front exhausts neither player.",
-    "stacking": "Multiple active SUPPORT +N and RESERVE +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; SUPPLY may reduce Bonds to 0 Command but may not reduce Names below 1.",
+    "stacking": "Multiple active SUPPORT +N, RESERVE +N, and PRESS +N effects add together. Multiple active SUPPLY effects each reduce the cost by 1; SUPPLY may reduce Bonds to 0 Command but may not reduce Names below 1.",
     "command_modifiers": "Command modifiers stack: add all applicable increases, then apply all applicable reductions. If any applicable reduction explicitly allows minimum 0, the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.",
     "tax_markers": "Each Tax marker is separate. If the next card played satisfies multiple Tax markers, all matching increases apply and all matching next-card markers are consumed. A marker with an expiry expires when its own text says it does.",
     "strength_marker": "A -Strength marker is a temporary negative marker recording a Battle-long Strength penalty created by card text such as gets -2 Strength this Battle.",
     "temporary_negative_marker": "A temporary negative marker is any adverse marker on a formation created by a finite-duration card effect, including -Strength, text-suppression, or ability-lock markers. It does not include Exhaustion or a Tax marker on a Front. Removing one ends that marker's effect.",
     "directly_opposite": "The position in the same rank and same Front on the opposing player's side.",
-    "mobile": "MOBILE means this Force may initiate a Maneuver without being Named. It ignores only the Named requirement: Command cost, adjacency, legal destination, row restrictions, and Exhaustion still apply."
+    "mobile": "MOBILE means this Force may initiate a Maneuver without being Named. It ignores only the Named requirement: Command cost, adjacency, legal destination, row restrictions, and Exhaustion still apply.",
+    "press": "PRESS +N means this formation has +N Strength while at least one opposing Force in this Front is Exhausted. Multiple active PRESS bonuses add together.",
+    "supply_raid": "A formation provides SUPPLY only while an active, unsuppressed SUPPLY effect on that formation is live. Cards that raid Supply state their own payoff; raiding does not remove SUPPLY unless a card says so.",
+    "steal_command": "STEAL N COMMAND means your opponent loses up to N Command, but not below 1; you regain exactly the amount actually lost. Stealing Command does not itself cause Collapse during a Battle."
   }
 }
