@@ -191,6 +191,7 @@ CARD TYPOGRAPHY - TUNING PANEL
   --card-class-prefix-font-size: 2mm;
   --card-class-font-size: 2.5mm;
   --card-class-separator-font-size: 2mm;
+  --card-class-line-height: 4mm; /* bottom classification row above footer */
   --card-effect-label-font-size: 2.45mm;
   --card-effect-use-font-size: 2mm;
   --card-effect-text-font-size: 3.25mm;
@@ -587,6 +588,13 @@ EXPOSED TOP ROW - TUNING PANEL
   align-items: center;
   position: relative;
 }
+/* When a classification row exists, it now lives at the bottom of card-body.
+   Reclaim the 4mm it used to occupy below the title so rules keep the same room. */
+.card-body:has(> .class-line) .card-identity {
+  flex-basis: calc(var(--identity-height) - var(--card-class-line-height));
+  height: calc(var(--identity-height) - var(--card-class-line-height));
+  min-height: calc(var(--identity-height) - var(--card-class-line-height));
+}
 .card-title {
   flex: 0 0 var(--title-height);
   width: 100%;
@@ -617,11 +625,11 @@ EXPOSED TOP ROW - TUNING PANEL
   background: url("art/card-frame/title-divider.png") center/100% 14mm no-repeat;
 }
 .class-line {
-  flex: 0 0 4mm;
-  height: 4mm;
-  min-height: 4mm;
+  flex: 0 0 var(--card-class-line-height);
+  height: var(--card-class-line-height);
+  min-height: var(--card-class-line-height);
   max-width: 100%;
-  margin: 2.4mm 0 0;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
