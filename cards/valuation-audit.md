@@ -1,6 +1,6 @@
-# V2 command-cost valuation audit
+# Command-cost valuation audit
 
-This audit applies the provisional arithmetic in `value-model.md` to **every one of the 128 V2 cards**. The numbers are comparative diagnostics, not automatic pricing: class synergy, topology and repeatability are too contextual for a single scalar to set final Command cost.
+This audit applies the provisional arithmetic in `value-model.md` to **every one of the 128 cards**. The numbers are comparative diagnostics, not automatic pricing: class synergy, topology and repeatability are too contextual for a single scalar to set final Command cost.
 
 - **IN BAND**: estimated value is within ±0.9 of the type/cost target.
 - **HIGH / LOW**: review candidate, not an automatic nerf/buff.

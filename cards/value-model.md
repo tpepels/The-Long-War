@@ -1,4 +1,4 @@
-# V2 card value model
+# Card value model
 
 This is a **diagnostic heuristic**, not a formula that dictates card design. It is meant to expose dominated cards, narrow cards with an inadequate floor, and implausibly high ceilings.
 

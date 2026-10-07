@@ -1,4 +1,4 @@
-# V2 effect audit
+# Effect audit
 
 This audit reviews **all 168 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
 

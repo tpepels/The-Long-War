@@ -1,4 +1,4 @@
-# V2 card catalogue
+# Card catalogue
 
 128-card canonical gameplay pool. Card definitions live in `cards/cards.json`; this catalogue is a human-readable design reference.
 

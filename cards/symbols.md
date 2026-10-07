@@ -1,4 +1,4 @@
-# V2 symbol vocabulary
+# Symbol vocabulary
 
 Symbols are a scanning language for the physical table. They do not create intrinsic rules for classifications.
 

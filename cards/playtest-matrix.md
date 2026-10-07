@@ -1,6 +1,6 @@
-# V2 playtest and archetype matrix
+# Playtest and archetype matrix
 
-The pool is evaluated on classification depth, mechanical coverage, and the card-value heuristic. The four exploratory decks collectively cover every current V2 card.
+The pool is evaluated on classification depth, mechanical coverage, and the card-value heuristic. The four exploratory decks collectively cover every current card.
 
 ## Mechanical coverage
 

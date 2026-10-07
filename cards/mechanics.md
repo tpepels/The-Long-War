@@ -1,4 +1,4 @@
-# V2 mechanics and card grammar
+# Mechanics and card grammar
 
 > Canonical card definitions live only in `cards/cards.json`. This directory contains design notes, playtest lists, and physical-card documentation.
 
@@ -89,7 +89,7 @@ Avoid invisible "the first X each Battle/turn" bookkeeping when the same identit
 
 **Narrative** - face-up support for your own troops, classifications or formation states. A Narrative may have a visible ACTION ability when spending an Action is the point of the choice.
 
-There are deliberately no RESOLUTION effects in the V2 pool.
+There are deliberately no RESOLUTION effects in the pool.
 
 ## Classifications
 
