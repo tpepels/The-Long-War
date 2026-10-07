@@ -254,6 +254,13 @@ def _validate_design_rules(card: dict[str, Any]) -> None:
     if not isinstance(design, dict):
         raise ValueError(f"{card_id}.design_rules: must be an object")
 
+    unsupported = set(design) - {"effects", "modes"}
+    if unsupported:
+        raise ValueError(
+            f"{card_id}.design_rules: unsupported mechanic(s): "
+            + ", ".join(sorted(unsupported))
+        )
+
     effects = design.get("effects")
     modes = design.get("modes")
     if not isinstance(effects, list) or not isinstance(modes, dict):
@@ -395,6 +402,8 @@ def validate_card_data(data: dict[str, Any]) -> None:
 
         if not isinstance(card["text"], str):
             raise ValueError(f"{card_id}: text must be a string")
+        if "rules" in card:
+            raise ValueError(f"{card_id}: rules field is unsupported; use design_rules")
         cost = card.get(CardField.COMMAND_COST)
         if type(cost) is not int or not 0 <= cost <= 127:
             raise ValueError(f"{card_id}: command_cost must be 0..127")

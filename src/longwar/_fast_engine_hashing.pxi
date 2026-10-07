@@ -527,7 +527,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             return f"cycle:{self.card_ids[card]}:{self.card_ids[choice]}"
         return f"cycle:{self.card_ids[choice]}:{self.card_ids[card]}"
     if kind == TYPE_EFFECT:
-        choice = <int>extra
+        choice = <int>(extra & 0xff)
+        mask = <int>(extra >> V2_EFFECT_OPTION_SHIFT)
         if choice == EFFECT_FREE_MANEUVER:
             key = "effect:free-maneuver"
         elif choice == EFFECT_MOVE:
@@ -552,10 +553,29 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key = "effect:transfer-component"
         elif choice == EFFECT_SUCCESSION:
             key = "effect:succession"
+        elif choice == EFFECT_V2_TARGET:
+            key = "effect:v2-target"
+        elif choice == EFFECT_V2_CHOICE:
+            key = "effect:v2-choice"
+        elif choice == EFFECT_V2_CARD_CHOICE:
+            key = "effect:v2-card-choice"
         else:
             key = f"effect:unknown-{choice}"
+
+        if mask:
+            if mask == V2_OPTION_BOND:
+                key += ":option:bond"
+            elif mask == V2_OPTION_NAME:
+                key += ":option:name"
+            elif mask == V2_OPTION_PAY:
+                key += ":option:pay"
+            elif mask == V2_OPTION_RETURN:
+                key += ":option:return"
+            else:
+                key += f":option:{mask}"
+
         if card < 0 and pos < 0 and dest < 0:
-            return key + ":skip"
+            return key if mask else key + ":skip"
         if card >= 0:
             key += f":card:{self.card_ids[card]}"
         if pos >= 0:
@@ -675,28 +695,21 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
         return key
     if kind == TYPE_STRATAGEM:
         key = f"stratagem:{self.card_ids[card]}"
-        choice = self.strat_choice_kind[card]
-        if (
-            choice == STRAT_CHOICE_FRONT
-            or choice == STRAT_CHOICE_ADJACENT_FRONTS
-            or choice == STRAT_CHOICE_EDGE_FRONT
-        ) and pos >= 0:
+        # Canonical V2 Stratagems are encoded directly in the action payload.
+        # Do not gate serialization on retired strat_choice_kind metadata:
+        # doing so collapses distinct Front choices to the same public key.
+        if pos >= 0:
             fronts = ""
             for front in range(FRONT_COUNT):
                 if pos & (1 << front):
                     if fronts:
                         fronts += ","
                     fronts += str(front)
-            key += f":fronts:{fronts}"
-        if (
-            choice == STRAT_CHOICE_DIRECTION
-            or choice == STRAT_CHOICE_WHEEL
-        ) and dest >= 0:
+            if fronts:
+                key += f":fronts:{fronts}"
+        if dest >= 0:
             key += f":direction:{'left' if dest == 0 else 'right'}"
-        if (
-            choice == STRAT_CHOICE_WHEEL
-            or choice == STRAT_CHOICE_RESERVES
-        ) and extra:
+        if extra:
             targets = []
             for slot in range(SLOT_COUNT):
                 if extra & (<uint32_t>1 << slot):
@@ -705,7 +718,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                         f"{front_from_slot(slot)},"
                         f"{_fe_rank_key(rank_from_slot(slot))}"
                     )
-            key += ":targets:" + ";".join(targets)
+            if targets:
+                key += ":targets:" + ";".join(targets)
         return key
     if kind == TYPE_NARRATIVE:
         if extra and self.narrative_discard_count[card] == 1:

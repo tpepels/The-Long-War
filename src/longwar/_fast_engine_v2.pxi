@@ -109,6 +109,11 @@ cdef bint _v2_slot_effect_condition(
     cdef int other, other_player_id, other_rank
     if effect.rank_mask and not (effect.rank_mask & (1 << rank)):
         return False
+    if (
+        effect.condition == V2_CONDITION_COMMAND_LOWER
+        and state.command[player] >= state.command[other_player(player)]
+    ):
+        return False
     if effect.flags & V2_FLAG_REQUIRES_NAMED and not _v2_slot_named(state, slot):
         return False
     if effect.flags & V2_FLAG_REQUIRES_BONDED and not _v2_slot_bonded(state, slot):
@@ -174,6 +179,34 @@ cdef inline bint _v2_effect_is_live_timing(
 
 
 
+cdef int _v2_component_supply_amount(
+    FastEngine self,
+    FastState state,
+    int slot,
+    int card,
+    int mode,
+    int suppression_bit,
+) noexcept:
+    cdef int i, amount, total = 0
+    cdef V2EffectSpec* effect
+    if card < 0:
+        return 0
+    if suppression_bit and (state.suppression_mask[slot] & suppression_bit):
+        return 0
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if (
+            effect.op == V2_OP_SUPPLY
+            and _v2_effect_is_live_timing(state, slot, effect)
+            and _v2_slot_effect_condition(self, state, slot, effect)
+        ):
+            amount = effect.amount
+            if amount <= 0:
+                amount = 1
+            total += amount
+    return total
+
+
 cdef bint _v2_component_provides_supply(
     FastEngine self,
     FastState state,
@@ -182,23 +215,12 @@ cdef bint _v2_component_provides_supply(
     int mode,
     int suppression_bit,
 ) noexcept:
-    cdef int i
-    cdef V2EffectSpec* effect
-    if card < 0:
-        return False
-    if suppression_bit and (state.suppression_mask[slot] & suppression_bit):
-        return False
-    for i in range(self.v2_effect_count[card][mode]):
-        effect = &self.v2_effects[card][mode][i]
-        if (
-            effect.op == V2_OP_SUPPLY
-            and _v2_effect_is_live_timing(state, slot, effect)
-        ):
-            return True
-    return False
+    return _v2_component_supply_amount(
+        self, state, slot, card, mode, suppression_bit
+    ) > 0
 
 
-cdef bint _v2_slot_provides_supply(
+cdef int _v2_slot_supply_amount(
     FastEngine self,
     FastState state,
     int slot,
@@ -206,21 +228,27 @@ cdef bint _v2_slot_provides_supply(
     cdef int force = state.force[slot]
     cdef int bond = state.bond[slot]
     cdef int name = state.name[slot]
+    cdef int total = 0
     if force < 0:
-        return False
-    if _v2_component_provides_supply(
+        return 0
+    total += _v2_component_supply_amount(
         self, state, slot, force, _v2_mode_for_force(self, force), 0
-    ):
-        return True
-    if _v2_component_provides_supply(
+    )
+    total += _v2_component_supply_amount(
         self, state, slot, bond, V2_MODE_DEFAULT, SUPPRESS_BOND_TEXT
-    ):
-        return True
-    if _v2_component_provides_supply(
+    )
+    total += _v2_component_supply_amount(
         self, state, slot, name, _v2_mode_for_name(self, name), SUPPRESS_NAME_TEXT
-    ):
-        return True
-    return False
+    )
+    return total
+
+
+cdef bint _v2_slot_provides_supply(
+    FastEngine self,
+    FastState state,
+    int slot,
+) noexcept:
+    return _v2_slot_supply_amount(self, state, slot) > 0
 
 
 cdef bint _v2_front_has_opposing_supply(
@@ -236,6 +264,112 @@ cdef bint _v2_front_has_opposing_supply(
         if _v2_slot_provides_supply(self, state, slot):
             return True
     return False
+
+
+cdef void _v2_look_at_opponent_hand(
+    FastEngine self,
+    FastState state,
+    int viewer,
+    V2EffectSpec* effect,
+) noexcept:
+    cdef int owner = other_player(viewer)
+    cdef int card, available, pick, remaining, count, seen_count
+    cdef uint32_t seed
+    cdef uint8_t seen[MAX_CARDS]
+    memset(seen, 0, sizeof(seen))
+
+    if effect.target == V2_TARGET_OPPONENT_ALL:
+        for card in range(self.n_cards):
+            state.known_hidden[viewer][owner][card] = state.hand[owner][card]
+        return
+
+    count = effect.count
+    if count <= 0:
+        count = 1
+    remaining = state.hand_len[owner]
+    if count > remaining:
+        count = remaining
+
+    while count > 0 and remaining > 0:
+        seed = (
+            state.shuffle_seed * <uint32_t>1664525
+            + <uint32_t>1013904223
+        )
+        state.shuffle_seed = seed
+        pick = <int>(seed % <uint32_t>remaining)
+        for card in range(self.n_cards):
+            available = state.hand[owner][card] - seen[card]
+            if available <= 0:
+                continue
+            if pick < available:
+                seen[card] += 1
+                break
+            pick -= available
+        remaining -= 1
+        count -= 1
+
+    for card in range(self.n_cards):
+        seen_count = seen[card]
+        if seen_count > state.known_hidden[viewer][owner][card]:
+            state.known_hidden[viewer][owner][card] = seen_count
+
+
+cdef inline void _v2_look_at_opponent_stratagem(
+    FastState state,
+    int viewer,
+) noexcept:
+    cdef int owner = other_player(viewer)
+    if state.stratagem[owner] < 0 or state.stratagem_revealed[owner]:
+        return
+    state.stratagem_known_to_mask[owner] |= <uint8_t>(1 << viewer)
+
+
+cdef void _v2_add_tax_marker(
+    FastEngine self,
+    FastState state,
+    int player,
+    int origin,
+    V2EffectSpec* effect,
+    uint64_t action,
+) except *:
+    cdef int front = -1
+    cdef int encoded_front
+    cdef int i
+    cdef int kind = action_kind(action)
+    cdef uint32_t extra = action_extra(action)
+
+    if effect.front_mode == V2_FRONT_THIS and origin >= 0:
+        front = front_from_slot(origin)
+    elif effect.front_mode == V2_FRONT_CHOOSE_ACTIVE:
+        if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+            encoded_front = <int>(extra & V2_PLAY_FRONT_MASK)
+        else:
+            encoded_front = <int>(extra >> V2_EFFECT_OPTION_SHIFT)
+        front = encoded_front - 1
+
+    if (
+        front < 0
+        or front >= FRONT_COUNT
+        or not front_is_active(state.battle, front)
+    ):
+        return
+    if state.tax_len >= MAX_TAX_MARKERS:
+        raise RuntimeError("V2 Tax marker capacity exceeded")
+
+    i = state.tax_len
+    state.tax_owner[i] = player
+    state.tax_target_player[i] = other_player(player)
+    state.tax_front[i] = front
+    state.tax_amount[i] = effect.amount
+    state.tax_card_type_mask[i] = (
+        effect.card_type_mask if effect.card_type_mask else 255
+    )
+    state.tax_expires_turn[i] = (
+        state.turn_number + 1
+        if effect.expires == V2_EXPIRES_BEFORE_NEXT_TURN
+        else -1
+    )
+    state.tax_len += 1
 
 
 cdef void _v2_apply_immediate_play_effects(
@@ -284,6 +418,102 @@ cdef void _v2_apply_immediate_play_effects(
                     card,
                     COMMAND_DETAIL_CARD_EFFECT,
                 )
+        elif effect.op == V2_OP_TAX:
+            _v2_add_tax_marker(
+                self,
+                state,
+                player,
+                origin,
+                effect,
+                encode_action(TYPE_EFFECT, -1, origin, -1, player),
+            )
+        elif effect.op == V2_OP_LOOK_HAND:
+            _v2_look_at_opponent_hand(self, state, player, effect)
+        elif effect.op == V2_OP_LOOK_STRATAGEM:
+            _v2_look_at_opponent_stratagem(state, player)
+        elif effect.op in (
+            V2_OP_ATTACH_PREPARED,
+            V2_OP_CHOOSE_STRENGTH_TARGETS,
+            V2_OP_DISCARD_DRAW,
+            V2_OP_MOVE,
+            V2_OP_PREPARED_PAY_OR_RETURN,
+            V2_OP_REMOVE_NEGATIVE_MARKER,
+            V2_OP_REMOVE_STRENGTH_MARKER,
+        ):
+            if _v2_effect_can_resolve(
+                self, state, player, origin, effect
+            ):
+                _v2_enqueue_effect(
+                    self, state, player, card, mode, i, origin
+                )
+
+
+cdef void _v2_apply_becomes_named_effects(
+    FastEngine self,
+    FastState state,
+    int player,
+    int card,
+    int mode,
+    int origin,
+) except *:
+    cdef int i
+    cdef V2EffectSpec* effect
+    if card < 0:
+        return
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if effect.timing != V2_TIMING_BECOMES_NAMED:
+            continue
+        if not _v2_slot_effect_condition(self, state, origin, effect):
+            continue
+        if effect.op == V2_OP_GAIN_COMMAND:
+            _fe_gain_command_fast(
+                self,
+                state,
+                player,
+                effect.amount,
+                card,
+                COMMAND_DETAIL_COMPLETION_GAIN,
+            )
+        elif effect.op == V2_OP_GRANT_NAME_SUPPRESSION_IMMUNITY:
+            if origin >= 0:
+                state.name_suppression_immune[origin] = 1
+        elif effect.op == V2_OP_CLASS_STRENGTH_MARKERS:
+            if origin >= 0:
+                for slot in range(
+                    player * POSITIONS_PER_PLAYER,
+                    player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+                ):
+                    if (
+                        state.force[slot] >= 0
+                        and front_from_slot(slot) == front_from_slot(origin)
+                        and (
+                            _v2_slot_class_mask(self, state, slot)
+                            & effect.class_mask
+                        )
+                    ):
+                        state.temporary[slot] += effect.amount
+        elif effect.op == V2_OP_LOOK_HAND:
+            _v2_look_at_opponent_hand(self, state, player, effect)
+        elif effect.op == V2_OP_LOOK_STRATAGEM:
+            _v2_look_at_opponent_stratagem(state, player)
+        elif effect.op in (
+            V2_OP_ADD_STRENGTH_MARKER,
+            V2_OP_CHOOSE_CLASS_STRENGTH,
+            V2_OP_DRAW,
+            V2_OP_DRAW_DISCARD,
+            V2_OP_MOVE,
+            V2_OP_PLAY_BOND_FROM_HAND,
+            V2_OP_RECOVER,
+            V2_OP_REMOVE_EXHAUSTION,
+            V2_OP_REMOVE_NEGATIVE_MARKER,
+            V2_OP_SET_STRATAGEM_FROM_HAND,
+            V2_OP_SUPPRESS_COMPONENT,
+            V2_OP_TAX,
+        ):
+            _v2_enqueue_effect(
+                self, state, player, card, mode, i, origin
+            )
 
 
 cdef bint _v2_component_has_live_op(
@@ -310,6 +540,32 @@ cdef bint _v2_component_has_live_op(
         ):
             return True
     return False
+
+
+cdef bint _v2_name_suppression_immune(
+    FastEngine self,
+    FastState state,
+    int slot,
+) noexcept:
+    cdef int bond
+    if slot < 0:
+        return False
+    if state.name_suppression_immune[slot]:
+        return True
+    if not _v2_slot_named(state, slot):
+        return False
+    bond = state.bond[slot]
+    if bond < 0:
+        return False
+    return _v2_component_has_live_op(
+        self,
+        state,
+        slot,
+        bond,
+        V2_MODE_DEFAULT,
+        V2_OP_NAME_SUPPRESSION_IMMUNITY,
+        SUPPRESS_BOND_TEXT,
+    )
 
 
 cdef bint _v2_force_is_mobile(

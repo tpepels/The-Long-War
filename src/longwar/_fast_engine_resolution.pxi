@@ -167,10 +167,9 @@ cdef void _fe_project_front_losses_fast(
     uint16_t* lost1,
 ) noexcept:
     """Project Front losses under the canonical comparison rules."""
-    cdef int front, a, b, controller, strat, mask
+    cdef int front, a, b, controller, opponent, strat, mask
     cdef int combined0, combined1
     cdef uint8_t active = active_front_mask_for_battle(state.battle)
-    cdef bint tie_control = _fe_tie_control_active(self, state)
 
     lost0[0] = 0
     lost1[0] = 0
@@ -183,17 +182,28 @@ cdef void _fe_project_front_losses_fast(
             lost0[0] |= <uint16_t>(1 << front)
         elif b < a:
             lost1[0] |= <uint16_t>(1 << front)
-        elif tie_control:
-            if (
-                _fe_slot_complete(self, state, slot_index(0, front, RANK_FRONT))
-                != _fe_slot_complete(self, state, slot_index(1, front, RANK_FRONT))
-            ):
-                if _fe_slot_complete(
-                    self, state, slot_index(0, front, RANK_FRONT)
+        else:
+            # The Ground Was Held is per-controller, not a global tie flag.
+            # A controller wins this tied Front only when its hidden Stratagem
+            # is the tie-control card and it alone has a Frontline Named Formation.
+            for controller in range(PLAYER_COUNT):
+                strat = state.stratagem[controller]
+                if strat < 0 or not self.strat_tie_control[strat]:
+                    continue
+                opponent = other_player(controller)
+                if (
+                    _fe_slot_complete(
+                        self, state, slot_index(controller, front, RANK_FRONT)
+                    )
+                    and not _fe_slot_complete(
+                        self, state, slot_index(opponent, front, RANK_FRONT)
+                    )
                 ):
-                    lost1[0] |= <uint16_t>(1 << front)
-                else:
-                    lost0[0] |= <uint16_t>(1 << front)
+                    if controller == 0:
+                        lost1[0] |= <uint16_t>(1 << front)
+                    else:
+                        lost0[0] |= <uint16_t>(1 << front)
+                    break
 
     # The Center Must Hold replaces the two individual results.
     for controller in range(PLAYER_COUNT):
