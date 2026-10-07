@@ -25,53 +25,47 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-wrap{position:relative;width:var(--card-width);height:var(--card-height);break-inside:avoid}
 
 /* One physical face: raster ornament, live artwork, symbols and type. */
-.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--family-wash:rgba(138,106,66,.07);--family-band:rgba(138,106,66,.20);--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:inset 0 0 0 .16mm #2b231a70,0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
-.physical-card::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;background:var(--family-wash);pointer-events:none}
-.card-force{--family-wash:rgba(140,90,43,.08);--family-band:rgba(140,90,43,.24);--accent:#755020}
-.card-bond{--family-wash:rgba(42,116,108,.08);--family-band:rgba(42,116,108,.24);--accent:#245f58}
-.card-name{--family-wash:rgba(62,99,160,.08);--family-band:rgba(62,99,160,.24);--accent:#315384}
-.card-hero{--family-wash:rgba(116,75,143,.08);--family-band:rgba(116,75,143,.24);--accent:#5d3e73}
-.card-tactic{--family-wash:rgba(163,63,54,.08);--family-band:rgba(163,63,54,.24);--accent:#82342e}
-.card-order{--family-wash:rgba(100,123,54,.08);--family-band:rgba(100,123,54,.24);--accent:#52652d}
-.card-stratagem{--family-wash:rgba(86,97,106,.08);--family-band:rgba(86,97,106,.26);--accent:#46515a}
-.card-narrative{--family-wash:rgba(125,66,92,.08);--family-band:rgba(125,66,92,.24);--accent:#68374e}
+.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
+
+/*
+ * Exposed strip: one invariant three-zone grammar.
+ * Left = type + strength, middle = icons only, right = live reminder/status.
+ * Nothing changes scale per card.
+ */
 .stack-edge,.event-crown{
-  --edge-font-size:3mm;
-  --edge-icon-size:4mm;
+  --edge-font-size:2.45mm;
+  --edge-icon-size:3.8mm;
   height:var(--exposed-edge);
   flex:0 0 var(--exposed-edge);
   position:relative;
   z-index:4;
   display:grid;
-  grid-template-columns:18mm 20mm minmax(0,1fr);
+  grid-template-columns:14mm 19mm minmax(0,1fr);
   align-items:stretch;
-  padding:1.55mm 3.5mm 1.05mm;
+  padding:1.35mm 3mm .95mm;
   color:var(--deep);
-  background:var(--family-band);
 }
-.card-footer{background:var(--family-band)}
-
 .edge-zone{
   min-width:0;
   min-height:0;
   display:flex;
   align-items:center;
   overflow:hidden;
-  padding:0 1mm;
-  font:700 var(--edge-font-size)/1.05 var(--text);
+  padding:0 .7mm;
+  font:600 var(--edge-font-size)/1.03 var(--text);
 }
-.edge-zone-middle,.edge-zone-right{border-left:.22mm solid var(--accent)}
-.edge-zone-left{justify-content:flex-start;padding-left:.4mm}
+.edge-zone-middle,.edge-zone-right{border-left:.16mm solid #a2844e}
+.edge-zone-left{justify-content:flex-start;padding-left:.2mm}
 .edge-zone-middle{justify-content:center;gap:.4mm}
-.edge-zone-right{justify-content:flex-start;align-content:center;flex-wrap:wrap;gap:.18mm .5mm;padding-right:.4mm}
+.edge-zone-right{justify-content:flex-start;padding-right:.2mm}
 
 .edge-stats,.hero-stats{
   min-width:0;
   display:flex;
   align-items:center;
-  gap:.55mm;
-  font:700 var(--edge-font-size)/1 var(--text);
+  gap:.4mm;
   white-space:nowrap;
+  font:600 var(--edge-font-size)/1 var(--text);
 }
 .type-mark,.hero-stat svg,.class-sigil,.event-sigil{
   width:var(--edge-icon-size);
@@ -81,58 +75,54 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
   flex:none;
 }
 .type-mark svg,.hero-stat svg,.class-sigil svg,.event-sigil svg{width:100%;height:100%}
-.strength-mark,.hero-stat{display:flex;align-items:center;gap:.35mm}
+.strength-mark,.hero-stat{display:flex;align-items:center;gap:.25mm}
 .strength-mark b,.hero-stat b{
-  font:700 var(--edge-font-size)/1 var(--text);
+  font:600 var(--edge-font-size)/1 var(--text);
   font-variant-numeric:lining-nums;
 }
-.hero-stat+.hero-stat{margin-left:.35mm}
+.hero-stat+.hero-stat{margin-left:.25mm}
 .hero-name-stat svg{width:var(--edge-icon-size);height:var(--edge-icon-size)}
 
 .edge-identity{gap:.4mm}
-.edge-placement{display:flex;align-items:center;gap:.35mm;flex:none}
+.edge-placement{display:flex;align-items:center;gap:.4mm;flex:none}
 .edge-placement>.glyph-row{width:var(--edge-icon-size);height:var(--edge-icon-size)}
-.placement-lock{
-  width:1.35mm;
-  height:1.35mm;
-  margin-left:-1.05mm;
-  margin-top:1.6mm;
-  display:grid;
-  place-items:center;
-  flex:none;
-}
-.placement-lock svg{width:100%;height:100%}
 
-.edge-live-group{font:700 var(--edge-font-size)/1.05 var(--text)}
+.edge-live-group{
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:.12mm;
+  font:600 var(--edge-font-size)/1.03 var(--text);
+}
 .edge-mechanic{
+  width:100%;
   min-width:0;
-  max-width:100%;
-  display:inline-flex;
+  display:flex;
   align-items:center;
-  flex:0 1 auto;
   flex-wrap:wrap;
-  gap:0 .42mm;
-  font:700 var(--edge-font-size)/1.05 var(--text);
+  gap:0 .35mm;
+  font:600 var(--edge-font-size)/1.03 var(--text);
 }
 .edge-timing-word{white-space:nowrap;flex:none;font-variant:small-caps}
 .edge-live-text{
   min-width:0;
   flex:1 1 auto;
   text-transform:uppercase;
+  white-space:normal;
   overflow-wrap:normal;
   word-break:normal;
   hyphens:none;
 }
 .edge-mechanic[data-reminder-has-timing="true"] .edge-timing-word{display:none}
 .use-socket{
-  width:2.6mm;
-  height:2.6mm;
-  border:.23mm solid var(--deep);
+  width:2.35mm;
+  height:2.35mm;
+  border:.2mm solid var(--deep);
   border-radius:50%;
   display:inline-block;
   flex:none;
 }
-.edge-mechanic .use-socket{width:2.6mm;height:2.6mm}
+.edge-mechanic .use-socket{width:2.35mm;height:2.35mm}
 
 .glyph-class-kind,.glyph-class-role,.glyph-class-rank{overflow:visible}
 .glyph-row rect{fill:none}
@@ -140,7 +130,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .glyph-type,.glyph-strength,.glyph-timing,.glyph-utility,.glyph-class,.glyph-row{
   fill:none;
   stroke:currentColor;
-  stroke-width:1.82;
+  stroke-width:1.6;
   stroke-linecap:round;
   stroke-linejoin:round;
 }
@@ -148,16 +138,15 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .event-crown .edge-zone-left{justify-content:flex-start}
 .event-crown .edge-zone-middle{justify-content:flex-start}
 .event-crown .edge-zone-right{justify-content:flex-end}
-.event-family{
+.event-family,.event-status{
   min-width:0;
-  font:600 var(--edge-font-size)/1 var(--display);
-  font-variant:small-caps;
-  letter-spacing:.02em;
+  font:600 var(--edge-font-size)/1.03 var(--text);
+}
+.event-family{
+  text-transform:uppercase;
   white-space:nowrap;
 }
 .event-status{
-  min-width:0;
-  font:400 var(--edge-font-size)/1.05 var(--text);
   text-align:right;
   white-space:normal;
 }
@@ -194,7 +183,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .mode-heading-core{display:inline-flex;align-items:center;gap:.7mm;white-space:nowrap}
 .mode-heading-core svg{width:3.2mm;height:3.2mm}
 
-.card-footer{flex:0 0 var(--footer-height);min-height:var(--footer-height);position:relative;z-index:3;display:grid;grid-template-columns:3.3mm minmax(0,1fr);grid-template-rows:auto 2mm;align-content:end;align-items:center;gap:.25mm .7mm;padding:2mm 17mm 3mm 4.5mm}
+.card-footer{flex:0 0 var(--footer-height);min-height:var(--footer-height);position:relative;display:grid;grid-template-columns:3.3mm minmax(0,1fr);grid-template-rows:auto 2mm;align-content:end;align-items:center;gap:.25mm .7mm;padding:2mm 17mm 3mm 4.5mm}
 .footer-mark{grid-column:1;grid-row:1}
 .footer-mark svg{display:block;width:3.3mm;height:3.3mm}
 .footer-id{grid-column:2;grid-row:1;justify-self:start;max-width:100%;font:1.65mm/1 var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -232,7 +221,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-hero .effect-use .use-socket{width:2mm;height:2mm}
 
 .layout-overflow{outline:2px solid #b02e25;outline-offset:3px}[hidden]{display:none!important}
-.stack-demo{width:var(--card-width);height:calc(var(--card-height) + 2 * var(--exposed-edge));position:relative}.stack-card{position:absolute;left:0;top:0}.stack-card[data-stack-layer="1"]{top:var(--exposed-edge);z-index:1}.stack-card[data-stack-layer="2"]{top:calc(2 * var(--exposed-edge));z-index:2}.stack-card .physical-card{box-shadow:inset 0 0 0 .16mm #2b231a80,0 .5mm 1mm #25271d45}
+.stack-demo{width:var(--card-width);height:calc(var(--card-height) + 2 * var(--exposed-edge));position:relative}.stack-card{position:absolute;left:0;top:0}.stack-card[data-stack-layer="1"]{top:var(--exposed-edge);z-index:1}.stack-card[data-stack-layer="2"]{top:calc(2 * var(--exposed-edge));z-index:2}.stack-card .physical-card{box-shadow:0 .5mm 1mm #25271d35}
 
 .print-catalogue,.playtest-decks{width:max-content;max-width:none;margin:24px auto}
 .mechanics-reference{width:min(272mm,calc(100% - 32px));margin:24px auto 10mm;padding:7mm;border:1px solid #aaa893;background:#f7f3e8;color:#34382f;box-sizing:border-box}
@@ -262,7 +251,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
   .cards{display:grid;grid-template-columns:repeat(4,68mm);grid-auto-rows:96mm;gap:4mm 3mm;justify-content:start;align-content:start}
   .print-sheet,.deck-card-grid{page:physicalcards;width:272mm;height:192mm;margin:0;grid-template-columns:repeat(4,68mm);grid-template-rows:repeat(2,96mm);gap:0;break-after:page;page-break-after:always;break-inside:avoid-page;page-break-inside:avoid;overflow:hidden}
   .print-deck:last-child .print-sheet:last-child,.print-catalogue>.print-sheet:last-child{break-after:auto;page-break-after:auto}
-  .physical-card{box-shadow:inset 0 0 0 .16mm #2b231a70;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .physical-card{box-shadow:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .print-card{border-radius:0}
   .print-card::before{border-radius:0}
   /* The 195mm page content area leaves 3mm below the 192mm card grid for this stamp. */
