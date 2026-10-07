@@ -912,6 +912,8 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .hero-rule-mode + .hero-rule-mode {
   margin-top: 1.2mm;
+  padding-top: 1.2mm;
+  border-top: 0.18mm solid color-mix(in srgb, var(--accent) 42%, transparent);
 }
 .mode-heading {
   display: flex;
