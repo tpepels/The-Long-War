@@ -120,8 +120,10 @@ def test_press_and_supply_raids_have_canonical_machine_rules() -> None:
     assert "not below 1" in vocab["steal_command"]
 
     assert by_id["the-river-raiders"]["text"] == "CONTINUOUS - PRESS +1."
-    assert by_id["the-fifty-men"]["title"] == "The Wolf Skirmishers"
-    assert by_id["the-fifty-men"]["design_rules"]["effects"][0]["requires_opposing_exhausted_same_front"] is True
+    assert by_id["the-fifty-men"]["title"] == "The Fifty Men"
+    assert not by_id["the-fifty-men"].get("design_rules", {}).get("effects")
+    assert by_id["the-ash-bowmen"]["title"] == "The Wolf Skirmishers"
+    assert by_id["the-ash-bowmen"]["design_rules"]["effects"][0]["requires_opposing_exhausted_same_front"] is True
     assert by_id["the-black-company"]["title"] == "The Black Pursuers"
     assert by_id["the-black-company"]["effects"][0]["timing"] == "exhausted"
 
@@ -447,7 +449,8 @@ def test_art_focus_defaults_and_overrides() -> None:
     assert "card.art_focus_x" in js
     assert "card.art_focus_y" in js
     assert "--art-x:" in js and "--art-y:" in js
-    assert '.png?v="+encodeURIComponent(VERSION)' in js
+    assert 'const artExt=options.printArt?".webp":".png"' in js
+    assert '"+artExt+"?v="+encodeURIComponent(VERSION)' in js
     assert "background-position:var(--art-x,50%) var(--art-y,50%),var(--art-x,50%) var(--art-y,50%)" in css
 
 
@@ -508,7 +511,8 @@ def test_legacy_print_renderer_is_removed() -> None:
         source = (ROOT / "web" / page).read_text(encoding="utf-8")
         assert "cards-v2.css" in source
         assert "cards-v2.js" in source
-        assert "print-cards" not in source
+        assert 'href="print-cards.css"' not in source
+        assert 'src="print-cards.js"' not in source
 
 
 def test_long_titles_use_print_style_density_classes() -> None:

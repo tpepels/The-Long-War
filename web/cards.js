@@ -16,7 +16,7 @@ async function main(){
   if(!response.ok)throw new Error("Could not load current card data");
   const cards=(await response.json()).cards||[];
   const count=document.getElementById("card-count");
-  const printButton=document.getElementById("print-cards");
+  const printButton=document.getElementById("print-catalogue-button");
   count.textContent=cards.length+" current cards · preparing print artwork…";
   const root=document.getElementById("print-catalogue");
   root.innerHTML=chunk(cards,8).map((sheet,index)=>
