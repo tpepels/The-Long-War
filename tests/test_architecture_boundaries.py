@@ -366,7 +366,6 @@ def test_makefile_is_a_small_lifecycle_surface() -> None:
         "install",
         "native-build",
         "browser-build",
-        "web-protocol",
         "verify",
         "verify-algorithms",
         "test",

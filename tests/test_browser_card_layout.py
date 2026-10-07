@@ -480,14 +480,8 @@ def test_public_print_surfaces_use_compact_generated_art() -> None:
 
 
 def test_public_navigation_has_only_six_surfaces() -> None:
-    index = text("web/index.html")
+    navigation = text("web/site-nav.template.html")
     labels = ("Webgame", "Cards", "Decks", "Reference", "Rules", "Balance Lab")
     for label in labels:
-        assert f">{label}</a>" in index
-    assert "V2 card lab" not in index
-    assert "V2 Force style lab" not in index
-    assert "Physical markers" not in index
-    assert "Print playtest kit" not in index
-    assert 'href="cards.html">Cards</a>' in index
-    assert 'href="playtest-kit.html">Decks</a>' in index
-    assert 'href="playmat.html">Reference</a>' in index
+        assert f">{label}</a>" in navigation
+    assert navigation.count("<a ") == len(labels)

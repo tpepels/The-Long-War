@@ -6,15 +6,9 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 
 
-def test_github_actions_separate_code_checks_from_pages_deploy() -> None:
+def test_github_actions_only_deploy_pages() -> None:
     workflows = sorted(path.name for path in WORKFLOWS.glob("*.yml"))
-    assert workflows == ["ci.yml", "pages.yml"]
-
-    ci = (WORKFLOWS / "ci.yml").read_text(encoding="utf-8")
-    assert "name: Code checks" in ci
-    assert "pull_request:" in ci
-    assert "make test-fast" in ci
-    assert "actions/deploy-pages" not in ci
+    assert workflows == ["pages.yml"]
 
     content = (WORKFLOWS / "pages.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" in content
@@ -31,6 +25,9 @@ def test_github_actions_separate_code_checks_from_pages_deploy() -> None:
     assert "typst-community/setup-typst@v5" in content
     assert "typst-version: 0.15.1" in content
     assert "actions/deploy-pages" in content
+    assert "tools/check_web_static.py --dist dist" in content
+    for command in ("pytest", "make test", "make verify", "--write", "git commit", "git push"):
+        assert command not in content
 
 
 def test_pages_workflow_contains_no_analysis_or_solver_jobs() -> None:

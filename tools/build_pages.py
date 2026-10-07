@@ -91,6 +91,7 @@ def print_build_version() -> str:
         WEB / "tokens.css",
         WEB / "playtest-kit.js",
         WEB / "cards.js",
+        WEB / "site-nav.template.html",
         WEB / "playmat.html",
         WEB / "tokens.html",
         *sorted(
@@ -156,6 +157,26 @@ def stamp_print_version(version: str) -> None:
         ):
             source = source.replace("</body>", f"  {stamp}\n</body>")
         page.write_text(source, encoding="utf-8")
+
+
+def render_site_navigation() -> None:
+    """Expand the six public links at build time, preserving page styling."""
+    links = (WEB / "site-nav.template.html").read_text(encoding="utf-8")
+    for page in DIST.glob("*.html"):
+        source = page.read_text(encoding="utf-8")
+        if "<!-- SITE_NAV -->" not in source:
+            continue
+        navigation = links
+        if page.name == "index.html":
+            navigation = navigation.replace('<a href="play.html"', '<a class="button" href="play.html"')
+            navigation = navigation.replace('<a href=', '<a class="button secondary" href=')
+        else:
+            navigation = re.sub(
+                r'<a href="' + re.escape(page.name) + r'">([^<]+)</a>',
+                r'<span aria-current="page">\1</span>',
+                navigation,
+            )
+        page.write_text(source.replace("<!-- SITE_NAV -->", navigation.rstrip()), encoding="utf-8")
 
 
 
@@ -314,7 +335,7 @@ def main() -> None:
         shutil.rmtree(DIST)
     # Canonical PNGs are authoring inputs. Generate only optimized derivatives
     # for Pages; never copy the originals into disposable deployment output.
-    shutil.copytree(WEB, DIST, ignore=shutil.ignore_patterns("art"))
+    shutil.copytree(WEB, DIST, ignore=shutil.ignore_patterns("art", "site-nav.template.html"))
     shutil.copytree(runtime, DIST / "runtime")
     build_print_art()
 
@@ -368,6 +389,7 @@ def main() -> None:
     (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")
     (DIST / "rulebook.template.html").unlink(missing_ok=True)
 
+    render_site_navigation()
     print_version = print_build_version()
     stamp_print_version(print_version)
     version = version_static_assets()

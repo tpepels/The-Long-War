@@ -1,4 +1,4 @@
-.PHONY: install native-build browser-build web-protocol verify verify-algorithms test test-fast test-integration simulate balance experiments full-lab pages browser-parity
+.PHONY: install native-build browser-build verify verify-algorithms test test-fast test-integration simulate balance experiments full-lab pages browser-parity
 
 # Make is a small human-facing lifecycle surface.
 # Variations belong in *_ARGS or the underlying runner, not new targets.
@@ -22,9 +22,6 @@ browser-build:
 	$(PYTHON) tools/build_native_protocol.py --check
 	$(PYTHON) tools/build_heuristic_weights.py --check
 	$(PYTHON) tools/build_browser_runtime.py
-
-web-protocol:
-	$(PYTHON) tools/build_web_protocol.py
 
 test:
 	$(PYTEST) -q --durations=10
