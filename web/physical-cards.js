@@ -93,7 +93,7 @@ function placementMarkup(card){
   const rows=Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
   if(!rows.length)return"";
   const label=rows.map(titleCase).join(" / ")+" only";
-  return '<span class="edge-placement" title="'+esc(label)+'">'+rows.map(rowGlyph).join("")+'</span>';
+  return '<span class="edge-placement" title="'+esc(label)+'">'+rowGlyph(rows)+'</span>';
 }
 function stackEdge(card){
   const reminders=liveEffects(card);
