@@ -163,6 +163,7 @@ main {
 .event-crown {
   --edge-font-size: 2.45mm;
   --edge-icon-size: 4.5mm;
+  --edge-type-icon-size: 5mm; /* top-left Force / Bond / Name icon only */
   height: var(--exposed-edge);
   flex: 0 0 var(--exposed-edge);
   position: relative;
@@ -208,7 +209,14 @@ main {
   white-space: nowrap;
   font: 600 var(--edge-font-size)/1 var(--text);
 }
-.type-mark,
+.type-mark {
+  width: var(--edge-type-icon-size);
+  height: var(--edge-type-icon-size);
+  display: grid;
+  place-items: center;
+  flex: none;
+  overflow: visible;
+}
 .hero-stat svg,
 .class-sigil,
 .event-sigil {
