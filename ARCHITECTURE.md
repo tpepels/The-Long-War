@@ -1,6 +1,26 @@
 # Architecture
 
-The architecture exists to make The Long War easy to change while ensuring every consumer plays the same game.
+The software architecture exists to implement the authored physical game without duplicating game semantics.
+
+Repository work is split by `WORKSTREAMS.md`. In particular, the physical game and print presentation may merge independently of runtime implementation. This document governs the **software dependency graph** once rules are being implemented in executable form.
+
+## Product boundary before the software graph
+
+```text
+authored physical game
+  cards/cards.json
+  rules/rulebook.md
+  playtest decks / artwork
+       |                  \
+       |                   +--> print/reference presentation
+       v
+runtime implementation / webgame
+       |
+       v
+AI / balance / research
+```
+
+The runtime must implement the authored game, not redefine it. A temporary gap between authored content and runtime support is allowed during active design, but that gap must be explicit and the webgame remains experimental until synchronized.
 
 ## Dependency map
 
@@ -61,7 +81,9 @@ Native composition is rooted at `_fast_engine_core.pxi`. Host engine/search may 
 
 ## 2. Cards and decks
 
-Cards are data interpreted by the core. `design_rules` is the only executable mechanics schema; presentation text/rule blocks are not another machine-rules channel.
+`cards/cards.json` and the player-facing rulebook are authored game-design inputs. Cards may be updated for physical play before every mechanic is implemented in the runtime.
+
+When runtime support is added, cards are data interpreted by the core. `design_rules` is the only executable mechanics schema; presentation text/rule blocks are not another machine-rules channel.
 
 Runtime code may understand reusable capabilities, but must not branch on a canonical card id/title. New behavior requires a reusable schema/engine primitive.
 
