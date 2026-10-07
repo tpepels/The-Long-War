@@ -25,8 +25,17 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-wrap{position:relative;width:var(--card-width);height:var(--card-height);break-inside:avoid}
 
 /* One physical face: raster ornament, live artwork, symbols and type. */
-.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
-.stack-edge,.event-crown{height:var(--exposed-edge);flex:0 0 var(--exposed-edge);position:relative;z-index:4;display:flex;align-items:center;padding:1.7mm 4mm .5mm;color:var(--deep)}
+.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--family-wash:#8a6a42;--family-wash-opacity:.13;--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
+.physical-card::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;background:var(--family-wash);opacity:var(--family-wash-opacity);pointer-events:none}
+.card-force{--family-wash:#8b543c;--accent:#70402e}
+.card-bond{--family-wash:#4f7466;--accent:#3f6156}
+.card-name{--family-wash:#4d668b;--accent:#3e5477}
+.card-hero{--family-wash:#77527f;--accent:#604267}
+.card-tactic{--family-wash:#963f3f;--accent:#7b3030}
+.card-order{--family-wash:#61794f;--accent:#4d653d}
+.card-stratagem{--family-wash:#4d6268;--accent:#3c5055}
+.card-narrative{--family-wash:#655a82;--accent:#51476d}
+.stack-edge,.event-crown{height:var(--exposed-edge);flex:0 0 var(--exposed-edge);position:relative;z-index:4;display:flex;align-items:center;padding:2.2mm 4mm .15mm;color:var(--deep)}
 .stack-edge{display:grid;grid-template-columns:11mm 15.5mm minmax(0,1fr);column-gap:1mm}
 .edge-stats,.hero-stats{display:flex;align-items:center;gap:.8mm;height:6.8mm;min-height:6.8mm;flex:none}
 .type-mark{width:4.8mm;height:6mm;display:grid;place-items:center;flex:none}
