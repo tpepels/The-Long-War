@@ -27,7 +27,11 @@ and the card illustration itself remain unfiltered.
 - Formation layers shift down **10.5 mm**; their exposed strips never grow.
 - Legal deployment/occupancy ranks use one three-bar row glyph. Every allowed rank
   is filled in that single glyph, so a Middle/Rear Force shows the middle and rear
-  bars filled rather than two separate row icons.
+  bars filled rather than two separate row icons. The glyph is only a summary:
+  the rules body repeats the legal-row restriction in words.
+- Nothing on the exposed top row may be rules-exclusive. Positional/state reminders
+  are repeated in self-contained body prose using "While...", "If...", or "When..."
+  rather than relying on terse labels alone.
 - Illustrations are **25 mm** high, or **20 mm** when rules need more room.
 - The identity-height variables remain **19 mm**, **18 mm** for dense faces, and
   **15 mm** for Heroes. When a written classification row is present, its **4 mm**
