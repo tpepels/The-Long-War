@@ -1232,6 +1232,13 @@ cdef int _fe_legal_actions_into(
                         actions, n,
                         encode_action(TYPE_BOND, card, slot, -1, player),
                     )
+                    if self.bond_optional_extra_cost[card] > 0:
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_BOND, card, slot, -1, player, 1
+                            ),
+                        )
 
         elif self.card_type[card] == CARD_NAME:
             for local in range(POSITIONS_PER_PLAYER):
