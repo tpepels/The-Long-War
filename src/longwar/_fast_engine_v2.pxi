@@ -976,6 +976,26 @@ cdef bint _v2_effect_can_resolve(
                     return True
         return False
 
+    if effect.op == V2_OP_ATTACH_PREPARED and effect.target2 == V2_TARGET_DIRECTLY_AHEAD:
+        if origin < 0 or rank_from_slot(origin) <= RANK_FRONT:
+            return False
+        dest = slot_index(
+            player,
+            front_from_slot(origin),
+            rank_from_slot(origin) - 1,
+        )
+        if state.force[dest] < 0:
+            return False
+        mask = _v2_target_mask(self, state, player, origin, effect)
+        for slot in range(SLOT_COUNT):
+            if not (mask & (<uint32_t>1 << slot)):
+                continue
+            if state.bond[slot] >= 0 and state.bond[dest] < 0:
+                return True
+            if state.name[slot] >= 0 and state.name[dest] < 0:
+                return True
+        return False
+
     if effect.target != V2_TARGET_NONE:
         return _v2_target_mask(
             self, state, player, origin, effect
