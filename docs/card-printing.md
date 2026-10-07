@@ -58,9 +58,14 @@ illustration or change the physical card skeleton.
 From the repository root, with Chrome/Chromium installed:
 
 ```sh
-python -m pytest -q tests/test_v2_card_design.py tests/test_browser_card_layout.py
+# Optional design diagnostics - useful, but not a deployment gate.
+python -m pytest -q -m design tests/test_card_design_audit.py tests/test_browser_card_layout.py
+
+# Optional visual print audit.
 python tools/check_card_layout.py --surface print --require-browser \
-  --pdf artifacts/print/cards-v2.pdf
+  --pdf artifacts/print/cards.pdf
+
+# This is the actual deployability check.
 make pages
 ```
 
