@@ -13,7 +13,7 @@ from .cards import card_index, validate_card_data
 from .decks import MINIMUM_DECK_SIZE, validate_deck_definition
 from .game.engine import GameEngine
 from .parallelism import DEFAULT_WORKERS
-from .protocol import AgentKind, CardField, CardType, DesignField, PLAYER_COUNT
+from .protocol import AgentKind, CardField, CardType, PLAYER_COUNT
 from .game.model import Phase
 from .simulate import make_agent
 
@@ -52,56 +52,67 @@ def baseline_id(card_id: str) -> str:
 
 
 def baseline_card(card: dict[str, Any]) -> dict[str, Any]:
+    """Build a schema-valid matched chassis with card-specific effects removed."""
     card_type = card[CardField.TYPE]
     result: dict[str, Any] = {
         CardField.ID: baseline_id(card[CardField.ID]),
         "title": f"Counterfactual baseline — {card['title']}",
         CardField.TYPE: card_type,
         CardField.UNIQUE: bool(card[CardField.UNIQUE]),
-        CardField.CLASSES: list(card.get(CardField.CLASSES, ["experimental"])),
+        CardField.CLASSES: list(card.get(CardField.CLASSES, [])),
         CardField.TEXT: "Experimental matched baseline.",
-        CardField.DESIGN_RULES: {},
+        CardField.EFFECTS: [],
+        CardField.DESIGN_RULES: {"effects": [], "modes": {}},
         CardField.RULE_BLOCKS: [],
         CardField.EXPERIMENTAL: True,
         CardField.BASELINE_FOR: card[CardField.ID],
     }
     if CardField.COMMAND_COST in card:
         result[CardField.COMMAND_COST] = card[CardField.COMMAND_COST]
+    for field in (
+        CardField.ALLOWED_ROWS,
+        CardField.REFERENCES,
+        CardField.DURATION,
+        CardField.BOND_KIND,
+    ):
+        if field in card:
+            result[field] = copy.deepcopy(card[field])
 
     if card_type == CardType.FORCE:
-        result[CardField.HERO] = bool(card.get(CardField.HERO, False))
-        result[CardField.STRENGTH] = (
-            int(card[CardField.STRENGTH]) if result[CardField.HERO] else BASELINE_FORCE_STRENGTH
-        )
-        if CardField.ROLE in card:
-            result[CardField.ROLE] = card[CardField.ROLE]
-        if result[CardField.HERO]:
-            result[CardField.HERO_NAME_STRENGTH] = int(card[CardField.HERO_NAME_STRENGTH])
+        result[CardField.STRENGTH] = BASELINE_FORCE_STRENGTH
     elif card_type == CardType.BOND:
-        result[CardField.TEXT] = (
-            "Experimental matched baseline. Its **Force** gets +1 **Strength**. "
-            "While this **Bond** has a **Name**, its **Force** gets +2 additional **Strength**."
-        )
-        result[CardField.DESIGN_RULES] = {
-            DesignField.STRENGTH_BONUS: BASELINE_BOND_STRENGTH_BONUS,
-            DesignField.NAMED_ADDITIONAL_STRENGTH_BONUS: BASELINE_BOND_NAMED_STRENGTH_BONUS,
-        }
+        result[CardField.STRENGTH_MODIFIER] = BASELINE_BOND_STRENGTH_BONUS
     elif card_type == CardType.NAME:
-        result[CardField.STRENGTH] = BASELINE_NAME_STRENGTH
-    elif card_type == CardType.NARRATIVE:
-        result[CardField.NARRATIVE_FORM] = card[CardField.NARRATIVE_FORM]
-        result[CardField.ONGOING] = bool(card.get(CardField.ONGOING, False))
-        # A no-op Narrative preserves the paid public Narrative play while
-        # removing the card-specific trigger or continuous effect.
-        result[CardField.DESIGN_RULES] = {}
+        result[CardField.STRENGTH_MODIFIER] = BASELINE_NAME_STRENGTH
+    elif card_type == CardType.HERO:
+        force_strength = int(card[CardField.FORCE_STRENGTH])
+        name_strength = int(card[CardField.NAME_STRENGTH_MODIFIER])
+        result[CardField.HERO] = True
+        result[CardField.FORCE_STRENGTH] = force_strength
+        result[CardField.NAME_STRENGTH_MODIFIER] = name_strength
+        # Keep compatibility aliases while the native loader still exports
+        # them for canonical Heroes.
+        result[CardField.STRENGTH] = int(card.get(CardField.STRENGTH, force_strength))
+        result[CardField.HERO_NAME_STRENGTH] = int(
+            card.get(CardField.HERO_NAME_STRENGTH, name_strength)
+        )
+        result[CardField.MODES] = {
+            "force": {"effects": []},
+            "name": {"effects": []},
+        }
+        result[CardField.DESIGN_RULES] = {
+            "effects": [],
+            "modes": {"force": [], "name": []},
+        }
     elif card_type == CardType.STRATAGEM:
-        # Preserve the paid hidden one-per-Battle slot while removing all
-        # card-specific payoff. design_rules is already the canonical empty
-        # mechanics schema for this baseline.
         result[CardField.TEXT] = (
             "Experimental matched baseline. Set this face-down in your "
-            "**Stratagem** area. It has no continuing effect."
+            "Stratagem area. It has no continuing effect."
         )
+    elif card_type in {CardType.NARRATIVE, CardType.TACTIC, CardType.ORDER}:
+        # These card types keep their paid public play commitment while their
+        # card-specific effect is removed.
+        pass
     else:
         raise ValueError(f"Unsupported card type: {card_type}")
 
