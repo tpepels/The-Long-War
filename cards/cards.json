@@ -173,52 +173,25 @@
   "cards": [
     {
       "id": "the-fifty-men",
-      "title": "The Wolf Skirmishers",
+      "title": "The Fifty Men",
       "type": "force",
       "classes": [
         "human",
-        "skirmisher"
+        "spearman"
       ],
       "command_cost": 2,
       "strength": 4,
-      "effects": [
-        {
-          "timing": "continuous",
-          "text": "PRESS +1.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "PRESS +1"
-        }
-      ],
-      "text": "CONTINUOUS - PRESS +1.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "exhaustion",
-        "hostile-interaction",
-        "persistent-state",
-        "strength"
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "continuous",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "self_strength",
-            "amount": 1,
-            "requires_opposing_exhausted_same_front": true
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "PRESS +1."
-        }
-      ]
+      "rule_blocks": []
     },
     {
       "id": "seven-black-ships",
@@ -5893,26 +5866,27 @@
     },
     {
       "id": "the-ash-bowmen",
-      "title": "The Ash Bowmen",
+      "title": "The Wolf Skirmishers",
       "type": "force",
       "classes": [
         "human",
-        "archer"
+        "skirmisher"
       ],
       "command_cost": 2,
-      "strength": 3,
+      "strength": 4,
       "effects": [
         {
-          "timing": "bonded",
-          "text": "This formation has +1 Strength.",
+          "timing": "continuous",
+          "text": "PRESS +1.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · +1"
+          "exposed": "PRESS +1"
         }
       ],
-      "text": "BONDED - This formation has +1 Strength.",
+      "text": "CONTINUOUS - PRESS +1.",
       "design_tags": [
-        "formation-building",
+        "exhaustion",
+        "hostile-interaction",
         "persistent-state",
         "strength"
       ],
@@ -5920,12 +5894,13 @@
       "design_rules": {
         "effects": [
           {
-            "timing": "bonded",
+            "timing": "continuous",
             "scope": "self",
             "limit": null,
             "memory": [],
             "op": "self_strength",
-            "amount": 1
+            "amount": 1,
+            "requires_opposing_exhausted_same_front": true
           }
         ],
         "modes": {}
@@ -5933,8 +5908,8 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "label": "BONDED",
-          "text": "This formation has +1 Strength."
+          "label": "CONTINUOUS",
+          "text": "PRESS +1."
         }
       ]
     },
