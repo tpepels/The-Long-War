@@ -18,21 +18,57 @@ class FormationScore:
     has_dynamic_effects: bool
 
 
+def _static_component_bonus(
+    card: dict[str, Any],
+    *,
+    mode: str | None = None,
+) -> int:
+    """Return Strength effects that are guaranteed in a complete Named Formation."""
+    design = card.get(CardField.DESIGN_RULES, {})
+    if mode is None:
+        effects = design.get("effects", [])
+    else:
+        effects = design.get("modes", {}).get(mode, [])
+
+    total = 0
+    for effect in effects:
+        if effect.get("op") not in {"self_strength", "component_strength"}:
+            continue
+        if effect.get("timing") not in {"continuous", "bonded", "while_named"}:
+            continue
+        if any(str(key).startswith("requires_") for key in effect):
+            continue
+        if effect.get("condition") is not None:
+            continue
+        total += int(effect.get("amount", 0))
+    return total
+
+
 def score_static_formation(
     force: dict[str, Any],
     bond: dict[str, Any],
     name: dict[str, Any],
 ) -> FormationScore:
-    """Score only unconditional printed Force/Bond/Name Strength."""
-    strength = int(force[CardField.STRENGTH])
-    bond_design = bond.get(CardField.DESIGN_RULES, {})
-    strength += int(bond_design.get(DesignField.STRENGTH_BONUS, 0))
-    strength += int(bond_design.get(DesignField.NAMED_ADDITIONAL_STRENGTH_BONUS, 0))
-    strength += int(
-        name[CardField.HERO_NAME_STRENGTH]
-        if name.get(CardField.HERO)
-        else name[CardField.STRENGTH]
+    """Score guaranteed Strength for a complete Named Formation."""
+    force_mode = "force" if force.get(CardField.HERO) else None
+    name_mode = "name" if name.get(CardField.HERO) else None
+
+    strength = int(
+        force.get(CardField.FORCE_STRENGTH, force.get(CardField.STRENGTH, 0))
     )
+    strength += int(bond.get(CardField.STRENGTH_MODIFIER, 0))
+    strength += int(
+        name.get(
+            CardField.NAME_STRENGTH_MODIFIER,
+            name.get(
+                CardField.HERO_NAME_STRENGTH,
+                name.get(CardField.STRENGTH_MODIFIER, 0),
+            ),
+        )
+    )
+    strength += _static_component_bonus(force, mode=force_mode)
+    strength += _static_component_bonus(bond)
+    strength += _static_component_bonus(name, mode=name_mode)
 
     dynamic = any(
         bool(card.get("balance", {}).get("dynamic"))
@@ -49,9 +85,9 @@ def score_static_formation(
 
 
 def build_report(data: dict[str, Any]) -> dict[str, Any]:
-    forces = cards_by_type(data, CardType.FORCE)
+    heroes = cards_by_type(data, CardType.HERO)
+    forces = [*cards_by_type(data, CardType.FORCE), *heroes]
     bonds = cards_by_type(data, CardType.BOND)
-    heroes = [card for card in forces if card.get("hero")]
     names = [*cards_by_type(data, CardType.NAME), *heroes]
 
     formations = [
@@ -141,7 +177,12 @@ def validate_command_costs(card_data: dict[str, Any]) -> None:
     invalid = []
     for card in card_data["cards"]:
         cost = card.get("command_cost")
-        if isinstance(cost, bool) or not isinstance(cost, int) or cost < 1:
+        minimum = 0 if card.get("type") in {"tactic", "order"} else 1
+        if (
+            isinstance(cost, bool)
+            or not isinstance(cost, int)
+            or cost < minimum
+        ):
             invalid.append(f"{card['id']}: invalid command_cost={cost!r}")
     if invalid:
         raise ValueError("Invalid Command cost: " + ", ".join(invalid))

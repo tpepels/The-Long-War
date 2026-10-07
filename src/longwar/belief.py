@@ -291,9 +291,19 @@ class BeliefSampler:
         ):
             return not fronts and direction is not None and not targets
 
-        # A no-choice card is compatible only when the face-down card exposes
-        # no public selection. Reserve selection with zero targets is
-        # intentionally also compatible with this observation.
+        # Canonical V2 Stratagems are always set in exactly one active Front.
+        # Their identity remains hidden, but that Front assignment is public
+        # and therefore cannot be treated as a legacy "no-choice" shape.
+        effects = design.get("effects", [])
+        if any(effect.get("timing") == "hidden" for effect in effects):
+            return (
+                len(fronts) == 1
+                and direction is None
+                and not targets
+            )
+
+        # Legacy no-choice cards expose no public selection. Reserve selection
+        # with zero targets is intentionally also compatible with this shape.
         return not fronts and direction is None and not targets
 
     def sample_hidden_zones(

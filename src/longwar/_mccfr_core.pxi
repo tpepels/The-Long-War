@@ -525,13 +525,15 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             continue
 
         revealed = bool(data[i])
-        front_mask = data[i + 1]
-        direction_code = data[i + 2]
+        # known-to mask is search identity only; card_code already reflects
+        # whether this viewer may know the identity.
+        front_mask = data[i + 2]
+        direction_code = data[i + 3]
         target_mask = (
-            data[i + 3]
-            | (data[i + 4] << 8)
-            | (data[i + 5] << 16)
-            | (data[i + 6] << 24)
+            data[i + 4]
+            | (data[i + 5] << 8)
+            | (data[i + 6] << 16)
+            | (data[i + 7] << 24)
         )
         i += INFO_STRATAGEM_SEARCH_BYTES
 
@@ -576,6 +578,14 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         for offset in range(PLAYER_COUNT)
     ]
     i += PLAYER_COUNT
+
+    # Public Tax and one-shot discount markers are search identity. They are
+    # omitted from the compact diagnostic observation, but must still be
+    # consumed before the own-hand/deck section.
+    tax_len = data[i]
+    i += 1 + tax_len * INFO_TAX_MARKER_BYTES
+    discount_len = data[i]
+    i += 1 + discount_len * INFO_DISCOUNT_MARKER_BYTES
 
     own_hand_counts = []
     for card_code in range(n_cards):

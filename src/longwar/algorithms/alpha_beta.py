@@ -276,6 +276,30 @@ class AlphaBetaSearch:
             tuple(state.free_maneuver_available),
             tuple(
                 (
+                    marker.owner,
+                    marker.target_player,
+                    int(marker.front),
+                    marker.amount,
+                    tuple(marker.card_types),
+                    marker.expires_turn,
+                )
+                for marker in state.tax_markers
+            ),
+            tuple(
+                (
+                    discount.owner,
+                    discount.target_player,
+                    int(discount.position.front),
+                    discount.position.rank.value,
+                    discount.amount,
+                    discount.minimum,
+                    tuple(discount.card_types),
+                    discount.expires_turn,
+                )
+                for discount in state.slot_discounts
+            ),
+            tuple(
+                (
                     constraint.source_card,
                     constraint.player,
                     constraint.kind.value,
