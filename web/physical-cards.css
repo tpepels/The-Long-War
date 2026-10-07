@@ -147,7 +147,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .print-version{display:none}
 
 @media screen and (max-width:650px){main{padding:22px 12px}.cards{gap:24px 12px}.screen-toolbar{align-items:flex-start;flex-direction:column}}
-@page physicalcards{size:A4 landscape;margin:9mm 12.5mm}
+@page physicalcards{size:A4 landscape;margin:9mm 12.5mm 6mm}
 @media print{
   html,body{background:white}
   body{page:physicalcards}
@@ -163,8 +163,8 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
   .physical-card{box-shadow:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .print-card{border-radius:0}
   .print-card::before{border-radius:0}
-  /* Fixed print elements use the page content box; place the stamp in its margin. */
-  .print-version{display:block;position:fixed;right:0;bottom:-6mm;z-index:9999;color:#666;font:1.6mm/1 var(--utility);letter-spacing:.04em}
+  /* The 195mm page content area leaves 3mm below the 192mm card grid for this stamp. */
+  .print-version{display:block;position:fixed;right:0;bottom:.4mm;z-index:9999;color:#666;font:1.6mm/1 var(--utility);letter-spacing:.04em}
 }
 
 .dense .rules{margin-bottom:.85mm;padding:.72mm .9mm .65mm}

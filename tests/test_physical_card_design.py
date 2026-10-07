@@ -511,7 +511,7 @@ def test_shared_visual_language_follows_print_reference_principles() -> None:
     assert ".motif-field{position:relative;flex:0 0 var(--art-height)" in css
     assert "clip-path:" not in css
     assert ".card-footer{flex:0 0 7.6mm" in css
-    assert "@page physicalcards{size:A4 landscape;margin:9mm 12.5mm}" in css
+    assert "@page physicalcards{size:A4 landscape;margin:9mm 12.5mm 6mm}" in css
 
 
 

@@ -53,9 +53,10 @@ footer shows that revision so physical copies can be traced to their build.
 
 ## Print geometry
 
-Cards are **68 × 96 mm**. A4 landscape sheets use **9 mm top/bottom margins** and
-**12.5 mm side margins**. Four cards across and two down make an exact **272 ×
-192 mm** block with **no gaps**. Square cut boxes share straight seams; rounded
+Cards are **68 × 96 mm**. Their A4 landscape cut block leaves **9 mm above and
+below** and **12.5 mm at each side**. The CSS page bottom margin is 6 mm, reserving
+3 mm below the cards for the page revision stamp. Four cards across and two down
+make an exact **272 × 192 mm** block with **no gaps**. Square cut boxes share straight seams; rounded
 raster corners may remain visible inside those boxes. Print at **100% / actual
 size**, without browser headers or footers.
 

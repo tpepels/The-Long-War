@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 from pypdf import PdfReader
 
-from tools import check_card_layout
+from tools import build_pages, check_card_layout
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -211,7 +211,7 @@ def test_playtest_kit_uses_current_decks_and_expands_copies() -> None:
 
 def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
     css = text("web/physical-cards.css")
-    assert "@page physicalcards{size:A4 landscape;margin:9mm 12.5mm}" in css
+    assert "@page physicalcards{size:A4 landscape;margin:9mm 12.5mm 6mm}" in css
     assert "width:272mm;height:192mm" in css
     assert "grid-template-columns:repeat(4,68mm)" in css
     assert "grid-template-rows:repeat(2,96mm)" in css
@@ -220,22 +220,22 @@ def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
     assert 4 * 68 == 272
     assert 2 * 96 == 192
     assert 272 == 297 - 2 * 12.5
-    assert 192 == 210 - 2 * 9
+    assert 192 + 3 == 210 - 9 - 6  # The version stamp has its own strip below the cut grid.
     assert ".print-card{border-radius:0}" in css
     assert ".print-card::before{border-radius:0}" in css
 
 
-@pytest.mark.parametrize("page_name", ["cards", "playtest-kit"])
-def test_real_card_sheets_print_without_screen_spacing_or_extra_pages(tmp_path, page_name: str) -> None:
+@pytest.mark.parametrize(("page_name", "catalogue_count"), [("cards", 8), ("cards", 16), ("playtest-kit", None)])
+def test_real_card_sheets_print_without_screen_spacing_or_extra_pages(tmp_path, monkeypatch, page_name: str, catalogue_count: int | None) -> None:
     browser = check_card_layout.browser_path()
     if browser is None:
         pytest.skip("Chrome/Chromium required for print pagination regression")
     card_data = json.loads(text("cards/cards.json"))
     deck_data = json.loads(text("cards/playtest-decks.json"))
     if page_name == "cards":
-        card_data["cards"] = card_data["cards"][:16]
+        card_data["cards"] = card_data["cards"][:catalogue_count]
         groups = [[card["id"] for card in card_data["cards"]]]
-        ready = "16 current cards · ready to print"
+        ready = f"{catalogue_count} current cards · ready to print"
     else:
         groups = [[entry["id"] for entry in deck["cards"] for _ in range(entry["copies"])]
                   for deck in deck_data["decks"][:2]]
@@ -243,7 +243,11 @@ def test_real_card_sheets_print_without_screen_spacing_or_extra_pages(tmp_path, 
     if page_name == "playtest-kit":
         ready = f"{sum(map(len, groups))} cards · {len(expected_sheets)} card sheets · ready to print"
     fixture_data = json.dumps({"cards": card_data, "decks": deck_data}).replace("<", "\\u003c")
-    document = text(f"web/{page_name}.html").replace("<head>", f'<head><base href="{(ROOT / "web").as_uri()}/">')
+    path = tmp_path / f"{page_name}.html"
+    path.write_text(text(f"web/{page_name}.html"), encoding="utf-8")
+    monkeypatch.setattr(build_pages, "DIST", tmp_path)
+    build_pages.stamp_print_version("layoutcheck")
+    document = path.read_text(encoding="utf-8").replace("<head>", f'<head><base href="{(ROOT / "web").as_uri()}/">')
     document = re.sub(
         r'<link rel="stylesheet" href="physical-cards\.css[^"]*">',
         lambda _: "<style>" + text("web/physical-cards.css") + "</style>", document,
@@ -255,9 +259,9 @@ const fixtures = {fixture_data};
 window.fetch = async url => ({{ok:true,json:async () => fixtures[url.includes("playtest-decks") ? "decks" : "cards"]}});
 window.matchMedia("print").addEventListener("change", event => {{
   if (!event.matches) return;
-  const second = document.querySelectorAll(".print-sheet")[1], deck = document.querySelector(".print-deck");
+  const sheets = document.querySelectorAll(".print-sheet"), sheet = sheets[1] || sheets[0], deck = document.querySelector(".print-deck");
   document.getElementById("print-margin-probe").textContent =
-    "sheet-margin:" + (second ? getComputedStyle(second).marginTop : "missing") +
+    "sheet-margin:" + (sheet ? getComputedStyle(sheet).marginTop : "missing") +
     ";deck-margin:" + (deck ? getComputedStyle(deck).marginBottom : "0px");
 }});
 </script>"""
@@ -265,7 +269,6 @@ window.matchMedia("print").addEventListener("change", event => {{
     document = document.replace("</body>", '<div id="print-margin-probe">margin-unmeasured</div></body>')
     document = re.sub(r'<script src="([^"?]+)[^"]*"></script>',
                       lambda match: "<script>" + text("web/" + match[1]) + "</script>", document)
-    path = tmp_path / f"{page_name}-sheets.html"
     pdf = tmp_path / f"{page_name}-sheets.pdf"
     path.write_text(document, encoding="utf-8")
     result = check_card_layout.run_browser(browser, path, pdf)
@@ -283,6 +286,7 @@ window.matchMedia("print").addEventListener("change", event => {{
     assert "sheet-margin:0px;deck-margin:0px" in "\n".join(pages), pages
     assert len(pages) == len(expected_sheets), f"Expected {len(expected_sheets)} eight-card sheets, found {len(pages)} pages"
     for page, sheet in zip(pages, expected_sheets, strict=True):
+        assert "TLW print vlayoutcheck" in re.sub(r"\s+", " ", page)
         for card_id, copies in Counter(sheet).items():
             assert len(re.findall(r"(?<![a-z0-9-])" + re.escape(card_id) + r"(?![a-z0-9-])", page)) == copies, card_id
 
