@@ -75,6 +75,54 @@ cdef inline void _v2_add_strength_marker(
         state.temporary[slot] += amount
 
 
+cdef void _v2_add_tax_marker(
+    FastEngine self,
+    FastState state,
+    int player,
+    int origin,
+    V2EffectSpec* effect,
+    uint64_t action,
+) except *:
+    cdef int front = -1
+    cdef int encoded_front
+    cdef int i
+    cdef int kind = action_kind(action)
+    cdef uint32_t extra = action_extra(action)
+
+    if effect.front_mode == V2_FRONT_THIS and origin >= 0:
+        front = front_from_slot(origin)
+    elif effect.front_mode == V2_FRONT_CHOOSE_ACTIVE:
+        if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+            encoded_front = <int>(extra & V2_PLAY_FRONT_MASK)
+        else:
+            encoded_front = <int>(extra >> V2_EFFECT_OPTION_SHIFT)
+        front = encoded_front - 1
+
+    if (
+        front < 0
+        or front >= FRONT_COUNT
+        or not front_is_active(state.battle, front)
+    ):
+        return
+    if state.tax_len >= MAX_TAX_MARKERS:
+        raise RuntimeError("V2 Tax marker capacity exceeded")
+
+    i = state.tax_len
+    state.tax_owner[i] = player
+    state.tax_target_player[i] = other_player(player)
+    state.tax_front[i] = front
+    state.tax_amount[i] = effect.amount
+    state.tax_card_type_mask[i] = (
+        effect.card_type_mask if effect.card_type_mask else 255
+    )
+    state.tax_expires_turn[i] = (
+        state.turn_number + 1
+        if effect.expires == V2_EXPIRES_BEFORE_NEXT_TURN
+        else -1
+    )
+    state.tax_len += 1
+
+
 cdef void _v2_apply_resolved_effect(
     FastEngine self,
     FastState state,
@@ -96,6 +144,7 @@ cdef void _v2_apply_resolved_effect(
         else <int>(extra >> V2_EFFECT_OPTION_SHIFT)
     )
     cdef int slot, i, before_mask, owner, component
+    cdef int move_dest, move_owner, move_rank
     cdef uint32_t class_bit
 
     if target < 0 and effect.target == V2_TARGET_SELF:
@@ -111,7 +160,26 @@ cdef void _v2_apply_resolved_effect(
             self, state, player, effect.draw_count
         )
     elif effect.op == V2_OP_MOVE:
-        if effect.target == V2_TARGET_SELF and source >= 0 and dest >= 0:
+        if effect.flags & V2_FLAG_DIRECTION_REAR and target >= 0:
+            move_rank = rank_from_slot(target)
+            if move_rank < RANK_REAR:
+                move_owner = owner_from_slot(target)
+                move_dest = slot_index(
+                    move_owner,
+                    front_from_slot(target),
+                    move_rank + 1,
+                )
+                if _fe_card_move_destination_legal(
+                    self, state, player, target, move_dest
+                ):
+                    _fe_move_slot(self, state, target, move_dest)
+                    _fe_resolve_force_move_triggers(
+                        self, state, move_owner, target, move_dest
+                    )
+                    _fe_resolve_force_pair_narratives(
+                        self, state, move_owner
+                    )
+        elif effect.target == V2_TARGET_SELF and source >= 0 and dest >= 0:
             _fe_move_slot(self, state, source, dest)
             _fe_resolve_force_move_triggers(self, state, player, source, dest)
             _fe_resolve_force_pair_narratives(self, state, player)
@@ -171,6 +239,10 @@ cdef void _v2_apply_resolved_effect(
                 )
             ):
                 state.suppression_mask[target] |= SUPPRESS_NAME_TEXT
+    elif effect.op == V2_OP_TAX:
+        _v2_add_tax_marker(
+            self, state, player, origin, effect, action
+        )
     elif effect.op == V2_OP_NEXT_SLOT_DISCOUNT:
         if target >= 0:
             if state.discount_len >= MAX_SLOT_DISCOUNTS:
