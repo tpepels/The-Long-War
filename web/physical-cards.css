@@ -911,8 +911,17 @@ EXPOSED TOP ROW - TUNING PANEL
   font-style: normal;
 }
 .hero-rule-mode + .hero-rule-mode {
+  position: relative;
   margin-top: 1.2mm;
   padding-top: 1.2mm;
+}
+
+.hero-rule-mode + .hero-rule-mode::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 15%;
+  width: 70%;
   border-top: 0.18mm solid color-mix(in srgb, var(--accent) 42%, transparent);
 }
 .mode-heading {
@@ -978,7 +987,7 @@ EXPOSED TOP ROW - TUNING PANEL
 .footer-unique {
   position: absolute;
   left: var(--card-unique-footer-left);
-  bottom: var(--card-class-footer-bottom);
+  bottom: 3.5mm;
   z-index: 3;
   height: var(--card-class-line-height);
   display: flex;
@@ -987,7 +996,23 @@ EXPOSED TOP ROW - TUNING PANEL
   font: 700 var(--card-footer-unique-font-size)/1 var(--card-footer-font-family);
   white-space: nowrap;
   font-style: italic;
-  color: darkgoldenrod;
+
+  color: transparent;
+  background: linear-gradient(
+    180deg,
+    #fff4c7 0%,
+    #e4c36a 18%,
+    #8f6a21 38%,
+    #fff0b0 52%,
+    #7a5720 70%,
+    #d8b45a 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  text-shadow:
+    0 0.08mm 0.05mm rgba(255, 255, 255, 0.45),
+    0 0.18mm 0.2mm rgba(60, 40, 10, 0.25);
 }
 .cost-gem {
   position: absolute;
@@ -1041,7 +1066,7 @@ EXPOSED TOP ROW - TUNING PANEL
   line-height: var(--card-dense-effect-line-height);
 }
 .card-hero {
-  --art-height: 25mm;
+  --art-height: 21mm;
   --identity-height: 15mm;
   --title-height: 7mm;
 }
