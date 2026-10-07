@@ -649,7 +649,7 @@ def test_middle_only_support_forces_have_distinct_second_line_jobs() -> None:
     expected = {
         "the-relief-column": ("tireless", "directly_ahead"),
         "the-field-train": ("attach_prepared", "prepared_component_same_front"),
-        "the-second-shield": ("redirect_tactic", "self"),
+        "the-signal-company": ("maneuver_unnamed", "directly_ahead"),
     }
     for card_id, (op, target) in expected.items():
         card = by_id[card_id]
