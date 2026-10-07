@@ -14,8 +14,8 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 
 **Interesting lines**
 
-- Relief Column sits only in Middle and makes the Force directly ahead TIRELESS, turning an exhausted front line into something that can still rotate or withdraw.
-- Grey Riders + The Long March gives cheap early movement; Relief Column then keeps the front mobile after a lost Front.
+- Signal Company sits only in Middle and makes the Force directly ahead MOBILE, letting an Unnamed front-line Force reposition without first completing a Named Formation.
+- Grey Riders + The Long March gives cheap early movement; Signal Company adds a different route to mobility by coordinating the line from behind.
 - Re-form the Line, Neris, Kael, Elian and Sela provide different kinds of repositioning, so the deck can rotate a damaged line rather than simply add Strength.
 - Crow Archers, Banner Singers, Supported By and First Spear reward building an actual Front/Middle/Rear order.
 
@@ -31,7 +31,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 | 1 | The Crow Archers | Force |
 | 1 | The Banner Singers | Force |
 | 1 | The White Hands of Elara | Force |
-| 2 | The Relief Column | Force |
+| 2 | The Signal Company | Force |
 | 1 | The Late Banner | Force |
 | 2 | Marched With | Bond |
 | 1 | Kept Pace With | Bond |
@@ -195,10 +195,10 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 
 **Interesting lines**
 
-- Second Shield is Middle-only and can redirect opposing Tactics away from another friendly formation in its Front, making the reserve line an active protective screen.
+- Relief Column is Middle-only and makes the Force directly ahead TIRELESS, so an exhausted front line can still Maneuver instead of becoming a static liability.
 - Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the line ahead.
-- Damar becomes dangerous after Exhaustion, while Maelin and Catch Your Breath decide whether to keep that exhausted payoff or clear the token for mobility.
-- Serekh, Red Shields, Alda, Veyra, Second Shield and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield.
+- Damar becomes dangerous after Exhaustion, while Relief Column, Maelin and Catch Your Breath offer different choices between exploiting Exhaustion and restoring mobility.
+- Serekh, Red Shields, Alda, Veyra and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -211,7 +211,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 | 1 | The King's Spears | Force |
 | 1 | The First Spear | Force |
 | 1 | The White Hands of Elara | Force |
-| 2 | The Second Shield | Force |
+| 2 | The Relief Column | Force |
 | 1 | The Salt-Road Reavers | Force |
 | 1 | The Crow Archers | Force |
 | 1 | Guarded | Bond |
