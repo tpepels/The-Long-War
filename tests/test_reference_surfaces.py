@@ -70,8 +70,9 @@ def test_rulebook_core_values_match_standard_engine() -> None:
     assert "Winning or losing a Front does **not** move, Retreat, or discard any battlefield cards." in rules_text
     assert f"Lose **{standard.lost_front_command_penalty} Command for each Front you lost**" in rules_text
     assert "Check for Command Collapse before anyone recovers Command." in rules_text
+    assert "at least **14 Forces**, with Heroes counting toward this minimum" in rules_text
+    assert "at least **6 printed Names**" in rules_text
     assert "at most **4 copies** of any non-Unique title" in rules_text
-    assert "There is no required minimum number of Forces or printed Names." in rules_text
 
     effective_recovery = [
         max(
