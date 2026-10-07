@@ -360,6 +360,15 @@ cdef void _v2_apply_immediate_play_effects(
                     card,
                     COMMAND_DETAIL_CARD_EFFECT,
                 )
+        elif effect.op == V2_OP_TAX:
+            _v2_add_tax_marker(
+                self,
+                state,
+                player,
+                origin,
+                effect,
+                encode_action(TYPE_EFFECT, -1, origin, -1, player),
+            )
         elif effect.op in (
             V2_OP_ATTACH_PREPARED,
             V2_OP_CHOOSE_STRENGTH_TARGETS,
@@ -433,6 +442,7 @@ cdef void _v2_apply_becomes_named_effects(
             V2_OP_REMOVE_NEGATIVE_MARKER,
             V2_OP_SET_STRATAGEM_FROM_HAND,
             V2_OP_SUPPRESS_COMPONENT,
+            V2_OP_TAX,
         ):
             _v2_enqueue_effect(
                 self, state, player, card, mode, i, origin
