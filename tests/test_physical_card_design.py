@@ -324,6 +324,7 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
     # hand-maintained registry. Build validation requires matching artwork.
     assert 'const artBase=options.printArt?"art/cards-print/":"art/cards/"' in js
     assert 'const artExt=options.printArt?".webp":".png"' in js
+    assert "const artId=String(card.art_id||card.id);" in js
     assert "--card-art:url(" in js
     assert "CARD_ART" not in js
     assert "var(--card-art,none)" in css
@@ -468,17 +469,15 @@ def test_physical_geometry_guard_detects_region_failures_across_families(tmp_pat
     assert {card["id"] for card in expected} <= failures
 
 
-def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
+def test_force_art_has_an_exact_or_explicit_temporary_source() -> None:
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = cards if isinstance(cards, list) else cards["cards"]
-    force_ids = {card["id"] for card in cards if card["type"] == "force"}
     art_ids = {
         path.stem
         for path in (ROOT / "web" / "art" / "cards").glob("*.png")
     }
-    # Every current Force has exact-id per-card art. Family art remains only as
-    # a renderer fallback for future cards before their individual art lands.
-    assert force_ids <= art_ids
+    for card in (card for card in cards if card["type"] == "force"):
+        assert card.get("art_id", card["id"]) in art_ids
 
 
 def test_dense_hero_rules_preserve_both_modes() -> None:
