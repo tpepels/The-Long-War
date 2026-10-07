@@ -415,9 +415,9 @@ If none can be satisfied, take your turn normally.
 A legal deck has:
 
 - at least **34 cards**;
+- at least **14 Forces**, with Heroes counting toward this minimum;
+- at least **6 printed Names**;
 - at most **4 copies** of any non-Unique title;
 - at most **1 copy** of any Unique title.
-
-There is no required minimum number of Forces or printed Names.
 
 > The battlefield grows. Your commitments remain. Command does not come back easily. Win the war, not merely the Front in front of you.
