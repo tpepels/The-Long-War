@@ -10,7 +10,12 @@ from statistics import mean, stdev
 from typing import Any, Callable, Iterable
 
 from .cards import card_index, validate_card_data
-from .decks import MINIMUM_DECK_SIZE, validate_deck_definition
+from .decks import (
+    MINIMUM_DECK_SIZE,
+    MINIMUM_FORCE_COUNT,
+    MINIMUM_PRINTED_NAME_COUNT,
+    validate_deck_definition,
+)
 from .game.engine import GameEngine
 from .parallelism import DEFAULT_WORKERS
 from .protocol import AgentKind, CardField, CardType, PLAYER_COUNT
@@ -182,7 +187,8 @@ def generate_context_decks(
     """Generate legal minimum-size contexts for an expandable card pool.
 
     Required cards appear in every context. Remaining slots rotate pool
-    coverage. Current deck construction has no Force or printed-Name minimum.
+    coverage while satisfying the canonical Force/Hero and printed-Name
+    minimums.
     """
     if count <= 0:
         raise ValueError("count must be positive")
@@ -214,6 +220,47 @@ def generate_context_decks(
 
     for _context_index in range(count):
         deck = list(required)
+
+        force_count = sum(
+            meta[card_id][CardField.TYPE] in {CardType.FORCE, CardType.HERO}
+            for card_id in deck
+        )
+        name_count = sum(
+            meta[card_id][CardField.TYPE] == CardType.NAME
+            for card_id in deck
+        )
+        need_forces = max(0, MINIMUM_FORCE_COUNT - force_count)
+        need_names = max(0, MINIMUM_PRINTED_NAME_COUNT - name_count)
+        if len(deck) + need_forces + need_names > deck_size:
+            raise ValueError(
+                "Required cards leave too few slots to satisfy the canonical "
+                f"{MINIMUM_FORCE_COUNT}-Force/Hero and "
+                f"{MINIMUM_PRINTED_NAME_COUNT}-Name minimums"
+            )
+
+        force_candidates = [
+            card_id
+            for card_id in all_ids
+            if card_id not in deck
+            and meta[card_id][CardField.TYPE] in {CardType.FORCE, CardType.HERO}
+        ]
+        for card_id in ordered_candidates(force_candidates):
+            if need_forces <= 0:
+                break
+            deck.append(card_id)
+            need_forces -= 1
+
+        name_candidates = [
+            card_id
+            for card_id in all_ids
+            if card_id not in deck
+            and meta[card_id][CardField.TYPE] == CardType.NAME
+        ]
+        for card_id in ordered_candidates(name_candidates):
+            if need_names <= 0:
+                break
+            deck.append(card_id)
+            need_names -= 1
 
         remaining = [card_id for card_id in all_ids if card_id not in deck]
         for card_id in ordered_candidates(remaining):
