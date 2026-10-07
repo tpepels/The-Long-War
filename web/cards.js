@@ -24,7 +24,7 @@ async function main(){
     sheet.map(card=>window.PhysicalCards.cardArticle(card,"print-card",{printArt:true})).join("")+
     '</section>'
   ).join("");
-  await preloadArt(cards.map(card=>card.id));
+  await preloadArt([...new Set(cards.map(card=>card.art_id||card.id))]);
   if(document.fonts?.ready)await document.fonts.ready;
   count.textContent=cards.length+" current cards · ready to print";
   if(printButton)printButton.disabled=false;
