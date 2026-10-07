@@ -870,18 +870,21 @@ EXPOSED TOP ROW - TUNING PANEL
   gap: 0.65mm;
   margin-bottom: 0.5mm;
 }
-.effect-timing-icon {
+.effect-timing-icon,
+.placement-rule-icon {
   width: 3.3mm;
   height: 3.3mm;
   display: grid;
   place-items: center;
   flex: none;
 }
-.effect-timing-icon svg {
+.effect-timing-icon svg,
+.placement-rule-icon svg {
   width: 100%;
   height: 100%;
 }
-.effect-label {
+.effect-label,
+.placement-rule-label {
   font: 700 var(--card-effect-label-font-size)/1 var(--card-label-font-family);
   letter-spacing: 0.02em;
   text-transform: uppercase;
