@@ -28,8 +28,8 @@
 :root {
   --card-width: 68mm;
   --card-height: 96mm;
-  --exposed-edge: 11mm;
-  --art-height: 20mm;
+  --exposed-edge: 12mm;
+  --art-height: 25mm;
   --identity-height: 17.2mm;
   --display: "LW Display";
   --text: "LW Text";
@@ -134,7 +134,7 @@ main {
   --accent: #5d4a2d;
   --deep: #191c20;
   --paper: #f1dfb9;
-  --art-height: 25mm;
+  --art-height: 30mm;
   --identity-height: 19mm;
   --footer-height: 15mm;
   --title-height: 12mm;
@@ -200,23 +200,23 @@ EXPOSED TOP ROW - TUNING PANEL
 .event-crown {
   /* --- font sizes -------------------------------------------------------- */
   --edge-base-font-size: 2.45mm;
-  --edge-type-font-size: 2.45mm;
-  --edge-hero-value-font-size: 2.45mm;
+  --edge-type-font-size: 5mm;
+  --edge-hero-value-font-size: 5mm;
   --edge-reminder-font-size: var(--edge-reminder-font-size);
   --edge-event-family-font-size: 2.45mm;
   --edge-event-status-font-size: 2.45mm;
 
   /* --- icon sizes -------------------------------------------------------- */
-  --edge-type-icon-size: 6mm;
-  --edge-hero-icon-size: 4.5mm;
-  --edge-class-icon-size: 4.5mm;
-  --edge-row-icon-size: 4.5mm;
-  --edge-event-icon-size: 4.5mm;
+  --edge-type-icon-size: 5mm;
+  --edge-hero-icon-size: 5mm;
+  --edge-class-icon-size: 5mm;
+  --edge-row-icon-size: 5mm;
+  --edge-event-icon-size: 5mm;
   --edge-socket-size: 2.35mm;
 
   /* --- layout / spacing -------------------------------------------------- */
-  --edge-left-width: 14mm;
-  --edge-middle-width: 19mm;
+  --edge-left-width: 20mm;
+  --edge-middle-width: 13mm;
   --edge-pad-top: 4mm;
   --edge-pad-right: 7mm;
   --edge-pad-bottom: 0.95mm;
@@ -229,7 +229,7 @@ EXPOSED TOP ROW - TUNING PANEL
   --edge-middle-gap: 0.4mm;
   --edge-reminder-gap-x: 0.35mm;
   --edge-reminder-gap-y: 0.12mm;
-  --edge-divider-width: 0.16mm;
+  --edge-divider-width: 0mm;
   --edge-glyph-stroke-width: var(--edge-glyph-stroke-width);
 
   height: var(--exposed-edge);
@@ -242,10 +242,7 @@ EXPOSED TOP ROW - TUNING PANEL
     var(--edge-middle-width)
     minmax(0, 1fr);
   align-items: stretch;
-  padding:
-    var(--edge-pad-top)
-    var(--edge-pad-right)
-    var(--edge-pad-bottom)
+  padding: var(--edge-pad-top) var(--edge-pad-right) var(--edge-pad-bottom)
     var(--edge-pad-left);
   color: var(--deep);
 }
@@ -314,7 +311,6 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
 }
 .type-mark svg,
-.hero-stat svg,
 .class-sigil svg,
 .event-sigil svg {
   width: 100%;
@@ -468,7 +464,7 @@ EXPOSED TOP ROW - TUNING PANEL
   min-height: var(--art-height);
   max-height: var(--art-height);
   overflow: hidden;
-  margin: 0 -1.6mm 0.7mm;
+  /* margin: 0 -1.6mm 0.7mm; */
 }
 .motif-field::before {
   content: "";
@@ -565,7 +561,7 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: 1 1 auto;
   overflow: hidden;
   position: relative;
-  margin: 0.4mm 0.65mm 0;
+  margin: 0.4mm 0.5mm 0mm 1.5mm;
   padding: 1.3mm 0 0;
 }
 .effect-block {
@@ -699,7 +695,7 @@ EXPOSED TOP ROW - TUNING PANEL
 /* Give the prose room before reducing its type size. */
 .dense,
 .very-dense {
-  --art-height: 20mm;
+  --art-height: 25mm;
   --identity-height: 18mm;
   --title-height: 11mm;
 }
@@ -717,9 +713,9 @@ EXPOSED TOP ROW - TUNING PANEL
   line-height: 1.12;
 }
 .card-hero {
-  --art-height: 20mm;
+  --art-height: 25mm;
   --identity-height: 15mm;
-  --title-height: 8mm;
+  --title-height: 7mm;
 }
 .card-hero .card-title {
   font-size: 4.65mm;
