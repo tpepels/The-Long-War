@@ -30,7 +30,7 @@ test:
 	$(PYTEST) -q --durations=10
 
 test-fast:
-	$(PYTEST) -q --tb=short -m "not algorithm and not integration"
+	$(PYTEST) -q --tb=short -m "not algorithm and not integration and not design"
 
 test-integration:
 	$(PYTEST) -q -m integration --durations=10
