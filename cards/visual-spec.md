@@ -24,8 +24,9 @@ matching the shared Astra-finished physical-card treatment.
 - Illustrations are **25 mm** high, or **20 mm** when rules need more room.
 - The identity-height variables remain **19 mm**, **18 mm** for dense faces, and
   **15 mm** for Heroes. When a written classification row is present, its **4 mm**
-  is reclaimed from that identity allocation and the classification row is anchored
-  at the bottom of the card body, immediately above the footer.
+  is reclaimed from that identity allocation so the rules region becomes taller.
+  The classification row itself lives inside the footer band and is vertically
+  aligned with the Command seal, leaving the body space available to rules text.
 - The footer reserves **15 mm** for the ID, revision, family mark, Unique label
   when applicable, and a **12.5 mm** raster Command seal.
 - A4 landscape sheets hold **4 × 2 cards**: exactly **272 × 192 mm**, without gaps.
