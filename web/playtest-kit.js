@@ -15,13 +15,13 @@ async function preloadArt(ids){
     const image=new Image();
     image.onload=resolve;
     image.onerror=resolve;
-    image.src="art/v2/cards-print/"+encodeURIComponent(id)+".webp";
+    image.src="art/cards-print/"+encodeURIComponent(id)+".webp";
   })));
 }
 async function main(){
   const [cardsResponse,decksResponse]=await Promise.all([
     fetch("data/cards.json",{cache:"no-cache"}),
-    fetch("data/v2-playtest-decks.json",{cache:"no-cache"}),
+    fetch("data/playtest-decks.json",{cache:"no-cache"}),
   ]);
   if(!cardsResponse.ok||!decksResponse.ok)throw new Error("Could not load current playtest data");
 
@@ -107,7 +107,7 @@ async function main(){
         '<aside><strong>What this deck tests</strong><p>'+esc(deck.hypothesis||"")+'</p></aside></div>'+
         chunk(expanded,8).map((sheet,sheetIndex)=>
           '<div class="deck-card-grid print-sheet" data-sheet="'+(sheetIndex+1)+'">'+
-          sheet.map(id=>window.V2Cards.cardArticle(index.get(id),"print-card deck-card",{printArt:true})).join("")+
+          sheet.map(id=>window.PhysicalCards.cardArticle(index.get(id),"print-card deck-card",{printArt:true})).join("")+
           '</div>'
         ).join("")+
         '</section>';
