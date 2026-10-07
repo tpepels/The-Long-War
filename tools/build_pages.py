@@ -134,6 +134,11 @@ def build_print_art() -> None:
                 method=6,
             )
 
+    # The source PNGs remain canonical in web/, but Pages only needs the
+    # compact variants. Dropping the copied originals removes ~143 MB from
+    # the deployed artifact and avoids accidental full-resolution downloads.
+    shutil.rmtree(DIST / "art" / "v2" / "cards", ignore_errors=True)
+
 
 def remove_internal_pages_from_dist() -> None:
     """Keep design labs in the repository without publishing them."""
