@@ -78,8 +78,18 @@ function placementMarkup(card){
 }
 function stackEdge(card){
   const reminders=liveEffects(card);
-  const compact=reminders.length>1||reminders.some(e=>(LABEL[e.timing]+" "+exposedText(e)).length>24);
-  return '<header class="stack-edge'+(compact?" edge-compact":"")+'" data-edge-layout="single-row">'+statGroup(card)+'<div class="edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div><div class="edge-live-group">'+placementMarkup(card)+reminders.map(liveMarkup).join("")+'</div></header>';
+  const classCount=(card.classes||[]).length;
+  const rowCount=Array.isArray(card.allowed_rows)?card.allowed_rows.length:(card.placement?1:0);
+  const reminderLoad=reminders.reduce((n,e)=>{
+    const reminder=exposedText(e);
+    const timing=LABEL[e.timing]||e.timing||"";
+    const timingShown=!(e.timing==="continuous"||reminder.toUpperCase().startsWith(String(timing).toUpperCase()));
+    return n+reminder.length+(timingShown?String(timing).length+1:0);
+  },0);
+  const veryCompact=reminders.length>1||reminderLoad>26||(classCount>=3&&reminderLoad>18)||(rowCount>0&&reminderLoad>18);
+  const compact=veryCompact||reminderLoad>20;
+  const density=veryCompact?" edge-very-compact":compact?" edge-compact":"";
+  return '<header class="stack-edge'+density+'" data-edge-layout="single-row" data-class-count="'+classCount+'" data-row-count="'+rowCount+'">'+statGroup(card)+'<div class="edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div><div class="edge-live-group">'+placementMarkup(card)+reminders.map(liveMarkup).join("")+'</div></header>';
 }
 function eventCrown(card){return '<header class="event-crown"><span class="event-sigil">'+typeGlyph(card.type)+'</span><span class="event-family">'+esc(TYPE[card.type])+'</span>'+(statusLine(card)?'<span class="event-status">'+esc(statusLine(card))+'</span>':"")+'</header>'}
 function effectBlock(effect){
