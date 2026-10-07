@@ -250,7 +250,8 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
 
         if formation:
             edge = output.one("stack-edge")
-            assert edge["attrs"].get("data-edge-layout") == "single-row"
+            assert edge["attrs"].get("data-edge-layout") == "three-zone"
+            assert len(output.all("edge-zone", within=edge)) == 3
             stats = output.one("hero-stats" if card["type"] == "hero" else "edge-stats")
             values = [node["text"] for node in output.elements if node["tag"] == "b" and stats in node["ancestors"]]
             if card["type"] == "hero":
