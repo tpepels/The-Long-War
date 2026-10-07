@@ -67,7 +67,15 @@
   const timing=name=>svg(UTILITY[name]||UTILITY.trigger,name.replaceAll("_"," "),"glyph-timing");
   const utility=name=>svg(UTILITY[name]||UTILITY.marker,name,"glyph-utility");
   function classification(name){const group=GROUP[name]||"role";const frame=group==="kind"?'<circle cx="12" cy="12" r="10.4" fill="none" stroke="currentColor" stroke-width="1"/>':"";return svg(frame+(CLASSES[name]?silhouette(CLASSES[name]):UTILITY.marker),name,"glyph-class glyph-class-"+group)}
-  function row(position){const p=String(position||"").toLowerCase(),index=p==="front"?0:p==="middle"?1:2;let body="";for(let i=0;i<3;i++)body+='<rect x="4" y="'+(4+i*6)+'" width="16" height="3.5" rx=".8"'+(i===index?' class="row-active"':'')+'/>';return svg(body,p+" row","glyph-row")}
+  function row(position){
+    const values=(Array.isArray(position)?position:[position]).map(value=>String(value||"").toLowerCase()).filter(Boolean);
+    const active=new Set(values);
+    const names=["front","middle","rear"];
+    let body="";
+    for(let i=0;i<3;i++)body+='<rect x="4" y="'+(4+i*6)+'" width="16" height="3.5" rx=".8"'+(active.has(names[i])?' class="row-active"':'')+'/>';
+    const label=values.length>1?values.join(" / ")+" rows":(values[0]||"row")+" row";
+    return svg(body,label,"glyph-row");
+  }
   function command(value=""){const number=value===""?"":'<text x="12" y="14.5" text-anchor="middle" class="glyph-number">'+value+'</text>';return '<svg class="glyph-command" viewBox="0 0 24 24" role="img" aria-label="Command '+value+'"><title>Command '+value+'</title><path d="M12 1.5 20 5l2.5 8-5.5 8H7l-5.5-8L4 5Z"/><path d="M4 5l8 8 8-8M12 1.5V13m-10.5 0H12m10.5 0H12M7 21l5-8 5 8"/>'+number+'</svg>'}
   window.CardSymbols={symbol,strength,timing,utility,classification,row,command,group:name=>GROUP[name]||"role"};
 })();
