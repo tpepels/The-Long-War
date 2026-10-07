@@ -9,10 +9,13 @@ remains a separate presentation surface.
 
 All eight card families share an aged parchment shell, blue-and-gold ornament,
 a landscape illustration above the centered title, written classifications,
-readable rules, and a large raster Command seal. The exposed strip uses bold
-silhouettes and serif reminders. Heroes keep both Force and Name modes; dense
-faces reclaim space from artwork and identity spacing before reducing rules to
-2.85 mm (8.1 pt). Vanilla cards have no placeholder rules text.
+readable rules, and a large raster Command seal. A subtle type-specific wash
+distinguishes Force, Bond, Name, Hero, Tactic, Order, Stratagem and Narrative
+without changing the shared frame assets. The exposed strip uses bold silhouettes
+and serif reminders, with slightly more breathing room above the live content.
+Heroes keep both Force and Name modes; dense faces reclaim space from artwork and
+identity spacing before reducing rules to 2.85 mm (8.1 pt). Vanilla cards have no
+placeholder rules text.
 
 See [`cards/visual-spec.md`](../cards/visual-spec.md) for the dimensions and
 presentation contract. Card text, numbers, classifications and rules come from
