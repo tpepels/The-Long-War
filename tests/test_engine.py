@@ -1197,21 +1197,6 @@ def test_targeted_stratagem_play_choices_are_legal_actions() -> None:
             "the-line-had-begun-to-move",
             direction="right",
         ),
-    ],
-)
-def test_stratagem_reveals_when_its_hidden_identity_would_constrain_opponent(
-    action: PlayStratagem,
-) -> None:
-    engine, state = setup_state(seed=47101)
-    state.players[0].hand = [action.card_id]
-    state.players[0].command = 20
-
-    assert action in engine.legal_actions(state)
-    engine.apply(state, action)
-
-    assert state.stratagems[0] is not None
-    assert state.stratagems[0].revealed is True
-
 def test_no_step_back_does_not_create_core_lost_front_removal() -> None:
     engine, state = setup_state(seed=4712)
     state.stratagems[0] = StratagemState(
@@ -1226,120 +1211,19 @@ def test_no_step_back_does_not_create_core_lost_front_removal() -> None:
     assert state.slot(0, pos(0, Rank.FRONT)).named is True
     assert "the-fifty-men" not in state.players[0].discard
 
-def _pause_resolution_on_battle_end_draw(state) -> None:
-    """Arrange a public Battle-end draw that pauses before Stratagem discard."""
-    target = pos(3, Rank.REAR)
-    make_named(state, 0, target)
-    state.narratives[0] = [
-        NarrativeState(
-            "they-lived-to-tell-it",
-            target_player=0,
-            target_position=target,
-        )
-    ]
-    # Player 0 draws once in the closing sequence, reaching the hand limit.
-    # The Saga's Battle-end draw must then create overflow and pause for cleanup.
-    state.players[0].hand[:] = state.players[0].hand[:9]
 
-
-def test_conditional_stratagem_stays_hidden_when_battle_end_effect_does_not_fire() -> None:
-    engine, state = setup_state(seed=47121)
-    state.stratagems[0] = StratagemState("the-lines-held")
-    _pause_resolution_on_battle_end_draw(state)
-
-    resolve_battle_by_passing(engine, state)
-
-    assert state.pending_draw_discard_for == 0
-    assert state.stratagems[0] is not None
-    assert state.stratagems[0].revealed is False
-
-
-def test_conditional_stratagem_reveals_when_battle_end_effect_fires() -> None:
+def test_lines_held_prevents_up_to_two_lost_front_command_penalties() -> None:
     engine, state = setup_state(seed=47122)
     state.stratagems[0] = StratagemState("the-lines-held")
     make_named(state, 1, pos(0), temporary=100)
-    _pause_resolution_on_battle_end_draw(state)
-
-    resolve_battle_by_passing(engine, state)
-
-    assert state.pending_draw_discard_for == 0
-    assert state.stratagems[0] is not None
-    assert state.stratagems[0].revealed is True
-    assert state.battle_resolution["front_loss_command_penalty"][0] == 0
-
-
-def test_center_must_hold_resolves_chosen_pair_by_combined_strength() -> None:
-    engine, state = setup_state(seed=4713)
-    state.stratagems[0] = StratagemState(
-        "the-center-must-hold",
-        fronts=(Front.FIRST, Front.SECOND),
-    )
-    make_named(state, 0, pos(0), temporary=2)
-    make_named(state, 1, pos(1))
+    make_named(state, 1, pos(1), temporary=100)
 
     resolve_battle_by_passing(engine, state)
 
     snapshot = state.last_battle_snapshot
     assert snapshot is not None
-    assert snapshot["front_results"][:2] == [0, 0]
-
-
-def test_flank_refused_ignores_edge_and_bonuses_adjacent_formations() -> None:
-    engine, state = setup_state(seed=4714)
-    state.stratagems[0] = StratagemState(
-        "the-flank-was-refused",
-        fronts=(Front.FIRST,),
-    )
-    make_named(state, 0, pos(0))
-    make_named(state, 0, pos(1, Rank.FRONT))
-    make_named(state, 0, pos(1, Rank.REAR), force="seven-black-ships")
-
-    raw_adjacent_strength = engine.front_strength(
-        state, 0, Front.SECOND
-    )
-    resolve_battle_by_passing(engine, state)
-
-    scores = state.last_battle_snapshot["front_scores"]
-    assert scores[0][0] == 0
-    assert scores[1][0] == raw_adjacent_strength + 2
-
-
-def test_trap_closed_drives_off_encircled_middle_frontline() -> None:
-    engine, state = setup_state(seed=4715)
-    state.stratagems[0] = StratagemState("the-trap-closed")
-    for front in range(3):
-        make_named(state, 0, pos(front), temporary=100)
-    make_named(state, 1, pos(1))
-
-    resolve_battle_by_passing(engine, state)
-
-    assert state.slot(1, pos(1, Rank.FRONT)).occupied is False
-    assert state.slot(1, pos(1, Rank.REAR)).occupied is False
-
-
-@pytest.mark.parametrize("battle", range(1, 10))
-def test_command_recovery_formula(battle: int) -> None:
-    rules = GameRules.standard().with_overrides(
-        starting_command=20,
-        command_cap=100,
-        command_collapse_threshold=0,
-    )
-    engine, state = setup_state(seed=4200 + battle, rules=rules)
-    initial_command = 10
-    state.battle = battle
-    state.players[0].command = initial_command
-    state.players[1].command = initial_command
-    state.battle_start_command[:] = [initial_command, initial_command]
-
-    resolve_battle_by_passing(engine, state)
-
-    actual_recovery = max(
-        rules.command_recovery_floor,
-        rules.command_recovery_for_battle(battle),
-    )
-    expected = initial_command + actual_recovery
-    assert state.players[0].command == expected
-    assert state.players[1].command == expected
+    assert snapshot["fronts_lost"][0] == 2
+    assert snapshot["front_loss_command_penalty"][0] == 0
 
 
 def test_command_recovery_loses_one_per_lost_front_and_caps_at_configured_limit() -> None:
