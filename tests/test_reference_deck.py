@@ -118,7 +118,42 @@ def test_reference_decks_make_observational_coverage_gap_explicit() -> None:
         for card_id in _deck(filename)
     }
 
-    assert len(cards) == 95
+    assert len(cards) == 128
     assert len(covered) == 94
-    assert set(cards) - covered == {"covered-the-withdrawal-of"}
+    assert set(cards) - covered == {
+        "a-volley-before-dawn",
+        "bind-the-wound",
+        "brannoc",
+        "carried-messages-for",
+        "catch-your-breath",
+        "corin-of-the-high-wall",
+        "covered-the-withdrawal-of",
+        "doros-the-last-spear",
+        "every-bow-was-strung",
+        "fresh-orders",
+        "kept-the-gate-for",
+        "lysa-the-listener",
+        "maelin",
+        "re-form-the-line",
+        "send-a-runner",
+        "serai-queen-of-crows",
+        "shared-the-spoils-with",
+        "supplied-by",
+        "supported-by",
+        "take-stock",
+        "the-archers-were-ready",
+        "the-ash-bowmen",
+        "the-kings-spears",
+        "the-lantern-scouts",
+        "the-line-was-baited",
+        "the-raiders-came-home-loaded",
+        "the-river-raiders",
+        "the-salt-road-fleet",
+        "the-scouts-found-the-gap",
+        "the-scouts-had-warned-them",
+        "the-stores-were-taken",
+        "the-watchtowers-of-eren",
+        "they-knew-the-ground",
+        "watched-the-skies-for",
+    }
 
