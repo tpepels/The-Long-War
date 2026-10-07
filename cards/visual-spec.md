@@ -16,8 +16,8 @@ classifications → rules → footer**. Decoration comes from four reusable rast
 assets; artwork, text, numbers and functional symbols remain live elements.
 All families still use the same renderer and raster furniture, but the parchment
 receives a restrained family tint so card types can be distinguished at a glance:
-Force rust, Bond teal, Name blue, Hero violet, Tactic crimson, Order green,
-Stratagem slate and Narrative indigo.
+Force umber, Bond teal, Name cobalt, Hero violet, Tactic crimson, Order olive,
+Stratagem slate and Narrative burgundy.
 
 ## Geometry and typography
 
