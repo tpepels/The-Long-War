@@ -606,6 +606,12 @@ cdef void _fe___init__(FastEngine self, engine) except *:
                 self.strat_tie_control[code] = 1
             elif effect.get("op") == "hidden_protect_lost_fronts":
                 self.strat_front_loss_protection[code] = int(effect.get("count", 0))
+            elif effect.get("op") == "optional_extra_payment_draw":
+                # Bond play encoding already has a compact optional-payment
+                # payload. Project the canonical V2 effect into those fields
+                # until all play-choice metadata is table-driven.
+                self.bond_optional_extra_cost[code] = int(effect.get("amount", 0))
+                self.bond_optional_draw_count[code] = int(effect.get("draw", 0))
 
         for mode_name, mode_effects in design.get("modes", {}).items():
             mode = mode_map[mode_name]
