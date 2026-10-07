@@ -122,33 +122,3 @@ def test_hidden_stratagem_and_split_hero_limits_are_explicit() -> None:
     assert "that choice is public" in source
     assert "at most **1 as a Force**" in source
     assert "at most **1 as a Name**" in source
-
-
-def test_print_builder_rasterizes_jpeg_art_for_pdf() -> None:
-    builder = text("tools/build_rulebook_pdf.py")
-    assert "from PIL import Image" not in builder
-    assert "def _pdf_safe_image_path" in builder
-    assert 'source.suffix.lower() not in {".jpg", ".jpeg"}' in builder
-    assert 'shutil.which("ffmpeg")' in builder
-    assert '"-frames:v"' in builder
-    assert 'source.stem + "-print.png"' in builder
-
-
-def test_rulebook_images_use_field_manual_visual_language() -> None:
-    pages = text("tools/build_pages.py")
-    pdf = text("tools/build_rulebook_pdf.py")
-    css = text("web/rules.css")
-
-    assert "def decorate_rulebook_images" in pages
-    assert '"teaching-plate"' in pages
-    assert '"tabletop-example"' in pages
-    assert '"BATTLE PLATE"' in pages
-    assert '"FIELD EXAMPLE"' in pages
-
-    assert "TEACHING_PLATE_IMAGES" in pdf
-    assert '"BATTLE PLATE" if teaching_plate else "FIELD EXAMPLE"' in pdf
-    assert 'image_width = "100%" if teaching_plate else "94%"' in pdf
-
-    assert "/* Illustrated field-manual figures */" in css
-    assert ".rulebook-figure.teaching-plate" in css
-    assert ".rulebook-figure.tabletop-example img" in css

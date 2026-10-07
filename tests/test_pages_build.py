@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from tools import build_pages, check_card_layout
+from tools import build_pages, build_rulebook_pdf, check_card_layout
 
 
 @pytest.fixture(scope="module")
@@ -68,3 +68,14 @@ def test_public_navigation_is_built_from_one_fragment(built_site):
             current = next(label for href, label in links if href == page)
             assert f'<span aria-current="page">{current}</span>' in nav
     assert not (built_site / "site-nav.template.html").exists()
+
+
+def test_rulebook_markdown_does_not_substitute_historical_battlefield_art():
+    rendered = build_rulebook_pdf.markdown_to_typst("```\nBATTLE LINE\n```", "test")
+    assert "assets/rulebook-battlefield.svg" not in rendered
+    assert '#raw(block: true, "BATTLE LINE")' in rendered
+
+
+def test_rulebook_images_use_authored_path_without_legacy_decoder():
+    rendered = build_rulebook_pdf.markdown_to_typst("![Example](assets/example.jpg)", "test")
+    assert '#image("assets/example.jpg"' in rendered

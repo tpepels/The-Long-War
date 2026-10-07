@@ -94,11 +94,6 @@ def print_build_version() -> str:
         WEB / "site-nav.template.html",
         WEB / "playmat.html",
         WEB / "tokens.html",
-        *sorted(
-            path
-            for path in (WEB / "assets").glob("rulebook-*")
-            if path.suffix.lower() in {".svg", ".jpg", ".jpeg", ".png"}
-        ),
         *REFERENCE_DECKS,
     ]
     digest = hashlib.sha256()
@@ -236,41 +231,6 @@ def group_rulebook_sections(rendered: str) -> str:
     )
 
 
-def decorate_rulebook_images(rendered: str) -> str:
-    """Give rules illustrations a consistent field-manual treatment.
-
-    The card-centric examples stay compact and tactile. Larger explanatory
-    plates get a slightly stronger frame. The authored alt text doubles as the
-    visible caption, so the same explanation serves screen readers and print.
-    """
-    teaching_plates = {
-        "rulebook-passing.png",
-        "rulebook-battle-resolution.png",
-        "rulebook-command-collapse.png",
-    }
-
-    def replace(match: re.Match[str]) -> str:
-        alt, path = match.groups()
-        name = Path(path).name
-        if name in teaching_plates:
-            kind = "teaching-plate"
-            label = "BATTLE PLATE"
-        else:
-            kind = "tabletop-example"
-            label = "FIELD EXAMPLE"
-        return (
-            f'<figure class="rulebook-figure {kind}">'
-            f'<img alt="{alt}" src="{path}" />'
-            f'<figcaption><b>{label}</b><span>{alt}</span></figcaption>'
-            f'</figure>'
-        )
-
-    return re.sub(
-        r'<p><img alt="([^"]*)" src="([^"]+)" /></p>',
-        replace,
-        rendered,
-    )
-
 
 def render_rule_tokens(source: str, rules: GameRules) -> str:
     recovery = [
@@ -383,7 +343,6 @@ def main() -> None:
         extensions=["extra", "sane_lists", "attr_list"],
     )
     rulebook_html = group_rulebook_sections(rulebook_html)
-    rulebook_html = decorate_rulebook_images(rulebook_html)
     template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
     rendered = template.replace("{{RULEBOOK}}", rulebook_html)
     (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")
