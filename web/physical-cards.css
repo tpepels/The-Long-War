@@ -847,7 +847,7 @@ EXPOSED TOP ROW - TUNING PANEL
 .card-hero .mode-heading {
   display: inline;
   margin: 0 0.6mm 0 0;
-  font-size: 2.4mm;
+  font-size: var(--card-hero-mode-heading-font-size);
 }
 .card-hero .mode-heading-core {
   display: inline;
@@ -871,10 +871,10 @@ EXPOSED TOP ROW - TUNING PANEL
   height: 2.5mm;
 }
 .card-hero .effect-label {
-  font-size: 2.15mm;
+  font-size: var(--card-hero-effect-label-font-size);
 }
 .card-hero .effect-use em {
-  font-size: 1.8mm;
+  font-size: var(--card-hero-use-font-size);
 }
 .card-hero .effect-use .use-socket {
   width: 2mm;
