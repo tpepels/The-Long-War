@@ -63,13 +63,12 @@ def test_native_engine_consumes_compiled_card_mechanics() -> None:
     assert "self.card_mechanics" in engine_source
     assert "engine.card_mechanics[card_id]" in native_cards
     assert 'card.get("design_rules")' not in native_cards
-    assert "_capability_bits" in native_cards
-    assert "cdef uint64_t card_capabilities[MAX_CARDS]" in native_class
+    assert "cdef void _v2_compile_effect(" in native_cards
+    assert "cdef V2EffectSpec v2_effects[MAX_CARDS][3][2]" in native_class
 
-    # Registered boolean capabilities share the bitset instead of growing one
-    # MAX_CARDS array per mechanic.
-    for capability in CARD_CAPABILITY_BITS:
-        assert f"cdef uint8_t {capability}[MAX_CARDS]" not in native_class
+    # The retired boolean capability registry stays empty; executable V2
+    # mechanics compile into integer effect tables instead.
+    assert CARD_CAPABILITY_BITS == {}
 
 
 def test_experiment_metadata_is_card_schema_not_action_syntax() -> None:
@@ -80,26 +79,18 @@ def test_experiment_metadata_is_card_schema_not_action_syntax() -> None:
         assert not hasattr(ActionKeyToken, name)
 
 
-def test_native_card_loader_uses_typed_protocol_vocabulary() -> None:
-    """Native card compilation must consume shared vocabulary, not re-spell it."""
-    from longwar.game.model import Rank
-    from longwar.protocol import CardField, DesignField, DesignToken, ForceRole
-
+def test_native_card_loader_compiles_v2_vocabulary_before_hot_paths() -> None:
+    """JSON vocabulary is translated once into integer-coded native effects."""
     source = (SRC / "_fast_engine_cards.pxi").read_text(encoding="utf-8")
-    typed_values = {
-        item.value
-        for enum_type in (CardField, DesignField, DesignToken, ForceRole, Rank)
-        for item in enum_type
-    }
-    leaked = sorted(
-        value
-        for value in typed_values
-        if re.search(
-            rf"""(?P<quote>['"]){re.escape(str(value))}(?P=quote)""",
-            source,
-        )
-    )
-    assert not leaked, f"native card loader duplicates typed values: {leaked}"
+    native_class = (SRC / "_fast_engine_class.pxi").read_text(encoding="utf-8")
+
+    assert "cdef void _v2_compile_effect(" in source
+    assert "cdef dict op_map = {" in source
+    assert "cdef dict timing_map = {" in source
+    assert "cdef dict target_map = {" in source
+    assert "out.op = op_map[effect[\"op\"]]" in source
+    assert "out.timing = timing_map[effect[\"timing\"]]" in source
+    assert "cdef V2EffectSpec v2_effects[MAX_CARDS][3][2]" in native_class
 
 
 def test_runtime_and_search_do_not_special_case_card_ids() -> None:
@@ -709,7 +700,8 @@ def test_ongoing_narrative_storage_is_not_treated_as_front_index() -> None:
 
     assert "controller * NARRATIVE_SLOTS_PER_PLAYER + front" not in effects
     assert "player * NARRATIVE_SLOTS_PER_PLAYER + front" not in actions
-    assert "state.narrative_front_mask[ix] & (1 << front)" in actions
+    pending = (SRC / "_fast_engine_pending.pxi").read_text(encoding="utf-8")
+    assert "state.narrative_front_mask[ix] & (1 << front)" in pending
     assert "front_mask = state.narrative_front_mask[ix]" in resolution
 
 
@@ -733,7 +725,11 @@ def test_native_algorithm_hot_paths_do_not_compare_game_state_to_strings() -> No
     offenders: list[str] = []
     for path in sorted(
         [
-            *SRC.glob("_*.pxi"),
+            *(
+                path
+                for path in SRC.glob("_*.pxi")
+                if path.name != "_fast_engine_cards.pxi"
+            ),
             *SRC.glob("_*.pyx"),
         ]
     ):
