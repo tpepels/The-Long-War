@@ -218,8 +218,8 @@ CARD TYPOGRAPHY - TUNING PANEL
 
   /* --- exposed top-row font sizes --------------------------------------- */
   --edge-base-font-size: 2.45mm;
-  --edge-type-font-size: 5mm;
-  --edge-hero-value-font-size: 5mm;
+  --edge-type-font-size: 4mm;
+  --edge-hero-value-font-size: 4mm;
   --edge-reminder-font-size: 8px;
   --edge-event-family-font-size: 2.45mm;
   --edge-event-status-font-size: 2.45mm;
@@ -245,7 +245,8 @@ CARD TYPOGRAPHY - TUNING PANEL
     no-repeat;
   color: var(--deep);
   box-shadow: 0 1.1mm 2.4mm #2927192b;
-  font: var(--card-base-font-size)/var(--card-base-line-height) var(--card-base-font-family);
+  font: var(--card-base-font-size)/var(--card-base-line-height)
+    var(--card-base-font-family);
 }
 
 /*
@@ -295,11 +296,11 @@ EXPOSED TOP ROW - TUNING PANEL
   /* Typography variables are centralized in CARD TYPOGRAPHY - TUNING PANEL. */
 
   /* --- icon sizes -------------------------------------------------------- */
-  --edge-type-icon-size: 5mm;
-  --edge-hero-icon-size: 5mm;
-  --edge-class-icon-size: 5mm;
-  --edge-row-icon-size: 5mm;
-  --edge-event-icon-size: 5mm;
+  --edge-type-icon-size: 4mm;
+  --edge-hero-icon-size: 4mm;
+  --edge-class-icon-size: 4mm;
+  --edge-row-icon-size: 4mm;
+  --edge-event-icon-size: 4mm;
   --edge-socket-size: 2.35mm;
 
   /* --- layout / spacing -------------------------------------------------- */
@@ -526,7 +527,8 @@ EXPOSED TOP ROW - TUNING PANEL
   min-width: 0;
 }
 .event-family {
-  font: 600 var(--edge-event-family-font-size)/1.03 var(--edge-event-family-font-family);
+  font: 600 var(--edge-event-family-font-size)/1.03
+    var(--edge-event-family-font-family);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -691,7 +693,8 @@ EXPOSED TOP ROW - TUNING PANEL
   font: var(--card-effect-use-font-size)/1 var(--card-label-font-family);
 }
 .effect-text {
-  font: var(--card-effect-text-font-size)/var(--card-effect-text-line-height) var(--card-rule-font-family);
+  font: var(--card-effect-text-font-size)/var(--card-effect-text-line-height)
+    var(--card-rule-font-family);
 }
 .effect-text .rule-term {
   font-weight: 700;
@@ -756,7 +759,8 @@ EXPOSED TOP ROW - TUNING PANEL
   grid-row: 2;
   justify-self: start;
   white-space: nowrap;
-  font: var(--card-footer-version-font-size)/1 var(--card-footer-version-font-family);
+  font: var(--card-footer-version-font-size)/1
+    var(--card-footer-version-font-family);
   opacity: 0.65;
 }
 .footer-unique {
@@ -832,7 +836,8 @@ EXPOSED TOP ROW - TUNING PANEL
   display: inline;
 }
 .card-hero .hero-rule-mode {
-  font: var(--card-hero-rule-font-size)/var(--card-hero-rule-line-height) var(--card-rule-font-family);
+  font: var(--card-hero-rule-font-size)/var(--card-hero-rule-line-height)
+    var(--card-rule-font-family);
 }
 .card-hero .effect-text {
   font-size: var(--card-hero-rule-font-size);
