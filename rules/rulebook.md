@@ -135,8 +135,6 @@ As one Action, you may:
 
 Cycling costs no Command and is legal whenever you have at least two cards in hand. This matters for Passing: if you can cycle, you still have a legal Action even if none of the cards in your hand can be played.
 
-## 10-card Hand Limit
-
 Your hand limit is **10**. If you are holding more than 10 cards, discard until you are holding 10.
 
 ## Command {#command}
