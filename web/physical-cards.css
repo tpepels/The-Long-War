@@ -226,6 +226,7 @@ CARD TYPOGRAPHY - TUNING PANEL
   --edge-reminder-font-size: 8px;
   --edge-event-family-font-size: 2.45mm;
   --edge-event-status-font-size: 2.45mm;
+  --edge-special-event-family-font-size: 3mm; /* Tactic / Stratagem / Narrative */
 
   /* --- colours / geometry ------------------------------------------------ */
   --accent: #5d4a2d;
@@ -438,6 +439,7 @@ EXPOSED TOP ROW - TUNING PANEL
   /* --- layout / spacing -------------------------------------------------- */
   --edge-left-width: 16mm;
   --edge-middle-width: 16mm;
+  --edge-special-event-side-width: 10mm; /* symmetric sides keep middle truly centred */
   --edge-pad-top: 4mm;
   --edge-pad-right: 7mm;
   --edge-pad-bottom: 0.95mm;
@@ -654,6 +656,37 @@ EXPOSED TOP ROW - TUNING PANEL
 .event-crown .edge-zone-right {
   justify-content: flex-end;
 }
+
+/*
+ * Tactic / Stratagem / Narrative use a dedicated event header:
+ *
+ *   ┌──────────┬──────────────────────────────────┬──────────┐
+ *   │   icon   │          FAMILY NAME             │  status  │
+ *   └──────────┴──────────────────────────────────┴──────────┘
+ *
+ * Equal side widths keep the middle zone geometrically centred on the card.
+ * Adjust --edge-special-event-side-width and
+ * --edge-special-event-family-font-size in the tuning panel above.
+ */
+.card-tactic .event-crown,
+.card-stratagem .event-crown,
+.card-narrative .event-crown {
+  grid-template-columns:
+    var(--edge-special-event-side-width)
+    minmax(0, 1fr)
+    var(--edge-special-event-side-width);
+}
+.card-tactic .event-crown .edge-zone-middle,
+.card-stratagem .event-crown .edge-zone-middle,
+.card-narrative .event-crown .edge-zone-middle {
+  justify-content: center;
+}
+.card-tactic .event-family,
+.card-stratagem .event-family,
+.card-narrative .event-family {
+  font-size: var(--edge-special-event-family-font-size);
+}
+
 .event-family,
 .event-status {
   min-width: 0;
