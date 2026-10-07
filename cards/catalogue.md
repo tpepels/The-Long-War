@@ -1,6 +1,6 @@
 # Card catalogue
 
-128-card canonical gameplay pool. Card definitions live in `cards/cards.json`; this catalogue is a human-readable design reference.
+131-card canonical gameplay pool. Card definitions live in `cards/cards.json`; this catalogue is a human-readable design reference.
 
 ## Forces
 
@@ -30,6 +30,9 @@
 | **The Ilyri** | Human · Skirmisher | 2 | 3 | CONTINUOUS - The opposing formation directly opposite gets no Strength from its Bond. |
 | **The Damar** | Human · Veteran | 2 | 4 | EXHAUSTED - This formation has +2 Strength. |
 | **The Serekh** | Human · Guard | 2 | 3 | FRONT - Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command. |
+| **The Relief Column** | Human · Healer · Steward | 2 | 2 | **MIDDLE ONLY.** MIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS. |
+| **The Field Train** | Human · Builder · Steward | 2 | 2 | **MIDDLE ONLY.** ACTION - Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal. |
+| **The Signal Company** | Human · Scout · Captain | 2 | 2 | **MIDDLE ONLY.** MIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is MOBILE. |
 | **The Wolf Skirmishers** | Human · Skirmisher | 2 | 4 | CONTINUOUS - **PRESS +1.** |
 | **The Lantern Scouts** | Human · Scout | 1 | 2 | CONTINUOUS - While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front. |
 | **The River Raiders** | Human · Raider | 2 | 4 | CONTINUOUS - **PRESS +1.** |

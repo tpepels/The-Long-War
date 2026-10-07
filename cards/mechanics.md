@@ -49,6 +49,8 @@ Positional and Exhaustion text should normally be one short line. The rank, toke
 
 A Force with an allowed-row restriction may list more than one legal rank. This is a **hard occupancy restriction**, not only a deployment restriction: the Force may be played only in those ranks and may not Maneuver, Move, or Swap into a forbidden rank. In particular, former Rear-only support Forces may occupy **Middle or Rear**; their **REAR** text simply does nothing in Middle.
 
+**Middle-only Forces** are deliberately second-line specialists rather than ordinary Strength bodies with a restriction attached. Their effects should make the Middle row behave like a reserve/support layer: keeping the Force directly ahead operational, feeding prepared components forward, intercepting interaction, repositioning, recovery, or other non-Strength support. The current Middle-only trio is the baseline for this identity: The Relief Column grants TIRELESS forward, The Field Train feeds prepared Bonds/Names to the line ahead, and The Signal Company grants MOBILE forward so an Unnamed front-line Force can reposition.
+
 ## No-lifting rule
 
 A Named Formation must be fully playable without lifting, sliding or fanning any card.
@@ -70,6 +72,10 @@ A card never says merely `1/BATTLE - do something`. A limited ability still says
 A limited-use wrapper must change a real decision. An automatic `1/BATTLE - +1 Strength`, automatic free Command gain, or automatic free card filtering is not an ability; write it as a stat/state or give it an Action, reaction window, or cost.
 
 Avoid invisible "the first X each Battle/turn" bookkeeping when the same identity can be expressed as a visible continuous rule.
+
+The exposed top row is a **summary, never the only source of a rule**. Anything communicated there must also be stated in the card body. In particular, a legal-rank glyph must be backed by explicit placement text such as "This Force may only occupy the Middle or Rear rows."
+
+State and positional conditions are written as real conditions in prose. Do not rely on a bare label such as **REAR**, **FRONT**, **BONDED**, **EXHAUSTED**, or **WHILE NAMED** to carry meaning by itself. Write "While this formation is in the Rear row...", "While this formation is Bonded...", "If...", or "When..." as appropriate. The timing label and exposed reminder exist for scanning; the sentence remains self-contained.
 
 ## Card-type grammar
 

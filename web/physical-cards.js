@@ -15,25 +15,39 @@ const RULE_TERMS=[
   "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
   "prepared Bond","prepared Name"
 ];
-const REFERENT_TERMS=[
+const CLASSIFICATION_TERMS=[
   "Human","Archer","Builder","Captain","Guard","Healer","Heir","King","Raider",
-  "Rider","Scout","Seer","Ship","Skirmisher","Spearman","Steward","Stronghold","Veteran",
+  "Rider","Scout","Seer","Ship","Skirmisher","Spearman","Steward","Stronghold","Veteran"
+];
+const REFERENT_TERMS=[
+  ...CLASSIFICATION_TERMS,
   "discard pile","deck","hand","card","marker","turn"
 ];
 const pluralize=term=>term.endsWith("s")?term:term+"s";
 const RULE_TERM_SET=new Set(RULE_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
 const REFERENT_TERM_SET=new Set(REFERENT_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
+const CLASSIFICATION_TERM_MAP=new Map(CLASSIFICATION_TERMS.flatMap(term=>[
+  [term.toLowerCase(),term.toLowerCase()],
+  [pluralize(term).toLowerCase(),term.toLowerCase()]
+]));
 const EMPHASIS_TERMS=[...new Set([...RULE_TERM_SET,...REFERENT_TERM_SET])]
   .sort((a,b)=>b.length-a.length)
   .map(term=>term.replace(/[.*+?^$()|[\]\\{}]/g,match=>"\\\\"+match));
 const EMPHASIS_RE=new RegExp("\\b("+EMPHASIS_TERMS.join("|")+")\\b","gi");
-function formatRuleText(value){
+function formatRuleText(value,options={}){
   const source=String(value??"");
+  const inlineClassIcons=Boolean(options.inlineClassIcons);
   let html="",cursor=0;
   for(const match of source.matchAll(EMPHASIS_RE)){
     const index=match.index??0,token=match[0],key=token.toLowerCase();
     html+=esc(source.slice(cursor,index));
-    if(RULE_TERM_SET.has(key))html+='<strong class="rule-term">'+esc(token)+'</strong>';
+    const className=CLASSIFICATION_TERM_MAP.get(key);
+    if(inlineClassIcons&&className){
+      const icon=classGlyph(className)
+        .replace(/<title>.*?<\/title>/,"")
+        .replace("<svg ","<svg aria-hidden=\"true\" focusable=\"false\" ");
+      html+='<span class="inline-class-ref" title="'+esc(titleCase(className))+'">'+icon+'<span>'+esc(token)+'</span></span>';
+    } else if(RULE_TERM_SET.has(key))html+='<strong class="rule-term">'+esc(token)+'</strong>';
     else html+='<em class="rule-referent">'+esc(token)+'</em>';
     cursor=index+token.length;
   }
@@ -47,114 +61,144 @@ const typeGlyph=type=>H()?.symbol(type)||"";
 const classGlyph=name=>H()?.classification(name)||"";
 const timingGlyph=name=>H()?.timing(name)||"";
 const utilityGlyph=name=>H()?.utility(name)||"";
-const strengthGlyph=()=>H()?.strength()||"";
 const rowGlyph=name=>H()?.row(name)||"";
 const effectTimingGlyph=name=>["front","middle","rear"].includes(name)?rowGlyph(name):["tireless","mobile"].includes(name)?utilityGlyph("move"):name==="exhausted"?utilityGlyph("marker"):timingGlyph(name);
-const commandGlyph=(value="")=>H()?.command(value)||"";
 const isFormationCard=card=>["force","bond","name","hero"].includes(card.type);
 
 function statGroup(card){
-  if(card.type==="hero")return '<div class="hero-stats" aria-label="Hero Force '+esc(card.force_strength)+', Name '+esc(signed(card.name_strength_modifier))+'"><span class="type-mark hero-type-mark">'+typeGlyph("hero")+'</span><span class="hero-stat hero-force-stat">'+typeGlyph("force")+'<b>'+esc(card.force_strength)+'</b></span><span class="hero-stat hero-name-stat">'+typeGlyph("name")+'<b>'+esc(signed(card.name_strength_modifier))+'</b></span></div>';
+  if(card.type==="hero")return '<div class="hero-stats" aria-label="Hero Force '+esc(card.force_strength)+', Name '+esc(signed(card.name_strength_modifier))+'"><span class="hero-stat hero-force-stat">'+typeGlyph("force")+'<b>'+esc(card.force_strength)+'</b></span><span class="hero-stat hero-name-stat">'+typeGlyph("name")+'<b>'+esc(signed(card.name_strength_modifier))+'</b></span></div>';
   const value=card.type==="force"?card.strength:["bond","name"].includes(card.type)?signed(card.strength_modifier):"";
-  return '<div class="edge-stats" aria-label="'+esc(TYPE[card.type]||card.type)+' Strength '+esc(value)+'"><span class="type-mark">'+typeGlyph(card.type)+'</span><span class="strength-mark">'+strengthGlyph()+'<b>'+esc(value)+'</b></span></div>';
+  return '<div class="edge-stats" aria-label="'+esc(TYPE[card.type]||card.type)+' Strength '+esc(value)+'"><span class="type-mark">'+typeGlyph(card.type)+'</span><span class="strength-mark"><b>'+esc(value)+'</b></span></div>';
 }
 function classificationIcons(card){return(card.classes||[]).map(name=>'<span class="class-sigil" data-class="'+esc(name)+'" data-group="'+esc(H()?.group(name)||"role")+'" title="'+esc(titleCase(name))+'">'+classGlyph(name)+'</span>').join("")}
+function decorativeGlyph(html){
+  return String(html||"")
+    .replace(/<title>.*?<\/title>/g,"")
+    .replace(/ role="img"/g,' aria-hidden="true" focusable="false"')
+    .replace(/ aria-label="[^"]*"/g,"");
+}
 function classificationLine(card){
-  const own=card.classes||[],refs=card.references||[],values=own.length?own:refs;if(!values.length)return"";
-  return '<div class="class-line">'+(own.length?"":'<span class="class-line-prefix">Involves</span>')+values.map(name=>'<span class="class-body-item">'+classGlyph(name)+'<span>'+esc(titleCase(name))+'</span></span>').join('<span class="class-separator">·</span>')+'</div>';
+  const own=card.classes||[];
+  const refs=isFormationCard(card)?(card.references||[]):[];
+  const values=own.length?own:refs;
+  const typeItem='<span class="class-body-item class-type-item">'+decorativeGlyph(typeGlyph(card.type))+'<span>'+esc(TYPE[card.type]||titleCase(card.type))+'</span></span>';
+  const classItems=values.map(name=>'<span class="class-body-item">'+decorativeGlyph(classGlyph(name))+'<span>'+esc(titleCase(name))+'</span></span>');
+  const suffix=classItems.length?'<span class="class-separator">·</span>'+(own.length?"":'<span class="class-line-prefix">Involves</span>')+classItems.join('<span class="class-separator">·</span>'):"";
+  return '<div class="class-line">'+typeItem+suffix+'</div>';
 }
 function liveEffects(card){if(card.type==="hero")return modeEffects(card,"force").filter(e=>LIVE.has(e.timing));return["force","bond"].includes(card.type)?(card.effects||[]).filter(e=>LIVE.has(e.timing)):[]}
 function exposedText(effect){return String(effect.exposed||effect.text||"").replace(/^ACTION\s+1\/B\s*·\s*/i,"").replace(/^REACTION\s+1\/B\s*·\s*/i,"").replace(/^BONDED\s*·\s*/i,"").replace(/^NAMED\s*·\s*/i,"").trim()}
-function token(icon,label="",extra=""){return '<span class="edge-token '+extra+'" title="'+esc(label||icon)+'">'+utilityGlyph(icon)+(label?'<b>'+esc(label)+'</b>':"")+'</span>'}
-function classToken(name){return '<span class="edge-token edge-class-token" title="'+esc(titleCase(name))+'">'+classGlyph(name)+'</span>'}
-function typeToken(name){return '<span class="edge-token edge-type-token" title="'+esc(titleCase(name))+'">'+typeGlyph(name)+'</span>'}
-function strengthToken(value=""){return '<span class="edge-token edge-strength-token" title="Strength '+esc(value)+'">'+strengthGlyph()+(value?'<b>'+esc(value)+'</b>':"")+'</span>'}
-function commandToken(value=""){return '<span class="edge-token edge-command-token" title="Command '+esc(value)+'">'+commandGlyph(value)+'</span>'}
-function rowToken(name){return '<span class="edge-token edge-row-token" title="'+esc(titleCase(name))+' row">'+rowGlyph(name)+'</span>'}
-function effectTokens(effect){
-  const p=exposedText(effect).toUpperCase();if(!p)return"";
-  const patterns=[
-    [/^MOBILE$/,()=>token("move")],
-    [/^TIRELESS$/,()=>token("move")+token("marker")],
-    [/^PAY 1 · MOVE 1$/,()=>commandToken("1")+token("move","1")],
-    [/^SUPPORT \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
-    [/^SUPPLY$/,()=>token("ally")+commandToken("-1")],
-    [/^RESERVE \+(\d)$/,m=>token("ally")+strengthToken("+"+m[1])],
-    [/^PRESS \+(\d)$/,m=>token("enemy")+strengthToken("+"+m[1])],
-    [/^AHEAD TIRELESS$/,()=>token("ally")+token("move")],
-    [/^MAY MANEUVER EXHAUSTED$/,()=>token("move")+token("marker")],
-    [/^CAPTAIN\/SCOUT CYCLE$/,()=>classToken("captain")+classToken("scout")+token("cycle")],
-    [/^RIDER\/SCOUT CYCLE$/,()=>classToken("rider")+classToken("scout")+token("cycle")],
-    [/^LOOK AT STRATAGEM$/,()=>token("eye")+typeToken("stratagem")],
-    [/^MOVE (\d)(?: · FRONT \+(\d))?$/,m=>token("move",m[1])+(m[2]?rowToken("front")+strengthToken("+"+m[2]):"")],
-    [/^SUPPRESS BOND STR$/,()=>token("suppress")+typeToken("bond")+strengthToken()],
-    [/^LOCK NAME ACTION$/,()=>typeToken("name")+token("lock")+token("action")],
-    [/^PREVENT MARKER$/,()=>token("shield")+token("marker")],
-    [/^IGNORE TACTIC$/,()=>token("shield")+typeToken("tactic")],
-    [/^PRESS PREPARED$/,()=>token("target")+token("prepared")],
-    [/^PREVENT -STR$/,()=>token("shield")+strengthToken("-")],
-    [/^PROTECT NAME$/,()=>token("shield")+typeToken("name")],
-    [/^TAX NEXT BOND$/,()=>commandToken("+1")+typeToken("bond")],
-    [/^TAX NEXT CARD$/,()=>commandToken("+1")+token("card")],
-    [/^GUARD ALLY$/,()=>token("shield")+token("ally")],
-    [/^CLEAR ALLY$/,()=>token("clear")+token("ally")],
-    [/^RAID \+1 COMMAND$/,()=>classToken("raider")+commandToken("+1")],
-    [/^RAID LOOK 2$/,()=>classToken("raider")+token("eye")+token("hand","2")],
-    [/^ENEMY -1$/,()=>token("enemy")+strengthToken("-1")],
-    [/^ARCHER\/SCOUT · \+1$/,()=>classToken("archer")+classToken("scout")+strengthToken("+1")],
-    [/^CAPTAIN\/KING · \+1$/,()=>classToken("captain")+classToken("king")+strengthToken("+1")],
-    [/^GUARD\/SPEAR · \+1$/,()=>classToken("guard")+classToken("spearman")+strengthToken("+1")],
-    [/^BONDS HERE -1$/,()=>typeToken("bond")+commandToken("-1")],
-    [/^NAME -1$/,()=>typeToken("name")+commandToken("-1")],
-    [/^TACTICS HERE -1$/,()=>typeToken("tactic")+commandToken("-1")],
-    [/^WITH ARCHER \+1$/,()=>classToken("archer")+strengthToken("+1")],
-    [/^FRONT\/MIDDLE \+1$/,()=>rowToken("front")+rowToken("middle")+strengthToken("+1")],
-    [/^FRONT \+1$/,()=>rowToken("front")+strengthToken("+1")],
-    [/^REAR \+1$/,()=>rowToken("rear")+strengthToken("+1")],
-    [/^\+(\d)$/,m=>strengthToken("+"+m[1])]
-  ];
-  for(const [re,render] of patterns){const m=p.match(re);if(m)return render(m)}
-  return '<span class="edge-fallback">'+esc(p)+'</span>';
-}
 function liveMarkup(effect){
   const limited=effect.limit==="once_per_battle";
   const reminder=exposedText(effect);
-  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+effectTimingGlyph(effect.timing)+'</span><span class="edge-timing-word">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
+  const timing=LABEL[effect.timing]||effect.timing;
+  const redundant=effect.timing==="continuous"||reminder.toUpperCase().startsWith(timing);
+  return '<span class="edge-mechanic" data-timing="'+esc(effect.timing)+'" data-reminder-has-timing="'+redundant+'" aria-label="'+esc(timing+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing-word">'+esc(timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
+}
+function placementRows(card){
+  return Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
 }
 function placementMarkup(card){
-  const rows=Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
+  const rows=placementRows(card);
   if(!rows.length)return"";
   const label=rows.map(titleCase).join(" / ")+" only";
-  return '<span class="edge-placement" title="'+esc(label)+'">'+rows.map(rowGlyph).join("")+'<span class="placement-lock">'+utilityGlyph("lock")+'</span></span>';
+  return '<span class="edge-placement" title="'+esc(label)+'">'+rowGlyph(rows)+'</span>';
+}
+function placementRuleText(card){
+  const rows=placementRows(card);
+  if(!rows.length)return"";
+  const labels=rows.map(titleCase);
+  const joined=labels.length===1?labels[0]:labels.slice(0,-1).join(", ")+" or "+labels.at(-1);
+  return "This Force may only occupy the "+joined+" row"+(labels.length>1?"s":"")+".";
+}
+function placementRuleBlock(card){
+  const rows=placementRows(card),text=placementRuleText(card);
+  if(!text)return"";
+  return '<section class="placement-rule"><div class="effect-head"><span class="placement-rule-icon" aria-hidden="true">'+rowGlyph(rows)+'</span><span class="placement-rule-label">PLACEMENT</span></div><div class="placement-rule-text">'+formatRuleText(text)+'</div></section>';
 }
 function stackEdge(card){
-  return '<header class="stack-edge" data-edge-layout="single-row">'+statGroup(card)+'<div class="edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div><div class="edge-live-group">'+placementMarkup(card)+liveEffects(card).map(liveMarkup).join("")+'</div></header>';
+  const reminders=liveEffects(card);
+  return '<header class="stack-edge" data-edge-layout="three-zone">'+
+    '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
+    '<div class="edge-zone edge-zone-middle edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+placementMarkup(card)+'</div>'+
+    '<div class="edge-zone edge-zone-right edge-live-group">'+reminders.map(liveMarkup).join("")+'</div>'+
+  '</header>';
 }
-function eventCrown(card){return '<header class="event-crown"><span class="event-sigil">'+typeGlyph(card.type)+'</span><span class="event-family">'+esc(TYPE[card.type])+'</span><span class="event-rule"></span></header>'}
-function effectBlock(effect){
+function eventCrown(card){
+  return '<header class="event-crown" data-edge-layout="three-zone">'+
+    '<div class="edge-zone edge-zone-left"><span class="event-sigil">'+typeGlyph(card.type)+'</span></div>'+
+    '<div class="edge-zone edge-zone-middle"><span class="event-family">'+esc(TYPE[card.type])+'</span></div>'+
+    '<div class="edge-zone edge-zone-right"><span class="event-status">'+esc(statusLine(card))+'</span></div>'+
+  '</header>';
+}
+function mechanicReminder(effect){
+  const text=String(effect?.text||"");
+  const notes=[];
+  const add=(key,note)=>{if(!notes.some(item=>item.key===key))notes.push({key,note})};
+  let match;
+
+  match=text.match(/\bSUPPORT\s+\+(\d+)\b/i);
+  if(match)add("support","The friendly Formation directly ahead gets +"+match[1]+" Strength.");
+
+  if(/\bSUPPLY\b/i.test(text)){
+    add("supply","Bonds played onto the friendly Formation directly ahead cost 1 less Command (minimum 0); Names cost 1 less (minimum 1).");
+  }
+
+  match=text.match(/\bRESERVE\s+\+(\d+)\b/i);
+  if(match)add("reserve","This Formation gets +"+match[1]+" Strength while the friendly Formation directly ahead is OUTMATCHED (the opposing Formation in the same rank has greater current Strength).");
+
+  match=text.match(/\bPRESS\s+\+(\d+)\b/i);
+  if(match)add("press","This Formation gets +"+match[1]+" Strength while at least one opposing Force in this Front is Exhausted.");
+
+  match=text.match(/\bSTEAL\s+(\d+)\s+COMMAND\b/i);
+  if(match)add("steal","The opponent loses up to "+match[1]+" Command, never below 1; regain exactly the amount lost.");
+
+  if(/\bTIRELESS\b/.test(text)){
+    add("tireless","TIRELESS means that Force may Maneuver while Exhausted; all other Maneuver requirements still apply.");
+  }
+
+  if(/\bMOBILE\b/.test(text)){
+    add("mobile","MOBILE means that Force may Maneuver while Unnamed; all other Maneuver requirements still apply.");
+  }
+
+  if(/\bMOVE\s+\d+\b/.test(text)){
+    add("move","MOVE is a card effect: move orthogonally to an adjacent legal empty position; it costs no Maneuver Command and ignores Named/Exhaustion requirements.");
+  }
+
+  if(/\bSWAP\b/.test(text)){
+    add("swap","SWAP exchanges the complete contents of the two specified friendly positions; it costs no Maneuver Command and Exhaustion does not stop it.");
+  }
+
+  return notes.map(item=>item.note).join(" ");
+}
+function effectBlock(effect,options={}){
   const kind=["bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
-  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div><div class="effect-text">'+formatRuleText(effect.text)+'</div></section>';
+  const reminder=mechanicReminder(effect);
+  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text,options)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder)+'</div>':"")+'</section>';
 }
 function heroModeHeading(mode){
   return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
 }
 function rules(card){
-  if(card.type==="hero")return '<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
-  return effects(card).length?effects(card).map(effectBlock).join(""):'<p class="empty-rules">No special rules.</p>';
+  const placement=placementRuleBlock(card);
+  if(card.type==="hero")return placement+'<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
+  return placement+effects(card).map(effect=>effectBlock(effect,{inlineClassIcons:!isFormationCard(card)})).join("");
 }
-function statusLine(card){const bits=[];if(card.type==="stratagem")bits.push("Played face-down");if(card.duration==="this_battle")bits.push("This Battle");return bits.join(" · ")}
-function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2H28L38 12V28L28 38H12L2 28V12Z"/><path class="seal-inner" d="M14 6H26L34 14V26L26 34H14L6 26V14Z"/></svg><b>'+esc(card.command_cost)+'</b></span>'}
+function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.type!=="narrative")bits.push("This Battle");return bits.join(" · ")}
+function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>'}
 function densityClass(card){
-  const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length,0);
+  const es=effects(card),placement=placementRuleText(card);
+  const chars=placement.length+es.reduce((n,e)=>n+(e.text||"").length+mechanicReminder(e).length,0);
+  const blocks=es.length+(placement?1:0);
   if(card.type==="hero"){
-    if(chars>180||(es.length>=3&&chars>120))return " very-dense";
-    if(es.length>=3||chars>100)return " dense";
+    if(chars>180||(blocks>=3&&chars>120))return " very-dense";
+    if(blocks>=3||chars>100)return " dense";
   }
-  return chars>250?" very-dense":chars>170?" dense":chars<95?" sparse":"";
+  return chars>250?" very-dense":chars>170||blocks>1?" dense":chars<95?" sparse":"";
 }
 function artFocus(value,fallback){
   const text=String(value??"").trim();
-  if(/^\\d+(?:\\.\\d+)?%$/.test(text))return text;
+  if(/^\d+(?:\.\d+)?%$/.test(text)&&parseFloat(text)<=100)return text;
   return fallback;
 }
 function artStyle(card,options={}){
@@ -162,12 +206,14 @@ function artStyle(card,options={}){
   const y=artFocus(card.art_focus_y,"50%");
   const artBase=options.printArt?"art/cards-print/":"art/cards/";
   const artExt=options.printArt?".webp":".png";
-  const artURL=artBase+esc(card.id)+artExt+"?v="+encodeURIComponent(VERSION);
+  const artId=String(card.art_id||card.id);
+  const artURL=artBase+esc(artId)+artExt+"?v="+encodeURIComponent(VERSION);
   return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
 }
 function cardArticle(card,extra="",options={}){
-  const density=densityClass(card),titleDensity=card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":"",heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
-  return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
+  const density=densityClass(card),titleDensity=card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":"",heroMode=options.heroMode==="name"?"name":"force";
+  const footerMark=typeGlyph(card.type);
+  return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="motif-field" aria-hidden="true"></div><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer">'+(card.unique?'<span class="footer-unique">Unique</span>':"")+classificationLine(card)+'<span class="footer-mark">'+footerMark+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
