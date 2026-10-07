@@ -14,11 +14,12 @@ has its own presentation.
 The face order is **exposed strip → illustration → centered title → rules →
 written classifications → footer**. Decoration comes from four reusable raster
 assets; artwork, text, numbers and functional symbols remain live elements.
-All eight families use the same `card-shell.png` raster. Force keeps its original
-sand colour; the other families may apply a CSS filter to that shell only. These
-per-family filter controls live together in the `CARD SHELL COLOUR - TUNING PANEL`
-in `web/physical-cards.css`, so text, symbols, artwork and the Command seal remain
-unfiltered.
+All eight families use the same four decorative frame rasters: `card-shell.png`,
+`art-window.png`, `title-divider.png` and `command-seal.png`. Force keeps their
+original sand/blue-gold treatment; the other families may apply one shared CSS
+filter across all four frame PNGs. These per-family controls live together in the
+`CARD FRAME COLOUR - TUNING PANEL` in `web/physical-cards.css`. Text, SVG symbols
+and the card illustration itself remain unfiltered.
 
 ## Geometry and typography
 
