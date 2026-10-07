@@ -94,7 +94,8 @@ make full-lab FULL_LAB_ARGS="..."
 - Use the workstream branch prefixes in `WORKSTREAMS.md` for substantive work; keep PRs single-purpose.
 - Physical cards/rules are authored independently of runtime implementation. Do not require an engine change merely to merge a physical playtest change.
 - When implementing authored mechanics in software, change runtime semantics once in the canonical engine/configuration and verify every executable consumer.
-- Add regressions at the semantic or contract boundary that changed.
+- Add regressions only for durable semantic or contract boundaries. Tests must not freeze temporary card balance, prose, naming, deck composition, or visual design.
+- If an intentional design change makes a design assertion obsolete, update or delete that assertion instead of preserving the old design to keep tests green.
 - Prefer deleting obsolete paths over compatibility wrappers.
 - Never introduce a second card/deck fixture merely to support an experiment.
 - Experiment-only card variants use copied/in-memory overrides; never edit canonical card data just to run an ablation.
@@ -108,15 +109,18 @@ make full-lab FULL_LAB_ARGS="..."
 
 ## Verification expectations
 
+Read `TESTING.md` before adding or tightening tests. During active design, tests are guardrails rather than a second ruleset.
+
 Typical verification:
 
-- rules/native engine: focused test + `make native-build && make verify`;
-- browser/session/UI/network transport: `make verify`;
+- rules/native engine: focused semantic tests when implementing runtime behavior;
+- browser/session/UI/network transport: focused behavior/static checks;
 - search/solver: `make native-build && make verify-algorithms`;
 - print/rulebook pipeline: `make pages`;
+- evolving card/rulebook/layout expectations: advisory `pytest -m design`;
 - analysis/reporting plumbing: focused tests first; do not run expensive evidence automatically.
 
-GitHub Actions remain deployment-only. The Pages workflow may run compile/static integrity checks required for a safe deploy, but no pytest suites, simulations, balance runs, MCCFR training, or research experiments belong there.
+`make test-fast` excludes `design` assertions. GitHub Pages must never be blocked by pytest, balance, simulation, algorithm, or browser-layout diagnostics; it blocks only on source/static integrity and the ability to build deployable artifacts. The Code checks workflow has a small blocking sanity job and a separate advisory diagnostics job.
 
 ## AI/search
 

@@ -106,6 +106,14 @@ Use one of these prefixes for new work:
 
 Avoid generic `fix-*`, `cleanup/*`, and agent-specific branch names for new work.
 
+## Testing policy
+
+Tests protect durable invariants; they do not define the evolving game. Exact card balance, rulebook wording, playtest deck composition, and visual/layout choices belong to advisory `design` diagnostics unless they represent an explicitly durable contract.
+
+Physical game and print changes may intentionally lead the engine or invalidate an old design assertion. In that case, update/remove the obsolete assertion and record follow-up engine work separately. See `TESTING.md`.
+
+Pages deployment is independent of regression-test status and is blocked only when the site or its required artifacts cannot be built safely.
+
 ## Current status
 
 - `main` contains the current printable physical playtest package.

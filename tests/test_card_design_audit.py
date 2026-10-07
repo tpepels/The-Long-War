@@ -11,6 +11,9 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# Historical/current design assertions are useful diagnostics, not correctness gates.
+pytestmark = pytest.mark.design
 DATA = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
 CARDS = DATA["cards"]
 DECK_DATA = json.loads((ROOT / "cards" / "v2" / "playtest-decks.json").read_text(encoding="utf-8"))

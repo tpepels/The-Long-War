@@ -16,6 +16,7 @@ def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
+@pytest.mark.design
 def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     css = text("web/play.css")
     assert "flex: 0 0 204px;" in css
@@ -26,6 +27,7 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     assert "card-density-" not in css
 
 
+@pytest.mark.design
 def test_print_pages_load_the_shared_v2_renderer_and_styles() -> None:
     for page, renderer in (
         ("web/cards.html", "cards.js"),
@@ -118,6 +120,7 @@ process.stdout.write(JSON.stringify(input.cards.map(card => window.V2Cards.cardA
     return [RenderedCard(markup) for markup in json.loads(result.stdout)]
 
 
+@pytest.mark.design
 def test_print_renderer_preserves_current_v2_content_and_modes() -> None:
     cards = json.loads(text("cards/cards.json"))["cards"]
     rendered = render_print_cards(cards)
@@ -203,6 +206,7 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
     assert 'class="print-sheet card-sheet"' in text("web/cards.js")
 
 
+@pytest.mark.design
 def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
     css = text("web/cards-v2.css")
     assert "@page v2cards{size:A4 landscape;margin:9mm 12.5mm}" in css
@@ -231,6 +235,7 @@ def test_physical_print_surfaces_share_v2_renderer_while_browser_play_stays_sepa
     assert "inspect(root=document)" in text("web/cards-v2.js")
 
 
+@pytest.mark.design
 def test_browser_cards_always_reserve_the_properties_row() -> None:
     js = text("web/play.js")
     assert '<div class="play-card-properties">' in js
@@ -238,6 +243,7 @@ def test_browser_cards_always_reserve_the_properties_row() -> None:
     assert "data-card-id=" in js
 
 
+@pytest.mark.design
 def test_runtime_overflow_checks_match_each_surface() -> None:
     assert "card-layout-guard.js" in text("web/play.html")
     assert "card-layout-guard.js" not in text("web/cards.html")
@@ -248,6 +254,7 @@ def test_runtime_overflow_checks_match_each_surface() -> None:
     assert "function inspect(root=document)" in text("web/cards-v2.js")
 
 
+@pytest.mark.design
 def test_print_build_version_is_stamped_everywhere() -> None:
     builder = text("tools/build_pages.py")
     renderer = text("web/cards-v2.js")
@@ -265,6 +272,7 @@ def test_print_build_version_is_stamped_everywhere() -> None:
     assert ".print-version" in site_css
 
 
+@pytest.mark.design
 def test_rulebook_print_is_typst_and_separate_from_web_layout() -> None:
     page_builder = text("tools/build_pages.py")
     pdf_builder = text("tools/build_rulebook_pdf.py")
@@ -281,6 +289,7 @@ def test_rulebook_print_is_typst_and_separate_from_web_layout() -> None:
     assert 'href="rulebook.pdf?v={{PRINT_VERSION}}"' in template
 
 
+@pytest.mark.design
 def test_rulebook_uses_generated_pdf_for_printing() -> None:
     pyproject = text("pyproject.toml")
     workflow = text(".github/workflows/pages.yml")
@@ -296,10 +305,11 @@ def test_rulebook_uses_generated_pdf_for_printing() -> None:
     assert "window.print()" not in template
     assert 'OUTPUT = DIST / "rulebook.pdf"' in generator
     assert '"compile"' in generator
-    assert "MAX_PAGES = 8" in generator
-    assert "2 <= len(reader.pages) <= MAX_PAGES" in generator
+    assert "MAX_PAGES_WARNING = 8" in generator
+    assert "continuing build" in generator
     assert "blank or nearly blank" in generator
 
+@pytest.mark.design
 def test_stale_build_legends_copy_is_gone() -> None:
     for path in (
         "web/play.html",
@@ -332,6 +342,7 @@ def test_remote_peer_transport_is_rule_free_webrtc_token_exchange() -> None:
     assert "legal_actions" not in source
 
 
+@pytest.mark.design
 def test_play_setup_exposes_remote_host_and_join_token_controls() -> None:
     page = text("web/play.html")
     style = text("web/play.css")
@@ -426,6 +437,7 @@ def test_web_static_checker_catches_missing_play_dom_id(tmp_path) -> None:
     assert errors == ["web/play.js references missing DOM id #missing"]
 
 
+@pytest.mark.design
 def test_browser_hand_uses_available_width_at_readable_resting_scale() -> None:
     script = text("web/play.js")
     style = text("web/play.css")
@@ -437,6 +449,7 @@ def test_browser_hand_uses_available_width_at_readable_resting_scale() -> None:
     assert "--inspect-scale: 1.15;" in style
 
 
+@pytest.mark.design
 def test_remote_invite_creation_has_visible_progress_and_errors() -> None:
     script = text("web/play.js")
     peer = text("web/remote-peer.mjs")
@@ -457,6 +470,7 @@ def test_remote_invite_creation_has_visible_progress_and_errors() -> None:
     assert "#remote-status.remote-error" in style
 
 
+@pytest.mark.design
 def test_battle_resolution_banner_uses_rules_active_front_count() -> None:
     script = text("web/play.js")
     assert '"Four Fronts resolved"' not in script
@@ -465,6 +479,7 @@ def test_battle_resolution_banner_uses_rules_active_front_count() -> None:
     assert '" Fronts resolved"' in script
 
 
+@pytest.mark.design
 def test_pages_do_not_publish_internal_v2_labs() -> None:
     builder = text("tools/build_pages.py")
     assert '"cards-v2.html"' in builder
@@ -472,6 +487,7 @@ def test_pages_do_not_publish_internal_v2_labs() -> None:
     assert "remove_internal_pages_from_dist()" in builder
 
 
+@pytest.mark.design
 def test_public_print_surfaces_use_compact_generated_art() -> None:
     builder = text("tools/build_pages.py")
     renderer = text("web/cards-v2.js")
@@ -485,6 +501,7 @@ def test_public_print_surfaces_use_compact_generated_art() -> None:
     assert "{printArt:true}" in deck_script
 
 
+@pytest.mark.design
 def test_public_navigation_has_only_six_surfaces() -> None:
     index = text("web/index.html")
     labels = ("Webgame", "Cards", "Decks", "Reference", "Rules", "Balance Lab")

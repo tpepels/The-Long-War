@@ -27,7 +27,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  sanity:
+    name: Repository sanity
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,25 +37,40 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -e '.[dev]'
-      - name: Check generated native protocols
+      - name: Check Python syntax
+        run: python -m compileall -q src tools tests
+      - name: Check undefined Python names
+        run: python -m ruff check src tools tests --select F821,F822,F823
+      - name: Check authored browser assets
+        run: python tools/check_web_static.py
+
+  diagnostics:
+    name: Development diagnostics (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Generated-file diagnostics
+        continue-on-error: true
         run: |
           python tools/build_native_protocol.py --check
           python tools/build_heuristic_weights.py --check
           python tools/build_native_fingerprint.py --check
           python tools/build_web_protocol.py --check
-      - name: Check undefined Python names
-        run: python -m ruff check src tools tests --select F821,F822,F823
-      - name: Run heuristic/search regressions
-        run: |
-          python -m pytest -q -n 2 --tb=short \
-            tests/test_command_economy.py \
-            tests/test_heuristic_agent.py \
-            tests/test_strategic_heuristic.py \
-            tests/test_ismcts.py \
-            tests/test_ismcts_validation.py
-      - name: Run algorithm verification gate
-        run: python -m pytest -q -n 2 --tb=short --maxfail=1 -m "algorithm"
-      - name: Run fast regression suite
+      - name: Core regression diagnostics
+        continue-on-error: true
         run: make test-fast WORKERS=2
-      - name: Check browser game layout
+      - name: Evolving game/design diagnostics
+        continue-on-error: true
+        run: python -m pytest -q --tb=short -m design
+      - name: Algorithm diagnostics
+        continue-on-error: true
+        run: python -m pytest -q -n 2 --tb=short --maxfail=1 -m "algorithm"
+      - name: Browser layout diagnostics
+        continue-on-error: true
         run: python tools/check_game_layout.py --require-browser

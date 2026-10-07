@@ -25,7 +25,7 @@ TYPST_SOURCE = DIST / "rulebook.typ"
 OUTPUT = DIST / "rulebook.pdf"
 
 MIN_PAGE_TEXT = 80
-MAX_PAGES = 8
+MAX_PAGES_WARNING = 8
 
 
 TEACHING_PLATE_IMAGES = {
@@ -351,10 +351,14 @@ def markdown_to_typst(source: str, version: str) -> str:
 
 def verify_pdf(path: Path, version: str) -> None:
     reader = PdfReader(str(path))
-    if not 2 <= len(reader.pages) <= MAX_PAGES:
+    if len(reader.pages) < 2:
         raise RuntimeError(
-            f"Unexpected rulebook length: {len(reader.pages)} pages "
-            f"(expected 2-{MAX_PAGES})"
+            f"Rulebook PDF output looks incomplete: {len(reader.pages)} page(s)"
+        )
+    if len(reader.pages) > MAX_PAGES_WARNING:
+        print(
+            f"Warning: rulebook is {len(reader.pages)} pages "
+            f"(design target is at most {MAX_PAGES_WARNING}); continuing build."
         )
 
     stamp = f"TLW print v{version}"

@@ -11,7 +11,7 @@ The repository is intentionally split into separate workstreams:
 
 The physical game may advance while runtime implementation is temporarily behind. When that happens, the webgame is experimental until engine-sync work lands; UI code must not invent replacement rules.
 
-Read `WORKSTREAMS.md` first for ownership, branch naming, and PR boundaries. Player-facing rules live in `rules/rulebook.md`; deeper software architecture lives in `ARCHITECTURE.md` and agent instructions in `AGENTS.md`.
+Read `WORKSTREAMS.md` first for ownership, branch naming, and PR boundaries, and `TESTING.md` before adding regressions. Player-facing rules live in `rules/rulebook.md`; deeper software architecture lives in `ARCHITECTURE.md` and agent instructions in `AGENTS.md`.
 
 ## Development setup
 
