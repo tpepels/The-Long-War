@@ -17,7 +17,7 @@ DATA = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
 CARDS = DATA["cards"]
 DECK_DATA = json.loads((ROOT / "cards" / "playtest-decks.json").read_text(encoding="utf-8"))
 DECKS = DECK_DATA["decks"]
-EXPECTED_COUNTS = {"force":30,"bond":24,"name":20,"hero":11,"tactic":14,"order":6,"stratagem":11,"narrative":12}
+EXPECTED_COUNTS = {"force":33,"bond":24,"name":20,"hero":11,"tactic":14,"order":6,"stratagem":11,"narrative":12}
 
 
 def effects(card: dict) -> list[dict]:
@@ -33,7 +33,7 @@ def force_mode_effects(card: dict) -> list[dict]:
 
 
 def test_pool_shape_and_decks() -> None:
-    assert len(CARDS) == 128
+    assert len(CARDS) == 131
     assert Counter(card["type"] for card in CARDS) == EXPECTED_COUNTS
     known = {card["id"]: card for card in CARDS}
     assert DECK_DATA["deck_size"] == 48
@@ -333,8 +333,12 @@ def test_all_per_card_art_is_wired_into_renderer() -> None:
         for path in (ROOT / "web" / "art" / "cards").glob("*.png")
     )
     known = {card["id"] for card in CARDS}
-    assert len(art_ids) == len(known) == 128
-    assert set(art_ids) == known
+    required_art = {card.get("art_id", card["id"]) for card in CARDS}
+    assert len(known) == 131
+    assert required_art == set(art_ids)
+    for card in CARDS:
+        if card.get("art_id"):
+            assert card["art_id"] in art_ids
 
 def test_multi_effect_heroes_receive_dense_layout() -> None:
     rendered = render_cards([c for c in CARDS if c["type"] == "hero" and len(effects(c)) >= 3])
@@ -639,6 +643,27 @@ def test_new_positional_bonds_are_short_relationship_cards() -> None:
     assert supplied["text"] == "BONDED - While this formation is Bonded, SUPPLY."
     assert "While this formation is Bonded" in supported["effects"][0]["text"]
     assert "While this formation is Bonded" in supplied["effects"][0]["text"]
+
+
+def test_middle_only_support_forces_have_distinct_second_line_jobs() -> None:
+    by_id = {card["id"]: card for card in CARDS}
+    expected = {
+        "the-relief-column": ("tireless", "directly_ahead"),
+        "the-field-train": ("attach_prepared", "prepared_component_same_front"),
+        "the-second-shield": ("redirect_tactic", "self"),
+    }
+    for card_id, (op, target) in expected.items():
+        card = by_id[card_id]
+        assert card["type"] == "force"
+        assert card["allowed_rows"] == ["middle"]
+        assert "This Force may only occupy the Middle row." in card["text"]
+        rule = card["design_rules"]["effects"][0]
+        assert rule["op"] == op
+        assert rule["target"] == target
+
+    field_train = by_id["the-field-train"]["design_rules"]["effects"][0]
+    assert field_train["destination"] == "directly_ahead"
+    assert field_train["activation_cost"] == 1
 
 
 def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> None:
