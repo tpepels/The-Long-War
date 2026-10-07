@@ -308,8 +308,8 @@ EXPOSED TOP ROW - TUNING PANEL
   --edge-socket-size: 2.35mm;
 
   /* --- layout / spacing -------------------------------------------------- */
-  --edge-left-width: 20mm;
-  --edge-middle-width: 13mm;
+  --edge-left-width: 16mm;
+  --edge-middle-width: 16mm;
   --edge-pad-top: 4mm;
   --edge-pad-right: 7mm;
   --edge-pad-bottom: 0.95mm;
