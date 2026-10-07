@@ -36,7 +36,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-stratagem{--family-wash:rgba(86,97,106,.08);--family-band:rgba(86,97,106,.26);--accent:#46515a}
 .card-narrative{--family-wash:rgba(125,66,92,.08);--family-band:rgba(125,66,92,.24);--accent:#68374e}
 .stack-edge,.event-crown{height:var(--exposed-edge);flex:0 0 var(--exposed-edge);position:relative;z-index:4;display:flex;align-items:center;padding:2.35mm 3.9mm .25mm;color:var(--deep);background:var(--family-band)}
-.card-footer{background:linear-gradient(var(--family-band),var(--family-band))}
+.card-footer{background:var(--family-band)}
 .stack-edge{display:grid;grid-template-columns:11mm 11mm minmax(0,1fr);column-gap:.8mm}
 .stack-edge[data-class-count="3"]{grid-template-columns:11mm 14.5mm minmax(0,1fr)}
 .edge-stats,.hero-stats{display:flex;align-items:center;gap:.8mm;height:6.8mm;min-height:6.8mm;flex:none}
