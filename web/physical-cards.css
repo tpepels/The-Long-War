@@ -129,8 +129,102 @@ main {
   break-inside: avoid;
 }
 
+/*
+===============================================================================
+CARD TYPOGRAPHY - TUNING PANEL
+===============================================================================
+
+  Edit typography here. These variables drive the physical cards only; the
+  catalogue/site UI below the cards keeps its own screen typography.
+
+  TYPOGRAPHY MAP
+
+    TOP STRIP
+      [type value]      [class/row icons]      [timing + reminder]
+       ^ type/value font                         ^ reminder font
+
+    CARD BODY
+      CARD TITLE
+      Classifications
+      TIMING LABEL / once-per-Battle
+      Rules text
+
+    FOOTER
+      card-id / revision                         COMMAND COST
+
+  FONT FAMILIES
+    Change any role independently. The defaults point to the three bundled
+    families already declared in :root.
+
+  NORMAL CARD SIZES
+    Base/rules, title variants, classifications, labels, footer and cost.
+
+  DENSE / HERO SIZES
+    Separate variables exist where those layouts intentionally use smaller type.
+
+  TOP-ROW SIZES
+    These are here too, so every card font size is adjustable from one place.
+
+===============================================================================
+*/
+
 /* One physical face: raster ornament, live artwork, symbols and type. */
 .physical-card {
+  /* --- font families ----------------------------------------------------- */
+  --card-base-font-family: var(--text);
+  --card-title-font-family: var(--display);
+  --card-class-font-family: var(--text);
+  --card-rule-font-family: var(--text);
+  --card-label-font-family: var(--text);
+  --card-footer-font-family: var(--text);
+  --card-footer-version-font-family: var(--utility);
+  --card-cost-font-family: var(--display);
+  --edge-font-family: var(--text);
+  --edge-event-family-font-family: var(--text);
+
+  /* --- normal card font sizes ------------------------------------------- */
+  --card-base-font-size: 3.25mm;
+  --card-base-line-height: 1.19;
+  --card-title-font-size: 5.3mm;
+  --card-title-long-font-size: 5mm;
+  --card-title-very-long-font-size: 4.5mm;
+  --card-class-prefix-font-size: 2mm;
+  --card-class-font-size: 2.5mm;
+  --card-class-separator-font-size: 2mm;
+  --card-effect-label-font-size: 2.45mm;
+  --card-effect-use-font-size: 2mm;
+  --card-effect-text-font-size: 3.25mm;
+  --card-effect-text-line-height: 1.19;
+  --card-mode-heading-font-size: 2.6mm;
+  --card-footer-id-font-size: 1.65mm;
+  --card-footer-version-font-size: 1.2mm;
+  --card-footer-unique-font-size: var(--card-hero-use-font-size);
+  --card-cost-font-size: 7.3mm;
+
+  /* --- dense-card font sizes -------------------------------------------- */
+  --card-dense-title-font-size: 5mm;
+  --card-dense-title-very-long-font-size: 4.5mm;
+  --card-dense-effect-font-size: 2.85mm;
+  --card-dense-effect-line-height: 1.12;
+
+  /* --- hero font sizes --------------------------------------------------- */
+  --card-hero-title-font-size: 4.65mm;
+  --card-hero-title-long-font-size: 3.9mm;
+  --card-hero-rule-font-size: 2.85mm;
+  --card-hero-rule-line-height: 1.12;
+  --card-hero-mode-heading-font-size: var(--card-hero-mode-heading-font-size);
+  --card-hero-effect-label-font-size: var(--card-hero-effect-label-font-size);
+  --card-hero-use-font-size: 1.8mm;
+
+  /* --- exposed top-row font sizes --------------------------------------- */
+  --edge-base-font-size: 2.45mm;
+  --edge-type-font-size: 5mm;
+  --edge-hero-value-font-size: 5mm;
+  --edge-reminder-font-size: 8px;
+  --edge-event-family-font-size: 2.45mm;
+  --edge-event-status-font-size: 2.45mm;
+
+  /* --- colours / geometry ------------------------------------------------ */
   --accent: #5d4a2d;
   --deep: #191c20;
   --paper: #f1dfb9;
@@ -151,7 +245,7 @@ main {
     no-repeat;
   color: var(--deep);
   box-shadow: 0 1.1mm 2.4mm #2927192b;
-  font: 3.25mm/1.19 var(--text);
+  font: var(--card-base-font-size)/var(--card-base-line-height) var(--card-base-font-family);
 }
 
 /*
@@ -198,13 +292,7 @@ EXPOSED TOP ROW - TUNING PANEL
 */
 .stack-edge,
 .event-crown {
-  /* --- font sizes -------------------------------------------------------- */
-  --edge-base-font-size: 2.45mm;
-  --edge-type-font-size: 5mm;
-  --edge-hero-value-font-size: 5mm;
-  --edge-reminder-font-size: var(--edge-reminder-font-size);
-  --edge-event-family-font-size: 2.45mm;
-  --edge-event-status-font-size: 2.45mm;
+  /* Typography variables are centralized in CARD TYPOGRAPHY - TUNING PANEL. */
 
   /* --- icon sizes -------------------------------------------------------- */
   --edge-type-icon-size: 5mm;
@@ -230,7 +318,7 @@ EXPOSED TOP ROW - TUNING PANEL
   --edge-reminder-gap-x: 0.35mm;
   --edge-reminder-gap-y: 0.12mm;
   --edge-divider-width: 0mm;
-  --edge-glyph-stroke-width: var(--edge-glyph-stroke-width);
+  --edge-glyph-stroke-width: 1.6;
 
   height: var(--exposed-edge);
   flex: 0 0 var(--exposed-edge);
@@ -253,7 +341,7 @@ EXPOSED TOP ROW - TUNING PANEL
   align-items: center;
   overflow: hidden;
   padding: 0 var(--edge-zone-padding-x);
-  font: 600 var(--edge-base-font-size)/1.03 var(--text);
+  font: 600 var(--edge-base-font-size)/1.03 var(--edge-font-family);
 }
 .edge-zone-middle,
 .edge-zone-right {
@@ -279,7 +367,7 @@ EXPOSED TOP ROW - TUNING PANEL
   align-items: center;
   gap: var(--edge-stat-gap);
   white-space: nowrap;
-  font: 600 var(--edge-base-font-size)/1 var(--text);
+  font: 600 var(--edge-base-font-size)/1 var(--edge-font-family);
 }
 .type-mark {
   width: var(--edge-type-icon-size);
@@ -323,11 +411,11 @@ EXPOSED TOP ROW - TUNING PANEL
   gap: var(--edge-value-gap);
 }
 .strength-mark b {
-  font: 600 var(--edge-type-font-size)/1 var(--text);
+  font: 600 var(--edge-type-font-size)/1 var(--edge-font-family);
   font-variant-numeric: lining-nums;
 }
 .hero-stat b {
-  font: 600 var(--edge-hero-value-font-size)/1 var(--text);
+  font: 600 var(--edge-hero-value-font-size)/1 var(--edge-font-family);
   font-variant-numeric: lining-nums;
 }
 .hero-stat + .hero-stat {
@@ -357,7 +445,7 @@ EXPOSED TOP ROW - TUNING PANEL
   align-items: flex-start;
   justify-content: center;
   gap: var(--edge-reminder-gap-y);
-  font: 600 var(--edge-reminder-font-size)/1.03 var(--text);
+  font: 600 var(--edge-reminder-font-size)/1.03 var(--edge-font-family);
 }
 .edge-mechanic {
   width: 100%;
@@ -366,7 +454,7 @@ EXPOSED TOP ROW - TUNING PANEL
   align-items: center;
   flex-wrap: wrap;
   gap: 0 var(--edge-reminder-gap-x);
-  font: 600 var(--edge-reminder-font-size)/1.03 var(--text);
+  font: 600 var(--edge-reminder-font-size)/1.03 var(--edge-font-family);
 }
 .edge-timing-word {
   white-space: nowrap;
@@ -438,12 +526,12 @@ EXPOSED TOP ROW - TUNING PANEL
   min-width: 0;
 }
 .event-family {
-  font: 600 var(--edge-event-family-font-size)/1.03 var(--text);
+  font: 600 var(--edge-event-family-font-size)/1.03 var(--edge-event-family-font-family);
   text-transform: uppercase;
   white-space: nowrap;
 }
 .event-status {
-  font: 600 var(--edge-event-status-font-size)/1.03 var(--text);
+  font: 600 var(--edge-event-status-font-size)/1.03 var(--edge-font-family);
   text-align: right;
   white-space: normal;
 }
@@ -505,17 +593,17 @@ EXPOSED TOP ROW - TUNING PANEL
   display: flex;
   align-items: center;
   justify-content: center;
-  font: 600 5.3mm/1 var(--display);
+  font: 600 var(--card-title-font-size)/1 var(--card-title-font-family);
   font-variant: small-caps;
   letter-spacing: -0.025em;
   text-align: center;
   text-wrap: balance;
 }
 .title-long .card-title {
-  font-size: 5mm;
+  font-size: var(--card-title-long-font-size);
 }
 .title-very-long .card-title {
-  font-size: 4.5mm;
+  font-size: var(--card-title-very-long-font-size);
 }
 .card-identity::after {
   content: "";
@@ -540,20 +628,20 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .class-line-prefix {
   margin-right: 0.2mm;
-  font: 2mm/1 var(--text);
+  font: var(--card-class-prefix-font-size)/1 var(--card-class-font-family);
 }
 .class-body-item {
   display: flex;
   align-items: center;
   gap: 0.25mm;
-  font: 2.5mm/1 var(--text);
+  font: var(--card-class-font-size)/1 var(--card-class-font-family);
 }
 .class-body-item svg {
   width: 3.2mm;
   height: 3.2mm;
 }
 .class-separator {
-  font: 2mm/1 var(--text);
+  font: var(--card-class-separator-font-size)/1 var(--card-class-font-family);
   color: var(--accent);
 }
 .rules {
@@ -589,7 +677,7 @@ EXPOSED TOP ROW - TUNING PANEL
   height: 100%;
 }
 .effect-label {
-  font: 700 2.45mm/1 var(--text);
+  font: 700 var(--card-effect-label-font-size)/1 var(--card-label-font-family);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -600,10 +688,10 @@ EXPOSED TOP ROW - TUNING PANEL
   gap: 0.4mm;
 }
 .effect-use em {
-  font: 2mm/1 var(--text);
+  font: var(--card-effect-use-font-size)/1 var(--card-label-font-family);
 }
 .effect-text {
-  font: 3.25mm/1.19 var(--text);
+  font: var(--card-effect-text-font-size)/var(--card-effect-text-line-height) var(--card-rule-font-family);
 }
 .effect-text .rule-term {
   font-weight: 700;
@@ -618,7 +706,7 @@ EXPOSED TOP ROW - TUNING PANEL
   display: flex;
   align-items: center;
   margin: 0 0 0.65mm;
-  font: 700 2.6mm/1 var(--text);
+  font: 700 var(--card-mode-heading-font-size)/1 var(--card-label-font-family);
   text-transform: uppercase;
 }
 .mode-heading-core {
@@ -658,7 +746,7 @@ EXPOSED TOP ROW - TUNING PANEL
   grid-row: 1;
   justify-self: start;
   max-width: 100%;
-  font: 1.65mm/1 var(--text);
+  font: var(--card-footer-id-font-size)/1 var(--card-footer-font-family);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -668,12 +756,12 @@ EXPOSED TOP ROW - TUNING PANEL
   grid-row: 2;
   justify-self: start;
   white-space: nowrap;
-  font: 1.2mm/1 var(--utility);
+  font: var(--card-footer-version-font-size)/1 var(--card-footer-version-font-family);
   opacity: 0.65;
 }
 .footer-unique {
   margin-left: 1mm;
-  font: 700 1.8mm/1 var(--text);
+  font: 700 var(--card-footer-unique-font-size)/1 var(--card-footer-font-family);
 }
 .cost-gem {
   position: absolute;
@@ -688,7 +776,7 @@ EXPOSED TOP ROW - TUNING PANEL
   color: #f8e5bc;
 }
 .cost-gem b {
-  font: 600 7.3mm/1 var(--display);
+  font: 600 var(--card-cost-font-size)/1 var(--card-cost-font-family);
   font-variant-numeric: lining-nums;
 }
 
@@ -701,16 +789,16 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .dense .card-title,
 .very-dense .card-title {
-  font-size: 5mm;
+  font-size: var(--card-dense-title-font-size);
 }
 .dense.title-very-long .card-title,
 .very-dense.title-very-long .card-title {
-  font-size: 4.5mm;
+  font-size: var(--card-dense-title-very-long-font-size);
 }
 .dense .effect-text,
 .very-dense .effect-text {
-  font-size: 2.85mm;
-  line-height: 1.12;
+  font-size: var(--card-dense-effect-font-size);
+  line-height: var(--card-dense-effect-line-height);
 }
 .card-hero {
   --art-height: 25mm;
@@ -718,11 +806,11 @@ EXPOSED TOP ROW - TUNING PANEL
   --title-height: 7mm;
 }
 .card-hero .card-title {
-  font-size: 4.65mm;
+  font-size: var(--card-hero-title-font-size);
 }
 .card-hero.title-long .card-title,
 .card-hero.title-very-long .card-title {
-  font-size: 3.9mm;
+  font-size: var(--card-hero-title-long-font-size);
 }
 .card-hero .rules {
   padding-top: 0.7mm;
@@ -744,11 +832,11 @@ EXPOSED TOP ROW - TUNING PANEL
   display: inline;
 }
 .card-hero .hero-rule-mode {
-  font: 2.85mm/1.12 var(--text);
+  font: var(--card-hero-rule-font-size)/var(--card-hero-rule-line-height) var(--card-rule-font-family);
 }
 .card-hero .effect-text {
-  font-size: 2.85mm;
-  line-height: 1.12;
+  font-size: var(--card-hero-rule-font-size);
+  line-height: var(--card-hero-rule-line-height);
 }
 .card-hero .effect-block {
   padding: 0.1mm 0 0.4mm;
