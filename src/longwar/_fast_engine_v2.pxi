@@ -1126,6 +1126,31 @@ cdef uint32_t _v2_target_mask(
             ):
                 mask |= <uint32_t>(1 << slot)
 
+        elif target == V2_TARGET_OPPOSING_EXHAUSTED_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and state.force[slot] >= 0
+                and state.exhausted[slot]
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_OPPOSING_SUPPORT_OPEN_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and rank > RANK_FRONT
+                and state.force[slot] >= 0
+                and state.force[slot_index(opponent, front, RANK_FRONT)] < 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
+        elif target == V2_TARGET_FRIENDLY_ANY:
+            if owner_from_slot(slot) == player and state.force[slot] >= 0:
+                mask |= <uint32_t>(1 << slot)
+
     # Movement effects targeting an opposing formation must also have a legal
     # destination one row toward Rear.
     if effect.op == V2_OP_MOVE and effect.flags & V2_FLAG_DIRECTION_REAR:
@@ -1207,6 +1232,106 @@ cdef bint _v2_stratagem_visible_from_effect(
                 (1 << front)
                 | (1 << (front - 1) if front > 0 else 0)
                 | (1 << (front + 1) if front < FRONT_COUNT - 1 else 0)
+            ):
+                return True
+    return False
+
+
+cdef bint _v2_source_grants_flank_guard_to(
+    FastEngine self,
+    FastState state,
+    int source,
+    int target,
+    int card,
+    int mode,
+    int suppression_bit,
+) noexcept:
+    cdef int i
+    cdef V2EffectSpec* effect
+    if card < 0:
+        return False
+    if suppression_bit and (state.suppression_mask[source] & suppression_bit):
+        return False
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if (
+            effect.op != V2_OP_FLANK_GUARD
+            or not _v2_effect_is_live_timing(state, source, effect)
+            or not _v2_slot_effect_condition(self, state, source, effect)
+        ):
+            continue
+        if effect.target == V2_TARGET_SELF and source == target:
+            return True
+        if (
+            effect.target == V2_TARGET_DIRECTLY_AHEAD
+            and front_from_slot(source) == front_from_slot(target)
+            and rank_from_slot(source) == rank_from_slot(target) + 1
+        ):
+            return True
+        if (
+            effect.target == V2_TARGET_DIRECTLY_BEHIND
+            and front_from_slot(source) == front_from_slot(target)
+            and rank_from_slot(source) + 1 == rank_from_slot(target)
+        ):
+            return True
+        if (
+            effect.target == V2_TARGET_FRIENDLY_ANY_CLASS
+            and (effect.class_mask == 0 or _v2_slot_has_any_class(
+                self, state, target, effect.class_mask
+            ))
+        ):
+            return True
+    return False
+
+
+cdef bint _v2_force_flank_protected(
+    FastEngine self,
+    FastState state,
+    int slot,
+) noexcept:
+    cdef int player = owner_from_slot(slot)
+    cdef int source, force, bond, name, ix, card, i
+    cdef V2EffectSpec* effect
+    for source in range(
+        player * POSITIONS_PER_PLAYER,
+        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+    ):
+        if state.force[source] < 0:
+            continue
+        force = state.force[source]
+        if _v2_source_grants_flank_guard_to(
+            self, state, source, slot, force,
+            _v2_mode_for_force(self, force), 0
+        ):
+            return True
+        bond = state.bond[source]
+        if _v2_source_grants_flank_guard_to(
+            self, state, source, slot, bond,
+            V2_MODE_DEFAULT, SUPPRESS_BOND_TEXT
+        ):
+            return True
+        name = state.name[source]
+        if _v2_source_grants_flank_guard_to(
+            self, state, source, slot, name,
+            _v2_mode_for_name(self, name), SUPPRESS_NAME_TEXT
+        ):
+            return True
+
+    for ix in range(NARRATIVE_SLOTS_PER_PLAYER):
+        card = state.narrative[player * NARRATIVE_SLOTS_PER_PLAYER + ix]
+        if card < 0:
+            continue
+        for i in range(self.v2_effect_count[card][V2_MODE_DEFAULT]):
+            effect = &self.v2_effects[card][V2_MODE_DEFAULT][i]
+            if (
+                effect.op == V2_OP_FLANK_GUARD
+                and effect.timing == V2_TIMING_CONTINUOUS
+                and (
+                    effect.class_mask == 0
+                    or _v2_slot_has_any_class(
+                        self, state, slot, effect.class_mask
+                    )
+                )
             ):
                 return True
     return False
