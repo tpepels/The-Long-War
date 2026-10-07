@@ -43,7 +43,9 @@ function formatRuleText(value,options={}){
     html+=esc(source.slice(cursor,index));
     const className=CLASSIFICATION_TERM_MAP.get(key);
     if(inlineClassIcons&&className){
-      const icon=classGlyph(className).replace("<svg ","<svg aria-hidden=\"true\" focusable=\"false\" ");
+      const icon=classGlyph(className)
+        .replace(/<title>.*?<\/title>/,"")
+        .replace("<svg ","<svg aria-hidden=\"true\" focusable=\"false\" ");
       html+='<span class="inline-class-ref" title="'+esc(titleCase(className))+'">'+icon+'<span>'+esc(token)+'</span></span>';
     } else if(RULE_TERM_SET.has(key))html+='<strong class="rule-term">'+esc(token)+'</strong>';
     else html+='<em class="rule-referent">'+esc(token)+'</em>';
