@@ -9,6 +9,8 @@ import subprocess
 from pathlib import Path
 
 import markdown
+from PIL import Image
+
 if __package__:
     from .build_browser_runtime import ensure_browser_runtime
     from longwar.reference_decks import REFERENCE_DECK_PATHS
@@ -41,6 +43,12 @@ PRINTABLE_PAGES = {
     "playmat.html",
     "tokens.html",
 }
+INTERNAL_ONLY_PAGES = {
+    "cards-v2.html",
+    "cards-v2-force-style-lab.html",
+}
+PRINT_ART_MAX_PX = 960
+PRINT_ART_QUALITY = 86
 
 
 def print_build_version() -> str:
@@ -103,6 +111,34 @@ def print_build_version() -> str:
         digest.update(path.read_bytes())
         digest.update(b"\0")
     return "local-" + digest.hexdigest()[:8]
+
+
+def build_print_art() -> None:
+    """Generate compact browser-print artwork from canonical source PNGs."""
+    source_dir = WEB / "art" / "v2" / "cards"
+    target_dir = DIST / "art" / "v2" / "cards-print"
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    for source in sorted(source_dir.glob("*.png")):
+        target = target_dir / (source.stem + ".webp")
+        with Image.open(source) as image:
+            image = image.convert("RGB")
+            image.thumbnail(
+                (PRINT_ART_MAX_PX, PRINT_ART_MAX_PX),
+                Image.Resampling.LANCZOS,
+            )
+            image.save(
+                target,
+                "WEBP",
+                quality=PRINT_ART_QUALITY,
+                method=6,
+            )
+
+
+def remove_internal_pages_from_dist() -> None:
+    """Keep design labs in the repository without publishing them."""
+    for filename in INTERNAL_ONLY_PAGES:
+        (DIST / filename).unlink(missing_ok=True)
 
 
 def stamp_print_version(version: str) -> None:
@@ -284,6 +320,8 @@ def main() -> None:
         shutil.rmtree(DIST)
     shutil.copytree(WEB, DIST)
     shutil.copytree(runtime, DIST / "runtime")
+    remove_internal_pages_from_dist()
+    build_print_art()
 
     playmat = DIST / "playmat.html"
     playmat.write_text(
