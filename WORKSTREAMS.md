@@ -10,8 +10,8 @@ Primary sources:
 
 - `cards/cards.json` - canonical card pool and card wording/mechanics metadata
 - `rules/rulebook.md` - player-facing rules
-- `cards/v2/playtest-decks.json` and `decks/*.json` - playtest/shipped deck content
-- `web/art/v2/cards/` - canonical card artwork
+- `cards/playtest-decks.json` and `decks/*.json` - playtest/shipped deck content
+- `web/art/cards/` - canonical card artwork
 
 This workstream may change while the software engine is temporarily behind. That lag must be explicit; it must not be hidden by duplicating or approximating rules in UI code.
 
@@ -23,7 +23,7 @@ Typical branch prefix: `game/` or `cards/`.
 
 Primary sources:
 
-- `web/cards.html`, `web/cards-v2.js`, `web/cards-v2.css`
+- `web/cards.html`, `web/physical-cards.js`, `web/physical-cards.css`
 - `web/playtest-kit.html`, `web/playtest-kit.js`
 - `web/playmat.html`
 - `web/tokens.html`

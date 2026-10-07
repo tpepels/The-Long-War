@@ -14,7 +14,10 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from build_pages import print_build_version, render_rule_tokens
+if __package__:
+    from .build_pages import print_build_version, render_rule_tokens
+else:
+    from build_pages import print_build_version, render_rule_tokens
 from longwar.rules import GameRules
 
 
@@ -27,12 +30,6 @@ OUTPUT = DIST / "rulebook.pdf"
 MIN_PAGE_TEXT = 80
 MAX_PAGES_WARNING = 8
 
-
-TEACHING_PLATE_IMAGES = {
-    "rulebook-passing.png",
-    "rulebook-battle-resolution.png",
-    "rulebook-command-collapse.png",
-}
 
 
 def _string(value: str) -> str:
@@ -72,52 +69,6 @@ def _flush_paragraph(lines: list[str], out: list[str]) -> None:
         out.append("")
     lines.clear()
 
-
-def _pdf_safe_image_path(path: str) -> str:
-    """Decode JPEG rulebook art to PNG before Typst embeds it.
-
-    The generated card illustrations are deliberately kept as raster artwork.
-    Some JPEG decoders tolerate their source streams more readily than PDF
-    viewers do, so the print path normalizes them through FFmpeg first.
-    """
-    source = DIST / path
-    if source.suffix.lower() not in {".jpg", ".jpeg"}:
-        return path
-    if not source.exists():
-        raise FileNotFoundError(f"Rulebook image not found: {source}")
-
-    ffmpeg = shutil.which("ffmpeg")
-    if ffmpeg is None:
-        raise RuntimeError(
-            "FFmpeg is required to normalize rulebook card art for print."
-        )
-
-    target = source.with_name(source.stem + "-print.png")
-    result = subprocess.run(
-        [
-            ffmpeg,
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-y",
-            "-err_detect",
-            "ignore_err",
-            "-i",
-            str(source),
-            "-frames:v",
-            "1",
-            str(target),
-        ],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0 or not target.exists() or target.stat().st_size < 2_000:
-        detail = result.stderr.strip() or "no decoder output"
-        raise RuntimeError(
-            f"Could not normalize rulebook card art {source.name}: {detail}"
-        )
-    return target.relative_to(DIST).as_posix()
 
 
 def markdown_to_typst(source: str, version: str) -> str:
@@ -225,11 +176,8 @@ def markdown_to_typst(source: str, version: str) -> str:
         if in_code:
             if line.strip() == "```":
                 in_code = False
-                if any("BATTLE LINE" in item for item in code_lines):
-                    out.append('#align(center)[#image("assets/rulebook-battlefield.svg", width: 96%)]')
-                else:
-                    block = "\n".join(code_lines)
-                    out.append(f'#raw(block: true, "{_string(block)}")')
+                block = "\n".join(code_lines)
+                out.append(f'#raw(block: true, "{_string(block)}")')
                 out.append("")
                 code_lines = []
             else:
@@ -242,25 +190,8 @@ def markdown_to_typst(source: str, version: str) -> str:
             finish_quote()
             finish_table()
             alt, path = image_match.groups()
-            path = _pdf_safe_image_path(path)
-            name = Path(path).name.replace("-print.png", ".jpg")
-            teaching_plate = name in TEACHING_PLATE_IMAGES
-            label = "BATTLE PLATE" if teaching_plate else "FIELD EXAMPLE"
-            image_width = "100%" if teaching_plate else "94%"
-            out.append(
-                '#block('
-                'breakable: false, above: 4pt, below: 5pt, '
-                'fill: rgb("#f7f2e8"), '
-                'stroke: 0.45pt + rgb("#9b8e77"), '
-                'inset: 4pt, radius: 2pt'
-                ')['
-                f'#align(center)[#image("{_string(path)}", width: {image_width})]'
-                '#v(2.5pt)'
-                f'#text(size: 6.5pt, weight: "bold", fill: rgb("#5e5446"), "{label}")'
-                '#h(3pt)'
-                f'#text(size: 6.5pt, fill: rgb("#6f6558"), "{_string(alt)}")'
-                ']'
-            )
+            out.append(f'#align(center)[#image("{_string(path)}", width: 100%)]')
+            out.append(f'#text(size: 6.5pt, "{_string(alt)}")')
             continue
 
         if line.strip().startswith("```"):

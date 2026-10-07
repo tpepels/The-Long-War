@@ -2,7 +2,7 @@
 
 Select exactly one primary workstream:
 
-- [ ] Physical game / authored rules (`game/`, `cards/`)
+- [ ] Physical game / authored rules (`game/`)
 - [ ] Print / reference presentation (`print/`)
 - [ ] Interactive web UI / transport (`web/`)
 - [ ] Runtime engine (`engine/`)
@@ -28,7 +28,7 @@ Select exactly one primary workstream:
 
 ## Verification
 
-<!-- List local commands actually run. Distinguish blocking sanity/build checks from advisory diagnostics. A failing design test is not a reason to preserve an intentionally changed design. See TESTING.md. -->
+<!-- List local commands actually run. Distinguish blocking sanity/build checks from advisory diagnostics. Temporary/manual design audits do not define product requirements. See TESTING.md. -->
 
 - Blocking sanity/build:
 - Advisory design/engine/research diagnostics:

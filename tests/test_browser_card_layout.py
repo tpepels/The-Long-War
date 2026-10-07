@@ -65,10 +65,10 @@ def render_print_cards(cards: list[dict]) -> list[RenderedCard]:
     script = """
 const fs = require("node:fs");
 global.window = {};
-eval(fs.readFileSync("web/v2-heraldry.js", "utf8"));
-eval(fs.readFileSync("web/cards-v2.js", "utf8"));
+eval(fs.readFileSync("web/card-symbols.js", "utf8"));
+eval(fs.readFileSync("web/physical-cards.js", "utf8"));
 const input = JSON.parse(fs.readFileSync(0, "utf8"));
-process.stdout.write(JSON.stringify(input.cards.map(card => window.V2Cards.cardArticle(card, "print-card"))));
+process.stdout.write(JSON.stringify(input.cards.map(card => window.PhysicalCards.cardArticle(card, "print-card"))));
 """
     result = subprocess.run(
         [node, "-e", script],
@@ -99,7 +99,7 @@ def test_shared_renderer_escapes_hostile_text_and_preserves_numbers() -> None:
     ]
     card = render_print_cards(cards)[0]
     assert card.one("card-title")["text"] == hostile
-    assert card.one("v2-card")["attrs"]["data-card-id"] == hostile
+    assert card.one("physical-card")["attrs"]["data-card-id"] == hostile
     assert card.one("effect-text")["text"] == "Strength " + hostile
     assert not any(element["tag"] in {"img", "script"} for element in card.elements)
     assert card.one("cost-gem")["text"] == "0"

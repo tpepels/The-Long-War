@@ -2,9 +2,9 @@
 
 The physical-card system now has one renderer.
 
-`web/cards-v2.js` is the canonical physical-card renderer for the full
-catalogue, playtest kit, stack proofs and print sheets. `web/cards-v2.css`
-owns the shared 68 × 96 mm physical design. `web/v2-heraldry.js` supplies the
+`web/physical-cards.js` is the canonical physical-card renderer for the full
+catalogue, playtest kit, stack proofs and print sheets. `web/physical-cards.css`
+owns the shared 68 × 96 mm physical design. `web/card-symbols.js` supplies the
 functional symbols. The former `print-cards.js` / `print-cards.css` renderer
 has been removed so the playtest kit cannot drift into a separate card design.
 
@@ -32,7 +32,7 @@ continuous; the normal rounded on-screen card shape is unchanged. Print at 100%
 / actual size without browser headers or footers.
 
 `cards.html` prints the complete canonical card catalogue. `playtest-kit.html`
-loads `cards/v2/playtest-decks.json`, expands copy counts, and prints those same
+loads `cards/playtest-decks.json`, expands copy counts, and prints those same
 card faces. There is no second print-only markup implementation.
 
 Every printable page receives the Pages build revision via

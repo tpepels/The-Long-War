@@ -209,19 +209,19 @@
 }
 
 /* Quick-reference battlefield */
-.playmat-v2 {
+.physical-playmat {
   grid-template-columns: minmax(0, 1.75fr) minmax(82mm, .85fr);
   gap: 6mm;
   padding: 6mm;
 }
-.playmat-v2 .physical-board {
+.physical-playmat .physical-board {
   padding: 5mm;
   border: .4mm solid #181714;
   background:
     linear-gradient(rgba(248,243,233,.96), rgba(248,243,233,.96)),
     repeating-linear-gradient(135deg, #181714 0 1px, transparent 1px 9px);
 }
-.playmat-v2 .mat-title {
+.physical-playmat .mat-title {
   align-items: start;
   gap: 6mm;
   margin-bottom: 2mm;
@@ -232,7 +232,7 @@
   font: 800 2.3mm/1 system-ui, sans-serif;
   letter-spacing: .14em;
 }
-.playmat-v2 .mat-title strong {
+.physical-playmat .mat-title strong {
   display: block;
   font-size: 8.5mm;
   line-height: .88;
@@ -266,25 +266,25 @@
 }
 .mat-victories { letter-spacing: .04em; }
 
-.playmat-v2 .mat-fronts { gap: 2.5mm; }
-.playmat-v2 .mat-front { gap: 1.4mm; }
-.playmat-v2 .mat-front b {
+.physical-playmat .mat-fronts { gap: 2.5mm; }
+.physical-playmat .mat-front { gap: 1.4mm; }
+.physical-playmat .mat-front b {
   font-size: 2.6mm;
   letter-spacing: .08em;
 }
-.playmat-v2 .mat-slot {
+.physical-playmat .mat-slot {
   min-height: 24mm;
   border-width: .35mm;
   background: rgba(255,255,255,.42);
   font-size: 2.7mm;
 }
-.playmat-v2 .mat-slot.frontline { border-width: .55mm; }
-.playmat-v2 .mat-front small {
+.physical-playmat .mat-slot.frontline { border-width: .55mm; }
+.physical-playmat .mat-front small {
   min-height: 7mm;
   background: rgba(24,23,20,.035);
   font-size: 2.1mm;
 }
-.playmat-v2 .mat-battle-line {
+.physical-playmat .mat-battle-line {
   padding: 1.8mm 2mm;
   display: flex;
   justify-content: space-between;
@@ -292,11 +292,11 @@
   gap: 3mm;
   text-align: left;
 }
-.playmat-v2 .mat-battle-line span {
+.physical-playmat .mat-battle-line span {
   font: 900 2.7mm/1 system-ui, sans-serif;
   letter-spacing: .17em;
 }
-.playmat-v2 .mat-battle-line em {
+.physical-playmat .mat-battle-line em {
   font: 2.25mm/1.2 Georgia, serif;
   letter-spacing: 0;
 }
@@ -322,7 +322,7 @@
   letter-spacing: .05em;
 }
 
-.quick-reference-v2 {
+.quick-reference {
   padding: 0;
   border: .4mm solid #181714;
   background: #181714;
@@ -382,18 +382,18 @@
   place-items: center;
   font: 800 2.6mm/1 system-ui, sans-serif;
 }
-.quick-reference-v2 .qr-step h2 {
+.quick-reference .qr-step h2 {
   margin: .6mm 0 1.2mm;
   font-size: 2.7mm;
   color: inherit;
 }
-.quick-reference-v2 .qr-step p,
-.quick-reference-v2 .qr-step li {
+.quick-reference .qr-step p,
+.quick-reference .qr-step li {
   margin: 0;
   font-size: 2.55mm;
   line-height: 1.32;
 }
-.quick-reference-v2 .qr-step ol {
+.quick-reference .qr-step ol {
   margin: 0;
   padding-left: 4.5mm;
 }
@@ -463,7 +463,7 @@
     break-inside: avoid;
   }
 
-  .playmat-v2 {
+  .physical-playmat {
     width: 297mm;
     height: 210mm;
     max-width: none;
@@ -471,8 +471,8 @@
     gap: 6mm;
     padding: 6mm;
   }
-  .quick-reference-v2,
-  .playmat-v2 .physical-board {
+  .quick-reference,
+  .physical-playmat .physical-board {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -1974,60 +1974,6 @@
 @media print {
   .rulebook p > img {
     break-inside: avoid;
-  }
-}
-
-
-/* Illustrated field-manual figures */
-.rulebook-figure {
-  position: relative;
-  margin: 5mm 0 6mm;
-  padding: 2.6mm;
-  break-inside: avoid;
-  border: .28mm solid #9b8e77;
-  background:
-    linear-gradient(rgba(255,255,255,.2), rgba(255,255,255,0)),
-    #f4eddf;
-  box-shadow: 0 1.2mm 3mm rgba(24,23,20,.08);
-}
-.rulebook-figure img {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin: 0;
-}
-.rulebook-figure.tabletop-example img {
-  width: 94%;
-  margin-inline: auto;
-}
-.rulebook-figure.teaching-plate {
-  border-width: .42mm;
-}
-.rulebook-figure figcaption {
-  margin-top: 2.2mm;
-  padding-top: 2mm;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2.5mm;
-  align-items: baseline;
-  border-top: .22mm solid rgba(24,23,20,.24);
-}
-.rulebook-figure figcaption b {
-  white-space: nowrap;
-  font: 800 1.95mm/1 system-ui, sans-serif;
-  letter-spacing: .11em;
-  color: #5e5446;
-}
-.rulebook-figure figcaption span {
-  font: italic 2.25mm/1.3 Georgia, serif;
-  color: #6f6558;
-}
-
-@media print {
-  .rulebook-figure {
-    box-shadow: none;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
   }
 }
 
