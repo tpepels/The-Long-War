@@ -80,8 +80,8 @@ function stackEdge(card){
   const reminders=liveEffects(card);
   return '<header class="stack-edge" data-edge-layout="three-zone">'+
     '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
-    '<div class="edge-zone edge-zone-middle edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div>'+
-    '<div class="edge-zone edge-zone-right edge-live-group">'+placementMarkup(card)+reminders.map(liveMarkup).join("")+'</div>'+
+    '<div class="edge-zone edge-zone-middle edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+placementMarkup(card)+'</div>'+
+    '<div class="edge-zone edge-zone-right edge-live-group">'+reminders.map(liveMarkup).join("")+'</div>'+
   '</header>';
 }
 function eventCrown(card){
