@@ -108,7 +108,7 @@ function placementRuleText(card){
 function placementRuleBlock(card){
   const rows=placementRows(card),text=placementRuleText(card);
   if(!text)return"";
-  return '<section class="placement-rule"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+rowGlyph(rows)+'</span><span class="effect-label">PLACEMENT</span></div><div class="effect-text">'+formatRuleText(text)+'</div></section>';
+  return '<section class="placement-rule"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+rowGlyph(rows)+'</span><span class="effect-label">PLACEMENT</span></div><div class="placement-rule-text">'+formatRuleText(text)+'</div></section>';
 }
 function stackEdge(card){
   const reminders=liveEffects(card);
