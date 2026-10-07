@@ -7,12 +7,10 @@ remains a separate presentation surface.
 
 ## Card design
 
-All eight card families share an aged parchment shell, blue-and-gold ornament,
-a landscape illustration above the centered title, written classifications,
-readable rules, and a large raster Command seal. A subtle type-specific wash
-distinguishes Force, Bond, Name, Hero, Tactic, Order, Stratagem and Narrative
-without changing the shared frame assets. The exposed strip uses bold silhouettes
-and serif reminders, with slightly more breathing room above the live content.
+All eight card families share the same aged parchment shell, blue-and-gold
+ornament, landscape illustration treatment, written classifications, readable
+rules and raster Command seal. There is no family-specific card tint. The exposed
+strip uses one fixed three-zone layout and one text/icon scale across every family.
 Heroes keep both Force and Name modes; dense faces reclaim space from artwork and
 identity spacing before reducing rules to 2.85 mm (8.1 pt). Vanilla cards have no
 placeholder rules text.
