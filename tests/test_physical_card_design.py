@@ -625,7 +625,7 @@ def test_three_rank_positional_support_grammar() -> None:
     assert "directly behind" in first_spear["effects"][0]["text"]
 
     assert by_id["the-crow-archers"]["effects"][0]["timing"] == "rear"
-    assert by_id["the-crow-archers"]["effects"][0]["text"] == "SUPPORT +1."
+    assert by_id["the-crow-archers"]["effects"][0]["text"] == "While this formation is in the Rear row, SUPPORT +1."
     assert "SUPPORT +1" in by_id["the-banner-singers"]["text"]
 
 
@@ -635,10 +635,10 @@ def test_new_positional_bonds_are_short_relationship_cards() -> None:
     supplied = by_id["supplied-by"]
     assert supported["type"] == supplied["type"] == "bond"
     assert supported["strength_modifier"] == supplied["strength_modifier"] == 0
-    assert supported["text"] == "BONDED - SUPPORT +1."
-    assert supplied["text"] == "BONDED - SUPPLY."
-    assert len(supported["text"]) < 40
-    assert len(supplied["text"]) < 40
+    assert supported["text"] == "BONDED - While this formation is Bonded, SUPPORT +1."
+    assert supplied["text"] == "BONDED - While this formation is Bonded, SUPPLY."
+    assert "While this formation is Bonded" in supported["effects"][0]["text"]
+    assert "While this formation is Bonded" in supplied["effects"][0]["text"]
 
 
 def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> None:
@@ -649,6 +649,10 @@ def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> Non
         glyph = output.one("glyph-row", within=placement)
         active = [node for node in output.elements if node["tag"] == "rect" and "row-active" in node["attrs"].get("class", "").split() and glyph in node["ancestors"]]
         assert len(active) == len(card["allowed_rows"])
+        body_rule = output.one("placement-rule")
+        expected_rows = " or ".join(row.title() for row in card["allowed_rows"])
+        assert f"This Force may only occupy the {expected_rows} rows." in body_rule["text"]
+        assert "PLACEMENT" in body_rule["text"]
     positional = [card for card in CARDS if any(effect["timing"] in {"front", "middle", "rear"} for effect in effects(card))]
     for card, output in zip(positional, render_cards(positional), strict=True):
         assert [node["text"] for node in output.all("effect-label")] == [effect["timing"].replace("_", " ").upper() for effect in effects(card)]
