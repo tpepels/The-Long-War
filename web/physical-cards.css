@@ -180,7 +180,7 @@ CARD TYPOGRAPHY - TUNING PANEL
   --card-footer-version-font-family: var(--utility);
   --card-cost-font-family: var(--display);
   --edge-font-family: var(--text);
-  --edge-event-family-font-family: var(--text);
+  --edge-event-family-font-family: var(--card-title-font-family);
 
   /* --- normal card font sizes ------------------------------------------- */
   --card-base-font-size: 3.25mm;
