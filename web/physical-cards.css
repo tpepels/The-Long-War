@@ -313,47 +313,43 @@ CARD FRAME COLOUR - TUNING PANEL
 
 .card-bond {
   --card-shell-sepia: 0.48;
-  --card-shell-saturate: 0.72;
-  --card-shell-grayscale: 0.12;
-  --card-shell-hue: 85deg;
-  --card-shell-brightness: 0.98;
-  --card-shell-contrast: 0.98;
+  --card-shell-grayscale: 0.5;
+  --card-shell-hue: -200deg;
+  --card-shell-brightness: 0.75;
+  --card-shell-contrast: 1.2;
 }
 
 .card-name {
-  --card-shell-sepia: 0.5;
-  --card-shell-saturate: 0.68;
-  --card-shell-grayscale: 0.14;
-  --card-shell-hue: 150deg;
-  --card-shell-brightness: 0.97;
-  --card-shell-contrast: 0.98;
+  --card-shell-saturate: 2;
+  --card-shell-grayscale: 0.45;
+  --card-shell-hue: 50deg;
+  --card-shell-brightness: 0.75;
+  --card-shell-contrast: 1.2;
 }
 
 .card-hero {
-  --card-shell-sepia: 0.52;
-  --card-shell-saturate: 0.68;
+  --card-shell-saturate: 2;
   --card-shell-grayscale: 0.14;
-  --card-shell-hue: 225deg;
+  --card-shell-hue: 1deg;
   --card-shell-brightness: 0.96;
-  --card-shell-contrast: 0.99;
+  --card-shell-contrast: 1.1;
 }
 
 .card-tactic {
   --card-shell-sepia: 0.5;
-  --card-shell-saturate: 0.72;
-  --card-shell-grayscale: 0.12;
+  --card-shell-saturate: 2;
+  --card-shell-grayscale: 0.4;
   --card-shell-hue: 305deg;
-  --card-shell-brightness: 0.97;
-  --card-shell-contrast: 0.98;
+  --card-shell-brightness: 0.8;
+  --card-shell-contrast: 1.2;
 }
 
 .card-order {
-  --card-shell-sepia: 0.45;
   --card-shell-saturate: 0.7;
-  --card-shell-grayscale: 0.1;
-  --card-shell-hue: 45deg;
-  --card-shell-brightness: 0.99;
-  --card-shell-contrast: 0.97;
+  --card-shell-grayscale: 0.5;
+  --card-shell-hue: -10deg;
+  --card-shell-brightness: 0.9;
+  --card-shell-contrast: 1.2;
 }
 
 .card-stratagem {
@@ -361,17 +357,17 @@ CARD FRAME COLOUR - TUNING PANEL
   --card-shell-saturate: 0.58;
   --card-shell-grayscale: 0.2;
   --card-shell-hue: 175deg;
-  --card-shell-brightness: 0.95;
-  --card-shell-contrast: 1;
+  --card-shell-brightness: 0.8;
+  --card-shell-contrast: 1.2;
 }
 
 .card-narrative {
   --card-shell-sepia: 0.55;
-  --card-shell-saturate: 0.64;
-  --card-shell-grayscale: 0.18;
-  --card-shell-hue: 265deg;
-  --card-shell-brightness: 0.95;
-  --card-shell-contrast: 0.99;
+  --card-shell-saturate: 1;
+  --card-shell-grayscale: 0.4;
+  --card-shell-hue: 99deg;
+  --card-shell-brightness: 0.8;
+  --card-shell-contrast: 1.2;
 }
 
 .physical-card::before {
@@ -383,11 +379,8 @@ CARD FRAME COLOUR - TUNING PANEL
   pointer-events: none;
   background: transparent url("art/card-frame/card-shell.png") center/100% 100%
     no-repeat;
-  filter:
-    sepia(var(--card-shell-sepia))
-    saturate(var(--card-shell-saturate))
-    grayscale(var(--card-shell-grayscale))
-    hue-rotate(var(--card-shell-hue))
+  filter: sepia(var(--card-shell-sepia)) saturate(var(--card-shell-saturate))
+    grayscale(var(--card-shell-grayscale)) hue-rotate(var(--card-shell-hue))
     brightness(var(--card-shell-brightness))
     contrast(var(--card-shell-contrast));
 }
@@ -754,11 +747,8 @@ EXPOSED TOP ROW - TUNING PANEL
   inset: 0;
   pointer-events: none;
   background: url("art/card-frame/art-window.png") center/100% 100% no-repeat;
-  filter:
-    sepia(var(--card-shell-sepia))
-    saturate(var(--card-shell-saturate))
-    grayscale(var(--card-shell-grayscale))
-    hue-rotate(var(--card-shell-hue))
+  filter: sepia(var(--card-shell-sepia)) saturate(var(--card-shell-saturate))
+    grayscale(var(--card-shell-grayscale)) hue-rotate(var(--card-shell-hue))
     brightness(var(--card-shell-brightness))
     contrast(var(--card-shell-contrast));
 }
@@ -811,11 +801,8 @@ EXPOSED TOP ROW - TUNING PANEL
   top: calc(var(--title-height) + 0.8mm);
   height: 1.6mm;
   background: url("art/card-frame/title-divider.png") center/100% 14mm no-repeat;
-  filter:
-    sepia(var(--card-shell-sepia))
-    saturate(var(--card-shell-saturate))
-    grayscale(var(--card-shell-grayscale))
-    hue-rotate(var(--card-shell-hue))
+  filter: sepia(var(--card-shell-sepia)) saturate(var(--card-shell-saturate))
+    grayscale(var(--card-shell-grayscale)) hue-rotate(var(--card-shell-hue))
     brightness(var(--card-shell-brightness))
     contrast(var(--card-shell-contrast));
 }
@@ -1017,11 +1004,8 @@ EXPOSED TOP ROW - TUNING PANEL
   z-index: -1;
   pointer-events: none;
   background: url("art/card-frame/command-seal.png") center/100% 100% no-repeat;
-  filter:
-    sepia(var(--card-shell-sepia))
-    saturate(var(--card-shell-saturate))
-    grayscale(var(--card-shell-grayscale))
-    hue-rotate(var(--card-shell-hue))
+  filter: sepia(var(--card-shell-sepia)) saturate(var(--card-shell-saturate))
+    grayscale(var(--card-shell-grayscale)) hue-rotate(var(--card-shell-hue))
     brightness(var(--card-shell-brightness))
     contrast(var(--card-shell-contrast));
 }
