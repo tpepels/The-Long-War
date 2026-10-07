@@ -263,13 +263,17 @@ CARD TYPOGRAPHY - TUNING PANEL
 
 /*
 ===============================================================================
-CARD SHELL COLOUR - TUNING PANEL
+CARD FRAME COLOUR - TUNING PANEL
 ===============================================================================
 
-  card-shell.png supplies the complete parchment/frame colour.
+  The same family filter is applied to ALL four decorative card-frame PNGs:
 
-  The shell is rendered on .physical-card::before, so the filter changes ONLY
-  that PNG. Text, SVG icons, illustrations and the Command seal are untouched.
+    card-shell.png
+    art-window.png
+    title-divider.png
+    command-seal.png
+
+  Text, SVG icons and the card illustration itself are NOT filtered.
 
   Each card family below has five simple controls:
 
@@ -279,7 +283,7 @@ CARD SHELL COLOUR - TUNING PANEL
     --card-shell-brightness  1 = original brightness
     --card-shell-contrast    1 = original contrast
 
-  FORCE deliberately stays on the original sand-coloured shell.
+  FORCE deliberately keeps the original sand-coloured frame assets.
 
   Starting-point hue guide after adding some sepia:
       0deg   = sand / gold
@@ -733,6 +737,12 @@ EXPOSED TOP ROW - TUNING PANEL
   inset: 0;
   pointer-events: none;
   background: url("art/card-frame/art-window.png") center/100% 100% no-repeat;
+  filter:
+    sepia(var(--card-shell-sepia))
+    saturate(var(--card-shell-saturate))
+    hue-rotate(var(--card-shell-hue))
+    brightness(var(--card-shell-brightness))
+    contrast(var(--card-shell-contrast));
 }
 .motif-field > svg,
 .motif-field > img {
@@ -783,6 +793,12 @@ EXPOSED TOP ROW - TUNING PANEL
   top: calc(var(--title-height) + 0.8mm);
   height: 1.6mm;
   background: url("art/card-frame/title-divider.png") center/100% 14mm no-repeat;
+  filter:
+    sepia(var(--card-shell-sepia))
+    saturate(var(--card-shell-saturate))
+    hue-rotate(var(--card-shell-hue))
+    brightness(var(--card-shell-brightness))
+    contrast(var(--card-shell-contrast));
 }
 .class-line {
   position: absolute;
@@ -960,11 +976,26 @@ EXPOSED TOP ROW - TUNING PANEL
   height: 12.5mm;
   display: grid;
   place-items: center;
-  background: url("art/card-frame/command-seal.png") center/100% 100% no-repeat;
   color: #f8e5bc;
   padding-bottom: 3px;
 }
+.cost-gem::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("art/card-frame/command-seal.png") center/100% 100% no-repeat;
+  filter:
+    sepia(var(--card-shell-sepia))
+    saturate(var(--card-shell-saturate))
+    hue-rotate(var(--card-shell-hue))
+    brightness(var(--card-shell-brightness))
+    contrast(var(--card-shell-contrast));
+}
 .cost-gem b {
+  position: relative;
+  z-index: 1;
   font: 600 var(--card-cost-font-size)/1 var(--card-cost-font-family);
   font-variant-numeric: lining-nums;
 }
