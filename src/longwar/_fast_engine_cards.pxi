@@ -147,6 +147,12 @@ cdef void _v2_compile_effect(
         "stratagem_visibility": V2_OP_STRATAGEM_VISIBILITY,
         "status_strength_aura": V2_OP_STATUS_STRENGTH_AURA,
         "steal_command": V2_OP_STEAL_COMMAND,
+        "exhaust": V2_OP_EXHAUST,
+        "flank_guard": V2_OP_FLANK_GUARD,
+        "return_component": V2_OP_RETURN_COMPONENT,
+        "swap_fronts": V2_OP_SWAP_FRONTS,
+        "revive_force": V2_OP_REVIVE_FORCE,
+        "swap_bonds": V2_OP_SWAP_BONDS,
         "supply": V2_OP_SUPPLY,
         "support": V2_OP_SUPPORT,
         "suppress_action": V2_OP_SUPPRESS_ACTION,
@@ -218,6 +224,9 @@ cdef void _v2_compile_effect(
         "friendly_exhausted_front_with_friendly_class": V2_TARGET_FRIENDLY_EXHAUSTED_FRONT_WITH_FRIENDLY_CLASS,
         "friendly_pair_same_front_with_class": V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS,
         "friendly_front_of_source_class": V2_TARGET_FRIENDLY_FRONT_OF_SOURCE_CLASS,
+        "opposing_exhausted_same_front": V2_TARGET_OPPOSING_EXHAUSTED_SAME_FRONT,
+        "opposing_support_open_front": V2_TARGET_OPPOSING_SUPPORT_OPEN_FRONT,
+        "friendly_any": V2_TARGET_FRIENDLY_ANY,
     }
     cdef dict area_map = {
         None: V2_AREA_NONE,
