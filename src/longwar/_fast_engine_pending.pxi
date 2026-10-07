@@ -750,6 +750,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     cost = _fe_command_cost_fast(self, state, action)
     _fe_spend_command_fast(self, state, actor, cost)
+    _v2_consume_cost_markers(self, state, actor, action)
 
     if kind == TYPE_ABILITY:
         choice = <int>extra
@@ -792,6 +793,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
             elif v2_effect.op in (
                 V2_OP_ADD_STRENGTH_MARKER,
                 V2_OP_DRAW,
+                V2_OP_MOVE,
+                V2_OP_TAX,
                 V2_OP_REMOVE_EXHAUSTION,
                 V2_OP_REMOVE_NEGATIVE_MARKER,
                 V2_OP_RETURN_PREPARED,
