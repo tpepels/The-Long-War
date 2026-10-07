@@ -201,6 +201,7 @@ CARD TYPOGRAPHY - TUNING PANEL
   --card-footer-id-font-size: 1.65mm;
   --card-footer-version-font-size: 1.2mm;
   --card-footer-unique-font-size: 1.8mm;
+  --card-unique-footer-left: 4.5mm; /* Unique label, aligned with classification row */
   --card-cost-font-size: 7.3mm;
 
   /* --- dense-card font sizes -------------------------------------------- */
@@ -780,8 +781,16 @@ EXPOSED TOP ROW - TUNING PANEL
   opacity: 0.65;
 }
 .footer-unique {
-  margin-left: 1mm;
+  position: absolute;
+  left: var(--card-unique-footer-left);
+  bottom: var(--card-class-footer-bottom);
+  z-index: 3;
+  height: var(--card-class-line-height);
+  display: flex;
+  align-items: center;
+  margin: 0;
   font: 700 var(--card-footer-unique-font-size)/1 var(--card-footer-font-family);
+  white-space: nowrap;
 }
 .cost-gem {
   position: absolute;
