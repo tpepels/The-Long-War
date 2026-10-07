@@ -973,16 +973,22 @@ def test_marched_with_can_move_formation_when_played_onto_force(
     state.slot(0, source).force = "the-fifty-men"
     state.players[0].hand = ["marched-with"]
 
-    decline = PlayBond("marched-with", source)
-    move = PlayBond(
-        "marched-with",
-        source,
-        move_destination=destination,
-    )
-    legal = engine.legal_actions(state)
-    assert decline in legal
-    assert move in legal
+    play = PlayBond("marched-with", source)
+    assert play in engine.legal_actions(state)
+    engine.apply(state, play)
 
+    moves = [
+        action
+        for action in effect_choices(engine, state)
+        if not action.skip
+        and action.source is not None
+        and action.destination is not None
+    ]
+    move = next(
+        action
+        for action in moves
+        if action.destination.position == destination
+    )
     engine.apply(state, move)
 
     assert state.slot(0, source).force is None
