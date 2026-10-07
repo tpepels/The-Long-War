@@ -149,8 +149,9 @@ async function main(){
     if(!chosenDecks.length)return;
 
     const selectedIds=chosenDecks.flatMap(deck=>expandedByDeck.get(deck.id));
+    const selectedArtIds=selectedIds.map(id=>index.get(id)?.art_id||id);
     readyPromise=(async()=>{
-      await preloadArt(selectedIds);
+      await preloadArt(selectedArtIds);
       if(document.fonts?.ready)await document.fonts.ready;
       if(generation!==renderGeneration)return;
       printButton.disabled=false;
