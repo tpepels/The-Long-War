@@ -646,7 +646,9 @@ def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> Non
     for card, output in zip(restricted, render_cards(restricted), strict=True):
         placement = output.one("edge-placement")
         assert placement["attrs"]["title"] == " / ".join(row.title() for row in card["allowed_rows"]) + " only"
-        assert len(output.all("glyph-row", within=placement)) == len(card["allowed_rows"])
+        glyph = output.one("glyph-row", within=placement)
+        active = [node for node in output.elements if node["tag"] == "rect" and "row-active" in node["attrs"].get("class", "").split() and glyph in node["ancestors"]]
+        assert len(active) == len(card["allowed_rows"])
     positional = [card for card in CARDS if any(effect["timing"] in {"front", "middle", "rear"} for effect in effects(card))]
     for card, output in zip(positional, render_cards(positional), strict=True):
         assert [node["text"] for node in output.all("effect-label")] == [effect["timing"].replace("_", " ").upper() for effect in effects(card)]
