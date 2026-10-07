@@ -4,6 +4,7 @@ import json
 import re
 
 import markdown
+import pytest
 from pathlib import Path
 
 from longwar.game.model import FRONT_COUNT
@@ -25,6 +26,7 @@ def rendered_rulebook() -> str:
     )
 
 
+@pytest.mark.design
 def test_rulebook_uses_manual_columns_and_playtest_summary() -> None:
     css = text("web/rules.css")
     rules = rendered_rulebook()
@@ -53,6 +55,7 @@ def test_rulebook_uses_manual_columns_and_playtest_summary() -> None:
     assert f"lose {standard.lost_front_command_penalty} command per unprotected front lost" in playmat
     assert "collapse before recovery" in playmat
 
+@pytest.mark.design
 def test_rulebook_core_values_match_standard_engine() -> None:
     rules_text = rendered_rulebook()
     standard = GameRules.standard()
@@ -96,6 +99,7 @@ def test_canonical_card_copy_and_design_schema_use_actions_not_operations() -> N
     assert "NEXT_OPERATION_MUST_AFFECT_CHOSEN_FRONT_IF_POSSIBLE" not in protocol
 
 
+@pytest.mark.design
 def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     play = text("web/play.html")
     script = text("web/play.js")
@@ -121,10 +125,12 @@ def test_web_game_rules_summary_uses_snapshot_rule_metadata() -> None:
     assert "Battle I uses the two middle Fronts" in script
     assert "Pass appears only when no legal Action remains" in script
 
+@pytest.mark.design
 def test_rulebook_roles_are_labels_not_hidden_rules() -> None:
     rules = text("rules/rulebook.md")
     assert "They have no rule of their own unless a card refers to them." in rules
 
+@pytest.mark.design
 def test_battlefield_reference_is_one_readable_practical_sheet() -> None:
     from tools.build_pages import render_rule_tokens
 
@@ -179,6 +185,7 @@ def test_browser_runtime_uses_canonical_engine_composition() -> None:
     assert "_mccfr_core.pxi" not in BROWSER_NATIVE_FILES
 
 
+@pytest.mark.design
 def test_balance_lab_is_human_first_and_collapsible() -> None:
     page = text("web/balance.html")
     script = text("web/balance.js")
@@ -375,6 +382,7 @@ def test_progression_surfaces_do_not_restore_terminal_collapse_compatibility() -
     assert "censored_at_collapse_point_matches" in progression
 
 
+@pytest.mark.design
 def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
     data = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
     cards = data["cards"]
@@ -407,6 +415,7 @@ def test_cards_are_scan_first_and_all_current_copy_blocks_are_labeled() -> None:
         assert "Subject" not in text(surface)
 
 
+@pytest.mark.design
 def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bonus() -> None:
     page = text("web/tokens.html")
     css = text("web/tokens.css")
@@ -436,6 +445,7 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert "@page tracker" in css
     assert 'href="tokens.html"' in kit
 
+@pytest.mark.design
 def test_rulebook_markdown_and_sections_have_generated_wrappers() -> None:
     from tools.build_pages import group_rulebook_sections
 
@@ -470,6 +480,7 @@ def test_balance_lab_hides_dynamic_evidence_from_other_rulesets() -> None:
     assert '".pxi"' in fingerprint
 
 
+@pytest.mark.design
 def test_historical_design_reports_cannot_masquerade_as_current_rules() -> None:
     first80 = text("cards/first-80-design.md")
     audit = text("cards/first-80-balance-audit.md")
