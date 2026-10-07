@@ -14,8 +14,11 @@ has its own presentation.
 The face order is **exposed strip → illustration → centered title → rules →
 written classifications → footer**. Decoration comes from four reusable raster
 assets; artwork, text, numbers and functional symbols remain live elements.
-All eight families use the same uncoloured aged-parchment shell and ornament,
-matching the shared Astra-finished physical-card treatment.
+All eight families use the same `card-shell.png` raster. Force keeps its original
+sand colour; the other families may apply a CSS filter to that shell only. These
+per-family filter controls live together in the `CARD SHELL COLOUR - TUNING PANEL`
+in `web/physical-cards.css`, so text, symbols, artwork and the Command seal remain
+unfiltered.
 
 ## Geometry and typography
 
