@@ -72,9 +72,13 @@ function statGroup(card){
 }
 function classificationIcons(card){return(card.classes||[]).map(name=>'<span class="class-sigil" data-class="'+esc(name)+'" data-group="'+esc(H()?.group(name)||"role")+'" title="'+esc(titleCase(name))+'">'+classGlyph(name)+'</span>').join("")}
 function classificationLine(card){
-  if(card.type==="tactic")return"";
-  const own=card.classes||[],refs=card.references||[],values=own.length?own:refs;if(!values.length)return"";
-  return '<div class="class-line">'+(own.length?"":'<span class="class-line-prefix">Involves</span>')+values.map(name=>'<span class="class-body-item">'+classGlyph(name)+'<span>'+esc(titleCase(name))+'</span></span>').join('<span class="class-separator">·</span>')+'</div>';
+  const own=card.classes||[];
+  const refs=card.type==="tactic"?[]:(card.references||[]);
+  const values=own.length?own:refs;
+  const typeItem='<span class="class-body-item class-type-item">'+typeGlyph(card.type)+'<span>'+esc(TYPE[card.type]||titleCase(card.type))+'</span></span>';
+  const classItems=values.map(name=>'<span class="class-body-item">'+classGlyph(name)+'<span>'+esc(titleCase(name))+'</span></span>');
+  const suffix=classItems.length?'<span class="class-separator">·</span>'+(own.length?"":'<span class="class-line-prefix">Involves</span>')+classItems.join('<span class="class-separator">·</span>'):"";
+  return '<div class="class-line">'+typeItem+suffix+'</div>';
 }
 function liveEffects(card){if(card.type==="hero")return modeEffects(card,"force").filter(e=>LIVE.has(e.timing));return["force","bond"].includes(card.type)?(card.effects||[]).filter(e=>LIVE.has(e.timing)):[]}
 function exposedText(effect){return String(effect.exposed||effect.text||"").replace(/^ACTION\s+1\/B\s*·\s*/i,"").replace(/^REACTION\s+1\/B\s*·\s*/i,"").replace(/^BONDED\s*·\s*/i,"").replace(/^NAMED\s*·\s*/i,"").trim()}
