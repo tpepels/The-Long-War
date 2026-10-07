@@ -6,7 +6,7 @@
 
 | Card | Classifications / references | Cost | Strength | Mechanics |
 |---|---|---:|---:|---|
-| **The Wolf Skirmishers** | Human · Skirmisher | 2 | 4 | CONTINUOUS - **PRESS +1.** |
+| **The Fifty Men** | Human · Spearman | 2 | 4 | No special rules. |
 | **Seven Black Ships** | Ship · Raider | 2 | 4 | BONDED - While this formation is in the Rear, it has +1 Strength. |
 | **The White Hands of Elara** | Human · Healer | 1 | 2 | **MIDDLE / REAR ONLY.** ACTION - Remove one temporary negative marker from the friendly formation directly ahead. |
 | **The Red Shields** | Human · Guard | 2 | 4 | FRONT - Opposing Tactics targeting this formation cost 1 additional Command. |
@@ -30,7 +30,7 @@
 | **The Ilyri** | Human · Skirmisher | 2 | 3 | CONTINUOUS - The opposing formation directly opposite gets no Strength from its Bond. |
 | **The Damar** | Human · Veteran | 2 | 4 | EXHAUSTED - This formation has +2 Strength. |
 | **The Serekh** | Human · Guard | 2 | 3 | FRONT - Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command. |
-| **The Ash Bowmen** | Human · Archer | 2 | 3 | BONDED - This formation has +1 Strength. |
+| **The Wolf Skirmishers** | Human · Skirmisher | 2 | 4 | CONTINUOUS - **PRESS +1.** |
 | **The Lantern Scouts** | Human · Scout | 1 | 2 | CONTINUOUS - While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front. |
 | **The River Raiders** | Human · Raider | 2 | 4 | CONTINUOUS - **PRESS +1.** |
 | **The King's Spears** | Human · Guard · Spearman | 2 | 4 | WHILE NAMED - This formation has +1 Strength. |
