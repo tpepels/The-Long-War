@@ -312,21 +312,78 @@ cdef bint _v2_component_has_live_op(
     return False
 
 
+cdef bint _v2_source_grants_mobile_to(
+    FastEngine self,
+    FastState state,
+    int source,
+    int target,
+    int card,
+    int mode,
+    int suppression_bit,
+) noexcept:
+    cdef int i
+    cdef V2EffectSpec* effect
+    if card < 0:
+        return False
+    if suppression_bit and (state.suppression_mask[source] & suppression_bit):
+        return False
+    for i in range(self.v2_effect_count[card][mode]):
+        effect = &self.v2_effects[card][mode][i]
+        if (
+            effect.op != V2_OP_MANEUVER_UNNAMED
+            or not _v2_effect_is_live_timing(state, source, effect)
+            or not _v2_slot_effect_condition(self, state, source, effect)
+        ):
+            continue
+        if effect.target == V2_TARGET_SELF and source == target:
+            return True
+        if (
+            effect.target == V2_TARGET_DIRECTLY_AHEAD
+            and front_from_slot(source) == front_from_slot(target)
+            and rank_from_slot(source) == rank_from_slot(target) + 1
+        ):
+            return True
+        if (
+            effect.target == V2_TARGET_DIRECTLY_BEHIND
+            and front_from_slot(source) == front_from_slot(target)
+            and rank_from_slot(source) + 1 == rank_from_slot(target)
+        ):
+            return True
+    return False
+
+
 cdef bint _v2_force_is_mobile(
     FastEngine self,
     FastState state,
     int slot,
 ) noexcept:
-    cdef int force = state.force[slot]
-    return _v2_component_has_live_op(
-        self,
-        state,
-        slot,
-        force,
-        _v2_mode_for_force(self, force),
-        V2_OP_MANEUVER_UNNAMED,
-        0,
-    )
+    cdef int player = owner_from_slot(slot)
+    cdef int source, force, bond, name
+    for source in range(
+        player * POSITIONS_PER_PLAYER,
+        player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+    ):
+        if state.force[source] < 0:
+            continue
+        force = state.force[source]
+        if _v2_source_grants_mobile_to(
+            self, state, source, slot, force,
+            _v2_mode_for_force(self, force), 0
+        ):
+            return True
+        bond = state.bond[source]
+        if _v2_source_grants_mobile_to(
+            self, state, source, slot, bond,
+            V2_MODE_DEFAULT, SUPPRESS_BOND_TEXT
+        ):
+            return True
+        name = state.name[source]
+        if _v2_source_grants_mobile_to(
+            self, state, source, slot, name,
+            _v2_mode_for_name(self, name), SUPPRESS_NAME_TEXT
+        ):
+            return True
+    return False
 
 
 cdef bint _v2_source_grants_tireless_to(
