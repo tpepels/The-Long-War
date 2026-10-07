@@ -78,20 +78,19 @@ function placementMarkup(card){
 }
 function stackEdge(card){
   const reminders=liveEffects(card);
-  const classCount=(card.classes||[]).length;
-  const rowCount=Array.isArray(card.allowed_rows)?card.allowed_rows.length:(card.placement?1:0);
-  const reminderLoad=reminders.reduce((n,e)=>{
-    const reminder=exposedText(e);
-    const timing=LABEL[e.timing]||e.timing||"";
-    const timingShown=!(e.timing==="continuous"||reminder.toUpperCase().startsWith(String(timing).toUpperCase()));
-    return n+reminder.length+(timingShown?String(timing).length+1:0);
-  },0);
-  const veryCompact=reminders.length>1||reminderLoad>26||(classCount>=3&&reminderLoad>18)||(rowCount>0&&reminderLoad>18);
-  const compact=veryCompact||reminderLoad>20;
-  const density=veryCompact?" edge-very-compact":compact?" edge-compact":"";
-  return '<header class="stack-edge'+density+'" data-edge-layout="single-row" data-class-count="'+classCount+'" data-row-count="'+rowCount+'">'+statGroup(card)+'<div class="edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div><div class="edge-live-group">'+placementMarkup(card)+reminders.map(liveMarkup).join("")+'</div></header>';
+  return '<header class="stack-edge" data-edge-layout="three-zone">'+
+    '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
+    '<div class="edge-zone edge-zone-middle edge-identity" aria-label="'+esc((card.classes||[]).map(titleCase).join(", "))+'">'+classificationIcons(card)+'</div>'+
+    '<div class="edge-zone edge-zone-right edge-live-group">'+placementMarkup(card)+reminders.map(liveMarkup).join("")+'</div>'+
+  '</header>';
 }
-function eventCrown(card){return '<header class="event-crown"><span class="event-sigil">'+typeGlyph(card.type)+'</span><span class="event-family">'+esc(TYPE[card.type])+'</span>'+(statusLine(card)?'<span class="event-status">'+esc(statusLine(card))+'</span>':"")+'</header>'}
+function eventCrown(card){
+  return '<header class="event-crown" data-edge-layout="three-zone">'+
+    '<div class="edge-zone edge-zone-left"><span class="event-sigil">'+typeGlyph(card.type)+'</span></div>'+
+    '<div class="edge-zone edge-zone-middle"><span class="event-family">'+esc(TYPE[card.type])+'</span></div>'+
+    '<div class="edge-zone edge-zone-right"><span class="event-status">'+esc(statusLine(card))+'</span></div>'+
+  '</header>';
+}
 function effectBlock(effect){
   const kind=["bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
   return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div></section>';
