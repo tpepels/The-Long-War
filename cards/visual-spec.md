@@ -29,10 +29,15 @@ and the card illustration itself remain unfiltered.
 - The identity-height variables remain **19 mm**, **18 mm** for dense faces, and
   **15 mm** for Heroes. When a written classification row is present, its **4 mm**
   is reclaimed from that identity allocation so the rules region becomes taller.
-  The classification row itself lives inside the footer band and is vertically
+  The footer identity row itself lives inside the footer band and is vertically
   aligned with the Command seal, leaving the body space available to rules text.
-- The footer reserves **15 mm** for the ID, revision, family mark, Unique label
-  when applicable, and a **12.5 mm** raster Command seal.
+  Every card begins that row with its family symbol and written family name, then
+  a centred dot before any classifications/references. Tactics omit footer
+  "Involves" references and instead show class symbols inline with class names in
+  their rules text.
+- The footer reserves **15 mm** for the ID, revision, family identity,
+  classifications/references, Unique label when applicable, and a **12.5 mm**
+  raster Command seal.
 - A4 landscape sheets hold **4 × 2 cards**: exactly **272 × 192 mm**, without gaps.
 
 EB Garamond supplies titles and numerals. Titles range from 5.3 mm to 3.9 mm for
