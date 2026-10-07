@@ -275,8 +275,9 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
         assert type_items[0]["text"] == card["type"].title()
 
         values = card.get("classes") or card.get("references") or []
-        if card["type"] == "tactic":
+        if not formation:
             assert "Involves" not in class_line["text"]
+            assert class_line["text"] == card["type"].title()
             inline_refs = output.all("inline-class-ref")
             for value in card.get("references", []):
                 label = value.replace("_", " ").replace("-", " ").title()
@@ -563,15 +564,37 @@ def test_rules_keep_semantic_emphasis_without_changing_authored_text() -> None:
     assert all(node["tag"] == "strong" for node in output.all("rule-term"))
     assert all(node["tag"] == "em" for node in output.all("rule-referent"))
 
-def test_tactics_use_inline_class_icons_instead_of_footer_references() -> None:
-    tactic = next(card for card in CARDS if card["id"] == "the-line-was-baited")
-    output, = render_cards([tactic])
-    class_line = output.one("class-line")
-    assert class_line["text"] == "Tactic"
-    assert output.one("class-type-item", within=class_line)["text"] == "Tactic"
-    refs = output.all("inline-class-ref")
-    assert [node["attrs"].get("title") for node in refs] == ["Guard", "Spearman", "Skirmisher"]
-    assert output.one("effect-text")["text"] == tactic["effects"][0]["text"]
+def test_event_cards_use_inline_class_icons_instead_of_footer_references() -> None:
+    probes = [
+        next(card for card in CARDS if card["id"] == "the-line-was-baited"),
+        next(card for card in CARDS if card["id"] == "the-flank-was-refused"),
+        next(card for card in CARDS if card["id"] == "the-wall-did-not-break"),
+        next(card for card in CARDS if card["id"] == "fresh-orders"),
+    ]
+    for card, output in zip(probes, render_cards(probes), strict=True):
+        class_line = output.one("class-line")
+        assert class_line["text"] == card["type"].title()
+        assert "Involves" not in class_line["text"]
+        refs = output.all("inline-class-ref")
+        for value in card.get("references", []):
+            label = value.replace("_", " ").replace("-", " ").title()
+            assert any(node["attrs"].get("title") == label for node in refs)
+
+
+def test_event_reference_metadata_is_visible_in_authored_rule_text() -> None:
+    event_types = {"tactic", "order", "stratagem", "narrative"}
+    for card in (card for card in CARDS if card["type"] in event_types):
+        authored = " ".join(effect["text"] for effect in effects(card)).lower()
+        for value in card.get("references", []):
+            singular = value.replace("_", " ").replace("-", " ").lower()
+            plural = singular if singular.endswith("s") else singular + "s"
+            assert singular in authored or plural in authored, (card["id"], value, authored)
+
+
+def test_placement_rule_counts_as_a_density_block() -> None:
+    card = next(card for card in CARDS if card["id"] == "the-white-hands-of-elara")
+    output, = render_cards([card])
+    assert "dense" in output.one("physical-card")["attrs"]["class"].split()
 
 
 def test_exploratory_decks_keep_broad_card_type_mix() -> None:
