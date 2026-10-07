@@ -14,10 +14,10 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 
 **Interesting lines**
 
-- Grey Riders + The Long March gives cheap early movement; TIRELESS then lets those Riders remain useful after a lost Front.
+- Relief Column sits only in Middle and makes the Force directly ahead TIRELESS, turning an exhausted front line into something that can still rotate or withdraw.
+- Grey Riders + The Long March gives cheap early movement; Relief Column then keeps the front mobile after a lost Front.
 - Re-form the Line, Neris, Kael, Elian and Sela provide different kinds of repositioning, so the deck can rotate a damaged line rather than simply add Strength.
 - Crow Archers, Banner Singers, Supported By and First Spear reward building an actual Front/Middle/Rear order.
-- Rear Scouts turn Send a Runner, The Scouts Found the Gap and hidden-information cards into a secondary engine rather than isolated tricks.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -31,8 +31,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 | 1 | The Crow Archers | Force |
 | 1 | The Banner Singers | Force |
 | 1 | The White Hands of Elara | Force |
-| 1 | The Fifty Men | Force |
-| 1 | Seven Black Ships | Force |
+| 2 | The Relief Column | Force |
 | 1 | The Late Banner | Force |
 | 2 | Marched With | Bond |
 | 1 | Kept Pace With | Bond |
@@ -76,20 +75,20 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 
 **Interesting lines**
 
+- Field Train is Middle-only and spends an Action plus 1 Command to move a prepared Bond or Name onto the Formation directly ahead, making the second line a real logistics engine.
 - House of Reed, Supplied By and Tovan can take Bonds to 0 Command, while Late Banner, Swore Again To and the King package make Names easier to finish.
 - Stayed Behind For, Nara, Torren and Oren convert prepared or unbonded positions into completed formations without requiring every piece to arrive in order.
 - Teren, There Was No Road Back and Fresh Orders reward the moment formations become Named and help the chain keep moving.
-- Take Stock, Sorin and Yara-like selection effects are deliberately paid or conditional, so the deck must spend Actions to assemble its best turns.
 
 | Copies | Card | Type |
 |---:|---|---|
 | 2 | The House of Reed | Force |
+| 2 | The Field Train | Force |
 | 2 | The Late Banner | Force |
-| 2 | The Banner Singers | Force |
+| 1 | The Banner Singers | Force |
 | 2 | The King's Spears | Force |
 | 1 | The First Spear | Force |
 | 1 | The Red Shields | Force |
-| 1 | The White Hands of Elara | Force |
 | 1 | The Wolf Skirmishers | Force |
 | 1 | The Salt-Road Reavers | Force |
 | 1 | The Watchtowers of Eren | Force |
@@ -196,10 +195,10 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 
 **Interesting lines**
 
-- Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the strength of the line ahead.
+- Second Shield is Middle-only and can redirect opposing Tactics away from another friendly formation in its Front, making the reserve line an active protective screen.
+- Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the line ahead.
 - Damar becomes dangerous after Exhaustion, while Maelin and Catch Your Breath decide whether to keep that exhausted payoff or clear the token for mobility.
-- Serekh, Red Shields, Alda, Veyra and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield.
-- Bind the Wound and White Hands spend Actions on recovery, while Had Been Ordered Forward and Doros reward the Guard/Spearman core for surviving long enough to counter.
+- Serekh, Red Shields, Alda, Veyra, Second Shield and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -208,12 +207,11 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 | 2 | The Damar | Force |
 | 1 | The Serekh | Force |
 | 1 | The Black Pursuers | Force |
-| 1 | Thirty Spears | Force |
 | 1 | A Hundred Shields | Force |
 | 1 | The King's Spears | Force |
 | 1 | The First Spear | Force |
 | 1 | The White Hands of Elara | Force |
-| 1 | The Wolf Skirmishers | Force |
+| 2 | The Second Shield | Force |
 | 1 | The Salt-Road Reavers | Force |
 | 1 | The Crow Archers | Force |
 | 1 | Guarded | Bond |
