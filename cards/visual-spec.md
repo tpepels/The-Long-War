@@ -14,10 +14,8 @@ has its own presentation.
 The face order is **exposed strip → illustration → centered title → written
 classifications → rules → footer**. Decoration comes from four reusable raster
 assets; artwork, text, numbers and functional symbols remain live elements.
-All families still use the same renderer and raster furniture, but the parchment
-receives a restrained family tint so card types can be distinguished at a glance:
-Force umber, Bond teal, Name cobalt, Hero violet, Tactic crimson, Order olive,
-Stratagem slate and Narrative burgundy.
+All eight families use the same uncoloured aged-parchment shell and ornament,
+matching the shared Astra-finished physical-card treatment.
 
 ## Geometry and typography
 
@@ -54,16 +52,17 @@ double chevrons. Kinds retain circular outlines; roles and ranks use unframed
 silhouettes. The classification line repeats the symbols alongside their words.
 Action uses a circled cross. These are functional SVGs, not decorative frames.
 
-Strength is 6.4 mm. Exposed reminders are 2.7 mm, reduced to 2.35 mm for longer
-or multiple reminders. Timing words, once-per-Battle sockets and hard row
-restrictions remain visible; full rules stay in the body. The reference's sample
-wording does not replace the current card's wording or classifications.
+The exposed strip uses a single **2.45 mm** text scale and a single **3.8 mm**
+primary icon scale. The fixed zones are **14 mm / 19 mm / remaining width** after
+3 mm outer padding. Long reminders wrap in the right zone without shrinking.
+Timing words and once-per-Battle sockets remain visible; hard row restrictions are
+represented by same-size row icons in the middle zone. Full rules stay in the body.
+The reference's sample wording does not replace the current card's wording or
+classifications.
 
-Non-formation strips show the family name. “Played face-down” and “This Battle”
-appear at the right of those strips, where they remain visible independently of
-title length. The strip content sits slightly lower within the fixed 10.5 mm
-exposed edge to give the top ornament more breathing room. The footer retains the
-authored card ID and build revision.
+Non-formation strips use the same three zones: family symbol at left, family name
+in the middle and status text such as “Played face-down” or “This Battle” at right.
+The footer retains the authored card ID and build revision.
 
 ## Raster assets and artwork
 
