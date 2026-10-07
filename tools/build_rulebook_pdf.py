@@ -25,7 +25,7 @@ TYPST_SOURCE = DIST / "rulebook.typ"
 OUTPUT = DIST / "rulebook.pdf"
 
 MIN_PAGE_TEXT = 80
-MAX_PAGES = 6
+MAX_PAGES = 8
 
 
 TEACHING_PLATE_IMAGES = {
