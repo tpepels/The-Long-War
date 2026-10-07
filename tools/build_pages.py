@@ -119,11 +119,12 @@ def build_print_art() -> None:
     target_dir.mkdir(parents=True, exist_ok=True)
 
     cards = load_card_file(CARDS)["cards"]
-    for card in cards:
-        source = source_dir / (card["id"] + ".png")
+    art_ids = sorted({card.get("art_id", card["id"]) for card in cards})
+    for art_id in art_ids:
+        source = source_dir / (art_id + ".png")
         if not source.is_file():
             raise ValueError(f"Missing canonical card artwork: {source}")
-        target = target_dir / (source.stem + ".webp")
+        target = target_dir / (art_id + ".webp")
         with Image.open(source) as image:
             image = image.convert("RGB")
             image.thumbnail(
