@@ -45,6 +45,12 @@ PRINTABLE_PAGES = {
 }
 PRINT_ART_MAX_PX = 960
 PRINT_ART_QUALITY = 86
+CARD_FRAME_MAX_PX = {
+    "card-shell": 1134,
+    "art-window": 744,
+    "title-divider": 640,
+    "command-seal": 160,
+}
 
 
 def print_build_version() -> str:
@@ -94,6 +100,7 @@ def print_build_version() -> str:
         WEB / "site-nav.template.html",
         WEB / "playmat.html",
         WEB / "tokens.html",
+        *(WEB / "art" / "card-frame" / (name + ".png") for name in CARD_FRAME_MAX_PX),
         *REFERENCE_DECKS,
     ]
     digest = hashlib.sha256()
@@ -106,7 +113,7 @@ def print_build_version() -> str:
 
 
 def build_print_art() -> None:
-    """Generate compact browser-print artwork from canonical source PNGs."""
+    """Generate compact card art and lossless shared frames from source PNGs."""
     source_dir = WEB / "art" / "cards"
     target_dir = DIST / "art" / "cards-print"
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -129,6 +136,25 @@ def build_print_art() -> None:
                 quality=PRINT_ART_QUALITY,
                 method=6,
             )
+
+    frame_dir = DIST / "art" / "card-frame"
+    frame_dir.mkdir(parents=True, exist_ok=True)
+    css_path = DIST / "physical-cards.css"
+    css = css_path.read_text(encoding="utf-8")
+    for name, max_px in CARD_FRAME_MAX_PX.items():
+        source = WEB / "art" / "card-frame" / (name + ".png")
+        if not source.is_file():
+            raise ValueError(f"Missing shared card frame artwork: {source}")
+        with Image.open(source) as image:
+            image = image.convert("RGBA")
+            image.thumbnail((max_px, max_px), Image.Resampling.LANCZOS)
+            image.save(frame_dir / (name + ".webp"), "WEBP", lossless=True, method=6)
+        css = re.sub(
+            r'(url\(\s*[\"\']?art/card-frame/' + re.escape(name) + r')\.png([\"\']?\s*\))',
+            r"\1.webp\2",
+            css,
+        )
+    css_path.write_text(css, encoding="utf-8")
 
 
 def stamp_print_version(version: str) -> None:
@@ -182,6 +208,7 @@ def version_static_assets() -> str:
         if path.is_file()
         and (
             path.suffix in {".js", ".mjs", ".css", ".whl"}
+            or (path.parent == DIST / "art" / "card-frame" and path.suffix == ".webp")
             or path.relative_to(DIST).as_posix()
             in {"data/cards.json", "data/playtest-decks.json", "data/reference-decks.json"}
         )
@@ -194,6 +221,19 @@ def version_static_assets() -> str:
         digest.update(b"\0")
     version = digest.hexdigest()[:12]
 
+    frame_names = "|".join(re.escape(name) for name in CARD_FRAME_MAX_PX)
+    frame_pattern = re.compile(
+        r'(?P<prefix>url\(\s*[\"\']?)(?P<path>art/card-frame/(?:'
+        + frame_names + r')\.webp)(?P<suffix>[\"\']?\s*\))'
+    )
+    for css in DIST.rglob("*.css"):
+        source = css.read_text(encoding="utf-8")
+        source = frame_pattern.sub(
+            lambda match: f'{match["prefix"]}{match["path"]}?v={version}{match["suffix"]}',
+            source,
+        )
+        css.write_text(source, encoding="utf-8")
+
     play_js = DIST / "play.js"
     if play_js.exists():
         source = play_js.read_text(encoding="utf-8")
@@ -205,7 +245,7 @@ def version_static_assets() -> str:
         play_js.write_text(source, encoding="utf-8")
 
     asset_pattern = re.compile(
-        r'(?P<attr>src|href)="(?P<path>(?!https?://)[^"#?]+\.(?:js|mjs|css))"'
+        r'(?P<attr>src|href)="(?P<path>(?!https?://)[^"#?]+\.(?:js|mjs|css))(?:\?v=[^"&#]*)?"'
     )
     for page in DIST.rglob("*.html"):
         source = page.read_text(encoding="utf-8")
