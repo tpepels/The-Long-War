@@ -231,6 +231,14 @@ CARD TYPOGRAPHY - TUNING PANEL
   --accent: #5d4a2d;
   --deep: #191c20;
   --paper: #f1dfb9;
+
+  /* Shell filter defaults. Individual card families override these below. */
+  --card-shell-sepia: 0;
+  --card-shell-saturate: 1;
+  --card-shell-hue: 0deg;
+  --card-shell-brightness: 1;
+  --card-shell-contrast: 1;
+
   --art-height: 30mm;
   --identity-height: 19mm;
   --footer-height: 15mm;
@@ -245,12 +253,132 @@ CARD TYPOGRAPHY - TUNING PANEL
   overflow: hidden;
   border: 0;
   border-radius: 2.5mm;
-  background: transparent url("art/card-frame/card-shell.png") center/100% 100%
-    no-repeat;
+  background: transparent;
   color: var(--deep);
   box-shadow: 0 1.1mm 2.4mm #2927192b;
   font: var(--card-base-font-size)/var(--card-base-line-height)
     var(--card-base-font-family);
+}
+
+/*
+===============================================================================
+CARD SHELL COLOUR - TUNING PANEL
+===============================================================================
+
+  card-shell.png supplies the complete parchment/frame colour.
+
+  The shell is rendered on .physical-card::before, so the filter changes ONLY
+  that PNG. Text, SVG icons, illustrations and the Command seal are untouched.
+
+  Each card family below has five simple controls:
+
+    --card-shell-sepia       0 = original colour, 1 = fully sepia first
+    --card-shell-saturate    1 = original saturation; higher = stronger colour
+    --card-shell-hue         rotate the shell colour around the hue wheel
+    --card-shell-brightness  1 = original brightness
+    --card-shell-contrast    1 = original contrast
+
+  FORCE deliberately stays on the original sand-coloured shell.
+
+  Starting-point hue guide after adding some sepia:
+      0deg   = sand / gold
+     60deg   = yellow-green
+    100deg   = green / teal
+    160deg   = cyan / blue
+    210deg   = blue / violet
+    250deg   = violet / purple
+    300deg   = magenta / red
+    340deg   = warm red / rust
+
+  These are intentionally easy-to-edit starting values, not canonical colours.
+===============================================================================
+*/
+
+.card-force {
+  --card-shell-sepia: 0;
+  --card-shell-saturate: 1;
+  --card-shell-hue: 0deg;
+  --card-shell-brightness: 1;
+  --card-shell-contrast: 1;
+}
+
+.card-bond {
+  --card-shell-sepia: 0.28;
+  --card-shell-saturate: 1.35;
+  --card-shell-hue: 105deg;
+  --card-shell-brightness: 1;
+  --card-shell-contrast: 1;
+}
+
+.card-name {
+  --card-shell-sepia: 0.3;
+  --card-shell-saturate: 1.4;
+  --card-shell-hue: 165deg;
+  --card-shell-brightness: 1;
+  --card-shell-contrast: 1;
+}
+
+.card-hero {
+  --card-shell-sepia: 0.3;
+  --card-shell-saturate: 1.4;
+  --card-shell-hue: 235deg;
+  --card-shell-brightness: 1;
+  --card-shell-contrast: 1;
+}
+
+.card-tactic {
+  --card-shell-sepia: 0.3;
+  --card-shell-saturate: 1.45;
+  --card-shell-hue: 305deg;
+  --card-shell-brightness: 1;
+  --card-shell-contrast: 1;
+}
+
+.card-order {
+  --card-shell-sepia: 0.3;
+  --card-shell-saturate: 1.3;
+  --card-shell-hue: 70deg;
+  --card-shell-brightness: 1;
+  --card-shell-contrast: 1;
+}
+
+.card-stratagem {
+  --card-shell-sepia: 0.18;
+  --card-shell-saturate: 0.9;
+  --card-shell-hue: 175deg;
+  --card-shell-brightness: 0.98;
+  --card-shell-contrast: 1.04;
+}
+
+.card-narrative {
+  --card-shell-sepia: 0.3;
+  --card-shell-saturate: 1.35;
+  --card-shell-hue: 275deg;
+  --card-shell-brightness: 0.98;
+  --card-shell-contrast: 1;
+}
+
+.physical-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: transparent url("art/card-frame/card-shell.png") center/100% 100%
+    no-repeat;
+  filter:
+    sepia(var(--card-shell-sepia))
+    saturate(var(--card-shell-saturate))
+    hue-rotate(var(--card-shell-hue))
+    brightness(var(--card-shell-brightness))
+    contrast(var(--card-shell-contrast));
+}
+
+/* Keep all live card content above the filtered shell. */
+.physical-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 /*
