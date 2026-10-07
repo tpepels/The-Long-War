@@ -1323,6 +1323,186 @@
       ]
     },
     {
+      "id": "the-relief-column",
+      "title": "The Relief Column",
+      "type": "force",
+      "classes": [
+        "human",
+        "healer",
+        "steward"
+      ],
+      "command_cost": 2,
+      "strength": 2,
+      "effects": [
+        {
+          "timing": "middle",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "AHEAD TIRELESS"
+        }
+      ],
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS.",
+      "design_tags": [
+        "middle-only",
+        "positional-support",
+        "reserve",
+        "exhaustion",
+        "movement"
+      ],
+      "allowed_rows": [
+        "middle"
+      ],
+      "unique": false,
+      "art_id": "the-white-hands-of-elara",
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "middle",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "tireless",
+            "target": "directly_ahead"
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle row."
+        },
+        {
+          "kind": "continuous",
+          "label": "MIDDLE",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS."
+        }
+      ]
+    },
+    {
+      "id": "the-field-train",
+      "title": "The Field Train",
+      "type": "force",
+      "classes": [
+        "human",
+        "builder",
+        "steward"
+      ],
+      "command_cost": 2,
+      "strength": 2,
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "PAY 1 · PREPARED → AHEAD"
+        }
+      ],
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nACTION - Pay 1 Command. Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
+      "design_tags": [
+        "middle-only",
+        "positional-support",
+        "reserve",
+        "prepared",
+        "attachment"
+      ],
+      "allowed_rows": [
+        "middle"
+      ],
+      "unique": false,
+      "art_id": "the-house-of-reed",
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "action",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "attach_prepared",
+            "target": "prepared_component_same_front",
+            "destination": "directly_ahead",
+            "activation_cost": 1
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle row."
+        },
+        {
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Pay 1 Command. Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal."
+        }
+      ]
+    },
+    {
+      "id": "the-second-shield",
+      "title": "The Second Shield",
+      "type": "force",
+      "classes": [
+        "human",
+        "guard",
+        "veteran"
+      ],
+      "command_cost": 2,
+      "strength": 3,
+      "effects": [
+        {
+          "timing": "reaction",
+          "text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "REDIRECT TACTIC"
+        }
+      ],
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nREACTION - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+      "design_tags": [
+        "middle-only",
+        "positional-support",
+        "reserve",
+        "protection",
+        "reaction"
+      ],
+      "allowed_rows": [
+        "middle"
+      ],
+      "unique": false,
+      "art_id": "the-red-shields",
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "reaction",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "redirect_tactic",
+            "trigger": "friendly_other_targeted_same_front",
+            "target": "self"
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle row."
+        },
+        {
+          "kind": "trigger",
+          "label": "REACTION",
+          "text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal."
+        }
+      ]
+    },
+    {
       "id": "followed",
       "title": "Followed",
       "type": "bond",
