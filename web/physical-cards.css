@@ -855,11 +855,13 @@ EXPOSED TOP ROW - TUNING PANEL
   margin: 0.4mm 0.5mm 0mm 1.5mm;
   padding: 1.3mm 0 0;
 }
-.effect-block {
+.effect-block,
+.placement-rule {
   margin: 0;
   padding: 0.25mm 0 0.35mm;
 }
-.effect-block + .effect-block {
+.effect-block + .effect-block,
+.placement-rule + .effect-block {
   padding-top: 0.65mm;
 }
 .effect-head {
