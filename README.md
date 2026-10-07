@@ -1,8 +1,17 @@
 # The Long War
 
-The Long War is a two-player card game with one canonical rules engine shared by browser play, simulations, AI/search, and analysis.
+The Long War is a two-player card game with a current **print-and-play physical ruleset** and an experimental software implementation.
 
-This README is the developer entry point. Player-facing rules live in `rules/rulebook.md`; architecture and repository ownership rules live in `ARCHITECTURE.md` and `AGENTS.md`.
+The repository is intentionally split into separate workstreams:
+
+1. **Physical game** - cards, decks, artwork, and player-facing rules.
+2. **Print/web presentation** - printable cards, rulebook, reference sheets, and website presentation.
+3. **Runtime engine/webgame** - executable implementation of the authored physical rules.
+4. **AI/balance/research** - consumers of the implemented engine.
+
+The physical game may advance while runtime implementation is temporarily behind. When that happens, the webgame is experimental until engine-sync work lands; UI code must not invent replacement rules.
+
+Read `WORKSTREAMS.md` first for ownership, branch naming, and PR boundaries. Player-facing rules live in `rules/rulebook.md`; deeper software architecture lives in `ARCHITECTURE.md` and agent instructions in `AGENTS.md`.
 
 ## Development setup
 
@@ -53,18 +62,21 @@ make full-lab FULL_LAB_ARGS="--force"
 
 ## What to edit
 
-| Change | Primary source | Normal verification |
-| --- | --- | --- |
-| Configurable match rule | `src/longwar/rules.py` | focused regression; rebuild native code if affected |
-| Engine transition/effect primitive | `src/longwar/_fast_engine_*.pxi` under `_fast_engine_core.pxi` | `make native-build && make verify` |
-| Card data/mechanics | `cards/cards.json` | `make verify` |
-| Shipped deck membership | `decks/*.json`, catalogued by `decks/index.json` | `make verify` |
-| Browser session adapter | `src/longwar/web_api.py` | `make verify` |
-| Browser UI | `web/play.html`, `web/play.js`, `web/play.css` | `make verify` |
-| Remote peer transport | `web/remote-peer.mjs` | `make verify` |
-| Search/evaluation | search `.pxi`, agent adapters, heuristic core | `make native-build && make verify-algorithms` |
-| Rulebook prose | `rules/rulebook.md` | `make pages` |
-| Balance/reporting | analysis modules and tools | focused tests first; expensive evidence only when needed |
+| Concern | Primary source | Workstream | Normal verification |
+| --- | --- | --- | --- |
+| Physical rule wording | `rules/rulebook.md` | game | `make pages` |
+| Card pool/mechanics wording | `cards/cards.json` | game | card/data validation; engine sync may follow separately |
+| Playtest decks | `cards/v2/playtest-decks.json`, `decks/*.json` | game | deck legality + `make pages` |
+| Printable cards/reference/markers | `web/cards*`, `web/playtest-kit*`, `web/playmat.html`, `web/tokens*` | print | `make pages` + visual print QA |
+| Configurable runtime rule | `src/longwar/rules.py` | engine | focused regression + native rebuild if affected |
+| Runtime transition/effect primitive | `src/longwar/_fast_engine_*.pxi` | engine | `make native-build && make verify` |
+| Browser session adapter | `src/longwar/web_api.py` | engine/web | `make verify` |
+| Interactive webgame UI | `web/play.html`, `web/play.js`, `web/play.css` | web | `make verify` |
+| Remote transport | `web/remote-peer.mjs` | web | `make verify` |
+| Search/evaluation | search `.pxi`, agent adapters, heuristic core | ai | `make native-build && make verify-algorithms` |
+| Balance/reporting | analysis modules and tools | balance/research | focused tests first; expensive evidence only when needed |
+
+Do not combine these workstreams in one PR merely to keep them synchronized. A physical-rule/card change may merge first; the corresponding runtime implementation belongs in a linked engine PR.
 
 Add regressions at the semantic or contract boundary that changed. Do not duplicate a rule in several consumers just to make tests pass.
 
@@ -198,4 +210,4 @@ Generated material belongs under `artifacts/` or `dist/`.
 - Native/wasm binaries are never committed.
 - Historical reports under `reports/` are context, not current evidence.
 
-Work directly on `main` unless isolation is genuinely useful. Preserve unrelated changes and refresh current `main` before substantial writes.
+Use workstream branches for substantive changes and keep PRs single-purpose; see `WORKSTREAMS.md`. Preserve unrelated changes and refresh current `main` before substantial writes.
