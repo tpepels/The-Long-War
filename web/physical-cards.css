@@ -628,7 +628,7 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .class-line {
   position: absolute;
-  left: 4.5mm;
+  left: 13mm;
   right: 17mm;
   bottom: var(--card-class-footer-bottom);
   z-index: 2;
@@ -757,6 +757,7 @@ EXPOSED TOP ROW - TUNING PANEL
   display: block;
   width: 3.3mm;
   height: 3.3mm;
+  display: none;
 }
 .footer-id {
   grid-column: 2;
@@ -767,6 +768,7 @@ EXPOSED TOP ROW - TUNING PANEL
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: none;
 }
 .footer-version {
   grid-column: 2;
@@ -792,6 +794,7 @@ EXPOSED TOP ROW - TUNING PANEL
   place-items: center;
   background: url("art/card-frame/command-seal.png") center/100% 100% no-repeat;
   color: #f8e5bc;
+  padding-bottom: 3px;
 }
 .cost-gem b {
   font: 600 var(--card-cost-font-size)/1 var(--card-cost-font-family);
