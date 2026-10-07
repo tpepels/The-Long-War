@@ -836,6 +836,13 @@ EXPOSED TOP ROW - TUNING PANEL
   width: 3.2mm;
   height: 3.2mm;
 }
+.class-type-item {
+  font-weight: 700;
+}
+.class-type-item svg {
+  width: 3.2mm;
+  height: 3.2mm;
+}
 .class-separator {
   font: var(--card-class-separator-font-size)/1 var(--card-class-font-family);
   color: var(--accent);
