@@ -10,6 +10,8 @@ from pathlib import Path
 
 import pytest
 
+from tools import check_card_layout
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))
 CARDS = DATA["cards"]
@@ -238,7 +240,9 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
         assert output.one("card-title")["text"] == card["title"]
         cost = output.one("cost-gem")
         assert cost["text"] == str(card["command_cost"])
-        assert len(output.all("seal-inner", within=cost)) == 1
+        assert len(output.all("seal-inner", within=cost)) == (0 if card["type"] == "force" else 1)
+        if card["type"] == "force":
+            assert not any(node["tag"] == "svg" and cost in node["ancestors"] for node in output.elements)
         assert [node["text"] for node in output.all("effect-text")] == [e["text"] for e in effects(card)]
 
         formation = card["type"] in {"force", "bond", "name", "hero"}
@@ -354,6 +358,79 @@ def test_force_uses_shared_card_layout() -> None:
     assert "(isFormationCard(card)?stackEdge(card):eventCrown(card))" in js
     assert '<div class="card-body"><div class="card-identity">' in js
     assert '<div class="motif-field" aria-hidden="true"></div>' in js
+
+
+def test_force_proof_uses_raster_decoration_and_reorders_shared_regions() -> None:
+    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
+    for selector, order in ((".motif-field", 0), (".card-identity", 1), (".rules", 2)):
+        rule = re.search(r"\.card-force " + re.escape(selector) + r"\{([^}]+)\}", css)
+        assert rule is not None
+        assert re.search(rf"\border:\s*{order}\s*;", rule.group(1))
+    for asset in ("card-shell", "art-window", "title-divider", "command-seal"):
+        assert f'art/card-frame/{asset}.png' in css
+
+
+def test_vanilla_force_rules_are_blank_and_other_families_keep_their_baseline() -> None:
+    force = next(card for card in CARDS if card["type"] == "force" and not effects(card))
+    bond = {**next(card for card in CARDS if card["type"] == "bond"), "effects": []}
+    force_output, bond_output = render_cards([force, bond])
+    assert force_output.one("rules")["text"] == ""
+    assert not force_output.all("empty-rules")
+    assert bond_output.one("empty-rules")["text"] == "No special rules."
+
+
+@pytest.mark.parametrize(
+    ("override", "expected"),
+    [("0%", "0%"), ("100%", "100%"), ("37.5%", "37.5%"), (" 12.5% ", "12.5%"),
+     (None, "50%"), (0, "50%"), ("-1%", "50%"), ("101%", "50%"),
+     ("1e2%", "50%"), ("calc(50%)", "50%"), ('50%;color:red;\" onload=\"bad()', "50%")],
+)
+def test_art_focus_emits_only_safe_percentages(override, expected: str) -> None:
+    force = next(card for card in CARDS if card["type"] == "force")
+    output = render_cards([{**force, "art_focus_x": override, "art_focus_y": override}])[0]
+    attrs = output.one("physical-card")["attrs"]
+    assert attrs["style"].endswith(f";--art-x:{expected};--art-y:{expected}")
+    assert "onload" not in attrs
+
+
+def test_force_layout_probes_cover_dense_rules_and_long_titles_without_changing_cards() -> None:
+    original = json.dumps(CARDS, sort_keys=True)
+    dense, long_title = check_card_layout.force_layout_probes(CARDS)
+    assert 170 < sum(len(effect["text"]) for effect in dense["effects"]) <= 250
+    assert len(long_title["title"]) >= 32
+    dense_output, title_output = render_cards([dense, long_title])
+    assert "dense" in dense_output.one("physical-card")["attrs"]["class"].split()
+    assert [node["text"] for node in dense_output.all("effect-text")] == [effect["text"] for effect in dense["effects"]]
+    assert title_output.one("card-title")["text"] == long_title["title"]
+    assert "title-very-long" in title_output.one("physical-card")["attrs"]["class"].split()
+    assert json.dumps(CARDS, sort_keys=True) == original
+
+
+@pytest.mark.parametrize(
+    ("override", "failure"),
+    [
+        (".card-force .motif-field{height:19mm;min-height:19mm;max-height:19mm;flex-basis:19mm}", "force-art-height"),
+        (".card-force .motif-field{order:2}", "force-title-before-art"),
+        (".card-force .class-line{visibility:hidden}", "classification-hidden"),
+        (".card-force .class-body-item>span{visibility:hidden}", "classification-hidden"),
+        (".card-force .class-line{transform:translateX(80mm)}", "classification-outside"),
+        (".card-force .edge-live-text{width:1mm;max-width:1mm;flex:0 0 1mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}", "edge-live-text-overflow"),
+    ],
+)
+def test_physical_geometry_guard_detects_force_region_failures(tmp_path, override: str, failure: str) -> None:
+    browser = check_card_layout.browser_path()
+    if browser is None:
+        pytest.skip("Chrome/Chromium required for geometry guard regression")
+    force = next(card for card in CARDS if card["id"] == "the-crow-archers")
+    document = check_card_layout.physical_layout_document([force])
+    document = document.replace("</head>", f"<style>{override}</style></head>")
+    path = tmp_path / "force-region-probe.html"
+    path.write_text(document, encoding="utf-8")
+    result = check_card_layout.run_browser(browser, path)
+    assert result.returncode == 0, result.stderr
+    match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
+    assert match is not None, result.stdout[-1000:]
+    assert f"{force['id']}:{failure}" in match.group(1).split(";")
 
 
 def test_force_art_uses_exact_card_id_filenames_when_available() -> None:

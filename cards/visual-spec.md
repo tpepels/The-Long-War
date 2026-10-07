@@ -2,132 +2,81 @@
 
 The cards are physical war-table components. The exposed stack is the battlefield interface.
 
+## Current checkpoint
+
+The raster design is a **Force-only proof awaiting approval**. All 30 Forces have
+been reviewed. Bonds, Names, Heroes, Tactics, Orders, Stratagems and Narratives
+retain their current layouts and 20 mm illustration windows until that approval.
+The full 128-card art audit and extensions to other families follow the Force review.
+
+All families still use `web/physical-cards.js` and `web/physical-cards.css` for the
+catalogue, playtest kit, stack proofs and print sheets. The runtime webgame has its
+own presentation; this work does not change game semantics or canonical card data.
+
 ## Fixed geometry
 
 - Card size: **68 × 96 mm**.
-- Force bottom, Bond middle, Name top.
-- Each additional card is shifted downward **10.5 mm**.
-- The exposed 10.5 mm edge is exactly **one horizontal row**.
-- Browser and print use the same renderer.
+- Stack order: Force below Bond below Name, with each layer shifted down **10.5 mm**.
+- Force face order: **10.5 mm exposed strip → 25 mm art → 19 mm centered identity region → rules → 15 mm footer**.
+- The Force Command seal is **12.5 mm** square at the bottom right.
+- A4 landscape sheets hold **4 × 2 cards**, a **272 × 192 mm** block with no gaps.
 
-Nothing may change the top-row baseline: not title length, rules density, card family, or Hero mode. The stat group and classification pictograms keep their full geometry; the live reminder occupies the flexible remainder of the row. The title/meta region also has fixed height so the illustration begins at the same vertical coordinate on every card.
+The exposed strip stays fixed regardless of title length or rules density. It
+contains the role and Strength, classification pictograms, live buried reminders
+and any hard row restriction. Reminders may wrap within the strip. Titles,
+Command cost, Unique, card ID and completed PLAY effects belong on the full face.
 
-## What belongs in the exposed row
+Print cut boxes remain square and meet at shared seams. Rounded corners within
+the raster shell are decorative and may remain visible inside those boxes.
 
-Only information that can still matter while most of the card is covered:
+## Force face and symbols
 
-1. card role + Strength;
-2. classifications;
-3. live buried state/ability;
-4. hard row restriction, where one exists.
+The Force uses an aged parchment shell with blue and gold ornament. Its shield
+sits to the left of the Strength numeral; the Force face does not add a separate
+crossed-weapons mark. Other families retain their current stat treatments,
+including separate Force and Name values on Heroes.
 
-Do not put title, Command cost, Unique, card ID, finished PLAY text, flavor, or full prose in the exposed edge.
+The illustration precedes the centered EB Garamond title. Classification words
+and their symbols sit beneath the title and divider. The exposed strip uses only
+classification pictograms: circles for kind, diamonds for role and pennants for
+rank. Front, Middle and Rear restrictions use row diagrams with a small lock.
 
-## Symbol grammar
+Gentium rules prose is **3.25 mm**, or **2.85 mm** for dense Force layouts. Timing
+labels, functional symbols and any once-per-Battle use socket remain live markup.
+Vanilla Forces have an empty rules area; they do not gain a printed “No special
+rules” placeholder. The Command numeral is live text over the raster seal, with
+no visible COMMAND label. The footer keeps the card ID and build revision.
 
-### Card roles
+## Raster assets and artwork
 
-Force = shield. Bond = linked chain. Name = standard/banner.
+Four reusable PNG authoring assets live in `web/art/card-frame/`:
+`card-shell.png`, `art-window.png`, `title-divider.png` and `command-seal.png`.
+They supply the shell, aperture ornament, title divider and cost seal. These are
+the only decorative overlays; no semantic glyph, watermark or extra scene may
+be composited over the illustration.
 
-Hero shows two adjacent role stats: Force shield value and Name banner modifier. Do not compress both into one circle.
+Every card still uses `web/art/cards/<card-id>.png`. The **128 canonical cards and
+128 per-card illustrations are unchanged** at this checkpoint. All Force art
+uses centered `50% 50%` focus. Optional `art_focus_x` and `art_focus_y` values
+accept percentages from 0% through 100%; invalid values fall back to the center.
 
-### Strength
+The Force review found existing subject-head crops on The First Spear, The Old
+Guard, The Dust Riders and The Black Pursuers (`the-black-company`). Their
+retained originals already cut those heads; no recrops were made for this proof.
 
-Strength has its own crossed-weapons symbol. Card role and Strength are separate concepts and separate marks.
-
-### Classifications
-
-The enclosure shape communicates the classification layer:
-
-- Kind = circle: Human, Ship, Stronghold.
-- Role = diamond: Archer, Guard, Scout, Rider, Skirmisher, Raider, Healer, Spearman, Steward, Builder, Seer.
-- Rank = pennant: King, Captain, Veteran, Heir.
-
-The exposed edge shows classification pictograms only. The full face spells classifications out beneath the title with the same symbols.
-
-Do not turn complete ability semantics into rebus strings. Symbols identify repeated concepts; the live buried reminder remains a very short text fragment such as `ENEMY -1`, `IGNORE TACTIC`, or `ARCHER/SCOUT +1`.
-
-### Rows
-
-Front, Middle and Rear use a three-row diagram with the relevant bar filled.
-
-A hard row restriction is the row diagram plus a small lock, never a long FRONT ONLY label.
-
-### Timing
-
-The exposed edge uses timing pictograms:
-- Action = diamond/action mark.
-- Reaction = returning arrow.
-- Bonded = chain.
-- While Named = banner.
-
-If an Action or Reaction is once per Battle, print an empty circular **use socket** beside the timing symbol. Cover the socket after use and clear it for the next Battle.
-
-Once-per-Battle is a limit, never a timing window.
-
-### Command
-
-Command uses the d20/faceted-die symbol in rules and exposed reminder grammar.
-
-The bottom-right printed card cost uses the original dark octagonal Command seal with the numeral centered inside it. There is no visible COMMAND label.
-
-## Full face
-
-The full card returns to words where words are better:
-
-- dominant EB Garamond title;
-- classification symbols plus written names below the title;
-- generated illustration;
-- open rules typography;
-- quiet footer.
-
-Symbols support scanning. They do not replace sentence grammar.
-
-## Illustration
-
-The generated illustration is the sole illustration layer.
-
-Every card has a per-card illustration under `web/art/cards/`. The Pages build requires a matching card-ID PNG and generates optimized print derivatives.
-
-No vector heraldry, watermark drawing, or second image may sit over the illustration.
-
-All card families, including Force, use the shared **20 mm illustration window** and shared card-body layout. The effective shared art aperture is 62.36 × 20 mm (3.118:1). Force source illustrations are normalized offline to a canonical 1248 × 400 raster matching that aperture, with the subject-preserving crop baked into the PNG. Runtime artwork therefore defaults to centered `50% 50%`. Optional card data fields `art_focus_x` and `art_focus_y` remain available only as escape hatches; they must not be used instead of normalizing inconsistent source dimensions.
-
-## Rules
-
-Rules are printed directly on parchment. There are no beige rule boxes.
-
-Each effect has a timing pictogram, bold sans timing word, optional once-per-Battle use socket and Gentium rules prose.
-
-Separate effects with space and a fine rule.
-
-## Frame and depth
-
-Use one strong outer physical cut line. Do not draw another complete rounded rectangle inside it.
-
-Depth comes from paper variation, subtle edge light/shadow, restrained corner marks, illustration depth, ink/metal contrast on stats and cost, and family-specific accent color.
-
-Never use floating UI panels or card-inside-card boxes.
-
-## Non-stacking card families
-
-Tactics, Orders, Stratagems and Narratives do not waste space on the rigid battlefield strip. They use an expressive family crown while sharing the same frame, typography, illustration treatment, icon vocabulary and cost treatment.
+The Pages build preserves the PNG sources and publishes lossless, alpha-preserving
+WebP frame derivatives under `dist/art/card-frame/`, sized near 300 dpi at their
+printed dimensions: shell 1134 px long edge, art window 744 px wide, divider
+640 px wide and seal 160 px square. Only the built CSS switches these frame URLs
+to WebP. Frame content participates in the
+static asset digest and source-archive print version; built frame URLs receive
+the same cache version as the stylesheet.
 
 ## Acceptance
 
-- one exposed row only;
-- symbols, not classification prose, in that row;
-- full classification words on the full face;
-- Hero Force/Name values separate;
-- no need to lift a stack;
-- no image overlay;
-- no rules/art overlap;
-- no Command word at the cost;
-- no inner rounded-rectangle document frame;
-- print and browser share the component.
-
-## Force layout
-
-Force uses the same shared physical-card renderer as the other card families. It keeps the 10.5 mm exposed formation row through `stackEdge(card)`, then uses the standard identity block, 20 mm illustration window, rules area, footer and Command seal. Force-specific styling is limited to its family color variables.
-
-Per-card illustrations use the normal filename convention `web/art/cards/<card-id>.png`. Uncropped originals are retained under `cards/art-sources/` for authoring; they do not define production mappings.
+- Exposed information remains readable with the next stack layer in place.
+- Force art precedes its centered title and written classifications.
+- Rules remain complete, readable and clear of art, footer and cost seal.
+- Shared raster ornament preserves its transparency without covering scene content.
+- Catalogue, deck sheets and stack proofs use the same renderer.
+- Other card families remain at their current presentation until Force approval.

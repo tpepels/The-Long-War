@@ -27,7 +27,6 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .physical-card{--accent:#5c6256;--deep:#363a33;--paper:#faf8f1;--frame:.28mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:var(--frame) solid #484a40;border-radius:2.5mm;background:radial-gradient(circle at 18% 10%,rgba(255,255,255,.58),transparent 18mm),linear-gradient(145deg,rgba(93,79,48,.025),transparent 42%,rgba(49,55,42,.02)),var(--paper);color:#262821;box-shadow:0 1.1mm 2.4mm #2927192b;font:3.25mm/1.13 var(--text)}
 .physical-card::before{content:"";position:absolute;inset:1.05mm;z-index:8;pointer-events:none;border:.18mm solid color-mix(in srgb,var(--accent) 78%,transparent);border-radius:1.55mm;opacity:.62}
 .physical-card::after{content:"";position:absolute;left:7mm;right:7mm;top:0;z-index:9;height:.55mm;pointer-events:none;background:var(--accent);opacity:.9}
-.card-force{--accent:#5d6553;--deep:#37423a;--paper:#faf8f1}
 .card-bond{--accent:#775341;--deep:#62462f;--paper:#fcf7ee}
 .card-name{--accent:#3c6558;--deep:#31564b;--paper:#f5f8f1}
 .card-hero{--accent:#8a6027;--deep:#6d4b1e;--paper:#fbf6e9;border-color:#765525;border-width:.4mm}
@@ -143,7 +142,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .print-deck{margin:0 0 14mm}
 .deck-sheet-heading{display:flex;justify-content:space-between;gap:20px;width:272mm;padding:0 0 4mm;color:#4f534a;font:12px/1.3 var(--utility)}
 .print-sheet,.deck-card-grid{width:272mm;height:192mm;display:grid;grid-template-columns:repeat(4,68mm);grid-template-rows:repeat(2,96mm);gap:0;align-content:start;justify-content:start;overflow:hidden;break-inside:avoid-page}
-.print-sheet+.print-sheet,.deck-card-grid+.deck-card-grid{margin-top:8mm}
+@media screen{.print-sheet+.print-sheet,.deck-card-grid+.deck-card-grid{margin-top:8mm}}
 .print-card{box-shadow:0 .65mm 1.4mm #29271920}
 .print-version{display:none}
 
@@ -169,6 +168,100 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 
 .dense .rules{margin-bottom:.85mm;padding:.72mm .9mm .65mm}
 .very-dense .rules{margin-bottom:.65mm;padding:.55mm .72mm .48mm}
+
+/* Force proof: the shared renderer composites raster decoration at print size.
+   Other families retain their current presentation until this proof is approved. */
+.card-force{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--frame:0mm;
+  --art-height:25mm;--identity-height:19mm;
+  border:0;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;
+  color:var(--deep);
+}
+.card-force::before,.card-force::after{content:none}
+.card-force .stack-edge{
+  grid-template-columns:9mm 12mm minmax(0,1fr);column-gap:1mm;
+  padding:1.7mm 4mm .5mm;border:0;background:none;box-shadow:none;
+}
+.card-force .edge-stats{gap:.65mm}
+.card-force .type-mark{width:4.4mm;height:5.1mm}
+.card-force .strength-mark{gap:.55mm;padding:0;border:0}
+.card-force .strength-mark svg{display:none}
+.card-force .strength-mark b{font-size:5.4mm;line-height:1}
+.card-force .edge-identity{gap:.35mm;padding:0}
+.card-force .class-sigil{width:3.7mm;height:4.1mm}
+.card-force .edge-live-group{
+  height:7mm;display:flex;flex-wrap:wrap;align-content:center;
+  justify-content:flex-start;gap:.4mm .7mm;padding:0;border:0;
+}
+.card-force .edge-mechanic{flex:1 1 100%;gap:.6mm;overflow:visible;min-height:2.7mm}
+.card-force .edge-timing{display:none}
+.card-force .edge-timing-word{font:700 1.85mm/1.1 var(--text);letter-spacing:0}
+.card-force .edge-live-text{
+  font:700 2mm/1.1 var(--text);letter-spacing:0;
+  white-space:normal;text-overflow:clip;overflow:visible;
+}
+.card-force .edge-mechanic[data-reminder-has-timing="true"] .edge-timing-word{display:none}
+.card-force .edge-placement{height:2.7mm}
+.card-force .edge-placement>.glyph-row{width:2.7mm;height:2.7mm}
+.card-force .placement-lock{width:1.5mm;height:1.5mm;margin-top:1mm;background:transparent}
+.card-force .edge-live-group:has(.edge-placement){flex-wrap:nowrap}
+.card-force .edge-live-group:has(.edge-placement) .edge-mechanic{flex-wrap:wrap;gap:.15mm}
+.card-force .edge-live-group:has(.edge-placement) .edge-live-text{flex-basis:100%;font-size:1.8mm}
+.card-force .use-socket{width:2.1mm;height:2.1mm;box-shadow:none}
+.card-force .card-body{padding:0 4.1mm;gap:0}
+.card-force .motif-field{
+  order:0;margin:0 -1.6mm .7mm;border:0;background:none;box-shadow:none;
+}
+.card-force .motif-field::before{inset:.55mm;border-radius:1.25mm;filter:none}
+.card-force .motif-field::after{
+  background:url("art/card-frame/art-window.png") center/100% 100% no-repeat;box-shadow:none;
+}
+.card-force .card-identity{order:1;align-items:center;position:relative}
+.card-force .card-title{
+  flex:0 0 12mm;width:100%;max-height:12mm;margin:.35mm 0 0;
+  display:flex;align-items:center;justify-content:center;
+  font:600 5.3mm/1 var(--display);font-variant:small-caps;
+  letter-spacing:-.025em;text-align:center;text-wrap:balance;
+}
+.card-force.title-long .card-title{font-size:5mm}
+.card-force.title-very-long .card-title{font-size:4.5mm}
+.card-force .card-identity::after{
+  content:"";position:absolute;left:2mm;right:2mm;top:12.8mm;height:1.6mm;
+  background:url("art/card-frame/title-divider.png") center/100% 14mm no-repeat;
+}
+.card-force .class-line{justify-content:center;gap:.55mm;margin:2.4mm 0 0;height:4mm;flex-basis:4mm;color:var(--deep)}
+.card-force .class-body-item{gap:.25mm;font:2.5mm/1 var(--text)}
+.card-force .class-body-item svg{width:3.2mm;height:3.2mm}
+.card-force .class-separator{font-size:2mm;color:var(--accent)}
+.card-force .rules{
+  order:2;margin:.4mm .65mm 0;padding:1.3mm 0 0;
+  border:0;background:none;box-shadow:none;
+}
+.card-force .effect-block{padding:.25mm 0 .35mm}
+.card-force .effect-block+.effect-block{padding-top:.45mm;border:0}
+.card-force .effect-head{gap:.65mm;margin-bottom:.5mm}
+.card-force .effect-timing-icon{width:3.3mm;height:3.3mm;color:var(--deep)}
+.card-force .effect-label{font:700 2.45mm/1 var(--text);letter-spacing:.02em}
+.card-force .effect-text{font:3.25mm/1.19 var(--text);color:var(--deep)}
+.card-force .effect-text .rule-referent{font-style:normal;color:inherit}
+.card-force .effect-use{color:inherit}
+.card-force .effect-use em{font:2mm/1 var(--text)}
+.card-force.dense .effect-text,.card-force.very-dense .effect-text{font-size:2.85mm;line-height:1.12}
+.card-force.dense .effect-block,.card-force.very-dense .effect-block{padding-bottom:1mm}
+.card-force .card-footer{
+  flex:0 0 15mm;min-height:15mm;padding:2mm 17mm 3mm 4.5mm;
+  display:grid;grid-template-columns:3.3mm minmax(0,1fr);grid-template-rows:auto 2mm;
+  align-content:end;align-items:center;gap:.25mm .7mm;border:0;color:var(--deep);
+}
+.card-force .footer-mark{grid-column:1;grid-row:1;color:inherit}
+.card-force .footer-mark svg{display:block;width:3.3mm;height:3.3mm}
+.card-force .footer-id{grid-column:2;grid-row:1;justify-self:start;max-width:100%;font:1.65mm/1 var(--text);color:inherit}
+.card-force .footer-version{grid-column:2;grid-row:2;justify-self:start;font-size:1.2mm;opacity:.65}
+.card-force .cost-gem{
+  right:2.4mm;bottom:2.4mm;width:12.5mm;height:12.5mm;
+  background:url("art/card-frame/command-seal.png") center/100% 100% no-repeat;
+  filter:none;color:#f8e5bc;
+}
+.card-force .cost-gem b{font:600 7.3mm/1 var(--display)}
 
 
 /* Print-and-play deck planner ------------------------------------------------ */
@@ -316,7 +409,8 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 }
 
 @media print{
-  .deck-print-planner,.deck-screen-summary{display:none!important}
+  .deck-print-planner,.deck-screen-summary,.deck-sheet-heading{display:none!important}
+  .print-deck{margin:0}
   .print-excluded{display:none!important}
 }
 

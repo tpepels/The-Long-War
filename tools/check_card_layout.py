@@ -238,8 +238,11 @@ function visible(element) {
 }
 const anchors = new Map();
 function sameAnchor(card, label, values) {
-  if (!anchors.has(label)) anchors.set(label, values);
-  else if (values.some((value, index) => Math.abs(value - anchors.get(label)[index]) > 1))
+  // Force is the approval proof; the other families still share their baseline.
+  // Keep alignment checks within both groups until the design is propagated.
+  const key = (card.matches(".card-force") ? "force:" : "baseline:") + label;
+  if (!anchors.has(key)) anchors.set(key, values);
+  else if (values.some((value, index) => Math.abs(value - anchors.get(key)[index]) > 1))
     fail(card, "unaligned-" + label);
 }
 const textContext = document.createElement("canvas").getContext("2d");
@@ -266,10 +269,12 @@ function textInk(element) {
   };
 }
 const articles = [...document.querySelectorAll(".physical-card")];
+const sourceCards = new Map(cards.map(card => [card.id, card]));
 if (!articles.length) issues.push("No physical cards rendered");
 if (!STACKS && articles.length !== cards.length) issues.push("Wrong catalogue card count");
 for (const card of articles) {
   const bounds = rect(card);
+  const forceCard = card.matches(".card-force");
   if (Math.abs(bounds.width - 68 * mm) > 1 || Math.abs(bounds.height - 96 * mm) > 1) fail(card, "physical-size");
   const formationCard = card.matches(".card-force, .card-bond, .card-name, .card-hero");
   const edge = card.querySelector(".stack-edge");
@@ -304,6 +309,14 @@ for (const card of articles) {
         if (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
           fail(card, label + "-overflow");
       }
+      // A fitting parent does not detect an ellipsized child. Force reminders
+      // must remain fully readable in the exposed strip during this proof.
+      if (forceCard) for (const reminder of edge.querySelectorAll(".edge-live-text")) {
+        if (!visible(reminder)) fail(card, "edge-live-text-hidden");
+        if (!inside(rect(edge), rect(reminder))) fail(card, "edge-live-text-outside");
+        if (reminder.scrollHeight > reminder.clientHeight + 1 || reminder.scrollWidth > reminder.clientWidth + 1)
+          fail(card, "edge-live-text-overflow");
+      }
     }
   } else {
     const crown = card.querySelector(".event-crown");
@@ -319,6 +332,34 @@ for (const card of articles) {
       fail(card, selector.slice(1) + "-overflow");
   }
   const art = card.querySelector(".motif-field"), rules = card.querySelector(".rules"), footer = card.querySelector(".card-footer");
+  if (forceCard) {
+    const title = card.querySelector(".card-title"), identity = card.querySelector(".card-identity");
+    if (!art) fail(card, "missing-art");
+    else {
+      if (!visible(art) || !inside(bounds, rect(art))) fail(card, "force-art-outside");
+      if (rect(art).height < 20 * mm - .5 || rect(art).height > 25 * mm + .5) fail(card, "force-art-height");
+      if (title && rect(title).top < rect(art).bottom - 1) fail(card, "force-title-before-art");
+    }
+    const source = sourceCards.get(card.dataset.cardId);
+    const classification = card.querySelector(".class-line");
+    if ((source?.classes?.length || source?.references?.length) && !classification) fail(card, "missing-classification");
+    if (classification) {
+      if (!visible(classification) || !rect(classification).height) fail(card, "classification-hidden");
+      if (!inside(bounds, rect(classification)) || !identity || !inside(rect(identity), rect(classification)))
+        fail(card, "classification-outside");
+      if (classification.scrollHeight > classification.clientHeight + 1 || classification.scrollWidth > classification.clientWidth + 1)
+        fail(card, "classification-overflow");
+      if (title && rect(classification).top < rect(title).bottom - 1) fail(card, "force-classification-before-title");
+      if (rules && rect(rules).top < rect(classification).bottom - 1) fail(card, "classification-rules-overlap");
+      for (const item of classification.querySelectorAll(".class-body-item")) {
+        if (!visible(item)) fail(card, "classification-hidden");
+        if (!inside(rect(classification), rect(item))) fail(card, "classification-outside");
+        const label = item.querySelector(":scope > span");
+        if (!label || !visible(label) || !rect(label).height) fail(card, "classification-hidden");
+        else if (!inside(rect(classification), rect(label))) fail(card, "classification-outside");
+      }
+    }
+  }
   if (art && rules && rect(rules).top < rect(art).bottom - 1) fail(card, "art-rules-overlap");
   if (art && art.querySelector("svg, img")) fail(card, "art-overlay");
   if (rules && footer && rect(rules).bottom > rect(footer).top + 1.5) fail(card, "rules-footer-overlap");
@@ -376,6 +417,21 @@ window.addEventListener("load", async () => {{ await document.fonts.ready; {chec
 </script><div class="print-version" aria-hidden="true">TLW print vlayout-check</div></body></html>"""
 
 
+def force_layout_probes(cards: list[dict]) -> list[dict]:
+    """Stress print presentation with in-memory copies, never authored changes."""
+    vanilla = next(card for card in cards if card["type"] == "force" and not card.get("effects"))
+    dense_text = (
+        "Choose another friendly formation in this Front. Remove one Exhaustion token from it. "
+        "If it is in the Rear row, it gets +1 Strength this Battle. Then you may Move this formation one position."
+    )
+    return [
+        {**vanilla, "id": "dense-force-layout-probe", "title": "The Long Watch",
+         "text": "PLAY - " + dense_text, "effects": [{"timing": "play", "text": dense_text}]},
+        {**vanilla, "id": "long-title-force-layout-probe",
+         "title": "The Wardens of the Far Western Marches"},
+    ]
+
+
 def check_physical_layout(browser: str, pdf_path: Path | None = None) -> None:
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))["cards"]
     probe = {
@@ -397,6 +453,7 @@ def check_physical_layout(browser: str, pdf_path: Path | None = None) -> None:
         ("physical-catalogue", physical_layout_document(cards), False),
         ("physical-stacks", physical_layout_document(cards, stacks=True), False),
         ("physical-numeric-range", physical_layout_document([numeric_probe]), False),
+        ("physical-force-stress", physical_layout_document(force_layout_probes(cards)), False),
         ("physical-overflow-probe", physical_layout_document([probe]), True),
     ):
         with tempfile.TemporaryDirectory(prefix="longwar-layout-" + label + "-") as temp_dir:
@@ -448,7 +505,7 @@ def check_physical_layout(browser: str, pdf_path: Path | None = None) -> None:
         else:
             raise SystemExit("pdftotext is required to verify Card PDF pagination and card coverage")
         print(f"PDF: {pdf_path}")
-    print(f"PASS: {len(cards)} physical cards, six formation stacks, numeric-range stress, and oversized-reminder detection")
+    print(f"PASS: {len(cards)} physical cards, six formation stacks, numeric-range and Force stress, and oversized-reminder detection")
 
 
 def main() -> None:

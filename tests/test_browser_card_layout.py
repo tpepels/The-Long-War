@@ -4,10 +4,14 @@ import json
 import re
 import shutil
 import subprocess
+from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
+from pypdf import PdfReader
+
+from tools import check_card_layout
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -126,7 +130,9 @@ def test_print_renderer_preserves_current_content_and_modes() -> None:
         assert output.one("card-title")["text"] == card["title"]
         assert output.one("footer-id")["text"] == card["id"]
         assert output.one("footer-version")["text"] == "vdev"
-        assert bool(output.one("footer-mark")["text"].strip()) == bool(card.get("unique"))
+        footer_mark = output.one("footer-mark")["text"].strip()
+        expected_mark = ("force" if card["type"] == "force" else "") + ("Unique" if card.get("unique") else "")
+        assert footer_mark == expected_mark
         assert [node["text"] for node in output.all("effect-text")] == [
             effect["text"] for effect in physical_effects(card)
         ]
@@ -217,6 +223,68 @@ def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
     assert 192 == 210 - 2 * 9
     assert ".print-card{border-radius:0}" in css
     assert ".print-card::before{border-radius:0}" in css
+
+
+@pytest.mark.parametrize("page_name", ["cards", "playtest-kit"])
+def test_real_card_sheets_print_without_screen_spacing_or_extra_pages(tmp_path, page_name: str) -> None:
+    browser = check_card_layout.browser_path()
+    if browser is None:
+        pytest.skip("Chrome/Chromium required for print pagination regression")
+    card_data = json.loads(text("cards/cards.json"))
+    deck_data = json.loads(text("cards/playtest-decks.json"))
+    if page_name == "cards":
+        card_data["cards"] = card_data["cards"][:16]
+        groups = [[card["id"] for card in card_data["cards"]]]
+        ready = "16 current cards · ready to print"
+    else:
+        groups = [[entry["id"] for entry in deck["cards"] for _ in range(entry["copies"])]
+                  for deck in deck_data["decks"][:2]]
+    expected_sheets = [group[start:start + 8] for group in groups for start in range(0, len(group), 8)]
+    if page_name == "playtest-kit":
+        ready = f"{sum(map(len, groups))} cards · {len(expected_sheets)} card sheets · ready to print"
+    fixture_data = json.dumps({"cards": card_data, "decks": deck_data}).replace("<", "\\u003c")
+    document = text(f"web/{page_name}.html").replace("<head>", f'<head><base href="{(ROOT / "web").as_uri()}/">')
+    document = re.sub(
+        r'<link rel="stylesheet" href="physical-cards\.css[^"]*">',
+        lambda _: "<style>" + text("web/physical-cards.css") + "</style>", document,
+    )
+    document = document.replace('id="include-mechanics" type="checkbox" checked', 'id="include-mechanics" type="checkbox"')
+    instrumentation = f"""<style>#print-margin-probe{{position:fixed;left:0;bottom:0;font:1px/1 Arial;z-index:10000}}</style>
+<script>
+const fixtures = {fixture_data};
+window.fetch = async url => ({{ok:true,json:async () => fixtures[url.includes("playtest-decks") ? "decks" : "cards"]}});
+window.matchMedia("print").addEventListener("change", event => {{
+  if (!event.matches) return;
+  const second = document.querySelectorAll(".print-sheet")[1], deck = document.querySelector(".print-deck");
+  document.getElementById("print-margin-probe").textContent =
+    "sheet-margin:" + (second ? getComputedStyle(second).marginTop : "missing") +
+    ";deck-margin:" + (deck ? getComputedStyle(deck).marginBottom : "0px");
+}});
+</script>"""
+    document = document.replace("</head>", instrumentation + "</head>")
+    document = document.replace("</body>", '<div id="print-margin-probe">margin-unmeasured</div></body>')
+    document = re.sub(r'<script src="([^"?]+)[^"]*"></script>',
+                      lambda match: "<script>" + text("web/" + match[1]) + "</script>", document)
+    path = tmp_path / f"{page_name}-sheets.html"
+    pdf = tmp_path / f"{page_name}-sheets.pdf"
+    path.write_text(document, encoding="utf-8")
+    result = check_card_layout.run_browser(browser, path, pdf)
+    assert result.returncode == 0, result.stderr
+    assert ready in result.stdout
+    assert pdf.is_file()
+    reader = PdfReader(pdf)
+    for page in reader.pages:
+        assert (float(page.mediabox.width), float(page.mediabox.height)) == pytest.approx(
+            (297 / 25.4 * 72, 210 / 25.4 * 72), abs=1,
+        )
+    # Read print-media geometry from a fixed diagnostic. Chromium's dumped DOM
+    # and even its beforeprint event can still expose the screen-media layout.
+    pages = [page.extract_text() for page in reader.pages]
+    assert "sheet-margin:0px;deck-margin:0px" in "\n".join(pages), pages
+    assert len(pages) == len(expected_sheets), f"Expected {len(expected_sheets)} eight-card sheets, found {len(pages)} pages"
+    for page, sheet in zip(pages, expected_sheets, strict=True):
+        for card_id, copies in Counter(sheet).items():
+            assert len(re.findall(r"(?<![a-z0-9-])" + re.escape(card_id) + r"(?![a-z0-9-])", page)) == copies, card_id
 
 
 def test_physical_print_surfaces_share_renderer_while_browser_play_stays_separate() -> None:

@@ -119,7 +119,9 @@ function effectTokens(effect){
 function liveMarkup(effect){
   const limited=effect.limit==="once_per_battle";
   const reminder=exposedText(effect);
-  return '<span class="edge-mechanic" aria-label="'+esc((LABEL[effect.timing]||effect.timing)+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(LABEL[effect.timing]||effect.timing)+'">'+effectTimingGlyph(effect.timing)+'</span><span class="edge-timing-word">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
+  const timing=LABEL[effect.timing]||effect.timing;
+  const redundant=effect.timing==="continuous"||reminder.toUpperCase().startsWith(timing);
+  return '<span class="edge-mechanic" data-timing="'+esc(effect.timing)+'" data-reminder-has-timing="'+redundant+'" aria-label="'+esc(timing+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing" title="'+esc(timing)+'">'+effectTimingGlyph(effect.timing)+'</span><span class="edge-timing-word">'+esc(timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
 }
 function placementMarkup(card){
   const rows=Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
@@ -140,10 +142,10 @@ function heroModeHeading(mode){
 }
 function rules(card){
   if(card.type==="hero")return '<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
-  return effects(card).length?effects(card).map(effectBlock).join(""):'<p class="empty-rules">No special rules.</p>';
+  return effects(card).length?effects(card).map(effectBlock).join(""):card.type==="force"?"":'<p class="empty-rules">No special rules.</p>';
 }
 function statusLine(card){const bits=[];if(card.type==="stratagem")bits.push("Played face-down");if(card.duration==="this_battle")bits.push("This Battle");return bits.join(" · ")}
-function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2H28L38 12V28L28 38H12L2 28V12Z"/><path class="seal-inner" d="M14 6H26L34 14V26L26 34H14L6 26V14Z"/></svg><b>'+esc(card.command_cost)+'</b></span>'}
+function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'">'+(card.type==="force"?"":'<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 2H28L38 12V28L28 38H12L2 28V12Z"/><path class="seal-inner" d="M14 6H26L34 14V26L26 34H14L6 26V14Z"/></svg>')+'<b>'+esc(card.command_cost)+'</b></span>'}
 function densityClass(card){
   const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length,0);
   if(card.type==="hero"){
@@ -154,7 +156,7 @@ function densityClass(card){
 }
 function artFocus(value,fallback){
   const text=String(value??"").trim();
-  if(/^\\d+(?:\\.\\d+)?%$/.test(text))return text;
+  if(/^\d+(?:\.\d+)?%$/.test(text)&&parseFloat(text)<=100)return text;
   return fallback;
 }
 function artStyle(card,options={}){
@@ -167,7 +169,8 @@ function artStyle(card,options={}){
 }
 function cardArticle(card,extra="",options={}){
   const density=densityClass(card),titleDensity=card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":"",heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
-  return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
+  const footerMark=(card.type==="force"?typeGlyph("force"):"")+(card.unique?"Unique":"");
+  return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+footerMark+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
