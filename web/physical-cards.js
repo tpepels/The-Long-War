@@ -198,7 +198,8 @@ function artStyle(card,options={}){
   const y=artFocus(card.art_focus_y,"50%");
   const artBase=options.printArt?"art/cards-print/":"art/cards/";
   const artExt=options.printArt?".webp":".png";
-  const artURL=artBase+esc(card.id)+artExt+"?v="+encodeURIComponent(VERSION);
+  const artId=String(card.art_id||card.id);
+  const artURL=artBase+esc(artId)+artExt+"?v="+encodeURIComponent(VERSION);
   return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
 }
 function cardArticle(card,extra="",options={}){
