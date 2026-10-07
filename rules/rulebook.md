@@ -59,7 +59,7 @@ At the end of a Battle, compare the Strength on both sides of each active Front.
 
 There is no overall winner of a Battle. Each Front is settled separately.
 
-## What you need
+## What you need {#components}
 
 For a two-player print-and-play game, prepare:
 
@@ -231,6 +231,21 @@ Cycling is a legal Action whenever you have at least two cards in hand. Because 
 
 Your hand limit is **10**. If you are holding more than 10 cards, discard until you are holding 10.
 
+## Command {#command}
+
+Command is both your spending resource and your ability to remain in the war.
+
+- You begin at **20 Command** and can never hold more than 20.
+- Pay printed card costs and Maneuver costs when you take those Actions.
+- You may not voluntarily pay a cost that would take you below 0 Command.
+- Command increases and reductions stack. Apply all applicable increases first, then reductions.
+- A reduction cannot take a positive printed card cost below 1 unless an effect explicitly allows a minimum of 0.
+- Losing Fronts at Battle end costs Command and may take you below 0.
+- Effects that **STEAL COMMAND** during a Battle do not immediately cause Collapse; Collapse is checked only during Battle resolution.
+- Recovery happens only after the Collapse check.
+
+Use a visible track, dial, dice, or the printable Command tracks from the marker sheet so both players can always see both totals.
+
 ## Passing {#passing}
 
 **Pass is a turn, not an Action.**
@@ -325,7 +340,7 @@ Then:
 
 The battlefield itself does not reset.
 
-## Special cards {#narratives}
+## Special cards {#stories}
 
 Some cards do not fit the ordinary Force-Bond-Name structure. Their rules are collected here so you do not have to hunt for them elsewhere.
 
