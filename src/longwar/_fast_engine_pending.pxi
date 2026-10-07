@@ -75,54 +75,6 @@ cdef inline void _v2_add_strength_marker(
         state.temporary[slot] += amount
 
 
-cdef void _v2_add_tax_marker(
-    FastEngine self,
-    FastState state,
-    int player,
-    int origin,
-    V2EffectSpec* effect,
-    uint64_t action,
-) except *:
-    cdef int front = -1
-    cdef int encoded_front
-    cdef int i
-    cdef int kind = action_kind(action)
-    cdef uint32_t extra = action_extra(action)
-
-    if effect.front_mode == V2_FRONT_THIS and origin >= 0:
-        front = front_from_slot(origin)
-    elif effect.front_mode == V2_FRONT_CHOOSE_ACTIVE:
-        if kind == TYPE_TACTIC or kind == TYPE_ORDER:
-            encoded_front = <int>(extra & V2_PLAY_FRONT_MASK)
-        else:
-            encoded_front = <int>(extra >> V2_EFFECT_OPTION_SHIFT)
-        front = encoded_front - 1
-
-    if (
-        front < 0
-        or front >= FRONT_COUNT
-        or not front_is_active(state.battle, front)
-    ):
-        return
-    if state.tax_len >= MAX_TAX_MARKERS:
-        raise RuntimeError("V2 Tax marker capacity exceeded")
-
-    i = state.tax_len
-    state.tax_owner[i] = player
-    state.tax_target_player[i] = other_player(player)
-    state.tax_front[i] = front
-    state.tax_amount[i] = effect.amount
-    state.tax_card_type_mask[i] = (
-        effect.card_type_mask if effect.card_type_mask else 255
-    )
-    state.tax_expires_turn[i] = (
-        state.turn_number + 1
-        if effect.expires == V2_EXPIRES_BEFORE_NEXT_TURN
-        else -1
-    )
-    state.tax_len += 1
-
-
 cdef void _v2_apply_resolved_effect(
     FastEngine self,
     FastState state,
