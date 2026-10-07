@@ -108,7 +108,7 @@ Avoid generic `fix-*`, `cleanup/*`, and agent-specific branch names for new work
 
 ## Testing policy
 
-Tests protect durable invariants; they do not define the evolving game. Exact card balance, rulebook wording, playtest deck composition, and visual/layout choices belong to advisory `design` diagnostics unless they represent an explicitly durable contract.
+Tests protect durable invariants; they do not define the evolving game. Exact card balance, rulebook wording, playtest deck composition, and visual/layout choices should be reviewed directly rather than preserved as permanent regression tests unless they represent an explicitly durable contract.
 
 Physical game and print changes may intentionally lead the engine or invalidate an old design assertion. In that case, update/remove the obsolete assertion and record follow-up engine work separately. See `TESTING.md`.
 
@@ -118,6 +118,6 @@ Pages deployment is independent of regression-test status and is blocked only wh
 
 - `main` contains the current printable physical playtest package.
 - The physical game is usable independently of the webgame.
-- Runtime V2 integration is unfinished and belongs in a separate `engine/` workstream.
+- Runtime integration is unfinished and belongs in a separate `engine/` workstream.
 - The webgame should be treated as experimental whenever runtime support lags the authored cards/rules.
 - Historical branches and reports are not current sources of truth.

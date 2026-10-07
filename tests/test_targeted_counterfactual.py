@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar.cards import load_card_file
 from longwar.counterfactual import build_experiment_card_data, build_samples
 from longwar.game import GameEngine

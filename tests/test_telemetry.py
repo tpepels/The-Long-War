@@ -5,6 +5,8 @@ import json
 import pytest
 from pathlib import Path
 
+pytestmark = pytest.mark.research
+
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
 from longwar.game.engine import all_positions

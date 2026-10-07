@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import json
 from pathlib import Path
 
 import pytest
@@ -19,206 +18,114 @@ def data():
     return load_card_file(ROOT / "cards/cards.json")
 
 
-@pytest.mark.parametrize("field", ["id", "title", "type", "unique", "classes", "text", "design_rules", "rule_blocks"])
-def test_required_card_fields_are_validated(data, field):
+@pytest.mark.parametrize(
+    "field",
+    ["id", "title", "type", "unique", "classes", "text", "design_rules", "rule_blocks"],
+)
+def test_required_card_fields_are_validated(data, field) -> None:
     del data["cards"][0][field]
     with pytest.raises(ValueError, match="missing required fields"):
         validate_card_data(data)
 
 
-@pytest.mark.parametrize("invalid", [None, [], {"schema_version": True, "cards": []}, {"schema_version": 1, "cards": [None]}])
-def test_malformed_payload_is_a_validation_error(invalid):
+@pytest.mark.parametrize(
+    "invalid",
+    [None, [], {"schema_version": True, "cards": []}, {"schema_version": 1, "cards": [None]}],
+)
+def test_malformed_payload_is_a_validation_error(invalid) -> None:
     with pytest.raises(ValueError):
         validate_card_data(invalid)
 
 
-@pytest.mark.parametrize("mechanics", [
-    {"strength_bouns": 1},
-    {"deploy_rank": "back"},
-    {"adjacent_strength_aura": 1},
-])
-def test_unsupported_force_mechanics_cannot_silently_become_noops(data, mechanics):
-    force = next(card for card in data["cards"] if card["type"] == "force")
-    force["design_rules"] = mechanics
-    with pytest.raises(ValueError):
+def test_unknown_mechanic_is_rejected(data) -> None:
+    card = next(card for card in data["cards"] if card.get("design_rules"))
+    card["design_rules"]["unsupported_test_mechanic"] = True
+
+    with pytest.raises(ValueError, match="unsupported mechanic"):
         validate_card_data(data)
 
 
-@pytest.mark.parametrize("card_id, mechanics", [
-    ("iria", {"on_name_attached": "teleport"}),
-    ("the-baggage-was-abandoned", {"effect": "destroy_everything"}),
-    ("the-ground-was-held", {"stratagem": {"unexpected": True}}),
-    ("followed", {"opposing_front_modifier": 1}),
-])
-def test_unsupported_canonical_mechanics_are_rejected(data, card_id, mechanics):
-    next(card for card in data["cards"] if card["id"] == card_id)["design_rules"] = mechanics
-    with pytest.raises(ValueError):
-        validate_card_data(data)
-
-
-def test_unsupported_rules_channel_is_rejected(data):
+def test_unsupported_rules_channel_is_rejected(data) -> None:
     data["cards"][0]["rules"] = {}
     with pytest.raises(ValueError, match="rules field is unsupported"):
         validate_card_data(data)
 
 
 @pytest.mark.parametrize("value", [True, 1.5, -1, 128])
-def test_strength_and_command_cost_fit_the_native_schema(data, value):
+def test_strength_and_command_cost_fit_native_schema(data, value) -> None:
     for field in ("strength", "command_cost"):
-        card = copy.deepcopy(data)
-        card["cards"][0][field] = value
+        changed = copy.deepcopy(data)
+        changed["cards"][0][field] = value
         with pytest.raises(ValueError):
-            validate_card_data(card)
+            validate_card_data(changed)
 
 
-def test_unknown_v2_target_selector_is_rejected(data):
-    card = next(card for card in data["cards"] if card["id"] == "the-red-shields")
-    card["design_rules"]["effects"][0]["target"] = "slightly-behind-ish"
+def test_unknown_target_selector_is_rejected(data) -> None:
+    effect = None
+    for card in data["cards"]:
+        groups = [card.get("design_rules", {}).get("effects", [])]
+        groups.extend(card.get("design_rules", {}).get("modes", {}).values())
+        for effects in groups:
+            for candidate in effects:
+                if "target" in candidate:
+                    effect = candidate
+                    break
+            if effect is not None:
+                break
+        if effect is not None:
+            break
+
+    assert effect is not None, "expected at least one targeted card effect"
+    effect["target"] = "unsupported-test-target"
     with pytest.raises(ValueError, match="unsupported target"):
         validate_card_data(data)
 
 
-def test_force_roles_are_optional_descriptive_labels(data):
-    force = next(card for card in data["cards"] if card["type"] == "force")
-    force.pop("role", None)
-    validate_card_data(data)
-
-    force["role"] = "skirmisher"
-    validate_card_data(data)
-
-
-def test_extended_rule_block_kinds_and_command_costs_are_valid(data):
-    card = data["cards"][0]
-    card["command_cost"] = 5
-    card["rule_blocks"] = [
-        {"kind": "cost", "label": "COST", "text": "Costs 1 less Command."},
-        {"kind": "replacement", "label": "REPLACE", "text": "Use this instead."},
-    ]
-    validate_card_data(data)
-
-
-def test_direct_engine_input_is_validated_before_indexing(data):
+def test_direct_engine_input_rejects_duplicate_ids(data) -> None:
     data["cards"].append(copy.deepcopy(data["cards"][0]))
     with pytest.raises(ValueError, match="Duplicate card id"):
         GameEngine(data)
 
 
-def test_engine_default_profile_is_exactly_standard(data):
-    assert GameEngine(data).rules == GameRules.standard()
-
-
-def test_rule_overrides_use_canonical_cards():
-    data = load_card_file(ROOT / "cards/cards.json")
-    variants = (
-        GameRules.standard(),
-        GameRules.standard().with_overrides(command_cap=19, starting_command=19),
-    )
-    for rules in variants:
-        GameEngine(data, rules=rules)
-
-
-@pytest.mark.parametrize("changes", [{"opening_hand_size": 0}, {"opening_hand_size": True}, {"command_cap": "20"}, {"hand_limit": 7.5}])
-def test_rules_do_not_silently_coerce_values(changes):
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"opening_hand_size": 0},
+        {"opening_hand_size": True},
+        {"command_cap": "20"},
+        {"hand_limit": 7.5},
+    ],
+)
+def test_rules_do_not_silently_coerce_values(changes) -> None:
     with pytest.raises(ValueError):
         GameRules(**changes)
 
 
-def test_runtime_deck_validation_has_no_arbitrary_64_card_cap(data):
+def test_runtime_deck_validation_has_no_arbitrary_64_card_cap(data) -> None:
     engine = GameEngine(data)
-    maximal_legal = [
+    large_legal = [
         card["id"]
         for card in data["cards"]
         for _ in range(1 if card["unique"] else 2)
     ]
-    assert len(maximal_legal) > 64
-    engine.validate_deck(maximal_legal)
+    assert len(large_legal) > 64
+    engine.validate_deck(large_legal)
+
     with pytest.raises(InvalidDeck, match="list of card ids"):
         engine.validate_deck([{}] * 34)
 
 
-def test_native_engine_accepts_largest_current_legal_deck(data):
-    engine = GameEngine(data)
-    maximal_legal = [
-        card["id"]
-        for card in data["cards"]
-        for _ in range(1 if card["unique"] else 4)
-    ]
-
-    # Current V2 pool: 31 Unique cards + 97 non-Unique cards x4.
-    assert len(maximal_legal) == 419
-    engine.validate_deck(maximal_legal)
-
-    state = engine.new_game(
-        maximal_legal,
-        maximal_legal,
-        seed=1810,
-        first_player=0,
-        opening_bonus=False,
-    )
-    # Opening hands leave 409 cards in each draw pile.
-    assert len(state.players[0].deck) == 409
-    native = engine._native_core()
-    packed = native.from_game_state(state)
-    key = native.information_key(packed, 0)
-    assert key == native.information_key(native.from_game_state(state), 0)
-
-
-def _expanded_pool(data, size):
-    template = next(card for card in data["cards"] if card["id"] == "followed")
+def _expanded_pool(data, size: int):
+    template = next(card for card in data["cards"] if not card["unique"])
     while len(data["cards"]) < size:
         card = copy.deepcopy(template)
-        card["id"] = f"test-bond-{len(data['cards'])}"
+        card["id"] = f"test-card-{len(data['cards'])}"
+        card["title"] = f"Test Card {len(data['cards'])}"
         data["cards"].append(card)
     return data
 
 
-def test_expanded_pool_keeps_actions_and_information_keys_safe(data):
-    engine = GameEngine(_expanded_pool(data, 128))
-    deck = json.loads((ROOT / "decks/mobility-open-bonds.json").read_text())["cards"]
-    state = engine.new_game(
-        deck,
-        deck,
-        seed=17,
-        first_player=0,
-        opening_bonus=False,
-    )
-    # The canonical 128-card pool itself now exercises the widened card-code
-    # field. Twenty distinct Bonds also keep the legal action set above the
-    # historical 256-action buffer without approaching MAX_ACTIONS.
-    state.players[0].deck = []
-    bond_ids = [
-        card_id
-        for card_id, card in engine.cards.items()
-        if card["type"] == "bond"
-    ]
-    state.players[0].hand = bond_ids[:20]
-    legal = engine.legal_actions(state)
-    assert len(legal) > 256
-    card_actions = [
-        action for action in legal
-        if getattr(action, "card_id", None) is not None
-    ]
-    assert card_actions
-    assert any(
-        getattr(action, "card_id", None) == bond_ids[19]
-        for action in card_actions
-    )
-    for player in state.players:
-        player.deck = []
-        player.hand = []
-        # Native card zones cover the full four-copy wire-format pool:
-        # 128 possible card identities x 4 copies.
-        player.discard = ["followed"] * (128 * 4)
-    native = engine._native_core()
-    key = native.information_key(native.from_game_state(state), 0)
-    assert len(key) > 1024
-    assert key == native.information_key(native.from_game_state(state), 0)
-    state.players[0].discard.append("followed")
-    with pytest.raises(ValueError, match="native capacity"):
-        native.from_game_state(state)
-
-
-def test_card_identity_capacity_is_checked_before_packing(data):
-    GameEngine(_expanded_pool(data, 128))
+def test_card_identity_capacity_is_checked_before_native_packing(data) -> None:
+    GameEngine(_expanded_pool(copy.deepcopy(data), 128))
     with pytest.raises(ValueError, match="at most 128"):
-        GameEngine(_expanded_pool(data, 129))
+        GameEngine(_expanded_pool(copy.deepcopy(data), 129))

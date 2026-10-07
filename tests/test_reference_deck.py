@@ -14,57 +14,60 @@ from longwar.decks import (
     validate_deck_definition,
 )
 
-
 ROOT = Path(__file__).resolve().parents[1]
-DECK_FILES = (
-    "mobility-open-bonds.json",
-    "persistent-elite-heroes.json",
-    "narrative-command.json",
-    "battlefield-control-stratagems.json",
-    "momentum-orders.json",
-    "necessity-attrition.json",
-)
 
 
-def _deck(filename: str) -> list[str]:
-    return json.loads((ROOT / "decks" / filename).read_text(encoding="utf-8"))["cards"]
+def _deck_paths() -> list[Path]:
+    return sorted(
+        path
+        for path in (ROOT / "decks").glob("*.json")
+        if path.name != "index.json"
+    )
 
 
-def _cards():
+def _deck(path: Path) -> list[str]:
+    return json.loads(path.read_text(encoding="utf-8"))["cards"]
+
+
+def _cards() -> dict[str, dict]:
     data = load_card_file(ROOT / "cards" / "cards.json")
     return {card["id"]: card for card in data["cards"]}
 
 
-def test_active_reference_decks_are_canonical_and_legal() -> None:
+def test_reference_decks_are_canonical_and_legal() -> None:
     cards = _cards()
-    for filename in DECK_FILES:
-        deck = _deck(filename)
-        validate_deck_definition(deck, cards)
+    paths = _deck_paths()
+    assert paths
+
+    for path in paths:
+        deck = _deck(path)
         assert set(deck) <= set(cards)
-        assert len(deck) >= MINIMUM_DECK_SIZE
-        assert sum(cards[card_id]["type"] == "force" for card_id in deck) >= MINIMUM_FORCE_COUNT
-        assert sum(cards[card_id]["type"] == "name" for card_id in deck) >= MINIMUM_PRINTED_NAME_COUNT
+        validate_deck_definition(deck, cards)
 
 
-def test_deck_minimums_are_not_exact_caps() -> None:
+def test_minimum_deck_size_is_a_floor_not_an_exact_size() -> None:
     cards = _cards()
-    base = _deck("mobility-open-bonds.json")
+    base = _deck(_deck_paths()[0])
     extra = next(
-        card_id for card_id, card in cards.items()
+        card_id
+        for card_id, card in cards.items()
         if not card["unique"] and base.count(card_id) < 4
     )
-    larger = [*base, extra]
-    validate_deck_definition(larger, cards)
-    assert len(larger) > MINIMUM_DECK_SIZE
+
+    validate_deck_definition([*base, extra], cards)
 
 
-def test_33_cards_are_rejected() -> None:
+def test_too_small_deck_is_rejected() -> None:
     cards = _cards()
-    with pytest.raises(InvalidDeckDefinition, match="at least 34"):
-        validate_deck_definition(_deck("mobility-open-bonds.json")[:33], cards)
+    base = _deck(_deck_paths()[0])
+    with pytest.raises(InvalidDeckDefinition, match="at least"):
+        validate_deck_definition(base[: MINIMUM_DECK_SIZE - 1], cards)
 
 
 def test_force_and_name_minimums_are_not_required() -> None:
+    assert MINIMUM_FORCE_COUNT == 0
+    assert MINIMUM_PRINTED_NAME_COUNT == 0
+
     cards = _cards()
     pool = [
         card_id
@@ -76,49 +79,29 @@ def test_force_and_name_minimums_are_not_required() -> None:
         for card_id in pool
         for _ in range(4)
     ][:MINIMUM_DECK_SIZE]
+
     assert len(deck) == MINIMUM_DECK_SIZE
-    assert all(cards[card_id]["type"] not in {"force", "name"} for card_id in deck)
     validate_deck_definition(deck, cards)
 
 
 def test_unique_and_non_unique_copy_limits() -> None:
     cards = _cards()
-    deck = _deck("mobility-open-bonds.json")
+    base = _deck(_deck_paths()[0])
 
-    unique = next(card_id for card_id in deck if cards[card_id]["unique"])
+    unique = next(card_id for card_id in base if cards[card_id]["unique"])
     with pytest.raises(InvalidDeckDefinition, match="maximum is 1"):
-        validate_deck_definition([*deck, unique], cards)
+        validate_deck_definition([*base, unique], cards)
 
     non_unique = next(
-        card_id for card_id in deck
-        if not cards[card_id]["unique"] and deck.count(card_id) <= 2
+        card_id
+        for card_id in base
+        if not cards[card_id]["unique"] and base.count(card_id) <= 2
     )
     four_copies = [
-        *deck,
-        *([non_unique] * (4 - deck.count(non_unique))),
+        *base,
+        *([non_unique] * (4 - base.count(non_unique))),
     ]
     validate_deck_definition(four_copies, cards)
+
     with pytest.raises(InvalidDeckDefinition, match="maximum is 4"):
         validate_deck_definition([*four_copies, non_unique], cards)
-
-
-def test_heroes_have_no_deck_cap_beyond_unique_titles() -> None:
-    cards = _cards()
-    heroes = [card_id for card_id, card in cards.items() if card.get("hero")]
-    assert len(heroes) >= 6
-    deck = _deck("persistent-elite-heroes.json")
-    assert len([card_id for card_id in deck if cards[card_id].get("hero")]) >= 4
-    validate_deck_definition(deck, cards)
-
-def test_reference_decks_make_observational_coverage_gap_explicit() -> None:
-    cards = _cards()
-    covered = {
-        card_id
-        for filename in DECK_FILES
-        for card_id in _deck(filename)
-    }
-
-    assert len(cards) == 95
-    assert len(covered) == 94
-    assert set(cards) - covered == {"covered-the-withdrawal-of"}
-

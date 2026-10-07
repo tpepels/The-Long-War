@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import pytest
 import json
 import random
 from pathlib import Path
+
+pytestmark = pytest.mark.research
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Phase, Position, Rank

@@ -4,6 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
+pytestmark = pytest.mark.algorithm
+
 from longwar.algorithms.alpha_beta import (
     AlphaBetaSearch,
     SearchBudget,

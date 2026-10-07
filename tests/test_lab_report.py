@@ -4,6 +4,8 @@ import json
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar.health import analyze_simulation, simulation_summary
 from longwar.rules import GameRules
 from tools import build_lab_report, build_mccfr_suite

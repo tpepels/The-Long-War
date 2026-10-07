@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar.health import (
     aggregate_simulations_for_health,
     analyze_simulation,

@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar.cards import load_card_file
 from longwar.counterfactual import (
     ExperimentSample,

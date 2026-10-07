@@ -65,9 +65,9 @@ jobs:
       - name: Core regression diagnostics
         continue-on-error: true
         run: make test-fast WORKERS=2
-      - name: Evolving game/design diagnostics
+      - name: Research and evidence diagnostics
         continue-on-error: true
-        run: python -m pytest -q --tb=short -m design
+        run: python -m pytest -q --tb=short -m "research and not algorithm"
       - name: Algorithm diagnostics
         continue-on-error: true
         run: python -m pytest -q -n 2 --tb=short --maxfail=1 -m "algorithm"
