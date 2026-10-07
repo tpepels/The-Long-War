@@ -231,6 +231,22 @@ cdef void _v2_apply_resolved_effect(
                 if component >= 0:
                     state.name[target] = -1
                     _fe_return_to_hand(self, state, owner, component)
+    elif effect.op == V2_OP_PREPARED_PAY_OR_RETURN:
+        if target >= 0:
+            owner = owner_from_slot(target)
+            _fe_enqueue_effect(
+                self,
+                state,
+                EFFECT_V2_CHOICE,
+                owner,
+                -1,
+                target,
+                option,
+                <uint32_t>effect.amount,
+                0,
+                0,
+                source_card,
+            )
     elif effect.op == V2_OP_RECOVER:
         if (
             selected_card >= 0
@@ -321,6 +337,9 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     cdef int trigger_source = state.pending_source[0]
     cdef int command_source = state.pending_command_source[0]
     cdef int aux = state.pending_aux[0]
+    cdef uint32_t pending_amount = state.pending_source_mask[0]
+    cdef int v2_option = <int>(action_extra(action) >> V2_EFFECT_OPTION_SHIFT)
+    cdef int returned_card
     cdef bint skip = card < 0 and source < 0 and dest < 0
     cdef bint was_empty
     cdef int before_mask, moved
@@ -330,6 +349,31 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         v2_effect = _v2_pending_effect(self, state)
     _fe_pop_pending_effect(self, state)
 
+    if kind == EFFECT_V2_CHOICE:
+        if v2_option == V2_OPTION_PAY:
+            if state.command[player] < <int>pending_amount:
+                raise ValueError("Cannot pay prepared-card disruption cost")
+            _fe_spend_command_fast(
+                self, state, player, <int>pending_amount
+            )
+        elif v2_option == V2_OPTION_RETURN:
+            if trigger_source >= 0:
+                if aux == V2_OPTION_BOND:
+                    returned_card = state.bond[trigger_source]
+                    if returned_card >= 0:
+                        state.bond[trigger_source] = -1
+                        _fe_return_to_hand(
+                            self, state, player, returned_card
+                        )
+                elif aux == V2_OPTION_NAME:
+                    returned_card = state.name[trigger_source]
+                    if returned_card >= 0:
+                        state.name[trigger_source] = -1
+                        _fe_return_to_hand(
+                            self, state, player, returned_card
+                        )
+        else:
+            raise ValueError("Invalid V2 pay-or-return choice")
     if kind == EFFECT_FREE_MANEUVER:
         if not skip:
             was_empty = state.force[dest] < 0
@@ -752,6 +796,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 V2_OP_LOOK_HAND,
                 V2_OP_LOOK_STRATAGEM,
                 V2_OP_MOVE,
+                V2_OP_PREPARED_PAY_OR_RETURN,
                 V2_OP_TAX,
                 V2_OP_REMOVE_EXHAUSTION,
                 V2_OP_REMOVE_NEGATIVE_MARKER,
