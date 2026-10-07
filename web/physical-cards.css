@@ -896,6 +896,18 @@ EXPOSED TOP ROW - TUNING PANEL
 .effect-text .rule-referent {
   font-style: normal;
 }
+.inline-class-ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18em;
+  vertical-align: -0.08em;
+  white-space: nowrap;
+}
+.inline-class-ref svg {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
 .effect-reminder {
   margin-top: 0.55mm;
   font: var(--card-mechanic-reminder-font-size)/var(
