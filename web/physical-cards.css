@@ -1088,7 +1088,9 @@ EXPOSED TOP ROW - TUNING PANEL
   font-size: var(--card-dense-title-very-long-font-size);
 }
 .dense .effect-text,
-.very-dense .effect-text {
+.very-dense .effect-text,
+.dense .placement-rule-text,
+.very-dense .placement-rule-text {
   font-size: var(--card-dense-effect-font-size);
   line-height: var(--card-dense-effect-line-height);
 }
