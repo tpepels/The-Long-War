@@ -146,6 +146,125 @@ cdef inline bint _v2_cost_action_affects_front(
     return False
 
 
+cdef inline bint _v2_is_card_play_kind(int kind) noexcept:
+    return (
+        kind == TYPE_FORCE
+        or kind == TYPE_BOND
+        or kind == TYPE_NAME
+        or kind == TYPE_TACTIC
+        or kind == TYPE_ORDER
+        or kind == TYPE_NARRATIVE
+        or kind == TYPE_ONGOING_NARRATIVE
+        or kind == TYPE_STRATAGEM
+    )
+
+
+cdef inline void _v2_remove_tax_marker_at(
+    FastState state,
+    int index,
+) noexcept:
+    cdef int i
+    if index < 0 or index >= state.tax_len:
+        return
+    for i in range(index, state.tax_len - 1):
+        state.tax_owner[i] = state.tax_owner[i + 1]
+        state.tax_target_player[i] = state.tax_target_player[i + 1]
+        state.tax_front[i] = state.tax_front[i + 1]
+        state.tax_amount[i] = state.tax_amount[i + 1]
+        state.tax_card_type_mask[i] = state.tax_card_type_mask[i + 1]
+        state.tax_expires_turn[i] = state.tax_expires_turn[i + 1]
+    state.tax_len -= 1
+
+
+cdef inline void _v2_remove_slot_discount_at(
+    FastState state,
+    int index,
+) noexcept:
+    cdef int i
+    if index < 0 or index >= state.discount_len:
+        return
+    for i in range(index, state.discount_len - 1):
+        state.discount_owner[i] = state.discount_owner[i + 1]
+        state.discount_target_player[i] = state.discount_target_player[i + 1]
+        state.discount_slot[i] = state.discount_slot[i + 1]
+        state.discount_amount[i] = state.discount_amount[i + 1]
+        state.discount_minimum[i] = state.discount_minimum[i + 1]
+        state.discount_card_type_mask[i] = state.discount_card_type_mask[i + 1]
+        state.discount_expires_turn[i] = state.discount_expires_turn[i + 1]
+    state.discount_len -= 1
+
+
+cdef void _v2_consume_cost_markers(
+    FastEngine self,
+    FastState state,
+    int player,
+    uint64_t action,
+) noexcept:
+    """Consume one-shot V2 cost markers after a legal action has paid its cost."""
+    cdef int kind = action_kind(action)
+    cdef int card = action_card(action)
+    cdef int pos = action_pos(action)
+    cdef int i
+    cdef uint8_t type_mask = _v2_cost_action_type_mask(self, kind, card)
+    cdef bint card_play = _v2_is_card_play_kind(kind)
+    cdef bint matches
+
+    i = state.tax_len - 1
+    while i >= 0:
+        if (
+            state.tax_expires_turn[i] >= 0
+            and state.turn_number > state.tax_expires_turn[i]
+        ):
+            _v2_remove_tax_marker_at(state, i)
+            i -= 1
+            continue
+        matches = (
+            card_play
+            and state.tax_target_player[i] == player
+            and _v2_cost_action_affects_front(
+                self, action, state.tax_front[i]
+            )
+            and (
+                state.tax_card_type_mask[i] == 0
+                or state.tax_card_type_mask[i] == 255
+                or (
+                    type_mask != 0
+                    and state.tax_card_type_mask[i] & type_mask
+                )
+            )
+        )
+        if matches:
+            _v2_remove_tax_marker_at(state, i)
+        i -= 1
+
+    i = state.discount_len - 1
+    while i >= 0:
+        if (
+            state.discount_expires_turn[i] >= 0
+            and state.turn_number > state.discount_expires_turn[i]
+        ):
+            _v2_remove_slot_discount_at(state, i)
+            i -= 1
+            continue
+        matches = (
+            (kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME)
+            and pos >= 0
+            and state.discount_target_player[i] == player
+            and state.discount_slot[i] == pos
+            and (
+                state.discount_card_type_mask[i] == 0
+                or state.discount_card_type_mask[i] == 255
+                or (
+                    type_mask != 0
+                    and state.discount_card_type_mask[i] & type_mask
+                )
+            )
+        )
+        if matches:
+            _v2_remove_slot_discount_at(state, i)
+        i -= 1
+
+
 cdef inline bint _v2_cost_tactic_targets_slot(
     uint64_t action,
     int target,
