@@ -1,4 +1,4 @@
-# mechanics and card grammar
+# Mechanics and card grammar
 
 > Canonical card definitions live only in `cards/cards.json`. This directory contains design notes, playtest lists, and physical-card documentation.
 

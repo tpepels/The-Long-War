@@ -1,4 +1,4 @@
-# physical-card visual specification
+# Physical-card visual specification
 
 The cards are physical war-table components. The exposed stack is the battlefield interface.
 
@@ -87,7 +87,7 @@ Symbols support scanning. They do not replace sentence grammar.
 
 The generated illustration is the sole illustration layer.
 
-Where a per-card illustration exists under `web/art/cards/`, use it. The eight family illustrations remain fallbacks for cards that do not yet have individual art.
+Every card has a per-card illustration under `web/art/cards/`. The Pages build requires a matching card-ID PNG and generates optimized print derivatives.
 
 No vector heraldry, watermark drawing, or second image may sit over the illustration.
 
@@ -128,6 +128,6 @@ Tactics, Orders, Stratagems and Narratives do not waste space on the rigid battl
 
 ## Force layout
 
-Force uses the same shared physical-card renderer as the other card families. It keeps the 10.5 mm exposed formation row through `stackEdge(card)`, then uses the standard identity block, 20 mm illustration window, rules area, footer and Command seal. Force-specific styling is limited to its family color variables and fallback illustration.
+Force uses the same shared physical-card renderer as the other card families. It keeps the 10.5 mm exposed formation row through `stackEdge(card)`, then uses the standard identity block, 20 mm illustration window, rules area, footer and Command seal. Force-specific styling is limited to its family color variables.
 
-Per-card illustrations use the normal filename convention `web/art/cards/<card-id>.png`. Candidate illustrations whose filenames exactly identify a Force card should be promoted to that path rather than wired through special-case CSS or JavaScript.
+Per-card illustrations use the normal filename convention `web/art/cards/<card-id>.png`. Uncropped originals are retained under `cards/art-sources/` for authoring; they do not define production mappings.

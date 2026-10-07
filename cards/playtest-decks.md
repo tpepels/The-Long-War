@@ -1,4 +1,4 @@
-# exploratory combination decks
+# Exploratory combination decks
 
 These four decks are **48 cards each** - exactly six full 8-card print sheets per deck. They are combination/playstyle decks rather than optimized tournament lists. The four lists collectively contain **every current card at least once**.
 

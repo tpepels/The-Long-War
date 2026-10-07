@@ -67,7 +67,7 @@ make full-lab FULL_LAB_ARGS="--force"
 | Physical rule wording | `rules/rulebook.md` | game | `make pages` |
 | Card pool/mechanics wording | `cards/cards.json` | game | card/data validation; engine sync may follow separately |
 | Playtest decks | `cards/playtest-decks.json`, `decks/*.json` | game | deck legality + `make pages` |
-| Printable cards/reference/markers | `web/cards*`, `web/playtest-kit*`, `web/playmat.html`, `web/tokens*` | print | `make pages` + visual print QA |
+| Printable cards/reference/markers | `web/physical-cards*`, `web/cards*`, `web/playtest-kit*`, `web/playmat.html`, `web/tokens*` | print | `make pages` + visual print QA |
 | Configurable runtime rule | `src/longwar/rules.py` | engine | focused regression + native rebuild if affected |
 | Runtime transition/effect primitive | `src/longwar/_fast_engine_*.pxi` | engine | `make native-build && make verify` |
 | Browser session adapter | `src/longwar/web_api.py` | engine/web | `make verify` |
@@ -165,7 +165,9 @@ Browser/Pyodide build logs live under `artifacts/browser/`; browser-parity outpu
 
 ## Pages and printable rulebook
 
-`tools/build_pages.py` builds the static site into `dist/`.
+`tools/build_pages.py` builds the static site into `dist/`. Public navigation is Webgame · Cards · Decks · Reference · Rules · Balance Lab, expanded from `web/site-nav.template.html` at build time. Printable markers are linked from the reference/print package.
+
+Physical cards share `web/physical-cards.js`, `web/physical-cards.css` and `web/card-symbols.js`. High-resolution card-ID PNGs stay in `web/art/cards/`; optimized WebP derivatives are generated only under `dist/art/cards-print/`. Uncropped originals in `cards/art-sources/` are never deployed.
 
 The printable rulebook is independent of browser pagination:
 
@@ -208,6 +210,9 @@ Generated material belongs under `artifacts/` or `dist/`.
 - Browser toolchains, runtime builds, logs, raw reports, policies, and full-Lab stage markers are generated.
 - The curated versioned Lab snapshots are `artifacts/lab-report.json` and `artifacts/balance-health.json`.
 - Native/wasm binaries are never committed.
-- Historical reports under `reports/` are context, not current evidence.
+- Historical reports under `reports/` are context, not current evidence; see `reports/README.md`.
+- Committed `*.generated.pxi` and `web/protocol.generated.js` are derived compile/transport inputs. Their headers name the generator; edit `protocol.py`, heuristic weights or native inputs, then regenerate locally. Deployment checks them with `--check`.
+
+Runtime completion is tracked in [#81](https://github.com/tpepels/The-Long-War/pull/81); research consumer synchronization follows in [#82](https://github.com/tpepels/The-Long-War/pull/82). These implement the current game, not a separate public version.
 
 Use workstream branches for substantive changes and keep PRs single-purpose; see `WORKSTREAMS.md`. Preserve unrelated changes and refresh current `main` before substantial writes.

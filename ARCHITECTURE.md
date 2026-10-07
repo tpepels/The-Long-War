@@ -166,7 +166,7 @@ The Lab preserves evidence provenance rather than reducing different methods to 
 
 ## 9. Browser static integrity and Pages
 
-`tools/build_pages.py` builds the static site into `dist/`.
+`tools/build_pages.py` builds the static site into `dist/`. It expands the shared six-link navigation fragment and generates optimized card artwork from preserved canonical PNGs. Authoring originals live outside the deployed tree. There is no public historical design-lab surface.
 
 `tools/check_web_static.py` guards cross-file/build contracts that ordinary syntax checks can miss:
 

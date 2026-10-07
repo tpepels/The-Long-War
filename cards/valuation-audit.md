@@ -1,4 +1,4 @@
-# command-cost valuation audit
+# Command-cost valuation audit
 
 This audit applies the provisional arithmetic in `value-model.md` to **every one of the 128 cards**. The numbers are comparative diagnostics, not automatic pricing: class synergy, topology and repeatability are too contextual for a single scalar to set final Command cost.
 

@@ -2,7 +2,7 @@
 
 Select exactly one primary workstream:
 
-- [ ] Physical game / authored rules (`game/`, `cards/`)
+- [ ] Physical game / authored rules (`game/`)
 - [ ] Print / reference presentation (`print/`)
 - [ ] Interactive web UI / transport (`web/`)
 - [ ] Runtime engine (`engine/`)

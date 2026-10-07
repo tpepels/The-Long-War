@@ -62,8 +62,8 @@ def fingerprint_paths() -> list[Path]:
             paths.append(path)
 
     # cards/cards.json is the sole canonical card-definition source. The
-    # cards/v2 directory contains only design/playtest documentation and
-    # exploratory deck lists, so those files do not define game semantics.
+    # physical design documents and exploratory print deck lists do not
+    # define executable game semantics.
     canonical_cards = ROOT / "cards" / "cards.json"
     if canonical_cards.is_file():
         paths.append(canonical_cards)

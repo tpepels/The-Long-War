@@ -144,7 +144,7 @@ def test_native_engine_accepts_largest_current_legal_deck(data):
         for _ in range(1 if card["unique"] else 4)
     ]
 
-    # Current V2 pool: 31 Unique cards + 97 non-Unique cards x4.
+    # Current pool: 31 Unique cards + 97 non-Unique cards x4.
     assert len(maximal_legal) == 419
     engine.validate_deck(maximal_legal)
 

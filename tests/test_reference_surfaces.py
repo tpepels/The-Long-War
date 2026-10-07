@@ -471,17 +471,8 @@ def test_balance_lab_hides_dynamic_evidence_from_other_rulesets() -> None:
 
 
 def test_historical_design_reports_cannot_masquerade_as_current_rules() -> None:
-    first80 = text("cards/first-80-design.md")
-    audit = text("cards/first-80-balance-audit.md")
     pass_report = text("reports/pass-rule-experiments.md")
     force_report = text("reports/force-availability-draw-candidate.md")
-
-    assert "**Historical design record.**" in first80
-    assert "Do not promote those statements back into the engine" in first80
-
-    assert "Status: **historical audit**" in audit
-    assert "Those quotas are superseded." in audit
-    assert "no Force or printed-Name minimum" in audit
 
     assert "later superseded by the 2026-10-04 overhaul" in pass_report
     assert "permanent Pass is canonical" not in pass_report

@@ -462,7 +462,7 @@ def main() -> None:
     parser.add_argument("--pdf", type=Path, help="Also export the full print catalogue to this PDF path.")
     parser.add_argument(
         "--surface", choices=("all", "print", "browser"), default="all",
-        help="Card surface to validate (print and v2 both use the shared physical renderer).",
+        help="Card surface to validate (print uses the shared physical renderer).",
     )
     args = parser.parse_args()
     if args.pdf and args.surface == "browser":

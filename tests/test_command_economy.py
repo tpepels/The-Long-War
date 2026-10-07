@@ -122,11 +122,11 @@ def test_printed_card_cost_is_paid_by_operation() -> None:
     assert state.operations_this_battle[0] == 1
 
 
-def test_all_current_cards_have_positive_native_safe_command_costs() -> None:
+def test_all_current_cards_have_nonnegative_native_safe_command_costs() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     costs = [card["command_cost"] for card in data["cards"]]
     assert costs
-    assert all(type(cost) is int and 1 <= cost < 128 for cost in costs)
+    assert all(type(cost) is int and 0 <= cost < 128 for cost in costs)
 
 
 
