@@ -188,6 +188,8 @@ During the resolution of a single Action or effect, each formation may initiate 
 
 ### Card shorthand and battlefield states
 
+The exposed strip at the top of a physical card is a quick battlefield reminder, not a separate rules source. Any restriction or condition shown there is also written in the card's rules text. A filled rank glyph therefore tells you the legal rows at a glance, while the body states the same restriction explicitly. Likewise, positional and state effects are written as conditions ("While...", "If...", or "When...") rather than depending on a bare **REAR**, **NAMED**, or similar label.
+
 The following words always have the same meaning when printed on a card:
 
 - **MOVE 1** - move the formation to one orthogonally adjacent active **empty** position: left/right in the same rank or one rank forward/back in the same Front. Never diagonal. Move is a card effect, not a Maneuver: it does not require the formation to be Named, costs no Maneuver Command, and Exhaustion does not stop it.
