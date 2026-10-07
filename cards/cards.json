@@ -1443,48 +1443,47 @@
       ]
     },
     {
-      "id": "the-second-shield",
-      "title": "The Second Shield",
+      "id": "the-signal-company",
+      "title": "The Signal Company",
       "type": "force",
       "classes": [
         "human",
-        "guard",
-        "veteran"
+        "scout",
+        "captain"
       ],
       "command_cost": 2,
-      "strength": 3,
+      "strength": 2,
       "effects": [
         {
-          "timing": "reaction",
-          "text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+          "timing": "middle",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is MOBILE.",
           "scope": "self",
           "memory": [],
-          "exposed": "REDIRECT TACTIC"
+          "exposed": "AHEAD MOBILE"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle row.\nREACTION - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is MOBILE.",
       "design_tags": [
         "middle-only",
         "positional-support",
         "reserve",
-        "protection",
-        "reaction"
+        "movement",
+        "command"
       ],
       "allowed_rows": [
         "middle"
       ],
       "unique": false,
-      "art_id": "the-red-shields",
+      "art_id": "the-lantern-scouts",
       "design_rules": {
         "effects": [
           {
-            "timing": "reaction",
+            "timing": "middle",
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "redirect_tactic",
-            "trigger": "friendly_other_targeted_same_front",
-            "target": "self"
+            "op": "maneuver_unnamed",
+            "target": "directly_ahead"
           }
         ],
         "modes": {}
@@ -1496,9 +1495,9 @@
           "text": "This Force may only occupy the Middle row."
         },
         {
-          "kind": "trigger",
-          "label": "REACTION",
-          "text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal."
+          "kind": "continuous",
+          "label": "MIDDLE",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is MOBILE."
         }
       ]
     },
