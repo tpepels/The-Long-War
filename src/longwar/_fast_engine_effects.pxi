@@ -1036,7 +1036,11 @@ cdef void _fe_apply_flanking_exhaustion(
             if not front_is_active(state.battle, front):
                 continue
             slot = slot_index(player, front, RANK_FRONT)
-            if state.force[slot] < 0 or state.exhausted[slot]:
+            if (
+                state.force[slot] < 0
+                or state.exhausted[slot]
+                or _v2_force_flank_protected(self, state, slot)
+            ):
                 continue
             for adjacent in (front - 1, front + 1):
                 if (
