@@ -895,14 +895,17 @@ EXPOSED TOP ROW - TUNING PANEL
 .effect-use em {
   font: var(--card-effect-use-font-size)/1 var(--card-label-font-family);
 }
-.effect-text {
+.effect-text,
+.placement-rule-text {
   font: var(--card-effect-text-font-size)/var(--card-effect-text-line-height)
     var(--card-rule-font-family);
 }
-.effect-text .rule-term {
+.effect-text .rule-term,
+.placement-rule-text .rule-term {
   font-weight: 700;
 }
-.effect-text .rule-referent {
+.effect-text .rule-referent,
+.placement-rule-text .rule-referent {
   font-style: normal;
 }
 .inline-class-ref {
