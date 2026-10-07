@@ -109,9 +109,10 @@ def test_growing_fronts_and_deck_rules_are_canonical_in_rulebook() -> None:
     assert "**Directly behind:** the next position toward the Rear" in source
 
     assert "at least **34 cards**" in source
+    assert "at least **14 Forces**, with Heroes counting toward this minimum" in source
+    assert "at least **6 printed Names**" in source
     assert "at most **4 copies** of any non-Unique title" in source
     assert "at most **1 copy** of any Unique title" in source
-    assert "There is no required minimum number of Forces or printed Names." in source
 
 
 def test_hidden_stratagem_and_split_hero_limits_are_explicit() -> None:
