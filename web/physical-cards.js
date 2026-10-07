@@ -91,9 +91,50 @@ function eventCrown(card){
     '<div class="edge-zone edge-zone-right"><span class="event-status">'+esc(statusLine(card))+'</span></div>'+
   '</header>';
 }
+function mechanicReminder(effect){
+  const text=String(effect?.text||"");
+  const notes=[];
+  const add=(key,note)=>{if(!notes.some(item=>item.key===key))notes.push({key,note})};
+  let match;
+
+  match=text.match(/\bSUPPORT\s+\+(\d+)\b/i);
+  if(match)add("support","The friendly Formation directly ahead gets +"+match[1]+" Strength.");
+
+  if(/\bSUPPLY\b/i.test(text)){
+    add("supply","Bonds played onto the friendly Formation directly ahead cost 1 less Command (minimum 0); Names cost 1 less (minimum 1).");
+  }
+
+  match=text.match(/\bRESERVE\s+\+(\d+)\b/i);
+  if(match)add("reserve","This Formation gets +"+match[1]+" Strength while the friendly Formation directly ahead is OUTMATCHED (the opposing Formation in the same rank has greater current Strength).");
+
+  match=text.match(/\bPRESS\s+\+(\d+)\b/i);
+  if(match)add("press","This Formation gets +"+match[1]+" Strength while at least one opposing Force in this Front is Exhausted.");
+
+  match=text.match(/\bSTEAL\s+(\d+)\s+COMMAND\b/i);
+  if(match)add("steal","The opponent loses up to "+match[1]+" Command, never below 1; regain exactly the amount lost.");
+
+  if(/\bTIRELESS\b/.test(text)){
+    add("tireless","This Force may Maneuver while Exhausted; all other Maneuver requirements still apply.");
+  }
+
+  if(/\bMOBILE\b/.test(text)){
+    add("mobile","This Force may Maneuver while Unnamed; all other Maneuver requirements still apply.");
+  }
+
+  if(/\bMOVE\s+\d+\b/.test(text)){
+    add("move","MOVE is a card effect: move orthogonally to an adjacent legal empty position; it costs no Maneuver Command and ignores Named/Exhaustion requirements.");
+  }
+
+  if(/\bSWAP\b/.test(text)){
+    add("swap","SWAP exchanges the complete contents of the two specified friendly positions; it costs no Maneuver Command and Exhaustion does not stop it.");
+  }
+
+  return notes.map(item=>item.note).join(" ");
+}
 function effectBlock(effect){
   const kind=["bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
-  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div></section>';
+  const reminder=mechanicReminder(effect);
+  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder)+'</div>':"")+'</section>';
 }
 function heroModeHeading(mode){
   return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
@@ -105,7 +146,7 @@ function rules(card){
 function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.type!=="narrative")bits.push("This Battle");return bits.join(" · ")}
 function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>'}
 function densityClass(card){
-  const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length,0);
+  const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length+mechanicReminder(e).length,0);
   if(card.type==="hero"){
     if(chars>180||(es.length>=3&&chars>120))return " very-dense";
     if(es.length>=3||chars>100)return " dense";
