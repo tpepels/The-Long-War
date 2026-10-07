@@ -266,6 +266,64 @@ cdef bint _v2_front_has_opposing_supply(
     return False
 
 
+cdef void _v2_look_at_opponent_hand(
+    FastEngine self,
+    FastState state,
+    int viewer,
+    V2EffectSpec* effect,
+) noexcept:
+    cdef int owner = other_player(viewer)
+    cdef int card, available, pick, remaining, count, seen_count
+    cdef uint32_t seed
+    cdef uint8_t seen[MAX_CARDS]
+    memset(seen, 0, sizeof(seen))
+
+    if effect.target == V2_TARGET_OPPONENT_ALL:
+        for card in range(self.n_cards):
+            state.known_hidden[viewer][owner][card] = state.hand[owner][card]
+        return
+
+    count = effect.count
+    if count <= 0:
+        count = 1
+    remaining = state.hand_len[owner]
+    if count > remaining:
+        count = remaining
+
+    while count > 0 and remaining > 0:
+        seed = (
+            state.shuffle_seed * <uint32_t>1664525
+            + <uint32_t>1013904223
+        )
+        state.shuffle_seed = seed
+        pick = <int>(seed % <uint32_t>remaining)
+        for card in range(self.n_cards):
+            available = state.hand[owner][card] - seen[card]
+            if available <= 0:
+                continue
+            if pick < available:
+                seen[card] += 1
+                break
+            pick -= available
+        remaining -= 1
+        count -= 1
+
+    for card in range(self.n_cards):
+        seen_count = seen[card]
+        if seen_count > state.known_hidden[viewer][owner][card]:
+            state.known_hidden[viewer][owner][card] = seen_count
+
+
+cdef inline void _v2_look_at_opponent_stratagem(
+    FastState state,
+    int viewer,
+) noexcept:
+    cdef int owner = other_player(viewer)
+    if state.stratagem[owner] < 0 or state.stratagem_revealed[owner]:
+        return
+    state.stratagem_known_to_mask[owner] |= <uint8_t>(1 << viewer)
+
+
 cdef void _v2_add_tax_marker(
     FastEngine self,
     FastState state,
@@ -369,6 +427,10 @@ cdef void _v2_apply_immediate_play_effects(
                 effect,
                 encode_action(TYPE_EFFECT, -1, origin, -1, player),
             )
+        elif effect.op == V2_OP_LOOK_HAND:
+            _v2_look_at_opponent_hand(self, state, player, effect)
+        elif effect.op == V2_OP_LOOK_STRATAGEM:
+            _v2_look_at_opponent_stratagem(state, player)
         elif effect.op in (
             V2_OP_ATTACH_PREPARED,
             V2_OP_CHOOSE_STRENGTH_TARGETS,
@@ -430,6 +492,10 @@ cdef void _v2_apply_becomes_named_effects(
                         )
                     ):
                         state.temporary[slot] += effect.amount
+        elif effect.op == V2_OP_LOOK_HAND:
+            _v2_look_at_opponent_hand(self, state, player, effect)
+        elif effect.op == V2_OP_LOOK_STRATAGEM:
+            _v2_look_at_opponent_stratagem(state, player)
         elif effect.op in (
             V2_OP_ADD_STRENGTH_MARKER,
             V2_OP_CHOOSE_CLASS_STRENGTH,
