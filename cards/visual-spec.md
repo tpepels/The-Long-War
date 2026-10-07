@@ -14,7 +14,10 @@ has its own presentation.
 The face order is **exposed strip → illustration → centered title → written
 classifications → rules → footer**. Decoration comes from four reusable raster
 assets; artwork, text, numbers and functional symbols remain live elements.
-There are no separate family renderers or colour-coded shells.
+All families still use the same renderer and raster furniture, but the parchment
+receives a restrained family tint so card types can be distinguished at a glance:
+Force rust, Bond teal, Name blue, Hero violet, Tactic crimson, Order green,
+Stratagem slate and Narrative indigo.
 
 ## Geometry and typography
 
@@ -51,7 +54,9 @@ wording does not replace the current card's wording or classifications.
 
 Non-formation strips show the family name. “Played face-down” and “This Battle”
 appear at the right of those strips, where they remain visible independently of
-title length. The footer retains the authored card ID and build revision.
+title length. The strip content sits slightly lower within the fixed 10.5 mm
+exposed edge to give the top ornament more breathing room. The footer retains the
+authored card ID and build revision.
 
 ## Raster assets and artwork
 
