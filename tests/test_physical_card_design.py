@@ -270,9 +270,16 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
 
         values = card.get("classes") or card.get("references") or []
         if values:
-            class_line = output.one("class-line")["text"].lower()
-            for value in values:
-                assert value.replace("_", " ").replace("-", " ") in class_line
+            if card["type"] == "tactic":
+                assert not output.all("class-line")
+                inline_refs = output.all("inline-class-ref")
+                for value in values:
+                    label = value.replace("_", " ").replace("-", " ").title()
+                    assert any(node["attrs"].get("title") == label for node in inline_refs)
+            else:
+                class_line = output.one("class-line")["text"].lower()
+                for value in values:
+                    assert value.replace("_", " ").replace("-", " ") in class_line
 
 
 def test_every_current_live_buried_effect_has_a_compact_exposed_reminder() -> None:
@@ -547,6 +554,14 @@ def test_rules_keep_semantic_emphasis_without_changing_authored_text() -> None:
     assert [node["text"] for node in output.all("rule-referent")] == ["Human", "Archer"]
     assert all(node["tag"] == "strong" for node in output.all("rule-term"))
     assert all(node["tag"] == "em" for node in output.all("rule-referent"))
+
+def test_tactics_use_inline_class_icons_instead_of_footer_references() -> None:
+    tactic = next(card for card in CARDS if card["id"] == "the-line-was-baited")
+    output, = render_cards([tactic])
+    assert not output.all("class-line")
+    refs = output.all("inline-class-ref")
+    assert [node["attrs"].get("title") for node in refs] == ["Guard", "Spearman", "Skirmisher"]
+    assert output.one("effect-text")["text"] == tactic["effects"][0]["text"]
 
 
 def test_exploratory_decks_keep_broad_card_type_mix() -> None:
