@@ -1395,13 +1395,13 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Pay 1 Command. Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
+          "text": "Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
           "scope": "self",
           "memory": [],
-          "exposed": "PAY 1 · PREPARED → AHEAD"
+          "exposed": "PREPARED → AHEAD"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle row.\nACTION - Pay 1 Command. Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nACTION - Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
       "design_tags": [
         "middle-only",
         "positional-support",
@@ -1423,8 +1423,7 @@
             "memory": [],
             "op": "attach_prepared",
             "target": "prepared_component_same_front",
-            "destination": "directly_ahead",
-            "activation_cost": 1
+            "destination": "directly_ahead"
           }
         ],
         "modes": {}
@@ -1438,7 +1437,7 @@
         {
           "kind": "effect",
           "label": "ACTION",
-          "text": "Pay 1 Command. Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal."
+          "text": "Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal."
         }
       ]
     },
