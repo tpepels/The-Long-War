@@ -270,6 +270,8 @@ The sections below collect precise card vocabulary and edge-case procedures. You
 
 ### Card shorthand and battlefield states
 
+The exposed strip at the top of a physical card is a quick reminder, never the only source of a rule. Any placement restriction or state condition shown there is also written explicitly in the card's rules text. A filled rank glyph therefore summarizes the legal rows; the body states the same restriction in words. Positional and state effects are written as real conditions ("While...", "If...", or "When...") rather than relying on a bare **REAR**, **NAMED**, **BONDED**, or similar label.
+
 The following words have a fixed meaning when they appear on cards:
 
 - **MOVE 1** - move the formation to one orthogonally adjacent active **empty** position: left/right in the same rank or one rank forward/back in the same Front. Never diagonal. Move is a card effect, not a Maneuver: it does not require the formation to be Named, costs no Maneuver Command, and Exhaustion does not stop it.
