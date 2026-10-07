@@ -527,7 +527,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             return f"cycle:{self.card_ids[card]}:{self.card_ids[choice]}"
         return f"cycle:{self.card_ids[choice]}:{self.card_ids[card]}"
     if kind == TYPE_EFFECT:
-        choice = <int>extra
+        choice = <int>(extra & 0xff)
+        mask = <int>(extra >> V2_EFFECT_OPTION_SHIFT)
         if choice == EFFECT_FREE_MANEUVER:
             key = "effect:free-maneuver"
         elif choice == EFFECT_MOVE:
@@ -552,10 +553,29 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key = "effect:transfer-component"
         elif choice == EFFECT_SUCCESSION:
             key = "effect:succession"
+        elif choice == EFFECT_V2_TARGET:
+            key = "effect:v2-target"
+        elif choice == EFFECT_V2_CHOICE:
+            key = "effect:v2-choice"
+        elif choice == EFFECT_V2_CARD_CHOICE:
+            key = "effect:v2-card-choice"
         else:
             key = f"effect:unknown-{choice}"
+
+        if mask:
+            if mask == V2_OPTION_BOND:
+                key += ":option:bond"
+            elif mask == V2_OPTION_NAME:
+                key += ":option:name"
+            elif mask == V2_OPTION_PAY:
+                key += ":option:pay"
+            elif mask == V2_OPTION_RETURN:
+                key += ":option:return"
+            else:
+                key += f":option:{mask}"
+
         if card < 0 and pos < 0 and dest < 0:
-            return key + ":skip"
+            return key if mask else key + ":skip"
         if card >= 0:
             key += f":card:{self.card_ids[card]}"
         if pos >= 0:
