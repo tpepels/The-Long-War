@@ -11,8 +11,8 @@ Tactic, Order, Stratagem and Narrative share the same aged parchment shell,
 blue-and-gold ornament, dark ink and octagonal Command seal. The runtime webgame
 has its own presentation.
 
-The face order is **exposed strip → illustration → centered title → written
-classifications → rules → footer**. Decoration comes from four reusable raster
+The face order is **exposed strip → illustration → centered title → rules →
+written classifications → footer**. Decoration comes from four reusable raster
 assets; artwork, text, numbers and functional symbols remain live elements.
 All eight families use the same uncoloured aged-parchment shell and ornament,
 matching the shared Astra-finished physical-card treatment.
@@ -22,8 +22,10 @@ matching the shared Astra-finished physical-card treatment.
 - Cards measure **68 × 96 mm**.
 - Formation layers shift down **10.5 mm**; their exposed strips never grow.
 - Illustrations are **25 mm** high, or **20 mm** when rules need more room.
-- The centered identity region is **19 mm**, **18 mm** for dense faces, and
-  **15 mm** for Heroes.
+- The identity-height variables remain **19 mm**, **18 mm** for dense faces, and
+  **15 mm** for Heroes. When a written classification row is present, its **4 mm**
+  is reclaimed from that identity allocation and the classification row is anchored
+  at the bottom of the card body, immediately above the footer.
 - The footer reserves **15 mm** for the ID, revision, family mark, Unique label
   when applicable, and a **12.5 mm** raster Command seal.
 - A4 landscape sheets hold **4 × 2 cards**: exactly **272 × 192 mm**, without gaps.
