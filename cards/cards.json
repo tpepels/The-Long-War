@@ -360,13 +360,13 @@
       "effects": [
         {
           "timing": "rear",
-          "text": "While this formation is in the Rear row, sUPPORT +1.",
+          "text": "While this formation is in the Rear row, SUPPORT +1.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPORT +1"
         }
       ],
-      "text": "REAR - While this formation is in the Rear row, sUPPORT +1.",
+      "text": "REAR - While this formation is in the Rear row, SUPPORT +1.",
       "design_tags": [
         "positional-support",
         "strength"
@@ -389,7 +389,7 @@
         {
           "kind": "continuous",
           "label": "REAR",
-          "text": "While this formation is in the Rear row, sUPPORT +1."
+          "text": "While this formation is in the Rear row, SUPPORT +1."
         }
       ]
     },
@@ -406,13 +406,13 @@
       "effects": [
         {
           "timing": "rear",
-          "text": "While this formation is in the Rear row, sUPPLY.",
+          "text": "While this formation is in the Rear row, SUPPLY.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPLY"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nREAR - While this formation is in the Rear row, sUPPLY.",
+      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nREAR - While this formation is in the Rear row, SUPPLY.",
       "design_tags": [
         "command",
         "formation-building",
@@ -445,7 +445,7 @@
         {
           "kind": "continuous",
           "label": "REAR",
-          "text": "While this formation is in the Rear row, sUPPLY."
+          "text": "While this formation is in the Rear row, SUPPLY."
         }
       ]
     },
@@ -582,13 +582,13 @@
       "effects": [
         {
           "timing": "exhausted",
-          "text": "While this formation is Exhausted, pRESS +2.",
+          "text": "While this formation is Exhausted, PRESS +2.",
           "scope": "self",
           "memory": [],
           "exposed": "PRESS +2"
         }
       ],
-      "text": "EXHAUSTED - While this formation is Exhausted, pRESS +2.",
+      "text": "EXHAUSTED - While this formation is Exhausted, PRESS +2.",
       "design_tags": [
         "exhaustion",
         "hostile-interaction",
@@ -614,7 +614,7 @@
         {
           "kind": "continuous",
           "label": "EXHAUSTED",
-          "text": "While this formation is Exhausted, pRESS +2."
+          "text": "While this formation is Exhausted, PRESS +2."
         }
       ]
     },
@@ -827,13 +827,13 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "While this formation is in the Middle row, rESERVE +2.",
+          "text": "While this formation is in the Middle row, RESERVE +2.",
           "scope": "self",
           "memory": [],
           "exposed": "RESERVE +2"
         }
       ],
-      "text": "MIDDLE - While this formation is in the Middle row, rESERVE +2.",
+      "text": "MIDDLE - While this formation is in the Middle row, RESERVE +2.",
       "design_tags": [
         "outmatched",
         "positional-support",
@@ -858,7 +858,7 @@
         {
           "kind": "continuous",
           "label": "MIDDLE",
-          "text": "While this formation is in the Middle row, rESERVE +2."
+          "text": "While this formation is in the Middle row, RESERVE +2."
         }
       ]
     },
@@ -1636,13 +1636,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, rESERVE +1.",
+          "text": "While this formation is Bonded, RESERVE +1.",
           "scope": "self",
           "memory": [],
           "exposed": "RESERVE +1"
         }
       ],
-      "text": "BONDED - While this formation is Bonded, rESERVE +1.",
+      "text": "BONDED - While this formation is Bonded, RESERVE +1.",
       "design_tags": [
         "formation-building",
         "outmatched",
@@ -1667,7 +1667,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, rESERVE +1."
+          "text": "While this formation is Bonded, RESERVE +1."
         }
       ]
     },
@@ -6409,13 +6409,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, sUPPORT +1.",
+          "text": "While this formation is Bonded, SUPPORT +1.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPORT +1"
         }
       ],
-      "text": "BONDED - While this formation is Bonded, sUPPORT +1.",
+      "text": "BONDED - While this formation is Bonded, SUPPORT +1.",
       "design_tags": [
         "positional-support",
         "strength"
@@ -6438,7 +6438,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, sUPPORT +1."
+          "text": "While this formation is Bonded, SUPPORT +1."
         }
       ],
       "art_focus_y": "0%"
@@ -6454,13 +6454,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, sUPPLY.",
+          "text": "While this formation is Bonded, SUPPLY.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPLY"
         }
       ],
-      "text": "BONDED - While this formation is Bonded, sUPPLY.",
+      "text": "BONDED - While this formation is Bonded, SUPPLY.",
       "design_tags": [
         "command",
         "formation-building",
@@ -6484,7 +6484,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, sUPPLY."
+          "text": "While this formation is Bonded, SUPPLY."
         }
       ]
     },
