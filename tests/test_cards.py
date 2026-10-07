@@ -95,6 +95,36 @@ def test_player_facing_card_text_uses_canonical_vocabulary() -> None:
         assert not obsolete.search(card.get("text", "")), card["title"]
 
 
+def test_state_conditions_are_written_as_conditions() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    conditional_timings = {"front", "middle", "rear", "exhausted", "bonded", "while_named"}
+    starts_as_condition = re.compile(r"^(?:While|When|Whenever|If)\b", re.IGNORECASE)
+
+    for card in data["cards"]:
+        printed = list(card.get("effects", []))
+        for mode in card.get("modes", {}).values():
+            printed.extend(mode.get("effects", []))
+        for effect in printed:
+            if effect.get("timing") in conditional_timings:
+                assert starts_as_condition.match(effect["text"]), (
+                    card["title"],
+                    effect["timing"],
+                    effect["text"],
+                )
+
+
+def test_restricted_rows_are_written_on_the_card_as_well_as_shown_by_icon() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    for card in data["cards"]:
+        rows = card.get("allowed_rows") or []
+        if not rows:
+            continue
+        placement = [block for block in card["rule_blocks"] if block.get("label") == "PLACEMENT"]
+        assert len(placement) == 1, card["title"]
+        assert "may only occupy" in placement[0]["text"]
+        assert placement[0]["text"] in card["text"]
+
+
 def test_active_decks_use_only_canonical_cards_and_current_minimum_rules() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     cards = {card["id"]: card for card in data["cards"]}
