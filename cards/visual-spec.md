@@ -25,6 +25,9 @@ and the card illustration itself remain unfiltered.
 
 - Cards measure **68 × 96 mm**.
 - Formation layers shift down **10.5 mm**; their exposed strips never grow.
+- Legal deployment/occupancy ranks use one three-bar row glyph. Every allowed rank
+  is filled in that single glyph, so a Middle/Rear Force shows the middle and rear
+  bars filled rather than two separate row icons.
 - Illustrations are **25 mm** high, or **20 mm** when rules need more room.
 - The identity-height variables remain **19 mm**, **18 mm** for dense faces, and
   **15 mm** for Heroes. When a written classification row is present, its **4 mm**
