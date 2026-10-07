@@ -265,15 +265,13 @@ def test_printed_deploy_restrictions_are_enforced() -> None:
     state.players[0].command = 20
     legal = engine.legal_actions(state)
 
-    assert PlayForce("the-red-shields", pos(0, Rank.FRONT)) in legal
-    assert PlayForce("the-red-shields", pos(0, Rank.MIDDLE)) not in legal
-    assert PlayForce("the-red-shields", pos(0, Rank.REAR)) not in legal
-    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.REAR)) in legal
-    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.MIDDLE)) not in legal
-    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.FRONT)) not in legal
-    assert PlayForce("avaros-the-bronze-king", pos(2, Rank.FRONT)) in legal
-    assert PlayForce("avaros-the-bronze-king", pos(2, Rank.REAR)) not in legal
+    for rank in (Rank.FRONT, Rank.MIDDLE, Rank.REAR):
+        assert PlayForce("the-red-shields", pos(0, rank)) in legal
+        assert PlayForce("avaros-the-bronze-king", pos(2, rank)) in legal
 
+    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.REAR)) in legal
+    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.MIDDLE)) in legal
+    assert PlayForce("the-white-hands-of-elara", pos(1, Rank.FRONT)) not in legal
 
 def test_bond_and_name_can_be_prepared_before_force_and_contribute_zero() -> None:
     engine, state = setup_state()
@@ -1460,7 +1458,7 @@ def test_ongoing_narratives_are_public_and_respect_configured_limit() -> None:
     assert engine.ongoing_narrative_limit == rules.ongoing_narrative_limit
     narratives = [
         "the-long-march",
-        "they-returned-with-names",
+        "no-road-was-too-long",
         "the-crows-came-down",
     ]
     state.players[0].hand = list(narratives)
@@ -1483,7 +1481,6 @@ def test_ongoing_narratives_are_public_and_respect_configured_limit() -> None:
         isinstance(action, PlayNarrative) and action.card_id == narratives[2]
         for action in legal
     )
-
 
 def test_hero_force_and_name_allowances_are_separate_once_per_battle() -> None:
     engine, state = setup_state()
