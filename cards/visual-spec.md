@@ -37,10 +37,17 @@ inline to save vertical space. Vanilla cards leave their rules area empty.
 
 ## Exposed information and symbols
 
-The strip follows the visual reference: a bold family silhouette and large
-Strength numeral at left, classification silhouettes in the middle, and readable
-serif live reminders at right. Heroes show separate Force and Name values.
-Empty classification space on Bonds is available to their reminders.
+The exposed strip uses one fixed three-zone layout on every card: **left,
+middle, right**. Left holds the family/Strength information, middle holds only
+functional classification and row icons, and right holds only the exposed reminder
+or status text. The three zones keep the same boundaries on every card, including
+Heroes and cards with an empty middle zone.
+
+All top-row text uses one font size and all primary top-row icons use one icon size.
+Long reminders wrap within the right zone at that same size; there is no compact or
+very-compact typography fallback. The strip keeps fixed outer padding and clips
+nothing outside its own zone. Heroes show separate Force and Name values in the
+left zone.
 
 Human uses a profile medallion, Spearman an upright spearpoint, and Veteran
 double chevrons. Kinds retain circular outlines; roles and ranks use unframed
