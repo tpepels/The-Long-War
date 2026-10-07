@@ -32,7 +32,7 @@ WEB = ROOT / "web"
 DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
-V2_PLAYTEST_DECKS = ROOT / "cards" / "v2" / "playtest-decks.json"
+PLAYTEST_DECKS = ROOT / "cards" / "playtest-decks.json"
 REFERENCE_DECKS = REFERENCE_DECK_PATHS
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 PUBLISHED_ARTIFACTS = ("lab-report.json", "balance-health.json")
@@ -42,10 +42,6 @@ PRINTABLE_PAGES = {
     "rulebook.html",
     "playmat.html",
     "tokens.html",
-}
-INTERNAL_ONLY_PAGES = {
-    "cards-v2.html",
-    "cards-v2-force-style-lab.html",
 }
 PRINT_ART_MAX_PX = 960
 PRINT_ART_QUALITY = 86
@@ -85,11 +81,11 @@ def print_build_version() -> str:
     inputs = [
         RULEBOOK,
         CARDS,
-        V2_PLAYTEST_DECKS,
+        PLAYTEST_DECKS,
         ROOT / "src" / "longwar" / "rules.py",
-        WEB / "cards-v2.css",
-        WEB / "cards-v2.js",
-        WEB / "v2-heraldry.js",
+        WEB / "physical-cards.css",
+        WEB / "physical-cards.js",
+        WEB / "card-symbols.js",
         WEB / "rules.css",
         WEB / "style.css",
         WEB / "tokens.css",
@@ -115,11 +111,15 @@ def print_build_version() -> str:
 
 def build_print_art() -> None:
     """Generate compact browser-print artwork from canonical source PNGs."""
-    source_dir = WEB / "art" / "v2" / "cards"
-    target_dir = DIST / "art" / "v2" / "cards-print"
+    source_dir = WEB / "art" / "cards"
+    target_dir = DIST / "art" / "cards-print"
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    for source in sorted(source_dir.glob("*.png")):
+    cards = load_card_file(CARDS)["cards"]
+    for card in cards:
+        source = source_dir / (card["id"] + ".png")
+        if not source.is_file():
+            raise ValueError(f"Missing canonical card artwork: {source}")
         target = target_dir / (source.stem + ".webp")
         with Image.open(source) as image:
             image = image.convert("RGB")
@@ -133,17 +133,6 @@ def build_print_art() -> None:
                 quality=PRINT_ART_QUALITY,
                 method=6,
             )
-
-    # The source PNGs remain canonical in web/, but Pages only needs the
-    # compact variants. Dropping the copied originals removes ~143 MB from
-    # the deployed artifact and avoids accidental full-resolution downloads.
-    shutil.rmtree(DIST / "art" / "v2" / "cards", ignore_errors=True)
-
-
-def remove_internal_pages_from_dist() -> None:
-    """Keep design labs in the repository without publishing them."""
-    for filename in INTERNAL_ONLY_PAGES:
-        (DIST / filename).unlink(missing_ok=True)
 
 
 def stamp_print_version(version: str) -> None:
@@ -178,7 +167,7 @@ def version_static_assets() -> str:
         and (
             path.suffix in {".js", ".mjs", ".css", ".whl"}
             or path.relative_to(DIST).as_posix()
-            in {"data/cards.json", "data/v2-playtest-decks.json", "data/reference-decks.json"}
+            in {"data/cards.json", "data/playtest-decks.json", "data/reference-decks.json"}
         )
     ]
     digest = hashlib.sha256()
@@ -323,9 +312,10 @@ def main() -> None:
     runtime = ensure_browser_runtime()
     if DIST.exists():
         shutil.rmtree(DIST)
-    shutil.copytree(WEB, DIST)
+    # Canonical PNGs are authoring inputs. Generate only optimized derivatives
+    # for Pages; never copy the originals into disposable deployment output.
+    shutil.copytree(WEB, DIST, ignore=shutil.ignore_patterns("art"))
     shutil.copytree(runtime, DIST / "runtime")
-    remove_internal_pages_from_dist()
     build_print_art()
 
     playmat = DIST / "playmat.html"
@@ -340,8 +330,7 @@ def main() -> None:
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
-    if V2_PLAYTEST_DECKS.exists():
-        shutil.copy2(V2_PLAYTEST_DECKS, data_dir / "v2-playtest-decks.json")
+    shutil.copy2(PLAYTEST_DECKS, data_dir / "playtest-decks.json")
 
     known_cards = {card["id"] for card in card_data["cards"]}
     reference_decks = []

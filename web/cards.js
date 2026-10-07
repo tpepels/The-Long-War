@@ -8,7 +8,7 @@ async function preloadArt(ids){
     const image=new Image();
     image.onload=resolve;
     image.onerror=resolve;
-    image.src="art/v2/cards-print/"+encodeURIComponent(id)+".webp";
+    image.src="art/cards-print/"+encodeURIComponent(id)+".webp";
   })));
 }
 async function main(){
@@ -21,7 +21,7 @@ async function main(){
   const root=document.getElementById("print-catalogue");
   root.innerHTML=chunk(cards,8).map((sheet,index)=>
     '<section class="print-sheet card-sheet" data-sheet="'+(index+1)+'">'+
-    sheet.map(card=>window.V2Cards.cardArticle(card,"print-card",{printArt:true})).join("")+
+    sheet.map(card=>window.PhysicalCards.cardArticle(card,"print-card",{printArt:true})).join("")+
     '</section>'
   ).join("");
   await preloadArt(cards.map(card=>card.id));

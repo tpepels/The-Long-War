@@ -2,17 +2,16 @@
 
 The physical-card system now has one renderer.
 
-`web/cards-v2.js` is the canonical physical-card renderer for the Card Lab,
-full catalogue, playtest kit, stack proofs and print sheets. `web/cards-v2.css`
-owns the shared 68 × 96 mm physical design. `web/v2-heraldry.js` supplies the
-functional symbols. The former `print-cards.js` / `print-cards.css` renderer
-has been removed so the playtest kit cannot drift into a separate card design.
+`web/physical-cards.js` is the canonical physical-card renderer for the
+full catalogue, playtest kit, stack proofs and print sheets. `web/physical-cards.css`
+owns the shared 68 × 96 mm physical design. `web/card-symbols.js` supplies the
+functional symbols. The catalogue and deck sheets render the same card faces.
 
 The visual hierarchy deliberately follows the earlier print-card design: a thin
 outer cutting border, a restrained inset accent frame, large EB Garamond title,
 compact Gentium classification row, simple framed illustration, straightforward
 rule dividers, restrained family color and a quiet footer. The current rules and
-mechanics remain V2: formations keep the 10.5 mm exposed battlefield row,
+mechanics use the current physical game: formations keep the 10.5 mm exposed battlefield row,
 functional SVG symbols, current timing vocabulary, graphical Hero FORCE / NAME
 dividers, the bottom-right octagonal Command seal and per-card illustrations.
 
@@ -32,7 +31,7 @@ continuous; the normal rounded on-screen card shape is unchanged. Print at 100%
 / actual size without browser headers or footers.
 
 `cards.html` prints the complete canonical card catalogue. `playtest-kit.html`
-loads `cards/v2/playtest-decks.json`, expands copy counts, and prints those same
+loads `cards/playtest-decks.json`, expands copy counts, and prints those same
 card faces. There is no second print-only markup implementation.
 
 Every printable page receives the Pages build revision via
@@ -58,13 +57,13 @@ illustration or change the physical card skeleton.
 From the repository root, with Chrome/Chromium installed:
 
 ```sh
-python -m pytest -q tests/test_v2_card_design.py tests/test_browser_card_layout.py
+python -m pytest -q tests/test_physical_card_design.py tests/test_browser_card_layout.py
 python tools/check_card_layout.py --surface print --require-browser \
-  --pdf artifacts/print/cards-v2.pdf
+  --pdf artifacts/print/cards.pdf
 make pages
 ```
 
-The physical check validates all current V2 cards, formation stack proofs,
+The physical check validates all current cards, formation stack proofs,
 numeric-range stress, overflow detection, exact 68 × 96 mm geometry, 10.5 mm
 exposed rows and eight-card A4 landscape pagination. The browser play cards are
 still a separate in-game surface and are checked by

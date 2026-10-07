@@ -66,7 +66,7 @@ make full-lab FULL_LAB_ARGS="--force"
 | --- | --- | --- | --- |
 | Physical rule wording | `rules/rulebook.md` | game | `make pages` |
 | Card pool/mechanics wording | `cards/cards.json` | game | card/data validation; engine sync may follow separately |
-| Playtest decks | `cards/v2/playtest-decks.json`, `decks/*.json` | game | deck legality + `make pages` |
+| Playtest decks | `cards/playtest-decks.json`, `decks/*.json` | game | deck legality + `make pages` |
 | Printable cards/reference/markers | `web/cards*`, `web/playtest-kit*`, `web/playmat.html`, `web/tokens*` | print | `make pages` + visual print QA |
 | Configurable runtime rule | `src/longwar/rules.py` | engine | focused regression + native rebuild if affected |
 | Runtime transition/effect primitive | `src/longwar/_fast_engine_*.pxi` | engine | `make native-build && make verify` |

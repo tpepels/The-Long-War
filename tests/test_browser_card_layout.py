@@ -26,16 +26,16 @@ def test_browser_hand_cards_use_one_fixed_internal_geometry() -> None:
     assert "card-density-" not in css
 
 
-def test_print_pages_load_the_shared_v2_renderer_and_styles() -> None:
+def test_print_pages_load_the_shared_renderer_and_styles() -> None:
     for page, renderer in (
         ("web/cards.html", "cards.js"),
         ("web/playtest-kit.html", "playtest-kit.js"),
     ):
         source = text(page)
-        assert 'href="cards-v2.css' in source
-        assert source.index('src="v2-heraldry.js') < source.index('src="cards-v2.js')
-        assert source.index('src="cards-v2.js') < source.index(f'src="{renderer}')
-        assert "V2Cards.cardArticle" in text("web/" + renderer)
+        assert 'href="physical-cards.css' in source
+        assert source.index('src="card-symbols.js') < source.index('src="physical-cards.js')
+        assert source.index('src="physical-cards.js') < source.index(f'src="{renderer}')
+        assert "PhysicalCards.cardArticle" in text("web/" + renderer)
         assert "print-cards.css" not in source
         assert "print-cards.js" not in source
     assert not (ROOT / "web" / "print-cards.css").exists()
@@ -84,7 +84,7 @@ class RenderedCard(HTMLParser):
         return elements[0]
 
 
-def v2_effects(card: dict) -> list[dict]:
+def physical_effects(card: dict) -> list[dict]:
     if card["type"] == "hero":
         return [
             *card.get("modes", {}).get("force", {}).get("effects", []),
@@ -96,14 +96,14 @@ def v2_effects(card: dict) -> list[dict]:
 def render_print_cards(cards: list[dict]) -> list[RenderedCard]:
     node = shutil.which("node")
     if node is None:
-        pytest.skip("Node.js is required to exercise the shared V2 renderer")
+        pytest.skip("Node.js is required to exercise the shared physical renderer")
     script = """
 const fs = require("node:fs");
 global.window = {};
-eval(fs.readFileSync("web/v2-heraldry.js", "utf8"));
-eval(fs.readFileSync("web/cards-v2.js", "utf8"));
+eval(fs.readFileSync("web/card-symbols.js", "utf8"));
+eval(fs.readFileSync("web/physical-cards.js", "utf8"));
 const input = JSON.parse(fs.readFileSync(0, "utf8"));
-process.stdout.write(JSON.stringify(input.cards.map(card => window.V2Cards.cardArticle(card, "print-card"))));
+process.stdout.write(JSON.stringify(input.cards.map(card => window.PhysicalCards.cardArticle(card, "print-card"))));
 """
     result = subprocess.run(
         [node, "-e", script],
@@ -118,17 +118,17 @@ process.stdout.write(JSON.stringify(input.cards.map(card => window.V2Cards.cardA
     return [RenderedCard(markup) for markup in json.loads(result.stdout)]
 
 
-def test_print_renderer_preserves_current_v2_content_and_modes() -> None:
+def test_print_renderer_preserves_current_content_and_modes() -> None:
     cards = json.loads(text("cards/cards.json"))["cards"]
     rendered = render_print_cards(cards)
     for card, output in zip(cards, rendered, strict=True):
-        assert output.one("v2-card")["attrs"]["data-card-id"] == card["id"]
+        assert output.one("physical-card")["attrs"]["data-card-id"] == card["id"]
         assert output.one("card-title")["text"] == card["title"]
         assert output.one("footer-id")["text"] == card["id"]
         assert output.one("footer-version")["text"] == "vdev"
         assert bool(output.one("footer-mark")["text"].strip()) == bool(card.get("unique"))
         assert [node["text"] for node in output.all("effect-text")] == [
-            effect["text"] for effect in v2_effects(card)
+            effect["text"] for effect in physical_effects(card)
         ]
         formation = card["type"] in {"force", "bond", "name", "hero"}
         assert bool(output.all("stack-edge")) is formation
@@ -157,7 +157,7 @@ def test_shared_renderer_escapes_hostile_text_and_preserves_numeric_values() -> 
     ]
     first, hero = render_print_cards(cards)
     assert first.one("card-title")["text"] == hostile
-    assert first.one("v2-card")["attrs"]["data-card-id"] == hostile
+    assert first.one("physical-card")["attrs"]["data-card-id"] == hostile
     assert first.one("effect-text")["text"] == "Strength " + hostile
     assert not any(element["tag"] in {"img", "script"} for element in first.elements)
     assert first.one("cost-gem")["text"] == "0"
@@ -168,11 +168,11 @@ def test_shared_renderer_escapes_hostile_text_and_preserves_numeric_values() -> 
     assert hero.one("cost-gem")["text"] == "0"
 
 
-def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
-    decks = json.loads(text("cards/v2/playtest-decks.json"))["decks"]
+def test_playtest_kit_uses_current_decks_and_expands_copies() -> None:
+    decks = json.loads(text("cards/playtest-decks.json"))["decks"]
     script = text("web/playtest-kit.js")
     html = text("web/playtest-kit.html")
-    css = text("web/cards-v2.css")
+    css = text("web/physical-cards.css")
     assert 'id="mechanics-reference"' in html
     assert "position_vocabulary" in script
     assert "MOVE UP TO N" in script
@@ -189,9 +189,9 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
     page = text("web/playtest-kit.html")
     assert decks
     assert 'data/cards.json' in script
-    assert 'data/v2-playtest-decks.json' in script
+    assert 'data/playtest-decks.json' in script
     assert "function expandDeck(deck)" in script
-    assert "window.V2Cards.cardArticle" in script
+    assert "window.PhysicalCards.cardArticle" in script
     assert "chunk(expanded,8)" in script
     assert 'id="print-selected"' in page
     assert "Print selected" in page
@@ -204,8 +204,8 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
 
 
 def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
-    css = text("web/cards-v2.css")
-    assert "@page v2cards{size:A4 landscape;margin:9mm 12.5mm}" in css
+    css = text("web/physical-cards.css")
+    assert "@page physicalcards{size:A4 landscape;margin:9mm 12.5mm}" in css
     assert "width:272mm;height:192mm" in css
     assert "grid-template-columns:repeat(4,68mm)" in css
     assert "grid-template-rows:repeat(2,96mm)" in css
@@ -219,16 +219,16 @@ def test_print_card_sheets_fit_eight_68x96_cards_on_a4_landscape() -> None:
     assert ".print-card::before{border-radius:0}" in css
 
 
-def test_physical_print_surfaces_share_v2_renderer_while_browser_play_stays_separate() -> None:
+def test_physical_print_surfaces_share_renderer_while_browser_play_stays_separate() -> None:
     assert "card-rules.js" in text("web/play.html")
     for page in ("web/cards.html", "web/playtest-kit.html"):
         source = text(page)
-        assert "cards-v2.js" in source
-        assert "v2-heraldry.js" in source
+        assert "physical-cards.js" in source
+        assert "card-symbols.js" in source
         assert "card-rules.js" not in source
-    assert "V2Cards?.inspect" not in text("web/cards.js")
-    assert "V2Cards?.inspect" not in text("web/playtest-kit.js")
-    assert "inspect(root=document)" in text("web/cards-v2.js")
+    assert "PhysicalCards?.inspect" not in text("web/cards.js")
+    assert "PhysicalCards?.inspect" not in text("web/playtest-kit.js")
+    assert "inspect(root=document)" in text("web/physical-cards.js")
 
 
 def test_browser_cards_always_reserve_the_properties_row() -> None:
@@ -245,13 +245,13 @@ def test_runtime_overflow_checks_match_each_surface() -> None:
     guard = text("web/card-layout-guard.js")
     assert "scrollHeight > element.clientHeight" in guard
     assert "layout-overflow" in guard
-    assert "function inspect(root=document)" in text("web/cards-v2.js")
+    assert "function inspect(root=document)" in text("web/physical-cards.js")
 
 
 def test_print_build_version_is_stamped_everywhere() -> None:
     builder = text("tools/build_pages.py")
-    renderer = text("web/cards-v2.js")
-    card_css = text("web/cards-v2.css")
+    renderer = text("web/physical-cards.js")
+    card_css = text("web/physical-cards.css")
     site_css = text("web/style.css")
     assert "GITHUB_SHA" in builder
     assert "PRINTABLE_PAGES" in builder
@@ -465,22 +465,16 @@ def test_battle_resolution_banner_uses_rules_active_front_count() -> None:
     assert '" Fronts resolved"' in script
 
 
-def test_pages_do_not_publish_internal_v2_labs() -> None:
-    builder = text("tools/build_pages.py")
-    assert '"cards-v2.html"' in builder
-    assert '"cards-v2-force-style-lab.html"' in builder
-    assert "remove_internal_pages_from_dist()" in builder
-
 
 def test_public_print_surfaces_use_compact_generated_art() -> None:
     builder = text("tools/build_pages.py")
-    renderer = text("web/cards-v2.js")
+    renderer = text("web/physical-cards.js")
     cards_script = text("web/cards.js")
     deck_script = text("web/playtest-kit.js")
     assert "PRINT_ART_MAX_PX = 960" in builder
     assert "cards-print" in builder
     assert '"WEBP"' in builder
-    assert 'options.printArt?"art/v2/cards-print/"' in renderer
+    assert 'options.printArt?"art/cards-print/"' in renderer
     assert "{printArt:true}" in cards_script
     assert "{printArt:true}" in deck_script
 

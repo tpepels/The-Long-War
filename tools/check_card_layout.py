@@ -128,10 +128,8 @@ def browser_path() -> str | None:
     )
 
 
-def layout_document(cards: list[dict], browser_markup: str | None = None) -> str:
-    """Exercise the browser play-card surface; physical print uses V2Cards."""
-    if browser_markup is None:
-        raise ValueError("Legacy print renderer was removed; use check_v2_layout for physical cards")
+def layout_document(cards: list[dict], browser_markup: str) -> str:
+    """Exercise the browser play-card surface; physical print uses PhysicalCards."""
     styles = "\n".join(
         "<style>" + (ROOT / "web" / name).read_text(encoding="utf-8") + "</style>"
         for name in ("style.css", "play.css")
@@ -142,7 +140,7 @@ def layout_document(cards: list[dict], browser_markup: str | None = None) -> str
     )
     # A card's text must not terminate the inline JSON script element.
     card_data = json.dumps(cards).replace("<", "\\u003c")
-    markup = browser_markup if browser_markup is not None else '<main id="cards" class="card-sheets"></main>'
+    markup = browser_markup
     render = "" if browser_markup is not None else """
 const cards = JSON.parse(document.getElementById("card-data").textContent);
 document.getElementById("cards").innerHTML = cards.map(card => window.PrintCards.markup(card)).join("");
@@ -210,23 +208,20 @@ def run_browser(browser: str, path: Path, pdf: Path | None = None) -> subprocess
     return result
 
 
-def v2_layout_document(cards: list[dict], stacks: bool = False) -> str:
-    """Measure the same V2 physical renderer used by the catalogue and stacks."""
+def physical_layout_document(cards: list[dict], stacks: bool = False) -> str:
+    """Measure the same physical renderer used by the catalogue and stacks."""
     card_data = json.dumps(cards).replace("<", "\\u003c")
-    page_source = (ROOT / "web" / "cards-v2.html").read_text(encoding="utf-8")
-    source_names = [source.split("?", 1)[0] for source in re.findall(
-        r'<script\b[^>]*\bsrc=["\']([^"\']+)["\']', page_source,
-    )]
+    source_names = ("card-symbols.js", "physical-cards.js")
     scripts = "\n".join(
         "<script>" + (ROOT / "web" / name).read_text(encoding="utf-8") + "</script>"
         for name in source_names
     )
-    css = (ROOT / "web" / "cards-v2.css").read_text(encoding="utf-8")
+    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
     render = (
         'root.innerHTML = ["force-alone", "force-bond", "force-name", "named", "hero-force", "hero-name"]'
-        '.map(name => window.V2Cards.stackMarkup(cards, name)).join("");'
+        '.map(name => window.PhysicalCards.stackMarkup(cards, name)).join("");'
         if stacks else
-        'root.innerHTML = cards.map(card => \'<div class="card-wrap">\' + window.V2Cards.cardArticle(card) + "</div>").join("");'
+        'root.innerHTML = cards.map(card => \'<div class="card-wrap">\' + window.PhysicalCards.cardArticle(card) + "</div>").join("");'
     )
     checks = r"""
 const mm = 96 / 25.4;
@@ -270,8 +265,8 @@ function textInk(element) {
     baseline,
   };
 }
-const articles = [...document.querySelectorAll(".v2-card")];
-if (!articles.length) issues.push("No V2 physical cards rendered");
+const articles = [...document.querySelectorAll(".physical-card")];
+if (!articles.length) issues.push("No physical cards rendered");
 if (!STACKS && articles.length !== cards.length) issues.push("Wrong catalogue card count");
 for (const card of articles) {
   const bounds = rect(card);
@@ -347,7 +342,7 @@ if (STACKS) {
     const stack = document.querySelector('.stack-demo[data-stack-case="' + name + '"]');
     if (!stack) { issues.push(name + ":missing-stack"); continue; }
     const wrappers = [...stack.querySelectorAll(".stack-card")];
-    const layers = wrappers.map(layer => layer.matches(".v2-card") ? layer : layer.querySelector(".v2-card"));
+    const layers = wrappers.map(layer => layer.matches(".physical-card") ? layer : layer.querySelector(".physical-card"));
     if (layers.some(layer => !layer)) { issues.push(name + ":missing-physical-card"); continue; }
     const actual = layers.map(card => byId.get(card.dataset.cardId)?.type);
     if (JSON.stringify(actual) !== JSON.stringify(types)) issues.push(name + ":wrong-stack-composition");
@@ -368,21 +363,21 @@ document.documentElement.dataset.layoutCheck = issues.length ? "fail" : "pass";
 document.getElementById("layout-result").textContent = issues.join(";");
 """.replace("STACKS", "true" if stacks else "false")
     return f"""<!doctype html><html><head><meta charset="utf-8">
-<base href="{(ROOT / 'web').as_uri()}/"><title>The Long War — V2 physical cards</title>
+<base href="{(ROOT / 'web').as_uri()}/"><title>The Long War — physical cards</title>
 <meta name="lw-build-version" content="layout-check">
 <style>{css}</style><style>#layout-result {{ position:fixed; left:-9999px; }} @media print {{ #layout-result {{ display:none; }} }}</style>
-</head><body><div id="layout-result"></div><main id="v2-layout" class="{'stack-examples' if stacks else 'cards'}"></main>
+</head><body><div id="layout-result"></div><main id="physical-layout" class="{'stack-examples' if stacks else 'cards'}"></main>
 <script id="card-data" type="application/json">{card_data}</script>
 {scripts}<script>
 const cards = JSON.parse(document.getElementById("card-data").textContent);
-const root = document.getElementById("v2-layout");
+const root = document.getElementById("physical-layout");
 {render}
 window.addEventListener("load", async () => {{ await document.fonts.ready; {checks} }});
 </script><div class="print-version" aria-hidden="true">TLW print vlayout-check</div></body></html>"""
 
 
-def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
-    cards = json.loads((ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8"))["cards"]
+def check_physical_layout(browser: str, pdf_path: Path | None = None) -> None:
+    cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))["cards"]
     probe = {
         "id": "oversized-reminder-probe", "title": "Oversized reminder probe", "type": "force",
         "strength": 0, "command_cost": 0, "classes": ["human"],
@@ -399,15 +394,15 @@ def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
     if pdf_path is not None:
         pdf_path.parent.mkdir(parents=True, exist_ok=True)
     for label, document, expect_overflow in (
-        ("v2-catalogue", v2_layout_document(cards), False),
-        ("v2-stacks", v2_layout_document(cards, stacks=True), False),
-        ("v2-numeric-range", v2_layout_document([numeric_probe]), False),
-        ("v2-overflow-probe", v2_layout_document([probe]), True),
+        ("physical-catalogue", physical_layout_document(cards), False),
+        ("physical-stacks", physical_layout_document(cards, stacks=True), False),
+        ("physical-numeric-range", physical_layout_document([numeric_probe]), False),
+        ("physical-overflow-probe", physical_layout_document([probe]), True),
     ):
         with tempfile.TemporaryDirectory(prefix="longwar-layout-" + label + "-") as temp_dir:
             path = Path(temp_dir) / (label + ".html")
             path.write_text(document, encoding="utf-8")
-            result = run_browser(browser, path, pdf_path if label == "v2-catalogue" else None)
+            result = run_browser(browser, path, pdf_path if label == "physical-catalogue" else None)
         if result.returncode != 0:
             raise SystemExit(f"Headless browser failed during {label}:\n" + result.stderr[-4000:])
         match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
@@ -419,7 +414,7 @@ def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
                 and ("overflow" in item or "overlap" in item)
             ]
             if 'data-layout-check="fail"' not in result.stdout or not probe_failures:
-                raise SystemExit("V2 oversized reminder was not flagged: " + details)
+                raise SystemExit("Physical oversized reminder was not flagged: " + details)
         elif 'data-layout-check="pass"' not in result.stdout:
             raise SystemExit(f"{label} card layout failure detected: {details}")
     if pdf_path is not None:
@@ -431,29 +426,29 @@ def check_v2_layout(browser: str, pdf_path: Path | None = None) -> None:
                 text=True, timeout=30, check=False,
             )
             if extracted.returncode:
-                raise SystemExit("Could not inspect exported V2 PDF: " + extracted.stderr)
+                raise SystemExit("Could not inspect exported card PDF: " + extracted.stderr)
             pages = extracted.stdout.split("\f")
             if not pages[-1].strip():
                 pages.pop()
             expected_pages = (len(cards) + 7) // 8
             if len(pages) != expected_pages:
-                raise SystemExit(f"V2 PDF must have {expected_pages} eight-card sheets; found {len(pages)} pages")
+                raise SystemExit(f"Card PDF must have {expected_pages} eight-card sheets; found {len(pages)} pages")
             blank_pages = [str(index) for index, page in enumerate(pages, 1) if not page.strip()]
             if blank_pages:
-                raise SystemExit("V2 PDF contains blank pages: " + ", ".join(blank_pages))
+                raise SystemExit("Card PDF contains blank pages: " + ", ".join(blank_pages))
             unstamped_pages = [str(index) for index, page in enumerate(pages, 1)
                                if "TLW print vlayout-check" not in re.sub(r"\s+", " ", page)]
             if unstamped_pages:
-                raise SystemExit("V2 PDF is missing the print version on pages: " + ", ".join(unstamped_pages))
+                raise SystemExit("Card PDF is missing the print version on pages: " + ", ".join(unstamped_pages))
             missing = [card["id"] for card in cards if not re.search(
                 r"(?<![a-z0-9-])" + re.escape(card["id"]) + r"(?![a-z0-9-])", extracted.stdout,
             )]
             if missing:
-                raise SystemExit("V2 PDF is missing card IDs: " + ", ".join(missing))
+                raise SystemExit("Card PDF is missing card IDs: " + ", ".join(missing))
         else:
-            raise SystemExit("pdftotext is required to verify V2 PDF pagination and card coverage")
+            raise SystemExit("pdftotext is required to verify Card PDF pagination and card coverage")
         print(f"PDF: {pdf_path}")
-    print(f"PASS: {len(cards)} V2 physical cards, six formation stacks, numeric-range stress, and oversized-reminder detection")
+    print(f"PASS: {len(cards)} physical cards, six formation stacks, numeric-range stress, and oversized-reminder detection")
 
 
 def main() -> None:
@@ -466,12 +461,12 @@ def main() -> None:
     parser.add_argument("--browser", type=Path, help="Path to a Chrome/Chromium executable.")
     parser.add_argument("--pdf", type=Path, help="Also export the full print catalogue to this PDF path.")
     parser.add_argument(
-        "--surface", choices=("all", "print", "browser", "v2"), default="all",
-        help="Card surface to validate (print and v2 both use the shared V2 physical renderer).",
+        "--surface", choices=("all", "print", "browser"), default="all",
+        help="Card surface to validate (print and v2 both use the shared physical renderer).",
     )
     args = parser.parse_args()
     if args.pdf and args.surface == "browser":
-        parser.error("--pdf requires --surface print, all, or v2")
+        parser.error("--pdf requires --surface print or all")
 
     browser = str(args.browser.expanduser().resolve()) if args.browser else browser_path()
     if browser is None:
@@ -482,8 +477,8 @@ def main() -> None:
     if args.browser and not Path(browser).is_file():
         raise SystemExit(f"Browser executable does not exist: {browser}")
     pdf_path = args.pdf.expanduser().resolve() if args.pdf else None
-    if args.surface in ("print", "v2"):
-        check_v2_layout(browser, pdf_path)
+    if args.surface == "print":
+        check_physical_layout(browser, pdf_path)
         return
 
     cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))["cards"]
@@ -520,7 +515,7 @@ def main() -> None:
 
     print(f"PASS: {len(cards)} browser play cards fit their fixed regions")
     if args.surface == "all":
-        check_v2_layout(browser, pdf_path)
+        check_physical_layout(browser, pdf_path)
 
 
 

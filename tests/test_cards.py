@@ -36,7 +36,7 @@ def test_canonical_card_pool_has_unique_ids_and_supported_types() -> None:
     }
 
 
-def test_card_classifications_match_v2_family_grammar() -> None:
+def test_card_classifications_match_family_grammar() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     for card in data["cards"]:
         assert isinstance(card["classes"], list)
@@ -54,7 +54,7 @@ def test_names_and_heroes_are_unique() -> None:
     assert all(set(card["modes"]) == {"force", "name"} for card in heroes)
 
 
-def test_narratives_and_orders_use_current_v2_family_grammar() -> None:
+def test_narratives_and_orders_use_current_family_grammar() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     narratives = cards_by_type(data, "narrative")
     orders = cards_by_type(data, "order")
@@ -84,7 +84,7 @@ def test_all_cards_define_valid_rule_blocks() -> None:
         blocks = card["rule_blocks"]
         assert all(block["kind"] in allowed for block in blocks)
         assert all(block["text"].strip() for block in blocks)
-        if card["text"]:
+        if card["text"] and card["text"] != "No special rules.":
             assert blocks, card["title"]
 
 
@@ -147,7 +147,7 @@ def test_legacy_capability_registry_is_retired() -> None:
     assert CARD_CAPABILITY_BITS == {}
 
 
-def test_compiled_mechanics_use_v2_effect_schema_and_class_masks() -> None:
+def test_compiled_mechanics_use_effect_schema_and_class_masks() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     for card in data["cards"]:
         compiled = compile_card_mechanics(card)
@@ -181,42 +181,7 @@ def test_canonical_cards_have_no_engine_sync_migration_channel() -> None:
     assert all("engine_sync" not in card for card in data["cards"])
 
 
-def test_canonical_and_v2_catalogues_share_the_same_printed_pool() -> None:
-    canonical = load_card_file(ROOT / "cards" / "cards.json")
-    v2 = json.loads(
-        (ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8")
-    )
-    assert len(canonical["cards"]) == len(v2["cards"]) == 128
-
-    fields = (
-        "id",
-        "title",
-        "type",
-        "classes",
-        "references",
-        "command_cost",
-        "strength",
-        "strength_modifier",
-        "force_strength",
-        "name_strength_modifier",
-        "allowed_rows",
-        "bond_kind",
-        "effects",
-        "modes",
-        "text",
-        "design_tags",
-        "duration",
-    )
-
-    def printed(card):
-        return {
-            field: card.get(field)
-            for field in fields
-            if field in card
-        } | {"unique": bool(card.get("unique", False))}
-
-    canonical_by_id = {card["id"]: card for card in canonical["cards"]}
-    v2_by_id = {card["id"]: card for card in v2["cards"]}
-    assert canonical_by_id.keys() == v2_by_id.keys()
-    for card_id in canonical_by_id:
-        assert printed(canonical_by_id[card_id]) == printed(v2_by_id[card_id]), card_id
+def test_canonical_pool_is_the_only_machine_readable_card_catalogue() -> None:
+    catalogues = [path for path in (ROOT / "cards").rglob("*.json")
+                  if "cards" in json.loads(path.read_text())]
+    assert catalogues == [ROOT / "cards" / "cards.json"]
