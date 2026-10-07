@@ -155,23 +155,98 @@ main {
 }
 
 /*
- * Exposed strip: one invariant three-zone grammar.
- * Left = type + strength, middle = icons only, right = live reminder/status.
- * Nothing changes scale per card.
- */
+===============================================================================
+EXPOSED TOP ROW - TUNING PANEL
+===============================================================================
+
+  Formation cards:
+
+  ┌──────────────────┬────────────────────┬──────────────────────────────────┐
+  │ LEFT             │ MIDDLE             │ RIGHT                            │
+  │ type icon +      │ class / row icons  │ timing + exposed reminder        │
+  │ strength/value   │                    │                                  │
+  └──────────────────┴────────────────────┴──────────────────────────────────┘
+
+  Event cards use the same three areas:
+  LEFT = family icon     MIDDLE = family name     RIGHT = status
+
+  Change the variables below when tuning the top row. The rules underneath
+  should normally not need editing.
+
+  FONT SIZES
+    --edge-base-font-size          generic top-row text
+    --edge-type-font-size          number beside Force / Bond / Name icon
+    --edge-hero-value-font-size    Hero Force / Name values
+    --edge-reminder-font-size      exposed reminder + timing text
+    --edge-event-family-font-size  Tactic / Order / Stratagem / Narrative name
+    --edge-event-status-font-size  "Played face-down", "This Battle", etc.
+
+  ICON SIZES
+    --edge-type-icon-size          top-left Force / Bond / Name icon
+    --edge-hero-icon-size          Hero Force / Name icons
+    --edge-class-icon-size         classification icons in the middle
+    --edge-row-icon-size           Front / Middle / Rear icons in the middle
+    --edge-event-icon-size         top-left event-family icon
+    --edge-socket-size             once-per-Battle circle
+
+  GEOMETRY
+    --edge-left-width / --edge-middle-width
+    --edge-pad-*                   outer top-row padding
+    --edge-zone-padding-x          padding inside each zone
+
+===============================================================================
+*/
 .stack-edge,
 .event-crown {
-  --edge-font-size: 2.45mm;
-  --edge-icon-size: 4.5mm;
-  --edge-type-icon-size: 6mm; /* top-left Force / Bond / Name icon only */
+  /* --- font sizes -------------------------------------------------------- */
+  --edge-base-font-size: 2.45mm;
+  --edge-type-font-size: 2.45mm;
+  --edge-hero-value-font-size: 2.45mm;
+  --edge-reminder-font-size: var(--edge-reminder-font-size);
+  --edge-event-family-font-size: 2.45mm;
+  --edge-event-status-font-size: 2.45mm;
+
+  /* --- icon sizes -------------------------------------------------------- */
+  --edge-type-icon-size: 6mm;
+  --edge-hero-icon-size: 4.5mm;
+  --edge-class-icon-size: 4.5mm;
+  --edge-row-icon-size: 4.5mm;
+  --edge-event-icon-size: 4.5mm;
+  --edge-socket-size: 2.35mm;
+
+  /* --- layout / spacing -------------------------------------------------- */
+  --edge-left-width: 14mm;
+  --edge-middle-width: 19mm;
+  --edge-pad-top: 4mm;
+  --edge-pad-right: 7mm;
+  --edge-pad-bottom: 0.95mm;
+  --edge-pad-left: 7mm;
+  --edge-zone-padding-x: 0.7mm;
+  --edge-left-padding-x: 0.2mm;
+  --edge-right-padding-x: 0.2mm;
+  --edge-stat-gap: 0.4mm;
+  --edge-value-gap: 0.25mm;
+  --edge-middle-gap: 0.4mm;
+  --edge-reminder-gap-x: 0.35mm;
+  --edge-reminder-gap-y: 0.12mm;
+  --edge-divider-width: 0.16mm;
+  --edge-glyph-stroke-width: var(--edge-glyph-stroke-width);
+
   height: var(--exposed-edge);
   flex: 0 0 var(--exposed-edge);
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns: 14mm 19mm minmax(0, 1fr);
+  grid-template-columns:
+    var(--edge-left-width)
+    var(--edge-middle-width)
+    minmax(0, 1fr);
   align-items: stretch;
-  padding: 4mm 7mm 0.95mm 7mm;
+  padding:
+    var(--edge-pad-top)
+    var(--edge-pad-right)
+    var(--edge-pad-bottom)
+    var(--edge-pad-left);
   color: var(--deep);
 }
 .edge-zone {
@@ -180,24 +255,24 @@ main {
   display: flex;
   align-items: center;
   overflow: hidden;
-  padding: 0 0.7mm;
-  font: 600 var(--edge-font-size)/1.03 var(--text);
+  padding: 0 var(--edge-zone-padding-x);
+  font: 600 var(--edge-base-font-size)/1.03 var(--text);
 }
 .edge-zone-middle,
 .edge-zone-right {
-  border-left: 0.16mm solid #a2844e;
+  border-left: var(--edge-divider-width) solid #a2844e;
 }
 .edge-zone-left {
   justify-content: flex-start;
-  padding-left: 0.2mm;
+  padding-left: var(--edge-left-padding-x);
 }
 .edge-zone-middle {
   justify-content: center;
-  gap: 0.4mm;
+  gap: var(--edge-middle-gap);
 }
 .edge-zone-right {
   justify-content: flex-start;
-  padding-right: 0.2mm;
+  padding-right: var(--edge-right-padding-x);
 }
 
 .edge-stats,
@@ -205,9 +280,9 @@ main {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.4mm;
+  gap: var(--edge-stat-gap);
   white-space: nowrap;
-  font: 600 var(--edge-font-size)/1 var(--text);
+  font: 600 var(--edge-base-font-size)/1 var(--text);
 }
 .type-mark {
   width: var(--edge-type-icon-size);
@@ -217,11 +292,23 @@ main {
   flex: none;
   overflow: visible;
 }
-.hero-stat svg,
-.class-sigil,
+.hero-stat svg {
+  width: var(--edge-hero-icon-size);
+  height: var(--edge-hero-icon-size);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.class-sigil {
+  width: var(--edge-class-icon-size);
+  height: var(--edge-class-icon-size);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
 .event-sigil {
-  width: var(--edge-icon-size);
-  height: var(--edge-icon-size);
+  width: var(--edge-event-icon-size);
+  height: var(--edge-event-icon-size);
   display: grid;
   place-items: center;
   flex: none;
@@ -237,41 +324,44 @@ main {
 .hero-stat {
   display: flex;
   align-items: center;
-  gap: 0.25mm;
+  gap: var(--edge-value-gap);
 }
-.strength-mark b,
+.strength-mark b {
+  font: 600 var(--edge-type-font-size)/1 var(--text);
+  font-variant-numeric: lining-nums;
+}
 .hero-stat b {
-  font: 600 var(--edge-font-size)/1 var(--text);
+  font: 600 var(--edge-hero-value-font-size)/1 var(--text);
   font-variant-numeric: lining-nums;
 }
 .hero-stat + .hero-stat {
-  margin-left: 0.25mm;
+  margin-left: var(--edge-value-gap);
 }
 .hero-name-stat svg {
-  width: var(--edge-icon-size);
-  height: var(--edge-icon-size);
+  width: var(--edge-hero-icon-size);
+  height: var(--edge-hero-icon-size);
 }
 
 .edge-identity {
-  gap: 0.4mm;
+  gap: var(--edge-middle-gap);
 }
 .edge-placement {
   display: flex;
   align-items: center;
-  gap: 0.4mm;
+  gap: var(--edge-middle-gap);
   flex: none;
 }
 .edge-placement > .glyph-row {
-  width: var(--edge-icon-size);
-  height: var(--edge-icon-size);
+  width: var(--edge-row-icon-size);
+  height: var(--edge-row-icon-size);
 }
 
 .edge-live-group {
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 0.12mm;
-  font: 600 var(--edge-font-size)/1.03 var(--text);
+  gap: var(--edge-reminder-gap-y);
+  font: 600 var(--edge-reminder-font-size)/1.03 var(--text);
 }
 .edge-mechanic {
   width: 100%;
@@ -279,14 +369,14 @@ main {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0 0.35mm;
-  font: 600 var(--edge-font-size)/1.03 var(--text);
+  gap: 0 var(--edge-reminder-gap-x);
+  font: 600 var(--edge-reminder-font-size)/1.03 var(--text);
 }
 .edge-timing-word {
   white-space: nowrap;
   flex: none;
   font-variant: small-caps;
-  font-size: 8px;
+  font-size: var(--edge-reminder-font-size);
 }
 .edge-live-text {
   min-width: 0;
@@ -296,22 +386,22 @@ main {
   overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
-  font-size: 8px;
+  font-size: var(--edge-reminder-font-size);
 }
 .edge-mechanic[data-reminder-has-timing="true"] .edge-timing-word {
   display: none;
 }
 .use-socket {
-  width: 2.35mm;
-  height: 2.35mm;
+  width: var(--edge-socket-size);
+  height: var(--edge-socket-size);
   border: 0.2mm solid var(--deep);
   border-radius: 50%;
   display: inline-block;
   flex: none;
 }
 .edge-mechanic .use-socket {
-  width: 2.35mm;
-  height: 2.35mm;
+  width: var(--edge-socket-size);
+  height: var(--edge-socket-size);
 }
 
 .glyph-class-kind,
@@ -350,13 +440,14 @@ main {
 .event-family,
 .event-status {
   min-width: 0;
-  font: 600 var(--edge-font-size)/1.03 var(--text);
 }
 .event-family {
+  font: 600 var(--edge-event-family-font-size)/1.03 var(--text);
   text-transform: uppercase;
   white-space: nowrap;
 }
 .event-status {
+  font: 600 var(--edge-event-status-font-size)/1.03 var(--text);
   text-align: right;
   white-space: normal;
 }
