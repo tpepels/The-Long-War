@@ -898,8 +898,10 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .effect-reminder {
   margin-top: 0.55mm;
-  font: var(--card-mechanic-reminder-font-size)/
-    var(--card-mechanic-reminder-line-height) var(--card-rule-font-family);
+  font: var(--card-mechanic-reminder-font-size)/var(
+      --card-mechanic-reminder-line-height
+    )
+    var(--card-rule-font-family);
   opacity: 0.78;
 }
 .effect-reminder .rule-term {
@@ -909,7 +911,7 @@ EXPOSED TOP ROW - TUNING PANEL
   font-style: normal;
 }
 .hero-rule-mode + .hero-rule-mode {
-  margin-top: 0.8mm;
+  margin-top: 1.2mm;
 }
 .mode-heading {
   display: flex;
