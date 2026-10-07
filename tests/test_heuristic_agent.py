@@ -204,27 +204,30 @@ def test_public_heuristic_does_not_use_hidden_opponent_stratagem_identity() -> N
     evaluator = engine._native_heuristic()
     fast = engine._native_core()
 
+    # Player 0 owns the frontline Named Formation. The Ground Was Held only
+    # changes a tied Front for its controller, so evaluate from player 1's
+    # perspective to make the hidden opponent identity mechanically relevant.
     ground = state.clone()
-    ground.stratagems[1] = StratagemState(
+    ground.stratagems[0] = StratagemState(
         "the-ground-was-held",
         revealed=False,
     )
     lines = state.clone()
-    lines.stratagems[1] = StratagemState(
+    lines.stratagems[0] = StratagemState(
         "the-lines-held",
         revealed=False,
     )
 
-    public_ground = evaluator.evaluate(fast.from_game_state(ground), 0)
-    public_lines = evaluator.evaluate(fast.from_game_state(lines), 0)
+    public_ground = evaluator.evaluate(fast.from_game_state(ground), 1)
+    public_lines = evaluator.evaluate(fast.from_game_state(lines), 1)
     assert public_ground == pytest.approx(public_lines)
 
     sampled = create_heuristic_evaluator(
         fast,
         sampled_opponent_resources=True,
     )
-    sampled_ground = sampled.evaluate(fast.from_game_state(ground), 0)
-    sampled_lines = sampled.evaluate(fast.from_game_state(lines), 0)
+    sampled_ground = sampled.evaluate(fast.from_game_state(ground), 1)
+    sampled_lines = sampled.evaluate(fast.from_game_state(lines), 1)
     assert sampled_ground != pytest.approx(sampled_lines)
 
 
@@ -507,7 +510,7 @@ def test_complete_named_formation_is_distinguished_from_force_plus_name() -> Non
     incomplete_slot.name = "namar"
     # Equalize current Strength with the complete comparison state so the
     # difference is the Named Formation rule, not raw Strength.
-    incomplete_slot.temporary_strength = 2
+    incomplete_slot.temporary_strength = 1
 
     complete = state.clone()
     complete_slot = complete.slot(0, target)

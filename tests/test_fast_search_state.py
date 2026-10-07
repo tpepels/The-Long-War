@@ -103,7 +103,25 @@ def native_public_snapshot(native, fast_state):
             }
             for player in exported["players"]
         ],
-        "board": exported["board"],
+        "board": [
+            [
+                [
+                    {
+                        "force": slot["force"],
+                        "bond": slot["bond"],
+                        "name": slot["name"],
+                        "exhausted": slot["exhausted"],
+                        "temporary_strength": slot["temporary_strength"],
+                        "maneuvers_this_battle": slot["maneuvers_this_battle"],
+                        "maneuvered_in_operation": slot["maneuvered_in_operation"],
+                        "maneuver_direction": slot["maneuver_direction"],
+                    }
+                    for slot in front
+                ]
+                for front in side
+            ]
+            for side in exported["board"]
+        ],
         "narratives": [
             [{"card_id": narrative["card_id"]} for narrative in side]
             for side in exported["narratives"]

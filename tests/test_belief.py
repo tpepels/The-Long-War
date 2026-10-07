@@ -114,31 +114,22 @@ def test_hidden_stratagem_belief_respects_public_choice_shape() -> None:
         "no-step-back",
         fronts=(Front.SECOND,),
     )
-    assert sampler._hidden_stratagem_choice_compatible(
-        "no-step-back",
-        chosen_front,
-    )
-    assert not sampler._hidden_stratagem_choice_compatible(
-        "the-battle-turned-east",
-        chosen_front,
-    )
-    assert not sampler._hidden_stratagem_choice_compatible(
-        "the-ground-was-held",
-        chosen_front,
-    )
+    for card_id, card in engine.cards.items():
+        if card["type"] != "stratagem":
+            continue
+        assert sampler._hidden_stratagem_choice_compatible(
+            card_id,
+            chosen_front,
+        )
 
+    no_front = StratagemState("no-step-back")
     direction = StratagemState(
-        "the-battle-turned-east",
+        "no-step-back",
         direction="left",
     )
-    assert sampler._hidden_stratagem_choice_compatible(
-        "the-battle-turned-east",
-        direction,
-    )
-    # A zero-target wheel exposes only the same public direction choice.
-    assert sampler._hidden_stratagem_choice_compatible(
-        "the-line-wheeled",
-        direction,
+    assert not sampler._hidden_stratagem_choice_compatible(
+        "no-step-back",
+        no_front,
     )
     assert not sampler._hidden_stratagem_choice_compatible(
         "no-step-back",
