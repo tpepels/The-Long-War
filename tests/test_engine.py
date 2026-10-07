@@ -1191,21 +1191,6 @@ def test_targeted_stratagem_play_choices_are_legal_actions() -> None:
     ) in legal
 
 
-@pytest.mark.parametrize(
-    "action",
-    [
-        PlayStratagem(
-            "there-was-no-road-back",
-            fronts=(Front.SECOND,),
-        ),
-        PlayStratagem(
-            "every-banner-turned-toward-them",
-            fronts=(Front.SECOND,),
-        ),
-        PlayStratagem(
-            "the-line-had-begun-to-move",
-            direction="right",
-        ),
 def test_no_step_back_does_not_create_core_lost_front_removal() -> None:
     engine, state = setup_state(seed=4712)
     state.stratagems[0] = StratagemState(
@@ -1579,5 +1564,148 @@ def test_eira_succession_resolver_moves_name_then_drives_off_source(
     assert state.slot(0, source).occupied is False
     assert "the-fifty-men" in state.players[0].discard
     assert "followed" in state.players[0].discard
+
+def test_lost_front_does_not_trigger_legacy_breakthrough_replacement() -> None:
+    engine, state = setup_state()
+    make_named(state, 0, pos(0, Rank.FRONT), force="the-iron-boars", temporary=10)
+    make_named(state, 1, pos(0, Rank.FRONT))
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.slot(1, pos(0, Rank.FRONT)).named is True
+    assert state.slot(1, pos(0, Rank.REAR)).occupied is False
+
+
+def test_ground_was_held_breaks_tie_only_for_single_frontline_named_side() -> None:
+    engine, state = setup_state()
+    make_named(state, 0, pos(0, Rank.FRONT))
+    make_named(state, 1, pos(0, Rank.REAR))
+    state.stratagems[0] = StratagemState("the-ground-was-held")
+
+    resolve_battle_by_passing(engine, state)
+
+    assert state.last_battle_snapshot["fronts_lost"][1] >= 1
+    assert state.last_battle_snapshot["fronts_lost"][0] == 0
+
+
+@pytest.mark.parametrize("battle", range(1, 10))
+def test_command_recovery_formula(battle: int) -> None:
+    rules = GameRules.standard().with_overrides(
+        starting_command=20,
+        command_cap=100,
+        command_collapse_threshold=0,
+    )
+    engine, state = setup_state(seed=4200 + battle, rules=rules)
+    initial_command = 10
+    state.battle = battle
+    state.players[0].command = initial_command
+    state.players[1].command = initial_command
+    state.battle_start_command[:] = [initial_command, initial_command]
+
+    resolve_battle_by_passing(engine, state)
+
+    actual_recovery = max(
+        rules.command_recovery_floor,
+        rules.command_recovery_for_battle(battle),
+    )
+    expected = initial_command + actual_recovery
+    assert state.players[0].command == expected
+    assert state.players[1].command == expected
+
+
+def test_bought_time_for_can_pay_extra_to_draw_two_with_sequential_hand_limit() -> None:
+    engine, state = setup_state()
+    target = pos(0, Rank.FRONT)
+    state.players[0].command = 10
+    state.players[0].hand = (
+        ["bought-time-for"]
+        + ["the-fifty-men"] * (engine.hand_limit - 1)
+    )
+    state.players[0].deck = ["seven-black-ships", "the-red-shields"]
+    # Let player 1's normal turn-start draw resolve immediately after the
+    # invested operation finishes.
+    state.players[1].hand = []
+
+    normal = PlayBond("bought-time-for", target)
+    invested = PlayBond("bought-time-for", target, extra_payment=1)
+    legal = engine.legal_actions(state)
+    assert normal in legal
+    assert invested in legal
+    assert engine.command_cost_for_action(state, normal) == 1
+    assert engine.command_cost_for_action(state, invested) == 2
+
+    engine.apply(state, invested)
+
+    assert state.players[0].command == 8
+    assert len(state.players[0].hand) == engine.hand_limit + 1
+    assert state.pending_draw_discard_for == 0
+    assert state.pending_draw_count == 0
+    assert state.pending_draw_finish_operation is True
+
+    engine.apply(state, engine.legal_actions(state)[0])
+    assert len(state.players[0].hand) == engine.hand_limit
+    assert state.pending_draw_discard_for is None
+    assert state.active_player == 0
+    assert state.actions_this_turn == 1
+
+
+def test_chained_mandatory_recoveries_do_not_dead_end_after_first_consumes_target() -> None:
+    engine, state = setup_state(seed=48334)
+
+    # Keep this focused on stale queued recoveries rather than hand-limit
+    # cleanup introduced by returning a card to a full opening hand.
+    state.players[0].hand.clear()
+    state.players[0].discard[:] = ["followed"]
+    recovery = {
+        "kind": 4,  # EFFECT_RECOVER
+        "player": 0,
+        "card": -1,
+        "source": -1,
+        "aux": 2,  # CARD_BOND
+        "source_mask": 0,
+        "dest_mask": 0,
+        "flags": 0,
+    }
+    state.pending_effects = [dict(recovery), dict(recovery)]
+    state.active_player = 0
+
+    first = effect_choices(engine, state, "recover")
+    assert first == [EffectChoice("recover", card_id="followed")]
+    engine.apply(state, first[0])
+
+    second = effect_choices(engine, state, "recover")
+    assert second == [EffectChoice("recover", skip=True)]
+    engine.apply(state, second[0])
+
+    assert state.pending_effects == []
+    assert "followed" in state.players[0].hand
+    assert engine.legal_actions(state)
+
+def test_recover_to_full_hand_triggers_hand_limit_cleanup() -> None:
+    engine, state = setup_state(seed=48140)
+    state.players[0].hand = ["the-fifty-men"] * engine.hand_limit
+    state.players[0].discard = ["followed"]
+    state.pending_effects = [{
+        "kind": 4,  # EFFECT_RECOVER
+        "player": 0,
+        "card": -1,
+        "source": -1,
+        "aux": 2,  # CARD_BOND
+        "source_mask": 0,
+        "dest_mask": 0,
+        "flags": 0,
+    }]
+    state.active_player = 0
+
+    recover = next(
+        action
+        for action in effect_choices(engine, state, "recover")
+        if not action.skip and action.card_id == "followed"
+    )
+    engine.apply(state, recover)
+
+    assert len(state.players[0].hand) == engine.hand_limit + 1
+    assert state.pending_draw_discard_for == 0
+    assert all(isinstance(action, Discard) for action in engine.legal_actions(state))
 
 
