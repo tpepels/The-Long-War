@@ -443,6 +443,7 @@ def test_supply_from_middle_can_discount_front_attachments() -> None:
 
     state.slot(0, middle).force = "the-fifty-men"
     state.slot(0, middle).bond = "supplied-by"
+    state.players[0].hand = ["followed", "namar"]
 
     assert engine.command_cost_for_action(state, PlayBond("followed", front)) == 0
     assert engine.command_cost_for_action(state, PlayName("namar", front)) == 2
@@ -454,6 +455,7 @@ def test_supplied_by_requires_bonded_and_stops_when_bond_text_is_suppressed() ->
     middle = pos(1, Rank.MIDDLE)
     source = state.slot(0, rear)
     source.bond = "supplied-by"
+    state.players[0].hand = ["followed"]
 
     assert engine.command_cost_for_action(state, PlayBond("followed", middle)) == 1
 
@@ -473,6 +475,7 @@ def test_multiple_supply_effects_stack_with_bond_zero_and_name_one_minima() -> N
     source = state.slot(0, rear)
     source.force = "the-house-of-reed"
     source.bond = "supplied-by"
+    state.players[0].hand = ["followed", "iria", "namar"]
 
     assert engine.command_cost_for_action(state, PlayBond("followed", middle)) == 0
     assert engine.command_cost_for_action(state, PlayName("iria", middle)) == 1
