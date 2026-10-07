@@ -84,7 +84,11 @@ def test_all_cards_define_valid_rule_blocks() -> None:
         blocks = card["rule_blocks"]
         assert all(block["kind"] in allowed for block in blocks)
         assert all(block["text"].strip() for block in blocks)
-        if card["text"]:
+        has_printed_effects = bool(card.get("effects")) or any(
+            mode.get("effects")
+            for mode in card.get("modes", {}).values()
+        )
+        if has_printed_effects:
             assert blocks, card["title"]
 
 
