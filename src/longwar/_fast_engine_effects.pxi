@@ -1024,7 +1024,39 @@ cdef void _fe_finish_turn_fast(
     _fe_start_turn_fast(self, state, opponent)
 
 
+cdef void _fe_apply_flanking_exhaustion(
+    FastEngine self,
+    FastState state,
+) noexcept:
+    """A hole in the Front line exhausts the adjacent friendly Front-row Force."""
+    cdef int player, opponent, front, adjacent, slot
+    for player in range(PLAYER_COUNT):
+        opponent = other_player(player)
+        for front in range(FRONT_COUNT):
+            if not front_is_active(state.battle, front):
+                continue
+            slot = slot_index(player, front, RANK_FRONT)
+            if state.force[slot] < 0 or state.exhausted[slot]:
+                continue
+            for adjacent in (front - 1, front + 1):
+                if (
+                    adjacent < 0
+                    or adjacent >= FRONT_COUNT
+                    or not front_is_active(state.battle, adjacent)
+                ):
+                    continue
+                if (
+                    state.force[slot_index(opponent, adjacent, RANK_FRONT)] >= 0
+                    and state.force[slot_index(player, adjacent, RANK_FRONT)] < 0
+                ):
+                    state.exhausted[slot] = 1
+                    break
+
+
 cdef void _fe_finish_operation_fast(FastEngine self, FastState state, int actor):
+    # Flanking is checked only after the Action and all of its pending choices
+    # have resolved, so one Action cannot observe a half-finished board.
+    _fe_apply_flanking_exhaustion(self, state)
     state.operations_this_battle[actor] += 1
     state.actions_this_turn += 1
     # turn_number is the stable decision/action serial used by delayed
