@@ -191,7 +191,8 @@ CARD TYPOGRAPHY - TUNING PANEL
   --card-class-prefix-font-size: 2mm;
   --card-class-font-size: 2.5mm;
   --card-class-separator-font-size: 2mm;
-  --card-class-line-height: 4mm; /* bottom classification row above footer */
+  --card-class-line-height: 4mm; /* classification row inside footer */
+  --card-class-footer-bottom: 6.65mm; /* aligns row centre with Command seal centre */
   --card-effect-label-font-size: 2.45mm;
   --card-effect-use-font-size: 2mm;
   --card-effect-text-font-size: 3.25mm;
@@ -232,6 +233,7 @@ CARD TYPOGRAPHY - TUNING PANEL
   --art-height: 30mm;
   --identity-height: 19mm;
   --footer-height: 15mm;
+  --footer-meta-bottom: 0.5mm; /* keeps footer metadata below classification row */
   --title-height: 12mm;
   width: var(--card-width);
   height: var(--card-height);
@@ -588,9 +590,9 @@ EXPOSED TOP ROW - TUNING PANEL
   align-items: center;
   position: relative;
 }
-/* When a classification row exists, it now lives at the bottom of card-body.
-   Reclaim the 4mm it used to occupy below the title so rules keep the same room. */
-.card-body:has(> .class-line) .card-identity {
+/* Classifications now live in the footer. Reclaim their old 4mm from the
+   identity region so the rules area becomes genuinely taller. */
+.physical-card:has(.card-footer > .class-line) .card-identity {
   flex-basis: calc(var(--identity-height) - var(--card-class-line-height));
   height: calc(var(--identity-height) - var(--card-class-line-height));
   min-height: calc(var(--identity-height) - var(--card-class-line-height));
@@ -625,10 +627,14 @@ EXPOSED TOP ROW - TUNING PANEL
   background: url("art/card-frame/title-divider.png") center/100% 14mm no-repeat;
 }
 .class-line {
-  flex: 0 0 var(--card-class-line-height);
+  position: absolute;
+  left: 4.5mm;
+  right: 17mm;
+  bottom: var(--card-class-footer-bottom);
+  z-index: 2;
   height: var(--card-class-line-height);
   min-height: var(--card-class-line-height);
-  max-width: 100%;
+  max-width: none;
   margin: 0;
   display: flex;
   align-items: center;
@@ -741,7 +747,7 @@ EXPOSED TOP ROW - TUNING PANEL
   align-content: end;
   align-items: center;
   gap: 0.25mm 0.7mm;
-  padding: 2mm 17mm 3mm 4.5mm;
+  padding: 2mm 17mm var(--footer-meta-bottom) 4.5mm;
 }
 .footer-mark {
   grid-column: 1;
