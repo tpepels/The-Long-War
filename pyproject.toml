@@ -9,6 +9,7 @@ description = "Rules, print tooling, and balance analysis for The Long War card 
 requires-python = ">=3.11"
 dependencies = [
   "Markdown>=3.7",
+  "Pillow>=11.0",
 ]
 
 [project.optional-dependencies]

@@ -157,15 +157,17 @@ function artFocus(value,fallback){
   if(/^\\d+(?:\\.\\d+)?%$/.test(text))return text;
   return fallback;
 }
-function artStyle(card){
+function artStyle(card,options={}){
   const x=artFocus(card.art_focus_x,"50%");
   const y=artFocus(card.art_focus_y,"50%");
-  const artURL="art/v2/cards/"+esc(card.id)+".png?v="+encodeURIComponent(VERSION);
+  const artBase=options.printArt?"art/v2/cards-print/":"art/v2/cards/";
+  const artExt=options.printArt?".webp":".png";
+  const artURL=artBase+esc(card.id)+artExt+"?v="+encodeURIComponent(VERSION);
   return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
 }
 function cardArticle(card,extra="",options={}){
   const density=densityClass(card),titleDensity=card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":"",heroMode=options.heroMode==="name"?"name":"force",status=statusLine(card);
-  return '<article class="v2-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
+  return '<article class="v2-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3>'+classificationLine(card)+(status?'<p class="card-byline">'+esc(status)+'</p>':"")+'</div><div class="motif-field" aria-hidden="true"></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer"><span class="footer-mark">'+(card.unique?"Unique":"")+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},

@@ -193,7 +193,12 @@ def test_playtest_kit_uses_current_v2_decks_and_expands_copies() -> None:
     assert "function expandDeck(deck)" in script
     assert "window.V2Cards.cardArticle" in script
     assert "chunk(expanded,8)" in script
-    assert "Print all decks" in page
+    assert 'id="print-selected"' in page
+    assert "Print selected" in page
+    assert "selectedDecks()" in script
+    assert "renderSelectedDecks(chosenDecks)" in script
+    assert "preloadArt(selectedIds)" in script
+    assert "{printArt:true}" in script
     assert "chunk(cards,8)" in text("web/cards.js")
     assert 'class="print-sheet card-sheet"' in text("web/cards.js")
 
@@ -221,8 +226,9 @@ def test_physical_print_surfaces_share_v2_renderer_while_browser_play_stays_sepa
         assert "cards-v2.js" in source
         assert "v2-heraldry.js" in source
         assert "card-rules.js" not in source
-    assert "V2Cards?.inspect" in text("web/cards.js")
-    assert "V2Cards?.inspect" in text("web/playtest-kit.js")
+    assert "V2Cards?.inspect" not in text("web/cards.js")
+    assert "V2Cards?.inspect" not in text("web/playtest-kit.js")
+    assert "inspect(root=document)" in text("web/cards-v2.js")
 
 
 def test_browser_cards_always_reserve_the_properties_row() -> None:
@@ -290,7 +296,7 @@ def test_rulebook_uses_generated_pdf_for_printing() -> None:
     assert "window.print()" not in template
     assert 'OUTPUT = DIST / "rulebook.pdf"' in generator
     assert '"compile"' in generator
-    assert "MAX_PAGES = 6" in generator
+    assert "MAX_PAGES = 8" in generator
     assert "2 <= len(reader.pages) <= MAX_PAGES" in generator
     assert "blank or nearly blank" in generator
 
@@ -457,6 +463,26 @@ def test_battle_resolution_banner_uses_rules_active_front_count() -> None:
     assert "renderedState.active_fronts?.length" in script
     assert '" Front resolved"' in script
     assert '" Fronts resolved"' in script
+
+
+def test_pages_do_not_publish_internal_v2_labs() -> None:
+    builder = text("tools/build_pages.py")
+    assert '"cards-v2.html"' in builder
+    assert '"cards-v2-force-style-lab.html"' in builder
+    assert "remove_internal_pages_from_dist()" in builder
+
+
+def test_public_print_surfaces_use_compact_generated_art() -> None:
+    builder = text("tools/build_pages.py")
+    renderer = text("web/cards-v2.js")
+    cards_script = text("web/cards.js")
+    deck_script = text("web/playtest-kit.js")
+    assert "PRINT_ART_MAX_PX = 960" in builder
+    assert "cards-print" in builder
+    assert '"WEBP"' in builder
+    assert 'options.printArt?"art/v2/cards-print/"' in renderer
+    assert "{printArt:true}" in cards_script
+    assert "{printArt:true}" in deck_script
 
 
 def test_public_navigation_has_only_six_surfaces() -> None:
