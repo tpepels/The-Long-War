@@ -29,7 +29,7 @@ Winning a Front does not clear the battlefield. Formations remain where they are
 
 ## The battlefield
 
-The battlefield is made of four Fronts. Every Front has three positions on each player's side:
+The battlefield contains four contested areas called **Fronts**. Every Front has three positions on each player's side:
 
 - the **Frontline**, nearest the centre of the battlefield;
 - the **Middle/Support** between the front and rear;
@@ -116,7 +116,7 @@ A printed row restriction is a **hard occupancy restriction**. If a Force is res
 
 A **Maneuver** is an Action that moves one of your Named Formations. A Maneuver costs **1 Command**.
 
-Choose one of your Named Formations and move it to one adjacent position: either one active Front left or right in the same rank, or one rank toward the Frontline or Rear in the same Front. Diagonal movement is never adjacent, and you may not Maneuver into an inactive Front.
+Choose one of your Named Formations and move it to one adjacent position: either one active Front left or right in the same rank, or one rank toward the Frontline or Rear in the same Front. Diagonal movement is never adjacent. You may not Maneuver into an inactive Front.
 
 If the destination is empty, move the whole formation there. If it contains one of your own formations, swap the two formations instead. Only the formation that began the Maneuver must be Named. Whenever a formation moves this way, its Force and every attached Bond and Name move together.
 
