@@ -1711,7 +1711,8 @@
           "label": "PLAY",
           "text": "If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "stayed-behind-for",
@@ -2213,7 +2214,8 @@
           "label": "ACTION",
           "text": "Pay 1 Command. Choose another friendly Human formation in this Front. The next card played onto it this turn costs 1 less Command, to a minimum of 1."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "iria",
@@ -2284,7 +2286,8 @@
           "label": "TRIGGER · 1/BATTLE",
           "text": "When your opponent sets a Stratagem in this Front, you may look at it."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "oren",
@@ -2357,7 +2360,8 @@
           "label": "ACTION · 1/BATTLE",
           "text": "Play one Bond from your hand onto this formation or the friendly formation directly ahead, paying its Command cost."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "elian",
@@ -2496,7 +2500,8 @@
           "label": "TRIGGER",
           "text": "When another friendly formation in this Front becomes Named, draw 1 card."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "mara",
@@ -2638,7 +2643,8 @@
           "label": "TRIGGER · 1/BATTLE",
           "text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "edrin",
@@ -2862,7 +2868,8 @@
           "label": "ACTION · 1/BATTLE",
           "text": "Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "tala",
@@ -3013,7 +3020,8 @@
           "label": "ACTION",
           "text": "Pay 2 Command. Discard 1 card, then draw 2 cards."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "iven",
@@ -3910,7 +3918,8 @@
           "text": "Bonds you play cost 1 less Command, to a minimum of 0. Names you play cost 1 less Command, to a minimum of 1.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "nara-builder-of-walls",
@@ -4142,7 +4151,8 @@
           "text": "Move this or another friendly formation in this Front one position.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "veyra-keeper-of-oaths",
@@ -4258,7 +4268,8 @@
           "text": "Opposing Tactics that target this formation cost 1 additional Command.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "yara-the-chronicler",
@@ -4901,7 +4912,8 @@
           "label": "HIDDEN",
           "text": "Reveal when a Front would tie. If you have a Named Formation there and your opponent does not, you win that Front instead."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "the-lines-held",
@@ -4949,7 +4961,8 @@
           "label": "HIDDEN",
           "text": "Reveal after Front results are known. Up to two Fronts you lost do not reduce your Command this Battle."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "no-step-back",
@@ -6412,7 +6425,8 @@
           "label": "BONDED",
           "text": "SUPPORT +1."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "supplied-by",
@@ -6537,7 +6551,8 @@
           "label": "CONTINUOUS",
           "text": "Other friendly Archers in this Front have +1 Strength."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "lysa-the-listener",
@@ -6998,7 +7013,8 @@
           "text": "Opposing Tactics cannot reduce this formation's Strength.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "a-volley-before-dawn",

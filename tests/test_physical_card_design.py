@@ -240,9 +240,8 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
         assert output.one("card-title")["text"] == card["title"]
         cost = output.one("cost-gem")
         assert cost["text"] == str(card["command_cost"])
-        assert len(output.all("seal-inner", within=cost)) == (0 if card["type"] == "force" else 1)
-        if card["type"] == "force":
-            assert not any(node["tag"] == "svg" and cost in node["ancestors"] for node in output.elements)
+        assert not output.all("seal-inner", within=cost)
+        assert not any(node["tag"] == "svg" and cost in node["ancestors"] for node in output.elements)
         assert [node["text"] for node in output.all("effect-text")] == [e["text"] for e in effects(card)]
 
         formation = card["type"] in {"force", "bond", "name", "hero"}
@@ -252,6 +251,14 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
         if formation:
             edge = output.one("stack-edge")
             assert edge["attrs"].get("data-edge-layout") == "single-row"
+            stats = output.one("hero-stats" if card["type"] == "hero" else "edge-stats")
+            values = [node["text"] for node in output.elements if node["tag"] == "b" and stats in node["ancestors"]]
+            if card["type"] == "hero":
+                assert values == [str(card["force_strength"]), f"{card['name_strength_modifier']:+d}"]
+            elif card["type"] == "force":
+                assert values == [str(card["strength"])]
+            else:
+                assert values == [f"{card['strength_modifier']:+d}"]
             assert len(output.all("class-sigil", within=edge)) == len(card.get("classes", []))
             source = force_mode_effects(card) if card["type"] in {"force", "bond", "hero"} else []
             live = [e for e in source if e["timing"] in live_timings]
@@ -285,21 +292,13 @@ def test_symbol_vocabulary_covers_every_classification() -> None:
     assert "function command(value" in heraldry
 
 
-def test_visual_contract_is_not_powerpoint_layout() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert 'data-edge-layout="single-row"' in js
-    assert "classificationIcons(card)" in js
-    assert "use-socket" in js
-    assert "isFormationCard(card)?stackEdge(card):eventCrown(card)" in js
-    assert ".motif-field>svg,.motif-field>img{display:none!important}" in css
-    assert ".effect-block+.effect-block" in css
-    assert ".class-body-item" in css
-    assert "command-label" not in js
-    assert ">COMMAND<" not in js
-    assert 'class="seal-inner"' in js
-    assert "function block(effect)function" not in js
-    assert "const STACK_CASESconst STACK_CASES" not in js
+def test_shared_card_regions_keep_art_clear_and_commands_numeric() -> None:
+    for card, output in zip(CARDS, render_cards(CARDS), strict=True):
+        art = output.one("motif-field")
+        assert not any(art in node["ancestors"] for node in output.elements)
+        assert not output.all("command-label")
+        assert output.one("cost-gem")["text"] == str(card["command_cost"])
+        assert len(output.all("effect-block")) == len(effects(card))
 
 
 
@@ -332,51 +331,51 @@ def test_multi_effect_heroes_receive_dense_layout() -> None:
 
 
 def test_exposed_row_preserves_classification_icons_before_reminder_width() -> None:
+    formation = [card for card in CARDS if card["type"] in {"force", "bond", "name", "hero"}]
+    for card, output in zip(formation, render_cards(formation), strict=True):
+        identity = output.one("edge-identity")
+        reminders = output.one("edge-live-group")
+        assert output.elements.index(identity) < output.elements.index(reminders)
+        assert [node["attrs"]["data-class"] for node in output.all("class-sigil", within=identity)] == card.get("classes", [])
+
+
+
+def test_nonformation_header_uses_its_family_symbol_and_name() -> None:
+    events = [card for card in CARDS if card["type"] not in {"force", "bond", "name", "hero"}]
+    for card, output in zip(events, render_cards(events), strict=True):
+        crown = output.one("event-crown")
+        assert output.one("event-sigil") in output.all("event-sigil", within=crown)
+        assert output.one("event-family")["text"] == card["type"].title()
+
+
+
+
+
+def test_every_family_uses_shared_art_identity_rules_and_footer_structure() -> None:
+    for output in render_cards(CARDS):
+        body = output.one("card-body")
+        regions = [output.one(name) for name in ("motif-field", "card-identity", "rules")]
+        assert [node for node in output.elements if node["ancestors"] and node["ancestors"][-1] is body] == regions
+        identity = output.one("card-identity")
+        assert identity in output.one("card-title")["ancestors"]
+        if output.all("class-line"):
+            assert identity in output.one("class-line")["ancestors"]
+        assert output.one("card-footer") in output.one("cost-gem")["ancestors"]
+
+
+def test_shared_raster_decoration_assets_exist() -> None:
     css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    assert "grid-template-columns:auto minmax(0,1fr) minmax(0,1.35fr)" in css
-    assert ".edge-live-group{min-width:0;height:6.8mm;" in css
-    assert ".edge-live-text{min-width:0;max-width:none;flex:1 1 auto;" in css
-
-
-
-def test_nonformation_header_matches_stack_header_height() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    assert ".event-crown{height:calc(var(--exposed-edge) - var(--frame));flex:0 0 calc(var(--exposed-edge) - var(--frame));" in css
-
-
-
-
-
-def test_force_uses_shared_card_layout() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert "function forceArticle(" not in js
-    assert "chronicle-force-face" not in js
-    assert "CANONICAL FORCE FACE" not in css
-    assert ".card-force{--accent:" in css
-    assert "if(card.type===\"force\") return forceArticle" not in js
-    assert "(isFormationCard(card)?stackEdge(card):eventCrown(card))" in js
-    assert '<div class="card-body"><div class="card-identity">' in js
-    assert '<div class="motif-field" aria-hidden="true"></div>' in js
-
-
-def test_force_proof_uses_raster_decoration_and_reorders_shared_regions() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    for selector, order in ((".motif-field", 0), (".card-identity", 1), (".rules", 2)):
-        rule = re.search(r"\.card-force " + re.escape(selector) + r"\{([^}]+)\}", css)
-        assert rule is not None
-        assert re.search(rf"\border:\s*{order}\s*;", rule.group(1))
     for asset in ("card-shell", "art-window", "title-divider", "command-seal"):
         assert f'art/card-frame/{asset}.png' in css
+        assert (ROOT / "web" / "art" / "card-frame" / f"{asset}.png").is_file()
 
 
-def test_vanilla_force_rules_are_blank_and_other_families_keep_their_baseline() -> None:
-    force = next(card for card in CARDS if card["type"] == "force" and not effects(card))
-    bond = {**next(card for card in CARDS if card["type"] == "bond"), "effects": []}
-    force_output, bond_output = render_cards([force, bond])
-    assert force_output.one("rules")["text"] == ""
-    assert not force_output.all("empty-rules")
-    assert bond_output.one("empty-rules")["text"] == "No special rules."
+def test_cards_without_effects_do_not_print_placeholder_rules() -> None:
+    cards = [{**next(card for card in CARDS if card["type"] == family), "effects": []}
+             for family in EXPECTED_COUNTS if family != "hero"]
+    for output in render_cards(cards):
+        assert output.one("rules")["text"] == ""
+        assert not output.all("empty-rules")
 
 
 @pytest.mark.parametrize(
@@ -393,44 +392,59 @@ def test_art_focus_emits_only_safe_percentages(override, expected: str) -> None:
     assert "onload" not in attrs
 
 
-def test_force_layout_probes_cover_dense_rules_and_long_titles_without_changing_cards() -> None:
+def test_layout_probes_cover_dense_rules_and_long_titles_in_every_family_without_changing_cards() -> None:
     original = json.dumps(CARDS, sort_keys=True)
-    dense, long_title = check_card_layout.force_layout_probes(CARDS)
-    assert 170 < sum(len(effect["text"]) for effect in dense["effects"]) <= 250
-    assert len(long_title["title"]) >= 32
-    dense_output, title_output = render_cards([dense, long_title])
-    assert "dense" in dense_output.one("physical-card")["attrs"]["class"].split()
-    assert [node["text"] for node in dense_output.all("effect-text")] == [effect["text"] for effect in dense["effects"]]
-    assert title_output.one("card-title")["text"] == long_title["title"]
-    assert "title-very-long" in title_output.one("physical-card")["attrs"]["class"].split()
+    probes = check_card_layout.physical_layout_probes(CARDS)
+    assert Counter(card["type"] for card in probes) == dict.fromkeys(EXPECTED_COUNTS, 2)
+    for card, output in zip(probes, render_cards(probes), strict=True):
+        classes = output.one("physical-card")["attrs"]["class"].split()
+        if card["id"].startswith("dense-"):
+            assert 170 < sum(len(effect["text"]) for effect in effects(card)) <= 250
+            assert {"dense", "very-dense"}.intersection(classes)
+        else:
+            assert len(card["title"]) >= 32
+            assert "title-very-long" in classes
+        assert [node["text"] for node in output.all("effect-text")] == [effect["text"] for effect in effects(card)]
+        assert output.one("card-title")["text"] == card["title"]
     assert json.dumps(CARDS, sort_keys=True) == original
 
 
 @pytest.mark.parametrize(
     ("override", "failure"),
     [
-        (".card-force .motif-field{height:19mm;min-height:19mm;max-height:19mm;flex-basis:19mm}", "force-art-height"),
-        (".card-force .motif-field{order:2}", "force-title-before-art"),
-        (".card-force .class-line{visibility:hidden}", "classification-hidden"),
-        (".card-force .class-body-item>span{visibility:hidden}", "classification-hidden"),
-        (".card-force .class-line{transform:translateX(80mm)}", "classification-outside"),
-        (".card-force .edge-live-text{width:1mm;max-width:1mm;flex:0 0 1mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}", "edge-live-text-overflow"),
+        (".physical-card .motif-field{height:19mm;min-height:19mm;max-height:19mm;flex-basis:19mm}", "art-height"),
+        (".physical-card .motif-field{order:2}", "title-before-art"),
+        (".physical-card .class-line{visibility:hidden}", "classification-hidden"),
+        (".physical-card .class-body-item>span{visibility:hidden}", "classification-hidden"),
+        (".physical-card .class-line{transform:translateX(80mm)}", "classification-outside"),
+        (".physical-card .edge-live-text{width:1mm;max-width:1mm;flex:0 0 1mm;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}", "edge-live-text-overflow"),
+        (".physical-card .cost-gem{background:none}", "missing-command-seal"),
+        (".physical-card .event-crown{height:12mm;flex-basis:12mm}", "edge-height"),
     ],
 )
-def test_physical_geometry_guard_detects_force_region_failures(tmp_path, override: str, failure: str) -> None:
+def test_physical_geometry_guard_detects_region_failures_across_families(tmp_path, override: str, failure: str) -> None:
     browser = check_card_layout.browser_path()
     if browser is None:
         pytest.skip("Chrome/Chromium required for geometry guard regression")
-    force = next(card for card in CARDS if card["id"] == "the-crow-archers")
-    document = check_card_layout.physical_layout_document([force])
+    document = check_card_layout.physical_layout_document(CARDS)
     document = document.replace("</head>", f"<style>{override}</style></head>")
-    path = tmp_path / "force-region-probe.html"
+    path = tmp_path / "family-region-probe.html"
     path.write_text(document, encoding="utf-8")
     result = check_card_layout.run_browser(browser, path)
     assert result.returncode == 0, result.stderr
     match = re.search(r'<div id="layout-result">([^<]*)</div>', result.stdout)
     assert match is not None, result.stdout[-1000:]
-    assert f"{force['id']}:{failure}" in match.group(1).split(";")
+    failures = {entry.split(":", 1)[0] for entry in match.group(1).split(";") if entry.endswith(":" + failure)}
+    expected = CARDS
+    if failure.startswith("classification-"):
+        expected = [card for card in CARDS if card.get("classes") or card.get("references")]
+    elif failure == "edge-live-text-overflow":
+        expected = [card for card in CARDS if card["type"] in {"force", "bond", "hero"}
+                    and any(effect.get("exposed") for effect in force_mode_effects(card))]
+    elif failure == "edge-height":
+        expected = [card for card in CARDS if card["type"] not in {"force", "bond", "name", "hero"}]
+    assert expected
+    assert {card["id"] for card in expected} <= failures
 
 
 def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
@@ -446,16 +460,18 @@ def test_force_art_uses_exact_card_id_filenames_when_available() -> None:
     assert force_ids <= art_ids
 
 
-def test_dense_hero_rules_fit_shared_layout_regression() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert "\n.card-hero\n.card-hero\n" not in css
-    assert ".card-hero.dense .effect-text{font-size:2.46mm;line-height:1.04}" in css
-    assert ".card-hero.very-dense .effect-text{font-size:2.18mm;line-height:1.02}" in css
-    assert ".card-hero.dense .effect-head{gap:.45mm;margin-bottom:.32mm}" in css
-    assert ".card-hero.very-dense .effect-head{gap:.38mm;margin-bottom:.24mm}" in css
-    assert 'if(chars>180||(es.length>=3&&chars>120))return " very-dense";' in js
-    assert 'if(es.length>=3||chars>100)return " dense";' in js
+def test_dense_hero_rules_preserve_both_modes() -> None:
+    heroes = [card for card in CARDS if card["type"] == "hero"]
+    for card, output in zip(heroes, render_cards(heroes), strict=True):
+        classes = output.one("physical-card")["attrs"]["class"].split()
+        if sum(len(effect["text"]) for effect in effects(card)) > 180:
+            assert "very-dense" in classes
+        assert [node["attrs"]["data-mode"] for node in output.all("hero-rule-mode")] == ["force", "name"]
+        for mode in output.all("hero-rule-mode"):
+            assert [node["text"] for node in output.all("effect-text", within=mode)] == [
+                effect["text"] for effect in card["modes"][mode["attrs"]["data-mode"]]["effects"]
+            ]
+
 
 def test_doros_is_promoted_to_very_dense_layout() -> None:
     card = next(card for card in CARDS if card["id"] == "doros-the-last-spear")
@@ -463,20 +479,18 @@ def test_doros_is_promoted_to_very_dense_layout() -> None:
     chars = sum(len(effect.get("text", "")) for effect in es)
     assert len(es) == 3
     assert chars > 120
+    assert "very-dense" in render_cards([card])[0].one("physical-card")["attrs"]["class"].split()
 
 
-def test_hero_mode_headers_are_graphical_dividers() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert 'function heroModeHeading(mode)' in js
-    assert 'mode-heading-core' in js
-    assert 'As Force' not in js
-    assert 'As Name' not in js
-    assert '.mode-heading{display:grid;grid-template-columns:minmax(2mm,1fr) auto minmax(2mm,1fr)' in css
-    assert '.mode-heading::before,.mode-heading::after' in css
-    assert '.hero-rule-mode+.hero-rule-mode{margin-top:.48mm;padding-top:.2mm;border-top:0}' in css
-    assert '.hero-rule-mode[data-mode="force"] .mode-heading-core' in css
-    assert '.hero-rule-mode[data-mode="name"] .mode-heading-core' in css
+def test_hero_mode_headers_pair_each_mode_with_its_symbol() -> None:
+    for output in render_cards([card for card in CARDS if card["type"] == "hero"]):
+        modes = output.all("hero-rule-mode")
+        for mode, label in zip(modes, ("Force", "Name"), strict=True):
+            heading, = output.all("mode-heading", within=mode)
+            core, = output.all("mode-heading-core", within=heading)
+            assert core["text"].strip().endswith(label)
+            assert "As " not in core["text"]
+            assert any(node["tag"] == "svg" and core in node["ancestors"] for node in output.elements)
 
 
 def test_art_focus_defaults_and_overrides() -> None:
@@ -502,43 +516,32 @@ def test_runtime_art_crop_is_centered_after_normalization() -> None:
     assert "background-position:var(--art-x,50%) var(--art-y,50%)" in css
 
 
-def test_shared_visual_language_follows_print_reference_principles() -> None:
+def test_shared_visual_language_uses_raster_furniture() -> None:
     css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    assert "border:var(--frame) solid #484a40" in css
-    assert "border:.18mm solid color-mix(in srgb,var(--accent) 78%,transparent)" in css
-    assert "grid-template-columns:auto minmax(0,1fr) minmax(0,1.35fr)" in css
-    assert ".edge-timing-word{display:inline" in css
-    assert ".motif-field{position:relative;flex:0 0 var(--art-height)" in css
+    # The layout guard checks the computed raster decoration for every card.
+    assert "radial-gradient(" not in css
+    assert "linear-gradient(" not in css
+    assert "seal-inner" not in css
     assert "clip-path:" not in css
-    assert ".card-footer{flex:0 0 7.6mm" in css
     assert "@page physicalcards{size:A4 landscape;margin:9mm 12.5mm 6mm}" in css
 
 
-
 def test_long_titles_use_print_style_density_classes() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert 'card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":""' in js
-    assert ".title-long .card-title{font-size:4.65mm;line-height:1.03}" in css
-    assert ".title-very-long .card-title{font-size:4.15mm;line-height:1.01}" in css
-    assert "hero-type-mark" in js
+    for card, output in zip(CARDS, render_cards(CARDS), strict=True):
+        classes = output.one("physical-card")["attrs"]["class"].split()
+        assert ("title-very-long" in classes) is (len(card["title"]) >= 32)
+        assert ("title-long" in classes) is (25 <= len(card["title"]) < 32)
 
 
-def test_rules_panel_and_semantic_emphasis() -> None:
-    css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert "margin:.55mm -1.05mm 2.15mm" in css
-    assert ".rules{min-height:0;flex:1 1 auto;overflow:hidden;position:relative;margin:0 .35mm 1.15mm;padding:1.05mm 1.15mm .9mm;border:.11mm solid" in css
-    assert "background:color-mix(in srgb,var(--paper) 93%,white)" in css
-    assert ".effect-text .rule-term{font-weight:700" in css
-    assert ".effect-text .rule-referent{font-style:italic" in css
-    assert "z-index:20;width:8.65mm" in css
-    assert ".dense .rules{margin-bottom:.85mm" in css
-    assert ".very-dense .rules{margin-bottom:.65mm" in css
-    assert "function formatRuleText(value)" in js
-    assert "formatRuleText(effect.text)" in js
-    assert "Named Formation" in js
-    assert '"Human","Archer","Builder","Captain"' in js
+def test_rules_keep_semantic_emphasis_without_changing_authored_text() -> None:
+    phrase = "Choose a Human Archer in a Named Formation. It gets +1 Strength this Battle."
+    card = {**CARDS[0], "effects": [{"timing": "play", "text": phrase}]}
+    output, = render_cards([card])
+    assert output.one("effect-text")["text"] == phrase
+    assert [node["text"] for node in output.all("rule-term")] == ["Named Formation", "Strength", "Battle"]
+    assert [node["text"] for node in output.all("rule-referent")] == ["Human", "Archer"]
+    assert all(node["tag"] == "strong" for node in output.all("rule-term"))
+    assert all(node["tag"] == "em" for node in output.all("rule-referent"))
 
 
 def test_exploratory_decks_keep_broad_card_type_mix() -> None:
@@ -612,13 +615,15 @@ def test_new_positional_bonds_are_short_relationship_cards() -> None:
 
 
 def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> None:
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert 'front:"FRONT",middle:"MIDDLE",rear:"REAR"' in js
-    assert '"front","middle","rear"' in js
-    assert "function placementMarkup(card)" in js
-    assert "Array.isArray(card.allowed_rows)" in js
-    assert "effectTimingGlyph" in js
-    assert "SUPPORT" in js and "SUPPLY" in js
+    restricted = [card for card in CARDS if card.get("allowed_rows")]
+    for card, output in zip(restricted, render_cards(restricted), strict=True):
+        placement = output.one("edge-placement")
+        assert placement["attrs"]["title"] == " / ".join(row.title() for row in card["allowed_rows"]) + " only"
+        assert len(output.all("glyph-row", within=placement)) == len(card["allowed_rows"])
+    positional = [card for card in CARDS if any(effect["timing"] in {"front", "middle", "rear"} for effect in effects(card))]
+    for card, output in zip(positional, render_cards(positional), strict=True):
+        assert [node["text"] for node in output.all("effect-label")] == [effect["timing"].replace("_", " ").upper() for effect in effects(card)]
+        assert [node["text"] for node in output.all("effect-text")] == [effect["text"] for effect in effects(card)]
 
 
 def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
@@ -677,13 +682,17 @@ def test_outmatched_reserve_and_exhaustion_card_identities() -> None:
 
 
 def test_renderer_knows_exhausted_and_tireless_states() -> None:
-    js = (ROOT / "web" / "physical-cards.js").read_text(encoding="utf-8")
-    assert 'exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"' in js
-    assert '"exhausted","tireless","mobile"' in js
-    assert '["tireless","mobile"].includes(name)?utilityGlyph("move")' in js
-    assert 'name==="exhausted"?utilityGlyph("marker")' in js
-    assert "MAY MANEUVER EXHAUSTED" in js
-    assert "RESERVE" in js
+    original = next(card for card in CARDS if card["type"] == "force")
+    cards = [{**original, "effects": [{"timing": timing, "text": "Preserved state reminder.", "exposed": "STATE REMINDER"}]}
+             for timing in ("exhausted", "tireless", "mobile")]
+    for card, output in zip(cards, render_cards(cards), strict=True):
+        timing = card["effects"][0]["timing"]
+        assert output.one("effect-label")["text"] == timing.upper()
+        assert output.one("edge-mechanic")["attrs"]["data-timing"] == timing
+        assert output.one("edge-timing-word")["text"] == timing.upper()
+        assert output.one("edge-live-text")["text"] == "STATE REMINDER"
+        icon = output.one("effect-timing-icon")
+        assert output.all("glyph-utility", within=icon)
 
 
 def test_buried_force_and_bond_rules_are_memory_light() -> None:

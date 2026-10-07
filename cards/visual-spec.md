@@ -1,82 +1,88 @@
 # Physical-card visual specification
 
-The cards are physical war-table components. The exposed stack is the battlefield interface.
+The cards are physical war-table components. Their exposed strips remain the
+battlefield interface when formations are stacked.
 
-## Current checkpoint
+## Shared face
 
-The raster design is a **Force-only proof awaiting approval**. All 30 Forces have
-been reviewed. Bonds, Names, Heroes, Tactics, Orders, Stratagems and Narratives
-retain their current layouts and 20 mm illustration windows until that approval.
-The full 128-card art audit and extensions to other families follow the Force review.
+All eight families use `web/physical-cards.js`, `web/physical-cards.css` and
+`web/card-symbols.js` in the catalogue and playtest kit. Force, Bond, Name, Hero,
+Tactic, Order, Stratagem and Narrative share the same aged parchment shell,
+blue-and-gold ornament, dark ink and octagonal Command seal. The runtime webgame
+has its own presentation.
 
-All families still use `web/physical-cards.js` and `web/physical-cards.css` for the
-catalogue, playtest kit, stack proofs and print sheets. The runtime webgame has its
-own presentation; this work does not change game semantics or canonical card data.
+The face order is **exposed strip → illustration → centered title → written
+classifications → rules → footer**. Decoration comes from four reusable raster
+assets; artwork, text, numbers and functional symbols remain live elements.
+There are no separate family renderers or colour-coded shells.
 
-## Fixed geometry
+## Geometry and typography
 
-- Card size: **68 × 96 mm**.
-- Stack order: Force below Bond below Name, with each layer shifted down **10.5 mm**.
-- Force face order: **10.5 mm exposed strip → 25 mm art → 19 mm centered identity region → rules → 15 mm footer**.
-- The Force Command seal is **12.5 mm** square at the bottom right.
-- A4 landscape sheets hold **4 × 2 cards**, a **272 × 192 mm** block with no gaps.
+- Cards measure **68 × 96 mm**.
+- Formation layers shift down **10.5 mm**; their exposed strips never grow.
+- Illustrations are **25 mm** high, or **20 mm** when rules need more room.
+- The centered identity region is **19 mm**, **18 mm** for dense faces, and
+  **15 mm** for Heroes.
+- The footer reserves **15 mm** for the ID, revision, family mark, Unique label
+  when applicable, and a **12.5 mm** raster Command seal.
+- A4 landscape sheets hold **4 × 2 cards**: exactly **272 × 192 mm**, without gaps.
 
-The exposed strip stays fixed regardless of title length or rules density. It
-contains the role and Strength, classification pictograms, live buried reminders
-and any hard row restriction. Reminders may wrap within the strip. Titles,
-Command cost, Unique, card ID and completed PLAY effects belong on the full face.
+EB Garamond supplies titles and numerals. Titles range from 5.3 mm to 3.9 mm for
+long Hero titles. Gentium supplies rules at **3.25 mm**, or **2.85 mm (8.1 pt)** on
+dense faces. Heroes retain both Force and Name rules, with mode and timing labels
+inline to save vertical space. Vanilla cards leave their rules area empty.
 
-Print cut boxes remain square and meet at shared seams. Rounded corners within
-the raster shell are decorative and may remain visible inside those boxes.
+## Exposed information and symbols
 
-## Force face and symbols
+The strip follows the visual reference: a bold family silhouette and large
+Strength numeral at left, classification silhouettes in the middle, and readable
+serif live reminders at right. Heroes show separate Force and Name values.
+Empty classification space on Bonds is available to their reminders.
 
-The Force uses an aged parchment shell with blue and gold ornament. Its shield
-sits to the left of the Strength numeral; the Force face does not add a separate
-crossed-weapons mark. Other families retain their current stat treatments,
-including separate Force and Name values on Heroes.
+Human uses a profile medallion, Spearman an upright spearpoint, and Veteran
+double chevrons. Kinds retain circular outlines; roles and ranks use unframed
+silhouettes. The classification line repeats the symbols alongside their words.
+Action uses a circled cross. These are functional SVGs, not decorative frames.
 
-The illustration precedes the centered EB Garamond title. Classification words
-and their symbols sit beneath the title and divider. The exposed strip uses only
-classification pictograms: circles for kind, diamonds for role and pennants for
-rank. Front, Middle and Rear restrictions use row diagrams with a small lock.
+Strength is 6.4 mm. Exposed reminders are 2.7 mm, reduced to 2.35 mm for longer
+or multiple reminders. Timing words, once-per-Battle sockets and hard row
+restrictions remain visible; full rules stay in the body. The reference's sample
+wording does not replace the current card's wording or classifications.
 
-Gentium rules prose is **3.25 mm**, or **2.85 mm** for dense Force layouts. Timing
-labels, functional symbols and any once-per-Battle use socket remain live markup.
-Vanilla Forces have an empty rules area; they do not gain a printed “No special
-rules” placeholder. The Command numeral is live text over the raster seal, with
-no visible COMMAND label. The footer keeps the card ID and build revision.
+Non-formation strips show the family name. “Played face-down” and “This Battle”
+appear at the right of those strips, where they remain visible independently of
+title length. The footer retains the authored card ID and build revision.
 
 ## Raster assets and artwork
 
-Four reusable PNG authoring assets live in `web/art/card-frame/`:
-`card-shell.png`, `art-window.png`, `title-divider.png` and `command-seal.png`.
-They supply the shell, aperture ornament, title divider and cost seal. These are
-the only decorative overlays; no semantic glyph, watermark or extra scene may
-be composited over the illustration.
+The four authoring PNGs in `web/art/card-frame/` are `card-shell.png`,
+`art-window.png`, `title-divider.png` and `command-seal.png`. They provide the
+integrated corners/parchment, aperture, divider and cost seal. No semantic glyph
+or additional scene is overlaid on the illustration.
 
-Every card still uses `web/art/cards/<card-id>.png`. The **128 canonical cards and
-128 per-card illustrations are unchanged** at this checkpoint. All Force art
-uses centered `50% 50%` focus. Optional `art_focus_x` and `art_focus_y` values
-accept percentages from 0% through 100%; invalid values fall back to the center.
+Canonical illustrations remain under `web/art/cards/`; retained originals remain
+in `cards/art-sources/`. Default focus is centered. Existing `art_focus_x` and
+`art_focus_y` escape hatches accept percentages from 0% to 100%; invalid values
+fall back to the center. No artwork is regenerated for this extension. The complete 128-card review found
+16 portraits whose available faces were lost by the shorter window. Those cards
+use `art_focus_y: "0%"` through the existing escape hatch; the other 112 remain
+centered. These presentation fields do not alter any card wording or mechanics.
+The canonical PNGs and retained originals are unchanged.
 
-The Force review found existing subject-head crops on The First Spear, The Old
-Guard, The Dust Riders and The Black Pursuers (`the-black-company`). Their
-retained originals already cut those heads; no recrops were made for this proof.
+Some illustrations already cut subjects in their source images, including The
+First Spear, The Old Guard, The Dust Riders, The Black Pursuers, The Iron Boars,
+Elian and Mara. Focus cannot restore missing image content; those remain artwork
+review debt.
 
-The Pages build preserves the PNG sources and publishes lossless, alpha-preserving
-WebP frame derivatives under `dist/art/card-frame/`, sized near 300 dpi at their
-printed dimensions: shell 1134 px long edge, art window 744 px wide, divider
-640 px wide and seal 160 px square. Only the built CSS switches these frame URLs
-to WebP. Frame content participates in the
-static asset digest and source-archive print version; built frame URLs receive
-the same cache version as the stylesheet.
+The build publishes optimized per-card art and lossless, alpha-preserving WebP
+frame derivatives. Frame sizes target roughly 300 dpi: shell 1134 px long edge,
+art window 744 px wide, divider 640 px wide and seal 160 px square. Source PNGs
+remain in the repository. Frame contents participate in asset hashes and the
+source-archive print version; built URLs receive the stylesheet's cache version.
 
-## Acceptance
+## Review
 
-- Exposed information remains readable with the next stack layer in place.
-- Force art precedes its centered title and written classifications.
-- Rules remain complete, readable and clear of art, footer and cost seal.
-- Shared raster ornament preserves its transparency without covering scene content.
-- Catalogue, deck sheets and stack proofs use the same renderer.
-- Other card families remain at their current presentation until Force approval.
+The optional print audit checks the current pool, stacked formations, long titles,
+dense rules, numeric extremes, visible status/reminders and overlap detection.
+Review the actual catalogue and selected deck PDFs as well: fitting geometry alone
+does not establish readable typography or a good illustration crop.

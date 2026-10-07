@@ -129,10 +129,10 @@ def test_print_renderer_preserves_current_content_and_modes() -> None:
         assert output.one("physical-card")["attrs"]["data-card-id"] == card["id"]
         assert output.one("card-title")["text"] == card["title"]
         assert output.one("footer-id")["text"] == card["id"]
-        assert output.one("footer-version")["text"] == "vdev"
+        assert output.one("footer-version")["text"] == "vdev" + ("Unique" if card.get("unique") else "")
         footer_mark = output.one("footer-mark")["text"].strip()
-        expected_mark = ("force" if card["type"] == "force" else "") + ("Unique" if card.get("unique") else "")
-        assert footer_mark == expected_mark
+        assert footer_mark == card["type"]
+        assert bool(output.all("footer-unique")) is bool(card.get("unique"))
         assert [node["text"] for node in output.all("effect-text")] == [
             effect["text"] for effect in physical_effects(card)
         ]
@@ -172,6 +172,13 @@ def test_shared_renderer_escapes_hostile_text_and_preserves_numeric_values() -> 
     assert hero_stats[0].endswith("0")
     assert hero_stats[1].endswith("-2")
     assert hero.one("cost-gem")["text"] == "0"
+
+
+def test_all_physical_families_and_stacks_fit_shared_raster_layout() -> None:
+    browser = check_card_layout.browser_path()
+    if browser is None:
+        pytest.skip("Chrome/Chromium required for physical card geometry regression")
+    check_card_layout.check_physical_layout(browser)
 
 
 def test_playtest_kit_uses_current_decks_and_expands_copies() -> None:
