@@ -529,6 +529,36 @@ cdef int _fe_legal_pending_effect_actions(
             actions, n, encode_action(TYPE_EFFECT, -1, -1, -1, player, kind)
         )
 
+    if kind == EFFECT_V2_CHOICE:
+        # Owner choice for PREPARED_PAY_OR_RETURN. The amount is stored in
+        # source_mask; the selected component kind is pending_aux.
+        if state.command[player] >= <int>source_mask:
+            n = _append_action(
+                actions,
+                n,
+                encode_action(
+                    TYPE_EFFECT,
+                    -1,
+                    -1,
+                    -1,
+                    player,
+                    kind | (V2_OPTION_PAY << V2_EFFECT_OPTION_SHIFT),
+                ),
+            )
+        n = _append_action(
+            actions,
+            n,
+            encode_action(
+                TYPE_EFFECT,
+                -1,
+                -1,
+                -1,
+                player,
+                kind | (V2_OPTION_RETURN << V2_EFFECT_OPTION_SHIFT),
+            ),
+        )
+        return n
+
     if kind == EFFECT_V2_TARGET:
         v2_effect = _v2_pending_effect(self, state)
         source = state.pending_source[0]
@@ -1232,6 +1262,13 @@ cdef int _fe_legal_actions_into(
                         actions, n,
                         encode_action(TYPE_BOND, card, slot, -1, player),
                     )
+                    if self.bond_optional_extra_cost[card] > 0:
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_BOND, card, slot, -1, player, 1
+                            ),
+                        )
 
         elif self.card_type[card] == CARD_NAME:
             for local in range(POSITIONS_PER_PLAYER):

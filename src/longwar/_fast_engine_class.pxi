@@ -278,6 +278,7 @@ cdef class FastEngine:
                 COMMAND_DETAIL_STRATAGEM_MANEUVER: CommandDiagnosticDetail.STRATAGEM_MANEUVER_DISCOUNT.value,
                 COMMAND_DETAIL_FRONT_LOSS_PROTECTED_FRONT: CommandDiagnosticDetail.FRONT_LOSS_PROTECTED_FRONT.value,
                 COMMAND_DETAIL_FRONT_LOSS_STRATAGEM: CommandDiagnosticDetail.FRONT_LOSS_STRATAGEM.value,
+                COMMAND_DETAIL_SUPPLY_DISCOUNT: CommandDiagnosticDetail.SUPPLY_DISCOUNT.value,
             }.get(detail, CommandDiagnosticDetail.OTHER.value)
             source = None if card < 0 else self.card_ids[card]
             events.append({

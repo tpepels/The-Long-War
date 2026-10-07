@@ -76,6 +76,536 @@ cdef inline int _fe_first_narrative_discount_source_fast(
             return force
     return -1
 
+
+cdef inline uint8_t _v2_cost_action_type_mask(
+    FastEngine self,
+    int kind,
+    int card,
+) noexcept:
+    if card < 0:
+        return 0
+    if kind == TYPE_FORCE:
+        return 8 if self.card_type[card] == CARD_HERO else 1
+    if kind == TYPE_BOND:
+        return 2
+    if kind == TYPE_NAME:
+        return 16 if self.card_type[card] == CARD_HERO else 4
+    if kind == TYPE_TACTIC:
+        return 32
+    if kind == TYPE_NARRATIVE or kind == TYPE_ONGOING_NARRATIVE:
+        return 64
+    if kind == TYPE_STRATAGEM:
+        return 128
+    return 0
+
+
+cdef inline bint _v2_cost_action_affects_front(
+    FastEngine self,
+    uint64_t action,
+    int front,
+) noexcept:
+    cdef int kind = action_kind(action)
+    cdef int card = action_card(action)
+    cdef int pos = action_pos(action)
+    cdef int dest = action_dest(action)
+    cdef int selected_front
+    cdef uint32_t extra = action_extra(action)
+    if front < 0:
+        return False
+    if kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME:
+        return pos >= 0 and front_from_slot(pos) == front
+    if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+        if pos >= 0 and front_from_slot(pos) == front:
+            return True
+        if dest >= 0 and front_from_slot(dest) == front:
+            return True
+        selected_front = <int>(extra & V2_PLAY_FRONT_MASK) - 1
+        return selected_front == front
+    if kind == TYPE_ABILITY:
+        if extra & V2_ABILITY_NARRATIVE_FLAG:
+            return True
+        return pos >= 0 and front_from_slot(pos) == front
+    if kind == TYPE_MANEUVER:
+        return (
+            (pos >= 0 and front_from_slot(pos) == front)
+            or (dest >= 0 and front_from_slot(dest) == front)
+        )
+    if kind == TYPE_NARRATIVE:
+        return (
+            (pos >= 0 and front_from_slot(pos) == front)
+            or (dest >= 0 and front_from_slot(dest) == front)
+        )
+    if kind == TYPE_ONGOING_NARRATIVE:
+        return (
+            card >= 0
+            and self.narrative_choice_kind[card] == NARRATIVE_CHOICE_FRONT
+            and bool(extra & (<uint32_t>1 << front))
+        )
+    if kind == TYPE_STRATAGEM:
+        return pos >= 0 and bool(pos & (1 << front))
+    return False
+
+
+cdef inline bint _v2_is_card_play_kind(int kind) noexcept:
+    return (
+        kind == TYPE_FORCE
+        or kind == TYPE_BOND
+        or kind == TYPE_NAME
+        or kind == TYPE_TACTIC
+        or kind == TYPE_ORDER
+        or kind == TYPE_NARRATIVE
+        or kind == TYPE_ONGOING_NARRATIVE
+        or kind == TYPE_STRATAGEM
+    )
+
+
+cdef inline void _v2_remove_tax_marker_at(
+    FastState state,
+    int index,
+) noexcept:
+    cdef int i
+    if index < 0 or index >= state.tax_len:
+        return
+    for i in range(index, state.tax_len - 1):
+        state.tax_owner[i] = state.tax_owner[i + 1]
+        state.tax_target_player[i] = state.tax_target_player[i + 1]
+        state.tax_front[i] = state.tax_front[i + 1]
+        state.tax_amount[i] = state.tax_amount[i + 1]
+        state.tax_card_type_mask[i] = state.tax_card_type_mask[i + 1]
+        state.tax_expires_turn[i] = state.tax_expires_turn[i + 1]
+    state.tax_len -= 1
+
+
+cdef inline void _v2_remove_slot_discount_at(
+    FastState state,
+    int index,
+) noexcept:
+    cdef int i
+    if index < 0 or index >= state.discount_len:
+        return
+    for i in range(index, state.discount_len - 1):
+        state.discount_owner[i] = state.discount_owner[i + 1]
+        state.discount_target_player[i] = state.discount_target_player[i + 1]
+        state.discount_slot[i] = state.discount_slot[i + 1]
+        state.discount_amount[i] = state.discount_amount[i + 1]
+        state.discount_minimum[i] = state.discount_minimum[i + 1]
+        state.discount_card_type_mask[i] = state.discount_card_type_mask[i + 1]
+        state.discount_expires_turn[i] = state.discount_expires_turn[i + 1]
+    state.discount_len -= 1
+
+
+cdef void _v2_consume_cost_markers(
+    FastEngine self,
+    FastState state,
+    int player,
+    uint64_t action,
+) noexcept:
+    """Consume one-shot V2 cost markers after a legal action has paid its cost."""
+    cdef int kind = action_kind(action)
+    cdef int card = action_card(action)
+    cdef int pos = action_pos(action)
+    cdef int i
+    cdef uint8_t type_mask = _v2_cost_action_type_mask(self, kind, card)
+    cdef bint card_play = _v2_is_card_play_kind(kind)
+    cdef bint matches
+
+    i = state.tax_len - 1
+    while i >= 0:
+        if (
+            state.tax_expires_turn[i] >= 0
+            and state.turn_number > state.tax_expires_turn[i]
+        ):
+            _v2_remove_tax_marker_at(state, i)
+            i -= 1
+            continue
+        matches = (
+            card_play
+            and state.tax_target_player[i] == player
+            and _v2_cost_action_affects_front(
+                self, action, state.tax_front[i]
+            )
+            and (
+                state.tax_card_type_mask[i] == 0
+                or state.tax_card_type_mask[i] == 255
+                or (
+                    type_mask != 0
+                    and state.tax_card_type_mask[i] & type_mask
+                )
+            )
+        )
+        if matches:
+            _v2_remove_tax_marker_at(state, i)
+        i -= 1
+
+    i = state.discount_len - 1
+    while i >= 0:
+        if (
+            state.discount_expires_turn[i] >= 0
+            and state.turn_number > state.discount_expires_turn[i]
+        ):
+            _v2_remove_slot_discount_at(state, i)
+            i -= 1
+            continue
+        matches = (
+            (kind == TYPE_FORCE or kind == TYPE_BOND or kind == TYPE_NAME)
+            and pos >= 0
+            and state.discount_target_player[i] == player
+            and state.discount_slot[i] == pos
+            and (
+                state.discount_card_type_mask[i] == 0
+                or state.discount_card_type_mask[i] == 255
+                or (
+                    type_mask != 0
+                    and state.discount_card_type_mask[i] & type_mask
+                )
+            )
+        )
+        if matches:
+            _v2_remove_slot_discount_at(state, i)
+        i -= 1
+
+
+cdef inline bint _v2_cost_tactic_targets_slot(
+    uint64_t action,
+    int target,
+) noexcept:
+    if action_kind(action) != TYPE_TACTIC or target < 0:
+        return False
+    return action_pos(action) == target or action_dest(action) == target
+
+
+cdef inline int _v2_cost_reduce(
+    int cost,
+    int amount,
+    int minimum,
+) noexcept:
+    cdef int candidate
+    if amount <= 0:
+        return cost
+    candidate = cost - amount
+    if candidate < minimum:
+        candidate = minimum
+    return candidate if candidate < cost else cost
+
+
+cdef inline int _v2_cost_apply_effect(
+    FastEngine self,
+    FastState state,
+    int player,
+    uint64_t action,
+    int source_owner,
+    int source_slot,
+    int source_card,
+    V2EffectSpec* effect,
+    int phase,
+    int cost,
+) noexcept:
+    cdef int kind = action_kind(action)
+    cdef int card = action_card(action)
+    cdef int pos = action_pos(action)
+    cdef int dest = action_dest(action)
+    cdef int source_front = front_from_slot(source_slot) if source_slot >= 0 else -1
+    cdef int source_rank = rank_from_slot(source_slot) if source_slot >= 0 else -1
+    cdef int target_slot = -1
+    cdef int target_front = -1
+    cdef int before = cost
+    cdef int amount = effect.amount
+    cdef int minimum = effect.minimum
+    cdef uint8_t action_type = _v2_cost_action_type_mask(self, kind, card)
+    cdef bint matches = False
+
+    if phase == 0:
+        if source_owner == player:
+            return cost
+        if effect.op == V2_OP_ACTION_TAX and kind == TYPE_ABILITY and source_slot >= 0:
+            if effect.target == V2_TARGET_OPPOSITE and pos >= 0:
+                target_slot = slot_index(
+                    player,
+                    source_front,
+                    source_rank,
+                )
+                matches = pos == target_slot
+        elif effect.op == V2_OP_FRONT_CARD_TAX:
+            if (
+                action_type
+                and (effect.card_type_mask == 0 or effect.card_type_mask & action_type)
+                and pos >= 0
+            ):
+                matches = front_from_slot(pos) == source_front
+        elif effect.op == V2_OP_PREPARED_ATTACH_TAX and kind == TYPE_EFFECT:
+            if (
+                state.pending_kind[0] == EFFECT_V2_TARGET
+                and _v2_pending_effect(self, state).op == V2_OP_ATTACH_PREPARED
+                and dest >= 0
+            ):
+                matches = front_from_slot(dest) == source_front
+        elif effect.op == V2_OP_TACTIC_TAX and kind == TYPE_TACTIC and source_slot >= 0:
+            if effect.target == V2_TARGET_SELF:
+                matches = _v2_cost_tactic_targets_slot(action, source_slot)
+            elif effect.target == V2_TARGET_DIRECTLY_BEHIND and source_rank < RANK_REAR:
+                target_slot = slot_index(
+                    source_owner,
+                    source_front,
+                    source_rank + 1,
+                )
+                matches = _v2_cost_tactic_targets_slot(action, target_slot)
+            elif effect.target == V2_TARGET_OTHER_FRIENDLY_SAME_FRONT:
+                target_slot = dest if dest >= 0 else pos
+                matches = (
+                    target_slot >= 0
+                    and owner_from_slot(target_slot) == source_owner
+                    and front_from_slot(target_slot) == source_front
+                    and target_slot != source_slot
+                )
+        if matches and amount > 0:
+            cost += amount
+
+    else:
+        if source_owner != player:
+            return cost
+        if effect.op == V2_OP_GLOBAL_DISCOUNT:
+            matches = (
+                action_type
+                and bool(effect.card_type_mask & action_type)
+            )
+            if matches:
+                cost = _v2_cost_reduce(cost, amount, minimum)
+        elif effect.op == V2_OP_GLOBAL_DISCOUNT_SPLIT:
+            if action_type and effect.card_type_mask & action_type:
+                cost = _v2_cost_reduce(cost, amount, minimum)
+            elif action_type and effect.card_type_mask2 & action_type:
+                cost = _v2_cost_reduce(
+                    cost, effect.amount2, effect.minimum2
+                )
+        elif effect.op == V2_OP_CLASS_PLAY_DISCOUNT:
+            matches = (
+                action_type
+                and card >= 0
+                and bool(self.class_mask[card] & effect.class_mask)
+            )
+            if matches:
+                cost = _v2_cost_reduce(cost, amount, minimum)
+        elif effect.op == V2_OP_FRONT_PRESENCE_DISCOUNT:
+            if (
+                action_type
+                and (effect.card_type_mask == 0 or effect.card_type_mask & action_type)
+                and pos >= 0
+            ):
+                target_front = front_from_slot(pos)
+                if _v2_front_has_class(
+                    self, state, player, target_front, effect.class_mask
+                ):
+                    cost = _v2_cost_reduce(cost, amount, minimum)
+        elif effect.op == V2_OP_FRONT_TACTIC_DISCOUNT:
+            if (
+                kind == TYPE_TACTIC
+                and source_front >= 0
+                and _v2_cost_action_affects_front(self, action, source_front)
+            ):
+                cost = _v2_cost_reduce(cost, amount, minimum)
+        elif effect.op == V2_OP_SLOT_DISCOUNT:
+            if (
+                source_slot >= 0
+                and pos == source_slot
+                and action_type
+                and (effect.card_type_mask == 0 or effect.card_type_mask & action_type)
+            ):
+                cost = _v2_cost_reduce(cost, amount, minimum)
+        elif effect.op == V2_OP_TACTIC_FRONT_PRESENCE_DISCOUNT and kind == TYPE_TACTIC:
+            for target_front in range(FRONT_COUNT):
+                if (
+                    _v2_cost_action_affects_front(self, action, target_front)
+                    and _v2_front_has_class(
+                        self, state, player, target_front, effect.class_mask
+                    )
+                ):
+                    cost = _v2_cost_reduce(cost, amount, minimum)
+                    break
+        elif effect.op == V2_OP_MANEUVER_COST_CLASS and kind == TYPE_MANEUVER:
+            if (
+                pos >= 0
+                and _v2_slot_has_any_class(
+                    self, state, pos, effect.class_mask
+                )
+                and amount < cost
+            ):
+                cost = amount if amount > 0 else 0
+
+    if cost < before:
+        _fe_record_command_diag(
+            self,
+            COMMAND_DIAG_DISCOUNT,
+            COMMAND_DETAIL_CARD_EFFECT,
+            player,
+            source_card,
+            before - cost,
+            before,
+        )
+    return cost
+
+
+cdef inline int _v2_cost_apply_component(
+    FastEngine self,
+    FastState state,
+    int player,
+    uint64_t action,
+    int source_slot,
+    int source_card,
+    int mode,
+    int suppression_bit,
+    int phase,
+    int cost,
+) noexcept:
+    cdef int i
+    cdef V2EffectSpec* effect
+    if source_card < 0:
+        return cost
+    if suppression_bit and state.suppression_mask[source_slot] & suppression_bit:
+        return cost
+    for i in range(self.v2_effect_count[source_card][mode]):
+        effect = &self.v2_effects[source_card][mode][i]
+        if not _v2_effect_is_live_timing(state, source_slot, effect):
+            continue
+        cost = _v2_cost_apply_effect(
+            self,
+            state,
+            player,
+            action,
+            owner_from_slot(source_slot),
+            source_slot,
+            source_card,
+            effect,
+            phase,
+            cost,
+        )
+    return cost
+
+
+cdef int _v2_adjust_command_cost(
+    FastEngine self,
+    FastState state,
+    int player,
+    uint64_t action,
+    int cost,
+) noexcept:
+    cdef int phase, source_slot, source_owner, card, mode, i, ix
+    cdef V2EffectSpec* effect
+    for phase in range(2):
+        for source_slot in range(SLOT_COUNT):
+            if state.force[source_slot] < 0:
+                continue
+            card = state.force[source_slot]
+            mode = _v2_mode_for_force(self, card)
+            cost = _v2_cost_apply_component(
+                self, state, player, action, source_slot, card, mode,
+                0, phase, cost,
+            )
+            card = state.bond[source_slot]
+            if card >= 0:
+                cost = _v2_cost_apply_component(
+                    self, state, player, action, source_slot, card,
+                    V2_MODE_DEFAULT, SUPPRESS_BOND_TEXT, phase, cost,
+                )
+            card = state.name[source_slot]
+            if card >= 0:
+                cost = _v2_cost_apply_component(
+                    self, state, player, action, source_slot, card,
+                    _v2_mode_for_name(self, card), SUPPRESS_NAME_TEXT,
+                    phase, cost,
+                )
+
+        # Ongoing Narrative cost effects have no board source. Their current
+        # canonical cost mechanics are all continuous and controller-scoped.
+        for source_owner in range(PLAYER_COUNT):
+            for i in range(self.ongoing_narrative_limit):
+                ix = source_owner * NARRATIVE_SLOTS_PER_PLAYER + i
+                card = state.narrative[ix]
+                if card < 0:
+                    continue
+                for mode in range(self.v2_effect_count[card][V2_MODE_DEFAULT]):
+                    effect = &self.v2_effects[card][V2_MODE_DEFAULT][mode]
+                    if effect.timing != V2_TIMING_CONTINUOUS:
+                        continue
+                    cost = _v2_cost_apply_effect(
+                        self, state, player, action, source_owner, -1,
+                        card, effect, phase, cost,
+                    )
+
+        # Temporary V2 marker scaffolding is part of the native state contract.
+        # Consume it in cost calculation so ACTION-created effects can share
+        # the same ordering as persistent card text.
+        if phase == 0:
+            for i in range(state.tax_len):
+                if (
+                    state.tax_target_player[i] == player
+                    and (
+                        state.tax_expires_turn[i] < 0
+                        or state.turn_number <= state.tax_expires_turn[i]
+                    )
+                    and _v2_cost_action_affects_front(
+                        self, action, state.tax_front[i]
+                    )
+                ):
+                    card = action_card(action)
+                    mode = _v2_cost_action_type_mask(
+                        self, action_kind(action), card
+                    )
+                    if (
+                        state.tax_card_type_mask[i] == 0
+                        or state.tax_card_type_mask[i] == 255
+                        or state.tax_card_type_mask[i] & mode
+                    ):
+                        cost += state.tax_amount[i]
+        else:
+            if action_pos(action) >= 0:
+                for i in range(state.discount_len):
+                    if (
+                        state.discount_target_player[i] == player
+                        and state.discount_slot[i] == action_pos(action)
+                        and (
+                            state.discount_expires_turn[i] < 0
+                            or state.turn_number <= state.discount_expires_turn[i]
+                        )
+                    ):
+                        card = action_card(action)
+                        mode = _v2_cost_action_type_mask(
+                            self, action_kind(action), card
+                        )
+                        if (
+                            state.discount_card_type_mask[i] == 0
+                            or state.discount_card_type_mask[i] == 255
+                            or state.discount_card_type_mask[i] & mode
+                        ):
+                            cost = _v2_cost_reduce(
+                                cost,
+                                state.discount_amount[i],
+                                state.discount_minimum[i],
+                            )
+    return cost if cost > 0 else 0
+
+
+cdef inline int _v2_ability_command_cost(
+    FastEngine self,
+    uint64_t action,
+) noexcept:
+    cdef int card = action_card(action)
+    cdef int aux = <int>action_extra(action)
+    cdef int mode, effect_index
+    if card < 0:
+        return 0
+    if aux & V2_ABILITY_NARRATIVE_FLAG:
+        aux &= ~V2_ABILITY_NARRATIVE_FLAG
+    mode = _v2_pending_mode(aux)
+    effect_index = _v2_pending_effect_index(aux)
+    if (
+        mode < V2_MODE_DEFAULT or mode > V2_MODE_NAME
+        or effect_index < 0
+        or effect_index >= self.v2_effect_count[card][mode]
+    ):
+        return 0
+    return self.v2_effects[card][mode][effect_index].activation_cost
+
+
 cdef inline int _fe_command_cost_fast(
     FastEngine self,
     FastState state,
@@ -83,13 +613,26 @@ cdef inline int _fe_command_cost_fast(
 ) noexcept:
     cdef int kind, card, pos, target_front=-1, cost, discount, rear, support, strat
     cdef int selected, i, controller, dest, direction, before_cost, saved
+    cdef int target_rank=-1, supply_slot=-1, supply_discount=0, supply_minimum_cost=0
     cdef int source_card=-1, local_source=-1, local_discount=0, discount_detail=0
     cdef int discount_minimum_cost=0, local_minimum_cost=0
     cdef uint32_t extra
     cdef int player = state.active_player
     kind = action_kind(action)
-    if kind == TYPE_PASS or kind == TYPE_END_TURN or kind == TYPE_EFFECT or kind == TYPE_CYCLE:
+    if kind == TYPE_PASS or kind == TYPE_END_TURN or kind == TYPE_CYCLE:
         return 0
+    if kind == TYPE_EFFECT:
+        if (
+            state.pending_len > 0
+            and state.pending_kind[0] == EFFECT_V2_TARGET
+            and _v2_pending_effect(self, state).op == V2_OP_ATTACH_PREPARED
+        ):
+            return _v2_adjust_command_cost(self, state, player, action, 0)
+        return 0
+    if kind == TYPE_ABILITY:
+        return _v2_adjust_command_cost(
+            self, state, player, action, _v2_ability_command_cost(self, action)
+        )
     if kind == TYPE_MANEUVER:
         pos = action_pos(action)
         dest = action_dest(action)
@@ -181,7 +724,9 @@ cdef inline int _fe_command_cost_fast(
                     self, COMMAND_DIAG_DISCOUNT, COMMAND_DETAIL_STRATAGEM_MANEUVER,
                     player, strat, saved, self.maneuver_command_cost,
                 )
-            return cost if cost > 0 else 0
+            return _v2_adjust_command_cost(
+                self, state, player, action, cost if cost > 0 else 0
+            )
         if (
             strat >= 0
             and self.strat_directional_maneuver[strat]
@@ -199,7 +744,9 @@ cdef inline int _fe_command_cost_fast(
                     player, strat, self.maneuver_command_cost, self.maneuver_command_cost,
                 )
                 return 0
-        return self.maneuver_command_cost
+        return _v2_adjust_command_cost(
+            self, state, player, action, self.maneuver_command_cost
+        )
     card = action_card(action)
     if card < 0:
         return 0
@@ -310,6 +857,33 @@ cdef inline int _fe_command_cost_fast(
                     self, COMMAND_DIAG_DISCOUNT, discount_detail,
                     player, source_card, saved, before_cost,
                 )
+
+    # Canonical V2 taxes are applied before canonical V2 discounts. Supply
+    # then participates as the final positional reduction, with its own
+    # printed minima.
+    cost = _v2_adjust_command_cost(self, state, player, action, cost)
+    if (
+        (kind == TYPE_BOND or kind == TYPE_NAME)
+        and pos >= 0
+        and target_front >= 0
+        and cost > 0
+    ):
+        target_rank = rank_from_slot(pos)
+        if target_rank < RANK_REAR:
+            supply_slot = slot_index(player, target_front, target_rank + 1)
+            supply_discount = _v2_slot_supply_amount(self, state, supply_slot)
+            if supply_discount > 0:
+                before_cost = cost
+                cost -= supply_discount
+                supply_minimum_cost = 1 if kind == TYPE_NAME else 0
+                if cost < supply_minimum_cost:
+                    cost = supply_minimum_cost
+                saved = before_cost - cost
+                if saved > 0:
+                    _fe_record_command_diag(
+                        self, COMMAND_DIAG_DISCOUNT, COMMAND_DETAIL_SUPPLY_DISCOUNT,
+                        player, -1, saved, before_cost,
+                    )
     return cost if cost > 0 else 0
 
 cdef int _fe_command_cost(FastEngine self, FastState state, uint64_t action):
@@ -415,6 +989,14 @@ cdef void _fe_resolve_new_completions_fast(
             state, player, state.name[slot], front
         )
         if state.name[slot] >= 0:
+            _v2_apply_becomes_named_effects(
+                self,
+                state,
+                player,
+                state.name[slot],
+                _v2_mode_for_name(self, state.name[slot]),
+                slot,
+            )
             if self.completion_free_maneuver_self[state.name[slot]]:
                 _fe_queue_free_maneuver(
                     self, state, player, <uint32_t>(1 << slot),
