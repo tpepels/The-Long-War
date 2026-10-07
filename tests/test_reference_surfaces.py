@@ -434,7 +434,9 @@ def test_physical_playtest_markers_cover_visible_state_without_leaking_hidden_bo
     assert ".state-token-grid" in css
     assert ".tracker-sheet+.tracker-sheet" in css
     assert "@page tracker" in css
-    assert 'href="tokens.html"' in kit
+    # Tokens remain an internal printable aid; public navigation is
+    # intentionally limited to Webgame, Cards, Decks, Reference, Rules, Balance Lab.
+    assert 'href="tokens.html"' not in kit
 
 def test_rulebook_markdown_and_sections_have_generated_wrappers() -> None:
     from tools.build_pages import group_rulebook_sections
