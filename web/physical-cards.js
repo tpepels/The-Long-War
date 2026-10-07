@@ -15,25 +15,37 @@ const RULE_TERMS=[
   "Front row","Middle row","Rear row","Tax marker","temporary negative marker",
   "prepared Bond","prepared Name"
 ];
-const REFERENT_TERMS=[
+const CLASSIFICATION_TERMS=[
   "Human","Archer","Builder","Captain","Guard","Healer","Heir","King","Raider",
-  "Rider","Scout","Seer","Ship","Skirmisher","Spearman","Steward","Stronghold","Veteran",
+  "Rider","Scout","Seer","Ship","Skirmisher","Spearman","Steward","Stronghold","Veteran"
+];
+const REFERENT_TERMS=[
+  ...CLASSIFICATION_TERMS,
   "discard pile","deck","hand","card","marker","turn"
 ];
 const pluralize=term=>term.endsWith("s")?term:term+"s";
 const RULE_TERM_SET=new Set(RULE_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
 const REFERENT_TERM_SET=new Set(REFERENT_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
+const CLASSIFICATION_TERM_MAP=new Map(CLASSIFICATION_TERMS.flatMap(term=>[
+  [term.toLowerCase(),term.toLowerCase()],
+  [pluralize(term).toLowerCase(),term.toLowerCase()]
+]));
 const EMPHASIS_TERMS=[...new Set([...RULE_TERM_SET,...REFERENT_TERM_SET])]
   .sort((a,b)=>b.length-a.length)
   .map(term=>term.replace(/[.*+?^$()|[\]\\{}]/g,match=>"\\\\"+match));
 const EMPHASIS_RE=new RegExp("\\b("+EMPHASIS_TERMS.join("|")+")\\b","gi");
-function formatRuleText(value){
+function formatRuleText(value,options={}){
   const source=String(value??"");
+  const inlineClassIcons=Boolean(options.inlineClassIcons);
   let html="",cursor=0;
   for(const match of source.matchAll(EMPHASIS_RE)){
     const index=match.index??0,token=match[0],key=token.toLowerCase();
     html+=esc(source.slice(cursor,index));
-    if(RULE_TERM_SET.has(key))html+='<strong class="rule-term">'+esc(token)+'</strong>';
+    const className=CLASSIFICATION_TERM_MAP.get(key);
+    if(inlineClassIcons&&className){
+      const icon=classGlyph(className).replace("<svg ","<svg aria-hidden=\"true\" focusable=\"false\" ");
+      html+='<span class="inline-class-ref" title="'+esc(titleCase(className))+'">'+icon+'<span>'+esc(token)+'</span></span>';
+    } else if(RULE_TERM_SET.has(key))html+='<strong class="rule-term">'+esc(token)+'</strong>';
     else html+='<em class="rule-referent">'+esc(token)+'</em>';
     cursor=index+token.length;
   }
@@ -58,6 +70,7 @@ function statGroup(card){
 }
 function classificationIcons(card){return(card.classes||[]).map(name=>'<span class="class-sigil" data-class="'+esc(name)+'" data-group="'+esc(H()?.group(name)||"role")+'" title="'+esc(titleCase(name))+'">'+classGlyph(name)+'</span>').join("")}
 function classificationLine(card){
+  if(card.type==="tactic")return"";
   const own=card.classes||[],refs=card.references||[],values=own.length?own:refs;if(!values.length)return"";
   return '<div class="class-line">'+(own.length?"":'<span class="class-line-prefix">Involves</span>')+values.map(name=>'<span class="class-body-item">'+classGlyph(name)+'<span>'+esc(titleCase(name))+'</span></span>').join('<span class="class-separator">·</span>')+'</div>';
 }
@@ -131,17 +144,17 @@ function mechanicReminder(effect){
 
   return notes.map(item=>item.note).join(" ");
 }
-function effectBlock(effect){
+function effectBlock(effect,options={}){
   const kind=["bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
   const reminder=mechanicReminder(effect);
-  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder)+'</div>':"")+'</section>';
+  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text,options)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder)+'</div>':"")+'</section>';
 }
 function heroModeHeading(mode){
   return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
 }
 function rules(card){
   if(card.type==="hero")return '<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
-  return effects(card).map(effectBlock).join("");
+  return effects(card).map(effect=>effectBlock(effect,{inlineClassIcons:card.type==="tactic"})).join("");
 }
 function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.type!=="narrative")bits.push("This Battle");return bits.join(" · ")}
 function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>'}
