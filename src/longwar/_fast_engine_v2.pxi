@@ -436,6 +436,7 @@ cdef void _v2_apply_immediate_play_effects(
             V2_OP_CHOOSE_STRENGTH_TARGETS,
             V2_OP_DISCARD_DRAW,
             V2_OP_MOVE,
+            V2_OP_PREPARED_PAY_OR_RETURN,
             V2_OP_REMOVE_NEGATIVE_MARKER,
             V2_OP_REMOVE_STRENGTH_MARKER,
         ):
