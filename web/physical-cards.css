@@ -197,6 +197,8 @@ CARD TYPOGRAPHY - TUNING PANEL
   --card-effect-use-font-size: 2mm;
   --card-effect-text-font-size: 3.25mm;
   --card-effect-text-line-height: 1.19;
+  --card-mechanic-reminder-font-size: 2.15mm;
+  --card-mechanic-reminder-line-height: 1.16;
   --card-mode-heading-font-size: 2.6mm;
   --card-footer-id-font-size: 1.65mm;
   --card-footer-version-font-size: 1.2mm;
@@ -411,6 +413,9 @@ EXPOSED TOP ROW - TUNING PANEL
 
   Event cards use the same three areas:
   LEFT = family icon     MIDDLE = family name     RIGHT = status
+
+  Tactic / Order / Stratagem / Narrative use symmetric side columns so the
+  middle family name is truly centred and can be larger.
 
   Change the variables below when tuning the top row. The rules underneath
   should normally not need editing.
@@ -672,7 +677,7 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 
 /*
- * Tactic / Stratagem / Narrative use a dedicated event header:
+ * Tactic / Order / Stratagem / Narrative use a dedicated event header:
  *
  *   ┌──────────┬──────────────────────────────────┬──────────┐
  *   │   icon   │          FAMILY NAME             │  status  │
@@ -683,6 +688,7 @@ EXPOSED TOP ROW - TUNING PANEL
  * --edge-special-event-family-font-size in the tuning panel above.
  */
 .card-tactic .event-crown,
+.card-order .event-crown,
 .card-stratagem .event-crown,
 .card-narrative .event-crown {
   --edge-event-family-font-size: var(--edge-special-event-family-font-size);
@@ -692,6 +698,7 @@ EXPOSED TOP ROW - TUNING PANEL
     var(--edge-special-event-side-width);
 }
 .card-tactic .event-crown .edge-zone-middle,
+.card-order .event-crown .edge-zone-middle,
 .card-stratagem .event-crown .edge-zone-middle,
 .card-narrative .event-crown .edge-zone-middle {
   justify-content: center;
@@ -900,6 +907,18 @@ EXPOSED TOP ROW - TUNING PANEL
   font-weight: 700;
 }
 .effect-text .rule-referent {
+  font-style: normal;
+}
+.effect-reminder {
+  margin-top: 0.55mm;
+  font: var(--card-mechanic-reminder-font-size)/
+    var(--card-mechanic-reminder-line-height) var(--card-rule-font-family);
+  opacity: 0.78;
+}
+.effect-reminder .rule-term {
+  font-weight: 700;
+}
+.effect-reminder .rule-referent {
   font-style: normal;
 }
 .hero-rule-mode + .hero-rule-mode {
