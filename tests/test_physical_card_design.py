@@ -662,7 +662,7 @@ def test_middle_only_support_forces_have_distinct_second_line_jobs() -> None:
 
     field_train = by_id["the-field-train"]["design_rules"]["effects"][0]
     assert field_train["destination"] == "directly_ahead"
-    assert field_train["activation_cost"] == 1
+    assert "activation_cost" not in field_train
 
 
 def test_renderer_supports_positional_timings_and_multiple_allowed_rows() -> None:
