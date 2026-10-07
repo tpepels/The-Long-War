@@ -35,4 +35,5 @@ testpaths = ["tests"]
 markers = [
   "algorithm: algorithm-learning and solver correctness tests",
   "integration: multi-game or end-to-end integration tests",
+  "design: evolving game, card, rulebook, and presentation assertions; advisory during development",
 ]
