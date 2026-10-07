@@ -102,7 +102,7 @@ function rules(card){
   if(card.type==="hero")return '<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
   return effects(card).map(effectBlock).join("");
 }
-function statusLine(card){const bits=[];if(card.duration==="this_battle")bits.push("This Battle");return bits.join(" · ")}
+function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.type!=="narrative")bits.push("This Battle");return bits.join(" · ")}
 function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>'}
 function densityClass(card){
   const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length,0);
