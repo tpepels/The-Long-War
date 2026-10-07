@@ -175,6 +175,7 @@ class CommandDiagnosticDetail(StrEnum):
     STRATAGEM_MANEUVER_DISCOUNT = "stratagem_maneuver_discount"
     FRONT_LOSS_PROTECTED_FRONT = "front_loss_protected_front"
     FRONT_LOSS_STRATAGEM = "front_loss_stratagem"
+    SUPPLY_DISCOUNT = "supply_discount"
     OTHER = "other"
 
 

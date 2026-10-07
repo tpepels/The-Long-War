@@ -84,7 +84,11 @@ def test_all_cards_define_valid_rule_blocks() -> None:
         blocks = card["rule_blocks"]
         assert all(block["kind"] in allowed for block in blocks)
         assert all(block["text"].strip() for block in blocks)
-        if card["text"]:
+        has_printed_effects = bool(card.get("effects")) or any(
+            mode.get("effects")
+            for mode in card.get("modes", {}).values()
+        )
+        if has_printed_effects:
             assert blocks, card["title"]
 
 
@@ -181,42 +185,13 @@ def test_canonical_cards_have_no_engine_sync_migration_channel() -> None:
     assert all("engine_sync" not in card for card in data["cards"])
 
 
-def test_canonical_and_v2_catalogues_share_the_same_printed_pool() -> None:
+def test_canonical_cards_are_the_single_machine_readable_pool() -> None:
     canonical = load_card_file(ROOT / "cards" / "cards.json")
-    v2 = json.loads(
-        (ROOT / "cards" / "v2" / "cards.json").read_text(encoding="utf-8")
-    )
-    assert len(canonical["cards"]) == len(v2["cards"]) == 128
+    assert len(canonical["cards"]) == 128
+    assert canonical["status"] == "canonical"
+    assert not (ROOT / "cards" / "v2" / "cards.json").exists()
 
-    fields = (
-        "id",
-        "title",
-        "type",
-        "classes",
-        "references",
-        "command_cost",
-        "strength",
-        "strength_modifier",
-        "force_strength",
-        "name_strength_modifier",
-        "allowed_rows",
-        "bond_kind",
-        "effects",
-        "modes",
-        "text",
-        "design_tags",
-        "duration",
-    )
+    readme = (ROOT / "cards" / "v2" / "README.md").read_text(encoding="utf-8")
+    assert "sole machine-readable card-definition source is `cards/cards.json`" in readme
+    assert "There is intentionally no second `cards/v2/cards.json` pool." in readme
 
-    def printed(card):
-        return {
-            field: card.get(field)
-            for field in fields
-            if field in card
-        } | {"unique": bool(card.get("unique", False))}
-
-    canonical_by_id = {card["id"]: card for card in canonical["cards"]}
-    v2_by_id = {card["id"]: card for card in v2["cards"]}
-    assert canonical_by_id.keys() == v2_by_id.keys()
-    for card_id in canonical_by_id:
-        assert printed(canonical_by_id[card_id]) == printed(v2_by_id[card_id]), card_id

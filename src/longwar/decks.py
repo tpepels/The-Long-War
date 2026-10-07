@@ -6,8 +6,8 @@ from typing import Any
 from .protocol import CardType
 
 MINIMUM_DECK_SIZE = 34
-MINIMUM_FORCE_COUNT = 0
-MINIMUM_PRINTED_NAME_COUNT = 0
+MINIMUM_FORCE_COUNT = 14
+MINIMUM_PRINTED_NAME_COUNT = 6
 NON_UNIQUE_COPY_LIMIT = 4
 UNIQUE_COPY_LIMIT = 1
 
@@ -28,9 +28,10 @@ def validate_deck_definition(
 ) -> None:
     """Validate the canonical deck-construction rules.
 
-    Decks may be larger than the 34-card minimum. There is no minimum number
-    of Forces or printed Names. Non-Unique titles may appear up to four times;
-    Unique titles remain limited to one copy.
+    Decks may be larger than the 34-card minimum. They must contain at least
+    14 Forces (Heroes count toward this minimum) and at least 6 printed Names.
+    Non-Unique titles may appear up to four times; Unique titles remain limited
+    to one copy.
     """
     if not isinstance(deck, (list, tuple)) or any(
         not isinstance(card_id, str) for card_id in deck
@@ -58,7 +59,11 @@ def validate_deck_definition(
                 f"{card['title']} appears {count} times; maximum is {maximum}"
             )
 
-    forces = sum(1 for card_id in deck if cards[card_id]["type"] == CardType.FORCE)
+    forces = sum(
+        1
+        for card_id in deck
+        if cards[card_id]["type"] in {CardType.FORCE, CardType.HERO}
+    )
     if forces < minimum_force_count:
         raise InvalidDeckDefinition(
             f"A legal deck must contain at least {minimum_force_count} Force-type cards, "

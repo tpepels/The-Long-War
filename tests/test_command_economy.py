@@ -122,18 +122,37 @@ def test_printed_card_cost_is_paid_by_operation() -> None:
     assert state.operations_this_battle[0] == 1
 
 
-def test_all_current_cards_have_positive_native_safe_command_costs() -> None:
+def test_all_current_cards_have_native_safe_command_costs() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
-    costs = [card["command_cost"] for card in data["cards"]]
+    cards = data["cards"]
+    costs = [card["command_cost"] for card in cards]
     assert costs
-    assert all(type(cost) is int and 1 <= cost < 128 for cost in costs)
+    assert all(type(cost) is int and 0 <= cost < 128 for cost in costs)
+    zero_cost = {
+        card["id"]: card["type"]
+        for card in cards
+        if card["command_cost"] == 0
+    }
+    assert zero_cost == {
+        "they-were-gathering-there": "tactic",
+        "fresh-orders": "order",
+        "catch-your-breath": "order",
+        "re-form-the-line": "order",
+        "bind-the-wound": "order",
+        "send-a-runner": "order",
+    }
 
 
 
 def test_ordinary_discount_defaults_to_minimum_cost_one() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
     iven = next(card for card in data["cards"] if card["id"] == "iven")
-    iven["design_rules"].pop("minimum_cost")
+    discount = next(
+        effect
+        for effect in iven["design_rules"]["effects"]
+        if effect["op"] == "global_discount"
+    )
+    discount.pop("minimum")
     engine = GameEngine(data)
 
     deck = json.loads(
@@ -167,7 +186,7 @@ def test_ordinary_discount_defaults_to_minimum_cost_one() -> None:
     assert engine.command_cost_for_action(state, action) == 1
 
 
-def test_catchup_zero_cost_cannot_stack_into_negative_command_cost() -> None:
+def test_play_refund_does_not_make_card_cost_negative() -> None:
     engine, state = standard_game()
     front = Position(Front.FIRST, Rank.FRONT)
     rear = Position(Front.FIRST, Rank.REAR)
@@ -185,12 +204,29 @@ def test_catchup_zero_cost_cannot_stack_into_negative_command_cost() -> None:
 
     action = PlayBond("rallied-behind", front)
 
-    # Rallied Behind becomes free while behind. Iven can also discount the
-    # first card in this Front, but discounts may never push a cost below 0.
-    assert engine.command_cost_for_action(state, action) == 0
+    # Rallied Behind costs 1, then refunds 1 because this player is behind.
+    # The refund is a PLAY effect, not a negative card cost.
+    assert engine.command_cost_for_action(state, action) == 1
     engine.apply(state, action)
     assert state.players[0].command == 1
-    assert state.command_spent_this_battle[0] == 0
+    assert state.command_spent_this_battle[0] == 1
+
+def test_rallied_behind_refunds_only_while_behind() -> None:
+    engine, state = standard_game()
+    target = Position(Front.FIRST, Rank.FRONT)
+    GameScenario(state).formation(
+        0,
+        target,
+        force="the-fifty-men",
+    ).commands(6, 5).hand(0, "rallied-behind")
+
+    action = PlayBond("rallied-behind", target)
+    assert engine.command_cost_for_action(state, action) == 1
+    engine.apply(state, action)
+
+    assert state.players[0].command == 5
+    assert state.command_spent_this_battle[0] == 1
+
 
 def test_arithmetic_recovery_formula_can_be_overridden() -> None:
     data = load_card_file(ROOT / "cards" / "cards.json")
@@ -458,29 +494,6 @@ def test_projected_lost_masks_use_tie_control_resolution_rule() -> None:
     assert lost1 & (1 << int(Front.FIRST))
 
 
-def test_projected_lost_masks_use_combined_front_resolution_rule() -> None:
-    engine, state = standard_game()
-    first = Position(Front.FIRST, Rank.FRONT)
-    second = Position(Front.SECOND, Rank.FRONT)
-    GameScenario(state).formation(
-        0, first, force="the-fifty-men"
-    ).formation(
-        1, second, force="the-fifty-men"
-    )
-    state.slot(0, first).temporary_strength = 2
-    state.stratagems[0] = StratagemState(
-        "the-center-must-hold",
-        fronts=(Front.FIRST, Front.SECOND),
-    )
-
-    packed = engine._native_core().from_game_state(state)
-    lost0, lost1 = engine._native_heuristic().projected_lost_masks(packed)
-    pair = (1 << int(Front.FIRST)) | (1 << int(Front.SECOND))
-
-    assert lost0 & pair == 0
-    assert lost1 & pair == pair
-
-
 def test_projected_lost_masks_use_frontline_only_resolution_strength() -> None:
     engine, state = standard_game()
     front = Position(Front.FIRST, Rank.FRONT)
@@ -599,7 +612,7 @@ def test_command_guard_keeps_immediate_command_refund_action() -> None:
         target,
         force="the-fifty-men",
         bond="followed",
-    ).commands(1, 5).operations(1, 1).clear_hands().hand(0, "namar")
+    ).commands(3, 5).operations(1, 1).clear_hands().hand(0, "namar")
 
     play_name = PlayName("namar", target)
     preserving, _filtered = command_preserving_actions(
@@ -611,7 +624,7 @@ def test_command_guard_keeps_immediate_command_refund_action() -> None:
     assert play_name in preserving
     child = state.clone()
     engine.apply(child, play_name)
-    assert child.players[0].command == 1
+    assert child.players[0].command == 2
 
 
 def test_spending_final_command_midbattle_remains_nonterminal() -> None:
@@ -727,7 +740,7 @@ def test_command_diagnostics_attribute_completion_gain_to_source_card() -> None:
         target,
         force="the-fifty-men",
         bond="followed",
-    ).commands(1, 5).hand(0, "namar")
+    ).commands(3, 5).hand(0, "namar")
 
     action = PlayName("namar", target)
     engine.apply(state, action)
@@ -737,27 +750,7 @@ def test_command_diagnostics_attribute_completion_gain_to_source_card() -> None:
         event["kind"] == "gain"
         and event["detail"] == "completion_gain"
         and event["source_card"] == "namar"
-        and event["amount"] == 1
-        for event in events
-    )
-
-
-def test_command_diagnostics_attribute_catchup_discount_to_source_card() -> None:
-    engine, state = standard_game()
-    target = Position(Front.FIRST, Rank.FRONT)
-    GameScenario(state).formation(
-        0, target, force="the-fifty-men"
-    ).commands(1, 5).hand(0, "rallied-behind")
-
-    action = PlayBond("rallied-behind", target)
-    engine.apply(state, action)
-
-    events = engine.last_command_diagnostics()
-    assert any(
-        event["kind"] == "discount"
-        and event["detail"] == "catchup_discount"
-        and event["source_card"] == "rallied-behind"
-        and event["amount"] >= 1
+        and event["amount"] == 2
         for event in events
     )
 

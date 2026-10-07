@@ -5,6 +5,7 @@ from pathlib import Path
 
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Phase, Position, Rank
+from longwar.game.model import StratagemState
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -49,6 +50,9 @@ def engine_and_state():
     own_third.force = "seven-black-ships"
     own_third.bond = "carried-the-oath-of"
 
+    own_scout = state.slot(0, Position(Front.SECOND, Rank.MIDDLE))
+    own_scout.force = "the-thornbow-hunters"
+
     enemy_first = state.slot(1, Position(Front.FIRST, Rank.FRONT))
     enemy_first.force = "the-black-company"
     enemy_first.bond = "guarded"
@@ -57,6 +61,11 @@ def engine_and_state():
     enemy_second = state.slot(1, Position(Front.SECOND, Rank.FRONT))
     enemy_second.force = "the-vardai"
     enemy_second.bond = "stood-fast-with"
+
+    state.stratagems[1] = StratagemState(
+        "the-ground-was-held",
+        fronts=(Front.SECOND,),
+    )
 
     return engine, state, data
 
