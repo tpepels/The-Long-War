@@ -2,9 +2,11 @@
 
 ## Purpose
 
-The Long War is a game first. Keep the repository easy to change while guaranteeing that browser play, simulations, AI/search, and analysis all consume the same game semantics.
+The Long War is a game first. Keep the **physical game**, **print presentation**, **runtime engine/webgame**, and **AI/balance research** as distinct workstreams.
 
-Read `ARCHITECTURE.md` before structural work. Its ownership/dependency rules are enforced by `tests/test_architecture_boundaries.py`.
+Read `WORKSTREAMS.md` before choosing a branch or PR scope. Read `ARCHITECTURE.md` before structural software work. Runtime ownership/dependency rules are enforced by `tests/test_architecture_boundaries.py`.
+
+The physical card/rule design may temporarily lead the runtime implementation. When it does, do not force engine changes into the same PR and do not duplicate missing engine behavior in JavaScript. Treat the webgame as experimental until the linked engine-sync work is complete.
 
 ## Non-negotiable architecture
 
@@ -89,8 +91,9 @@ make full-lab FULL_LAB_ARGS="..."
 ## Development rules
 
 - Refresh current `main` before substantial writes and preserve unrelated changes.
-- Work directly on `main` unless isolation is genuinely necessary.
-- Change rules once in the canonical engine/configuration and verify every consumer.
+- Use the workstream branch prefixes in `WORKSTREAMS.md` for substantive work; keep PRs single-purpose.
+- Physical cards/rules are authored independently of runtime implementation. Do not require an engine change merely to merge a physical playtest change.
+- When implementing authored mechanics in software, change runtime semantics once in the canonical engine/configuration and verify every executable consumer.
 - Add regressions at the semantic or contract boundary that changed.
 - Prefer deleting obsolete paths over compatibility wrappers.
 - Never introduce a second card/deck fixture merely to support an experiment.
@@ -149,5 +152,7 @@ The persistent-board playtest deliberately removed automatic lost-Front Retreat.
 ## Repository discipline
 
 Do not solve architecture problems by adding more architecture. Prefer fewer permanent entry points, fewer named modes, and configuration passed through existing boundaries.
+
+New branches should use `game/`, `print/`, `web/`, `engine/`, `ai/`, `balance/`, `research/`, or `docs/`. Do not create new generic `fix-*`, `cleanup/*`, or agent-named branches.
 
 Historical reports and old generated artifacts are not current evidence. Verify fingerprints when current evidence matters.
