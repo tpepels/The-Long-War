@@ -25,18 +25,19 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-wrap{position:relative;width:var(--card-width);height:var(--card-height);break-inside:avoid}
 
 /* One physical face: raster ornament, live artwork, symbols and type. */
-.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--family-wash:#8a6a42;--family-wash-opacity:.13;--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:inset 0 0 0 .16mm #2b231a70,0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
+.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--family-wash:#8a6a42;--family-wash-opacity:.08;--family-band-opacity:.20;--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:inset 0 0 0 .16mm #2b231a70,0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
 .physical-card::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;background:var(--family-wash);opacity:var(--family-wash-opacity);pointer-events:none}
-.card-force{--family-wash:#8b543c;--accent:#70402e}
-.card-bond{--family-wash:#4f7466;--accent:#3f6156}
-.card-name{--family-wash:#4d668b;--accent:#3e5477}
-.card-hero{--family-wash:#77527f;--accent:#604267}
-.card-tactic{--family-wash:#963f3f;--accent:#7b3030}
-.card-order{--family-wash:#61794f;--accent:#4d653d}
-.card-stratagem{--family-wash:#4d6268;--accent:#3c5055}
-.card-narrative{--family-wash:#655a82;--accent:#51476d}
-.stack-edge,.event-crown{height:var(--exposed-edge);flex:0 0 var(--exposed-edge);position:relative;z-index:4;display:flex;align-items:center;padding:2.4mm 4mm .05mm;color:var(--deep)}
-.stack-edge{display:grid;grid-template-columns:11mm 15.5mm minmax(0,1fr);column-gap:1mm}
+.card-force{--family-wash:#a45a32;--accent:#7b4327}
+.card-bond{--family-wash:#2f7d78;--accent:#245f5b}
+.card-name{--family-wash:#416fb0;--accent:#31558a}
+.card-hero{--family-wash:#7a4ea2;--accent:#5f3b80}
+.card-tactic{--family-wash:#aa4338;--accent:#843127}
+.card-order{--family-wash:#64862f;--accent:#4c6821}
+.card-stratagem{--family-wash:#5b6672;--accent:#424d58}
+.card-narrative{--family-wash:#49538d;--accent:#39416f}
+.stack-edge,.event-crown{height:var(--exposed-edge);flex:0 0 var(--exposed-edge);position:relative;z-index:4;display:flex;align-items:center;padding:2.55mm 3.9mm 0;color:var(--deep)}
+.stack-edge::before,.event-crown::before,.card-footer::before{content:"";position:absolute;inset:.35mm 1.9mm;border-radius:1mm;background:var(--family-wash);opacity:var(--family-band-opacity);pointer-events:none;z-index:-1}
+.stack-edge{display:grid;grid-template-columns:11mm 15.5mm minmax(0,1fr);column-gap:.8mm}
 .edge-stats,.hero-stats{display:flex;align-items:center;gap:.8mm;height:6.8mm;min-height:6.8mm;flex:none}
 .type-mark{width:4.8mm;height:6mm;display:grid;place-items:center;flex:none}
 .type-mark svg{width:100%;height:100%}
@@ -49,35 +50,35 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 
 .card-hero .stack-edge{grid-template-columns:20mm 11mm minmax(0,1fr)}
 .card-hero .stack-edge:has(.class-sigil:nth-child(3)){grid-template-columns:20mm 15.5mm minmax(0,1fr)}
-.edge-identity{min-width:0;height:6.8mm;display:flex;align-items:center;justify-content:center;gap:.65mm;padding:0 .6mm;border-left:.2mm solid var(--accent)}
+.edge-identity{min-width:0;height:6.8mm;display:flex;align-items:center;justify-content:center;gap:.55mm;padding:0 .55mm;border-left:.22mm solid var(--accent)}
 .class-sigil{width:4.65mm;height:5.5mm;display:grid;place-items:center;flex:none}
 .class-sigil svg{width:100%;height:100%}
 .stack-edge:has(.edge-identity:empty){grid-template-columns:11mm minmax(0,1fr)}
 .edge-identity:empty{display:none}
-.edge-live-group{min-width:0;height:6.8mm;display:flex;flex-wrap:wrap;align-content:center;align-items:center;gap:.3mm .6mm;padding-left:1.2mm;border-left:.2mm solid var(--accent)}
+.edge-live-group{min-width:0;height:6.8mm;display:flex;flex-wrap:wrap;align-content:flex-start;align-items:center;gap:.15mm .45mm;padding-left:.95mm;border-left:.22mm solid var(--accent)}
 .edge-live-group:empty{border:0}
 .edge-placement{position:relative;display:flex;align-items:center;gap:.1mm;flex:none}
 .edge-placement>.glyph-row{width:3.1mm;height:3.1mm}
 .placement-lock{width:1.5mm;height:1.5mm;margin-left:-.8mm;margin-top:1.7mm;display:grid;place-items:center}
 .placement-lock svg{width:100%;height:100%}
-.edge-mechanic{display:flex;align-items:center;align-content:center;flex-wrap:wrap;gap:0 .55mm;min-width:0;flex:1 1 100%;padding-top:.15mm;font:700 2.7mm/1.08 var(--text)}
+.edge-mechanic{display:flex;align-items:center;align-content:center;flex-wrap:wrap;gap:0 .45mm;min-width:0;flex:1 1 100%;padding-top:.1mm;font:700 2.55mm/1.02 var(--text)}
 .edge-timing-word{display:inline;white-space:nowrap;flex:none;font-variant:small-caps}
 .edge-live-text{min-width:0;flex:1 1 auto;text-transform:uppercase}
 .edge-mechanic[data-reminder-has-timing="true"] .edge-timing-word{display:none}
-.edge-compact .edge-mechanic{font-size:2.35mm;line-height:1.08}
+.edge-compact .edge-mechanic{font-size:2.18mm;line-height:1.01}
 .edge-live-group:has(.edge-placement){flex-wrap:nowrap}
 .edge-live-group:has(.edge-placement) .edge-mechanic{font-size:2.35mm}
 .use-socket{width:2.5mm;height:2.5mm;border:.23mm solid var(--deep);border-radius:50%;display:inline-block;flex:none}
 .edge-mechanic .use-socket{width:2.35mm;height:2.35mm}
 .glyph-class-kind,.glyph-class-role,.glyph-class-rank{overflow:visible}
 .glyph-row rect{fill:none}.glyph-row .row-active{fill:currentColor}
-.glyph-type,.glyph-strength,.glyph-timing,.glyph-utility,.glyph-class,.glyph-row{fill:none;stroke:currentColor;stroke-width:1.72;stroke-linecap:round;stroke-linejoin:round}
+.glyph-type,.glyph-strength,.glyph-timing,.glyph-utility,.glyph-class,.glyph-row{fill:none;stroke:currentColor;stroke-width:1.82;stroke-linecap:round;stroke-linejoin:round}
 .event-crown{gap:2mm}
 .event-sigil{width:5.5mm;height:6mm;display:grid;place-items:center}
 .event-sigil svg{width:100%;height:100%}
-.event-family{font:600 4.4mm/1 var(--display);font-variant:small-caps;letter-spacing:.025em}
+.event-family{font:600 4.55mm/1 var(--display);font-variant:small-caps;letter-spacing:.03em}
 
-.event-status{margin-left:auto;max-width:25mm;font:2.4mm/1.1 var(--text);text-align:right}
+.event-status{margin-left:auto;max-width:25mm;font:2.2mm/1.05 var(--text);text-align:right}
 
 .card-body{flex:1 1 auto;min-height:0;padding:0 4.1mm;display:flex;flex-direction:column;position:relative;z-index:2}
 .motif-field{position:relative;flex:0 0 var(--art-height);height:var(--art-height);min-height:var(--art-height);max-height:var(--art-height);overflow:hidden;margin:0 -1.6mm .7mm}
@@ -111,7 +112,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .mode-heading-core{display:inline-flex;align-items:center;gap:.7mm;white-space:nowrap}
 .mode-heading-core svg{width:3.2mm;height:3.2mm}
 
-.card-footer{flex:0 0 var(--footer-height);min-height:var(--footer-height);position:relative;display:grid;grid-template-columns:3.3mm minmax(0,1fr);grid-template-rows:auto 2mm;align-content:end;align-items:center;gap:.25mm .7mm;padding:2mm 17mm 3mm 4.5mm}
+.card-footer{flex:0 0 var(--footer-height);min-height:var(--footer-height);position:relative;z-index:3;display:grid;grid-template-columns:3.3mm minmax(0,1fr);grid-template-rows:auto 2mm;align-content:end;align-items:center;gap:.25mm .7mm;padding:2mm 17mm 3mm 4.5mm}
 .footer-mark{grid-column:1;grid-row:1}
 .footer-mark svg{display:block;width:3.3mm;height:3.3mm}
 .footer-id{grid-column:2;grid-row:1;justify-self:start;max-width:100%;font:1.65mm/1 var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
