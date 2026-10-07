@@ -305,8 +305,8 @@ def test_rulebook_uses_generated_pdf_for_printing() -> None:
     assert "window.print()" not in template
     assert 'OUTPUT = DIST / "rulebook.pdf"' in generator
     assert '"compile"' in generator
-    assert "MAX_PAGES = 8" in generator
-    assert "2 <= len(reader.pages) <= MAX_PAGES" in generator
+    assert "MAX_PAGES_WARNING = 8" in generator
+    assert "continuing build" in generator
     assert "blank or nearly blank" in generator
 
 @pytest.mark.design
