@@ -45,14 +45,18 @@ def test_experimental_baselines_are_valid_and_type_matched() -> None:
         assert baseline["command_cost"] == card["command_cost"]
 
     assert baseline_card(canonical["the-fifty-men"])["strength"] == 4
+    assert baseline_card(canonical["followed"])["strength_modifier"] == 1
     assert baseline_card(canonical["followed"])["design_rules"] == {
-        "strength_bonus": 1,
-        "named_additional_strength_bonus": 2,
+        "effects": [],
+        "modes": {},
     }
-    assert baseline_card(canonical["namar"])["strength"] == 2
-    assert baseline_card(canonical["the-long-march"])["design_rules"] == {}
+    assert baseline_card(canonical["namar"])["strength_modifier"] == 2
+    assert baseline_card(canonical["the-long-march"])["design_rules"] == {
+        "effects": [],
+        "modes": {},
+    }
     stratagem = baseline_card(canonical["the-ground-was-held"])
-    assert stratagem["design_rules"] == {}
+    assert stratagem["design_rules"] == {"effects": [], "modes": {}}
     assert "face-down" in stratagem["text"]
     assert "face-up" not in stratagem["text"]
     assert "rules" not in baseline_card(canonical["followed"])
@@ -284,9 +288,9 @@ def test_narrative_baseline_preserves_narrative_chassis() -> None:
     baseline = baseline_card(original)
 
     assert baseline["type"] == "narrative"
-    assert baseline["narrative_form"] == original["narrative_form"]
-    assert baseline["ongoing"] == original["ongoing"]
-    assert baseline["design_rules"] == {}
+    assert baseline.get("duration") == original.get("duration")
+    assert baseline.get("references", []) == original.get("references", [])
+    assert baseline["design_rules"] == {"effects": [], "modes": {}}
 
 
 def test_stratagem_baseline_preserves_public_play_commitment() -> None:
@@ -295,7 +299,7 @@ def test_stratagem_baseline_preserves_public_play_commitment() -> None:
     baseline = baseline_card(index["the-ground-was-held"])
 
     assert baseline["type"] == "stratagem"
-    assert baseline["design_rules"] == {}
+    assert baseline["design_rules"] == {"effects": [], "modes": {}}
     assert "rules" not in baseline
     assert "no continuing effect" in baseline["text"]
 
@@ -306,13 +310,20 @@ def test_hero_baseline_preserves_hero_chassis() -> None:
     original = index["avaros-the-bronze-king"]
     baseline = baseline_card(original)
 
+    assert baseline["type"] == "hero"
     assert baseline["hero"] is True
     assert baseline["unique"] is original["unique"]
-    assert baseline["role"] == original["role"]
-    assert "hero" in baseline["classes"]
-    assert baseline["strength"] == original["strength"]
-    assert baseline["hero_name_strength"] == original["hero_name_strength"]
-    assert baseline["design_rules"] == {}
+    assert baseline["classes"] == original["classes"]
+    assert baseline["force_strength"] == original["force_strength"]
+    assert baseline["name_strength_modifier"] == original["name_strength_modifier"]
+    assert baseline["modes"] == {
+        "force": {"effects": []},
+        "name": {"effects": []},
+    }
+    assert baseline["design_rules"] == {
+        "effects": [],
+        "modes": {"force": [], "name": []},
+    }
     assert "rules" not in baseline
 
 

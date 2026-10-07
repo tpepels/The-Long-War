@@ -210,7 +210,7 @@ def test_current_fast_information_key_round_trips_canonical_state() -> None:
     packed = fast.from_game_state(state)
     key = fast.information_key(packed, 0)
 
-    assert key[0] == 15
+    assert key[0] == 17
     assert (
         fast_search.stable_information_id_from_fast_key(fast, key)
         == information_set_id(state, 0)
