@@ -71,6 +71,10 @@ A limited-use wrapper must change a real decision. An automatic `1/BATTLE - +1 S
 
 Avoid invisible "the first X each Battle/turn" bookkeeping when the same identity can be expressed as a visible continuous rule.
 
+The exposed top row is a **summary, never the only source of a rule**. Anything communicated there must also be stated in the card body. In particular, a legal-rank glyph must be backed by explicit placement text such as "This Force may only occupy the Middle or Rear rows."
+
+State and positional conditions are written as real conditions in prose. Do not rely on a bare label such as **REAR**, **FRONT**, **BONDED**, **EXHAUSTED**, or **WHILE NAMED** to carry meaning by itself. Write "While this formation is in the Rear row...", "While this formation is Bonded...", "If...", or "When..." as appropriate. The timing label and exposed reminder exist for scanning; the sentence remains self-contained.
+
 ## Card-type grammar
 
 **Force** - base Strength and one simple battlefield identity. Prefer no rule, PLAY, a short positional/state rule, or a repeatable ACTION whose complete instruction fits in the exposed edge. Regular Forces do not use once-per-Battle abilities.
