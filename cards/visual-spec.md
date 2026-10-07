@@ -39,9 +39,10 @@ and the card illustration itself remain unfiltered.
   The footer identity row itself lives inside the footer band and is vertically
   aligned with the Command seal, leaving the body space available to rules text.
   Every card begins that row with its family symbol and written family name, then
-  a centred dot before any classifications/references. Tactics omit footer
-  "Involves" references and instead show class symbols inline with class names in
-  their rules text.
+  a centred dot before any formation classifications. Event cards (Tactic, Order,
+  Stratagem and Narrative) do not repeat reference metadata as an "Involves" footer;
+  any referenced class is already named in the rule text and is shown there with
+  its class symbol at text size.
 - The footer reserves **15 mm** for the ID, revision, family identity,
   classifications/references, Unique label when applicable, and a **12.5 mm**
   raster Command seal.
@@ -49,7 +50,9 @@ and the card illustration itself remain unfiltered.
 
 EB Garamond supplies titles and numerals. Titles range from 5.3 mm to 3.9 mm for
 long Hero titles. Gentium supplies rules at **3.25 mm**, or **2.85 mm (8.1 pt)** on
-dense faces. Heroes retain both Force and Name rules, with mode and timing labels
+dense faces. Placement text counts as a real rule block for density; a restricted
+Force with another rule therefore receives the dense layout rather than relying
+only on raw character count. Heroes retain both Force and Name rules, with mode and timing labels
 inline to save vertical space. Vanilla cards leave their rules area empty.
 
 ## Exposed information and symbols
