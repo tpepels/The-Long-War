@@ -148,11 +148,11 @@ function mechanicReminder(effect){
   if(match)add("steal","The opponent loses up to "+match[1]+" Command, never below 1; regain exactly the amount lost.");
 
   if(/\bTIRELESS\b/.test(text)){
-    add("tireless","This Force may Maneuver while Exhausted; all other Maneuver requirements still apply.");
+    add("tireless","TIRELESS means that Force may Maneuver while Exhausted; all other Maneuver requirements still apply.");
   }
 
   if(/\bMOBILE\b/.test(text)){
-    add("mobile","This Force may Maneuver while Unnamed; all other Maneuver requirements still apply.");
+    add("mobile","MOBILE means that Force may Maneuver while Unnamed; all other Maneuver requirements still apply.");
   }
 
   if(/\bMOVE\s+\d+\b/.test(text)){
