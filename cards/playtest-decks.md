@@ -75,7 +75,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 
 **Interesting lines**
 
-- Field Train is Middle-only and spends an Action plus 1 Command to move a prepared Bond or Name onto the Formation directly ahead, making the second line a real logistics engine.
+- Field Train is Middle-only and spends an Action to move a prepared Bond or Name onto the Formation directly ahead, making the second line a real logistics engine.
 - House of Reed, Supplied By and Tovan can take Bonds to 0 Command, while Late Banner, Swore Again To and the King package make Names easier to finish.
 - Stayed Behind For, Nara, Torren and Oren convert prepared or unbonded positions into completed formations without requiring every piece to arrive in order.
 - Teren, There Was No Road Back and Fresh Orders reward the moment formations become Named and help the chain keep moving.
