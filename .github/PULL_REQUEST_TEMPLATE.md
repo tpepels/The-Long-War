@@ -28,7 +28,10 @@ Select exactly one primary workstream:
 
 ## Verification
 
-<!-- List local commands actually run. Do not use GitHub Actions as a substitute for local validation. -->
+<!-- List local commands actually run. Distinguish blocking sanity/build checks from advisory diagnostics. A failing design test is not a reason to preserve an intentionally changed design. See TESTING.md. -->
+
+- Blocking sanity/build:
+- Advisory design/engine/research diagnostics:
 
 ## Notes
 
