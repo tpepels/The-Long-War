@@ -268,18 +268,23 @@ def test_renderer_preserves_all_rules_and_uses_symbolic_stack_edge() -> None:
         else:
             assert output.one("event-family")["text"] == card["type"].title()
 
+        class_line = output.one("class-line")
+        assert card["type"].title() in class_line["text"]
+        type_items = output.all("class-type-item", within=class_line)
+        assert len(type_items) == 1
+        assert type_items[0]["text"] == card["type"].title()
+
         values = card.get("classes") or card.get("references") or []
-        if values:
-            if card["type"] == "tactic":
-                assert not output.all("class-line")
-                inline_refs = output.all("inline-class-ref")
-                for value in values:
-                    label = value.replace("_", " ").replace("-", " ").title()
-                    assert any(node["attrs"].get("title") == label for node in inline_refs)
-            else:
-                class_line = output.one("class-line")["text"].lower()
-                for value in values:
-                    assert value.replace("_", " ").replace("-", " ") in class_line
+        if card["type"] == "tactic":
+            assert "Involves" not in class_line["text"]
+            inline_refs = output.all("inline-class-ref")
+            for value in card.get("references", []):
+                label = value.replace("_", " ").replace("-", " ").title()
+                assert any(node["attrs"].get("title") == label for node in inline_refs)
+        elif values:
+            class_text = class_line["text"].lower()
+            for value in values:
+                assert value.replace("_", " ").replace("-", " ") in class_text
 
 
 def test_every_current_live_buried_effect_has_a_compact_exposed_reminder() -> None:
@@ -558,7 +563,9 @@ def test_rules_keep_semantic_emphasis_without_changing_authored_text() -> None:
 def test_tactics_use_inline_class_icons_instead_of_footer_references() -> None:
     tactic = next(card for card in CARDS if card["id"] == "the-line-was-baited")
     output, = render_cards([tactic])
-    assert not output.all("class-line")
+    class_line = output.one("class-line")
+    assert class_line["text"] == "Tactic"
+    assert output.one("class-type-item", within=class_line)["text"] == "Tactic"
     refs = output.all("inline-class-ref")
     assert [node["attrs"].get("title") for node in refs] == ["Guard", "Spearman", "Skirmisher"]
     assert output.one("effect-text")["text"] == tactic["effects"][0]["text"]
