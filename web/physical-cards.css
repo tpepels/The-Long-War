@@ -25,7 +25,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-wrap{position:relative;width:var(--card-width);height:var(--card-height);break-inside:avoid}
 
 /* One physical face: raster ornament, live artwork, symbols and type. */
-.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--family-wash:#8a6a42;--family-wash-opacity:.13;--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
+.physical-card{--accent:#5d4a2d;--deep:#191c20;--paper:#f1dfb9;--family-wash:#8a6a42;--family-wash-opacity:.13;--art-height:25mm;--identity-height:19mm;--footer-height:15mm;--title-height:12mm;width:var(--card-width);height:var(--card-height);position:relative;isolation:isolate;display:flex;flex-direction:column;overflow:hidden;border:0;border-radius:2.5mm;background:transparent url("art/card-frame/card-shell.png") center/100% 100% no-repeat;color:var(--deep);box-shadow:inset 0 0 0 .16mm #2b231a70,0 1.1mm 2.4mm #2927192b;font:3.25mm/1.19 var(--text)}
 .physical-card::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;background:var(--family-wash);opacity:var(--family-wash-opacity);pointer-events:none}
 .card-force{--family-wash:#8b543c;--accent:#70402e}
 .card-bond{--family-wash:#4f7466;--accent:#3f6156}
@@ -35,7 +35,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-order{--family-wash:#61794f;--accent:#4d653d}
 .card-stratagem{--family-wash:#4d6268;--accent:#3c5055}
 .card-narrative{--family-wash:#655a82;--accent:#51476d}
-.stack-edge,.event-crown{height:var(--exposed-edge);flex:0 0 var(--exposed-edge);position:relative;z-index:4;display:flex;align-items:center;padding:2.2mm 4mm .15mm;color:var(--deep)}
+.stack-edge,.event-crown{height:var(--exposed-edge);flex:0 0 var(--exposed-edge);position:relative;z-index:4;display:flex;align-items:center;padding:2.4mm 4mm .05mm;color:var(--deep)}
 .stack-edge{display:grid;grid-template-columns:11mm 15.5mm minmax(0,1fr);column-gap:1mm}
 .edge-stats,.hero-stats{display:flex;align-items:center;gap:.8mm;height:6.8mm;min-height:6.8mm;flex:none}
 .type-mark{width:4.8mm;height:6mm;display:grid;place-items:center;flex:none}
@@ -49,18 +49,18 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 
 .card-hero .stack-edge{grid-template-columns:20mm 11mm minmax(0,1fr)}
 .card-hero .stack-edge:has(.class-sigil:nth-child(3)){grid-template-columns:20mm 15.5mm minmax(0,1fr)}
-.edge-identity{min-width:0;height:6.8mm;display:flex;align-items:center;justify-content:center;gap:.65mm;padding:0 .6mm;border-left:.15mm solid #a2844e}
+.edge-identity{min-width:0;height:6.8mm;display:flex;align-items:center;justify-content:center;gap:.65mm;padding:0 .6mm;border-left:.2mm solid var(--accent)}
 .class-sigil{width:4.65mm;height:5.5mm;display:grid;place-items:center;flex:none}
 .class-sigil svg{width:100%;height:100%}
 .stack-edge:has(.edge-identity:empty){grid-template-columns:11mm minmax(0,1fr)}
 .edge-identity:empty{display:none}
-.edge-live-group{min-width:0;height:6.8mm;display:flex;flex-wrap:wrap;align-content:center;align-items:center;gap:.3mm .6mm;padding-left:1.1mm;border-left:.15mm solid #a2844e}
+.edge-live-group{min-width:0;height:6.8mm;display:flex;flex-wrap:wrap;align-content:center;align-items:center;gap:.3mm .6mm;padding-left:1.2mm;border-left:.2mm solid var(--accent)}
 .edge-live-group:empty{border:0}
 .edge-placement{position:relative;display:flex;align-items:center;gap:.1mm;flex:none}
 .edge-placement>.glyph-row{width:3.1mm;height:3.1mm}
 .placement-lock{width:1.5mm;height:1.5mm;margin-left:-.8mm;margin-top:1.7mm;display:grid;place-items:center}
 .placement-lock svg{width:100%;height:100%}
-.edge-mechanic{display:flex;align-items:center;align-content:center;flex-wrap:wrap;gap:0 .55mm;min-width:0;flex:1 1 100%;font:700 2.7mm/1.08 var(--text)}
+.edge-mechanic{display:flex;align-items:center;align-content:center;flex-wrap:wrap;gap:0 .55mm;min-width:0;flex:1 1 100%;padding-top:.15mm;font:700 2.7mm/1.08 var(--text)}
 .edge-timing-word{display:inline;white-space:nowrap;flex:none;font-variant:small-caps}
 .edge-live-text{min-width:0;flex:1 1 auto;text-transform:uppercase}
 .edge-mechanic[data-reminder-has-timing="true"] .edge-timing-word{display:none}
@@ -71,7 +71,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .edge-mechanic .use-socket{width:2.35mm;height:2.35mm}
 .glyph-class-kind,.glyph-class-role,.glyph-class-rank{overflow:visible}
 .glyph-row rect{fill:none}.glyph-row .row-active{fill:currentColor}
-.glyph-type,.glyph-strength,.glyph-timing,.glyph-utility,.glyph-class,.glyph-row{fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+.glyph-type,.glyph-strength,.glyph-timing,.glyph-utility,.glyph-class,.glyph-row{fill:none;stroke:currentColor;stroke-width:1.72;stroke-linecap:round;stroke-linejoin:round}
 .event-crown{gap:2mm}
 .event-sigil{width:5.5mm;height:6mm;display:grid;place-items:center}
 .event-sigil svg{width:100%;height:100%}
@@ -149,7 +149,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
 .card-hero .effect-use .use-socket{width:2mm;height:2mm}
 
 .layout-overflow{outline:2px solid #b02e25;outline-offset:3px}[hidden]{display:none!important}
-.stack-demo{width:var(--card-width);height:calc(var(--card-height) + 2 * var(--exposed-edge));position:relative}.stack-card{position:absolute;left:0;top:0}.stack-card[data-stack-layer="1"]{top:var(--exposed-edge);z-index:1}.stack-card[data-stack-layer="2"]{top:calc(2 * var(--exposed-edge));z-index:2}.stack-card .physical-card{box-shadow:0 .5mm 1mm #25271d35}
+.stack-demo{width:var(--card-width);height:calc(var(--card-height) + 2 * var(--exposed-edge));position:relative}.stack-card{position:absolute;left:0;top:0}.stack-card[data-stack-layer="1"]{top:var(--exposed-edge);z-index:1}.stack-card[data-stack-layer="2"]{top:calc(2 * var(--exposed-edge));z-index:2}.stack-card .physical-card{box-shadow:inset 0 0 0 .16mm #2b231a80,0 .5mm 1mm #25271d45}
 
 .print-catalogue,.playtest-decks{width:max-content;max-width:none;margin:24px auto}
 .mechanics-reference{width:min(272mm,calc(100% - 32px));margin:24px auto 10mm;padding:7mm;border:1px solid #aaa893;background:#f7f3e8;color:#34382f;box-sizing:border-box}
@@ -179,7 +179,7 @@ main{max-width:1480px;margin:0 auto;padding:28px 24px 56px}
   .cards{display:grid;grid-template-columns:repeat(4,68mm);grid-auto-rows:96mm;gap:4mm 3mm;justify-content:start;align-content:start}
   .print-sheet,.deck-card-grid{page:physicalcards;width:272mm;height:192mm;margin:0;grid-template-columns:repeat(4,68mm);grid-template-rows:repeat(2,96mm);gap:0;break-after:page;page-break-after:always;break-inside:avoid-page;page-break-inside:avoid;overflow:hidden}
   .print-deck:last-child .print-sheet:last-child,.print-catalogue>.print-sheet:last-child{break-after:auto;page-break-after:auto}
-  .physical-card{box-shadow:none;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .physical-card{box-shadow:inset 0 0 0 .16mm #2b231a70;print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .print-card{border-radius:0}
   .print-card::before{border-radius:0}
   /* The 195mm page content area leaves 3mm below the 192mm card grid for this stamp. */
