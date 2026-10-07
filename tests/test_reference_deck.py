@@ -42,7 +42,10 @@ def test_active_reference_decks_are_canonical_and_legal() -> None:
         validate_deck_definition(deck, cards)
         assert set(deck) <= set(cards)
         assert len(deck) >= MINIMUM_DECK_SIZE
-        assert sum(cards[card_id]["type"] == "force" for card_id in deck) >= MINIMUM_FORCE_COUNT
+        assert sum(
+            cards[card_id]["type"] in {"force", "hero"}
+            for card_id in deck
+        ) >= MINIMUM_FORCE_COUNT
         assert sum(cards[card_id]["type"] == "name" for card_id in deck) >= MINIMUM_PRINTED_NAME_COUNT
 
 
@@ -64,12 +67,12 @@ def test_33_cards_are_rejected() -> None:
         validate_deck_definition(_deck("mobility-open-bonds.json")[:33], cards)
 
 
-def test_force_and_name_minimums_are_not_required() -> None:
+def test_force_and_name_minimums_are_required() -> None:
     cards = _cards()
     pool = [
         card_id
         for card_id, card in cards.items()
-        if card["type"] not in {"force", "name"} and not card["unique"]
+        if card["type"] not in {"force", "hero", "name"} and not card["unique"]
     ]
     deck = [
         card_id
@@ -77,8 +80,12 @@ def test_force_and_name_minimums_are_not_required() -> None:
         for _ in range(4)
     ][:MINIMUM_DECK_SIZE]
     assert len(deck) == MINIMUM_DECK_SIZE
-    assert all(cards[card_id]["type"] not in {"force", "name"} for card_id in deck)
-    validate_deck_definition(deck, cards)
+
+    with pytest.raises(InvalidDeckDefinition, match="at least 14 Force"):
+        validate_deck_definition(deck, cards)
+
+    with pytest.raises(InvalidDeckDefinition, match="at least 6 printed Names"):
+        validate_deck_definition(deck, cards, minimum_force_count=0)
 
 
 def test_unique_and_non_unique_copy_limits() -> None:
@@ -110,7 +117,7 @@ def test_heroes_have_no_deck_cap_beyond_unique_titles() -> None:
     assert len([card_id for card_id in deck if cards[card_id].get("hero")]) >= 4
     validate_deck_definition(deck, cards)
 
-def test_reference_decks_make_observational_coverage_gap_explicit() -> None:
+def test_reference_decks_cover_every_canonical_card() -> None:
     cards = _cards()
     covered = {
         card_id
@@ -119,41 +126,5 @@ def test_reference_decks_make_observational_coverage_gap_explicit() -> None:
     }
 
     assert len(cards) == 128
-    assert len(covered) == 94
-    assert set(cards) - covered == {
-        "a-volley-before-dawn",
-        "bind-the-wound",
-        "brannoc",
-        "carried-messages-for",
-        "catch-your-breath",
-        "corin-of-the-high-wall",
-        "covered-the-withdrawal-of",
-        "doros-the-last-spear",
-        "every-bow-was-strung",
-        "fresh-orders",
-        "kept-the-gate-for",
-        "lysa-the-listener",
-        "maelin",
-        "re-form-the-line",
-        "send-a-runner",
-        "serai-queen-of-crows",
-        "shared-the-spoils-with",
-        "supplied-by",
-        "supported-by",
-        "take-stock",
-        "the-archers-were-ready",
-        "the-ash-bowmen",
-        "the-kings-spears",
-        "the-lantern-scouts",
-        "the-line-was-baited",
-        "the-raiders-came-home-loaded",
-        "the-river-raiders",
-        "the-salt-road-fleet",
-        "the-scouts-found-the-gap",
-        "the-scouts-had-warned-them",
-        "the-stores-were-taken",
-        "the-watchtowers-of-eren",
-        "they-knew-the-ground",
-        "watched-the-skies-for",
-    }
+    assert covered == set(cards)
 
