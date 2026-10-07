@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import Front, GameEngine, Position, Rank

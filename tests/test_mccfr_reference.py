@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import pytest
 
+
 from longwar.mccfr_verification import verify_kuhn
 
-pytestmark = pytest.mark.algorithm
+pytestmark = [pytest.mark.research, pytest.mark.algorithm]
 
 
 def test_shared_external_sampling_solver_converges_on_kuhn_poker() -> None:

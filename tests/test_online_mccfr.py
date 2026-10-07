@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+
 from longwar.agents.online_mccfr_agent import OnlineMCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import EndTurn, Front, GameEngine, GameState, Position, Rank
@@ -13,7 +14,7 @@ from longwar.mccfr import action_key, search_information_set_id
 from longwar.online_mccfr import OnlineMCCFRResolver
 
 ROOT = Path(__file__).resolve().parents[1]
-pytestmark = pytest.mark.algorithm
+pytestmark = [pytest.mark.research, pytest.mark.algorithm]
 
 
 def setup():

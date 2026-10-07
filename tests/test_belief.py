@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import pytest
 import json
 import random
 from collections import Counter
 from pathlib import Path
+
+pytestmark = pytest.mark.algorithm
 
 from longwar.belief import (
     BeliefSampler,

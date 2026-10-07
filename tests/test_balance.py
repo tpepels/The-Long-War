@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar.balance import build_report, score_static_formation, validate_command_costs
 from longwar.cards import card_index, cards_by_type, load_card_file
 

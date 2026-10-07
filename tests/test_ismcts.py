@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.algorithm
+
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_POST_BATTLE_ROLLOUT_DEPTH,
     ISMCTSAgent,

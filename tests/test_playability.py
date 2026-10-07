@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar.playability import build_playability_report, render_markdown
 
 

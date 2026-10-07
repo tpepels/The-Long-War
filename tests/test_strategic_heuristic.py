@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.algorithm
+
 from longwar.agents.strategic_heuristic_agent import StrategicHeuristicAgent
 from longwar.belief import BeliefSampler, DeckHypothesis, HypothesisDeckPrior
 from longwar.cards import load_card_file

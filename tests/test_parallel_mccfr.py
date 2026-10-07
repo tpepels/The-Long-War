@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+
 from longwar.agents.mccfr_agent import MCCFRAgent
 from longwar.cards import load_card_file
 from longwar.game import GameEngine
@@ -14,7 +15,7 @@ from longwar.parallel_mccfr import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-pytestmark = pytest.mark.algorithm
+pytestmark = [pytest.mark.research, pytest.mark.algorithm]
 
 
 def test_replica_merge_pools_reach_weighted_strategy_sums() -> None:

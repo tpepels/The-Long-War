@@ -2,8 +2,8 @@
 
 The physical-card system now has one renderer.
 
-`web/cards-v2.js` is the canonical physical-card renderer for the Card Lab,
-full catalogue, playtest kit, stack proofs and print sheets. `web/cards-v2.css`
+`web/cards-v2.js` is the canonical physical-card renderer for the full
+catalogue, playtest kit, stack proofs and print sheets. `web/cards-v2.css`
 owns the shared 68 × 96 mm physical design. `web/v2-heraldry.js` supplies the
 functional symbols. The former `print-cards.js` / `print-cards.css` renderer
 has been removed so the playtest kit cannot drift into a separate card design.
@@ -12,7 +12,7 @@ The visual hierarchy deliberately follows the earlier print-card design: a thin
 outer cutting border, a restrained inset accent frame, large EB Garamond title,
 compact Gentium classification row, simple framed illustration, straightforward
 rule dividers, restrained family color and a quiet footer. The current rules and
-mechanics remain V2: formations keep the 10.5 mm exposed battlefield row,
+mechanics use the shared physical-card system: formations keep the 10.5 mm exposed battlefield row,
 functional SVG symbols, current timing vocabulary, graphical Hero FORCE / NAME
 dividers, the bottom-right octagonal Command seal and per-card illustrations.
 
@@ -58,9 +58,6 @@ illustration or change the physical card skeleton.
 From the repository root, with Chrome/Chromium installed:
 
 ```sh
-# Optional design diagnostics - useful, but not a deployment gate.
-python -m pytest -q -m design tests/test_card_design_audit.py tests/test_browser_card_layout.py
-
 # Optional visual print audit.
 python tools/check_card_layout.py --surface print --require-browser \
   --pdf artifacts/print/cards.pdf
@@ -69,7 +66,7 @@ python tools/check_card_layout.py --surface print --require-browser \
 make pages
 ```
 
-The physical check validates all current V2 cards, formation stack proofs,
+The physical check validates all current cards, formation stack proofs,
 numeric-range stress, overflow detection, exact 68 × 96 mm geometry, 10.5 mm
 exposed rows and eight-card A4 landscape pagination. The browser play cards are
 still a separate in-game surface and are checked by

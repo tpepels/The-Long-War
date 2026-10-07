@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+
 from longwar.cards import load_card_file
 from longwar.game import EndTurn, Front, GameEngine, PlayForce, Position, Rank
 from longwar.rules import GameRules
@@ -18,7 +19,7 @@ from longwar.mccfr import (
 
 ROOT = Path(__file__).resolve().parents[1]
 
-pytestmark = pytest.mark.algorithm
+pytestmark = [pytest.mark.research, pytest.mark.algorithm]
 
 
 def setup(*, rules: GameRules | None = None):

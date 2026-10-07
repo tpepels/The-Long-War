@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.research
+
 from longwar import fingerprint
 from longwar.agents.ismcts_agent import (
     DEFAULT_ISMCTS_EXPLORATION,

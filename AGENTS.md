@@ -117,10 +117,10 @@ Typical verification:
 - browser/session/UI/network transport: focused behavior/static checks;
 - search/solver: `make native-build && make verify-algorithms`;
 - print/rulebook pipeline: `make pages`;
-- evolving card/rulebook/layout expectations: advisory `pytest -m design`;
-- analysis/reporting plumbing: focused tests first; do not run expensive evidence automatically.
+- evolving card/rulebook/layout expectations: manual or temporary design audits, not permanent regression tests;
+- analysis/reporting plumbing: focused `research` tests; do not run expensive evidence automatically.
 
-`make test-fast` excludes `design` assertions. GitHub Pages must never be blocked by pytest, balance, simulation, algorithm, or browser-layout diagnostics; it blocks only on source/static integrity and the ability to build deployable artifacts. The Code checks workflow has a small blocking sanity job and a separate advisory diagnostics job.
+`make test-fast` excludes `research`, `algorithm`, and `integration` suites. GitHub Pages must never be blocked by pytest, balance, simulation, algorithm, or browser-layout diagnostics; it blocks only on source/static integrity and the ability to build deployable artifacts. The Code checks workflow has a small blocking sanity job and a separate advisory diagnostics job.
 
 ## AI/search
 

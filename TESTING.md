@@ -49,25 +49,19 @@ Engine tests verify executable semantics. They matter when working on the engine
 
 A physical-game or print change does not need to preserve an old engine expectation. When the engine intentionally lags, its failing parity/regression tests describe follow-up work rather than vetoing the game-design change.
 
-### 3. Design diagnostics
+### 3. Design review
 
-Tests marked `design` record useful current expectations for cards, prose, layout, print presentation, and reference surfaces. They are deliberately excluded from `make test-fast`.
+Temporary design snapshots do not belong in the permanent test suite. Review card appearance, prose, deck shape, and layout visually or with one-off audit scripts while working on that design, then remove those checks when the decision changes.
 
-Run them when useful:
-
-```bash
-python -m pytest -q -m design
-```
-
-A failure here is a prompt to inspect the change, not a reason to undo it automatically.
+Do not accumulate permanent tests for exact wording, named cards, CSS values, or today's playtest composition.
 
 ### 4. Research/algorithm evidence
 
-Algorithm and integration suites are diagnostics/evidence. They do not define the physical game and are never prerequisites for Pages deployment.
+Tests marked `research`, `algorithm`, or `integration` are diagnostics/evidence. They do not define the physical game and are excluded from normal fast verification. They are never prerequisites for Pages deployment.
 
 ## Deployment policy
 
-GitHub Pages must be able to publish the current physical game even while design diagnostics or engine parity tests are failing.
+GitHub Pages must be able to publish the current physical game even while engine, research, or parity diagnostics are failing.
 
 The Pages workflow therefore runs only checks required to produce a usable site:
 
@@ -88,7 +82,7 @@ Before adding a regression, ask:
 1. Is this a durable invariant or merely today's design?
 2. Would we still want this test to fail if we deliberately redesigned the card/rule/page next week?
 3. Can the invariant be tested semantically instead of matching exact prose, CSS, or a named card?
-4. Does this belong in `design` rather than the blocking suite?
+4. Is this really a permanent test, or should it be a temporary/manual design audit?
 
 Prefer property/schema/behavior tests over snapshots of current content.
 
