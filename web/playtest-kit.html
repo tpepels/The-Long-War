@@ -19,9 +19,26 @@
   </nav>
     <div>
       <span id="kit-count">Loading decks…</span>
-      <button type="button" onclick="window.print()">Print all decks</button>
+      <button id="print-selected" type="button" disabled>Print selected</button>
     </div>
   </header>
+  <section class="deck-print-planner" aria-labelledby="deck-print-title">
+    <div class="deck-print-intro">
+      <p class="deck-print-kicker">PRINT & PLAY</p>
+      <h1 id="deck-print-title">Choose two armies and start a war.</h1>
+      <p>The published playtest decks contain 48 cards each. For a first game, print any two decks, one mechanics sheet, the Reference page, and the marker sheet. Print card sheets at 100% scale in A4 landscape with browser headers and footers disabled.</p>
+      <div class="deck-print-actions">
+        <button id="select-first-two" type="button">Select first two</button>
+        <button id="select-all-decks" type="button">Select all four</button>
+        <a href="playmat.html">Reference</a>
+        <a href="tokens.html">Markers</a>
+        <a href="rulebook.html">Rulebook</a>
+      </div>
+      <label class="mechanics-toggle"><input id="include-mechanics" type="checkbox" checked> Include the one-page mechanics reference when printing</label>
+      <p id="print-summary" class="print-summary">Preparing decks…</p>
+    </div>
+    <div id="deck-picker" class="deck-picker" aria-label="Choose decks to print"></div>
+  </section>
   <section id="mechanics-reference" class="mechanics-reference" aria-label="Card mechanics quick reference"></section>
   <main id="playtest-decks" class="playtest-decks"></main>
   <script src="v2-heraldry.js?v=shared-print-v10"></script>

@@ -59,9 +59,22 @@ At the end of a Battle, compare the Strength on both sides of each active Front.
 
 There is no overall winner of a Battle. Each Front is settled separately.
 
+## What you need {#components}
+
+For a two-player print-and-play game, prepare:
+
+- **2 decks** - one per player. The published playtest decks contain 48 cards each; custom decks may use the construction rules at the end of this book.
+- A way to track **Command from 0 to 20** for each player.
+- **Exhaustion tokens** for Forces that have lost a Front.
+- A small supply of **Tax**, **-Strength**, suppression, and used/once-per-Battle markers for card effects.
+- **4 Front markers** so you can clearly show which Fronts are active.
+- The printed **Reference** sheet. The optional marker sheet on the website can be cut up and used directly.
+
+Cards do not need a dedicated playmat. Arrange four Front columns between the players, with Frontline, Middle, and Rear positions on each side.
+
 ## Setup {#setup}
 
-1. Each player brings a legal deck of at least **34 cards**.
+1. Each player brings a legal deck of at least **34 cards**. For a first game, use any two published 48-card playtest decks.
 2. Set each player's Command to **20**.
 3. Shuffle your deck and draw **10 cards**.
 4. You may shuffle up to **2 cards** from your opening hand back into your deck, then draw the same number.
@@ -142,9 +155,11 @@ Text beginning **When you play...** happens only when that card itself is played
 
 Text beginning **When this formation becomes Named...** happens when the position first contains Force + Bond + Name, whichever card completed the set.
 
-### Deployment restrictions
+### Row restrictions
 
-**Deploy - Frontline only** and **Deploy - Rear only** restrict where a Force may enter play. They do not stop that formation from moving later unless the card says otherwise.
+A printed row restriction is a **hard occupancy restriction**.
+
+If a Force is restricted to particular rows, it may be played only there and may not later **Maneuver, Move, or Swap into a forbidden row**. If an effect would put it in a forbidden row, that destination is not legal.
 
 ## Maneuver {#maneuver}
 
@@ -171,15 +186,33 @@ A Force with an **Exhaustion token** cannot initiate a Maneuver. A Force can hav
 
 During the resolution of a single Action or effect, each formation may initiate at most one Maneuver.
 
-### Positional card shorthand
+### Card shorthand and battlefield states
 
-**SUPPLY** reduces the cost of Bonds played onto the friendly formation directly ahead by 1, to a minimum of 0, and Names by 1, to a minimum of 1.
+The following words always have the same meaning when printed on a card:
 
-**PRESS +N** gives that formation +N Strength while at least one opposing Force in the same Front is Exhausted. PRESS bonuses stack.
+- **MOVE 1** - move the formation to one orthogonally adjacent active **empty** position: left/right in the same rank or one rank forward/back in the same Front. Never diagonal. Move is a card effect, not a Maneuver: it does not require the formation to be Named, costs no Maneuver Command, and Exhaustion does not stop it.
+- **MOVE UP TO N** - make up to N legal one-position Moves, one at a time. Every intermediate destination must be legal and empty.
+- **SWAP** - exchange the complete contents of the two specified friendly positions. Swap is a card effect, not a Maneuver, and Exhaustion does not stop it.
+- **MOBILE** - this Force may initiate a Maneuver without being Named. All other Maneuver rules still apply.
+- **TIRELESS** - this Force may initiate a Maneuver while Exhausted. The token stays and every other Maneuver rule still applies.
+- **SUPPORT +N** - the friendly formation directly ahead has +N Strength while the supporting effect is active.
+- **SUPPLY** - Bonds played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 0; Names played there cost 1 less, to a minimum of 1.
+- **OUTMATCHED** - an opposing formation in the same rank and Front currently has greater Strength after continuous modifiers. A tie is not Outmatched.
+- **RESERVE +N** - this formation has +N Strength while the friendly formation directly ahead is Outmatched.
+- **PRESS +N** - this formation has +N Strength while at least one opposing Force in this Front is Exhausted.
+- **STEAL N COMMAND** - the opponent loses up to N Command, never below 1, and you regain exactly the amount actually lost. This does not itself cause Collapse during a Battle.
 
-A formation **provides SUPPLY** only while its SUPPLY effect is currently active and not suppressed. A raid does not remove SUPPLY unless its card says so.
+Multiple active **SUPPORT**, **RESERVE**, and **PRESS** bonuses add together. Multiple active **SUPPLY** effects each reduce the relevant cost by 1.
 
-**STEAL N COMMAND** makes the opponent lose up to N Command, but never below 1, and you regain exactly the amount lost. Command stolen during a Battle does not by itself cause Collapse.
+A formation **provides SUPPLY** only while an active, unsuppressed SUPPLY effect on that formation is live. A Supply raid does not remove SUPPLY unless its card says so.
+
+### Markers created by cards
+
+A **Tax marker** belongs to the Front where it was placed. If the next matching card satisfies multiple Tax markers, all matching increases apply and all of those next-card markers are consumed. A Tax marker also expires when its own card text says it does.
+
+A **-Strength marker** records a Battle-long negative Strength modifier created by card text.
+
+A **temporary negative marker** is any finite-duration adverse marker created by a card effect, including -Strength, text suppression, or an ability lock. It does **not** include Exhaustion or a Tax marker. If a card removes one temporary negative marker, remove one such marker and end its effect.
 
 There is no automatic Maneuver between Battles.
 
@@ -197,6 +230,21 @@ Cycling is a legal Action whenever you have at least two cards in hand. Because 
 ## 10-card Hand Limit
 
 Your hand limit is **10**. If you are holding more than 10 cards, discard until you are holding 10.
+
+## Command {#command}
+
+Command is both your spending resource and your ability to remain in the war.
+
+- You begin at **20 Command** and can never hold more than 20.
+- Pay printed card costs and Maneuver costs when you take those Actions.
+- You may not voluntarily pay a cost that would take you below 0 Command.
+- Command increases and reductions stack. Apply all applicable increases first, then reductions.
+- A reduction cannot take a positive printed card cost below 1 unless an effect explicitly allows a minimum of 0.
+- Losing Fronts at Battle end costs Command and may take you below 0.
+- Effects that **STEAL COMMAND** during a Battle do not immediately cause Collapse; Collapse is checked only during Battle resolution.
+- Recovery happens only after the Collapse check.
+
+Use a visible track, dial, dice, or the printable Command tracks from the marker sheet so both players can always see both totals.
 
 ## Passing {#passing}
 
@@ -277,15 +325,11 @@ If neither player collapses, the war continues.
 
 ### 7. Recover and prepare the next Battle
 
-If the war continues, recover Command:
+If the war continues, recover Command.
 
-- after **Battle I:** recover 12;
-- after **Battle II:** recover 9;
-- after **Battle III:** recover 6;
-- after **Battle IV:** recover 3;
-- after **Battle V and later:** recover 1.
+The base recovery sequence is **12, 9, 6, 3, 0, 0...**, with a surviving recovery floor of **1**. In practice, the amount regained after successive Battles is therefore **12, 9, 6, 3, 1, 1...**.
 
-Command cannot rise above 20.
+Fronts lost do not reduce this recovery amount. Command cannot rise above 20.
 
 Then:
 
@@ -296,9 +340,21 @@ Then:
 
 The battlefield itself does not reset.
 
-## Special cards {#narratives}
+## Special cards {#stories}
 
 Some cards do not fit the ordinary Force-Bond-Name structure. Their rules are collected here so you do not have to hunt for them elsewhere.
+
+### Tactics
+
+A **Tactic** is a one-shot hostile card. Playing it costs one Action and its printed Command cost. Make its required choices, resolve its text immediately, then discard it.
+
+Tactics may create choices for the opponent, move or suppress formations, place temporary markers, or interact with hidden information. Unless the card says otherwise, a Tactic does not remain in play.
+
+### Orders
+
+An **Order** is a one-shot friendly card. Playing it costs one Action and its printed Command cost. Make its required choices, resolve its text immediately, then discard it.
+
+Orders usually reorganize, recover, or improve your own forces. Unless the card says otherwise, an Order does not remain in play.
 
 ### Narratives
 
@@ -386,6 +442,8 @@ Battle resolution by itself never causes any of these removals.
 
 There is no reaction stack.
 
+A **REACTION** or visible **TRIGGER** happens when its stated event occurs, before play continues. If an effect is optional or limited, its controller chooses whether to use it at that moment. A face-down Stratagem with a **REVEAL** condition is revealed and resolved when that condition occurs.
+
 When you play a card:
 
 1. choose anything the card asks you to choose;
@@ -415,9 +473,9 @@ If none can be satisfied, take your turn normally.
 A legal deck has:
 
 - at least **34 cards**;
+- at least **14 Forces**, with Heroes counting toward this minimum;
+- at least **6 printed Names**;
 - at most **4 copies** of any non-Unique title;
 - at most **1 copy** of any Unique title.
-
-There is no required minimum number of Forces or printed Names.
 
 > The battlefield grows. Your commitments remain. Command does not come back easily. Win the war, not merely the Front in front of you.

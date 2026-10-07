@@ -10,7 +10,7 @@ This audit applies the provisional arithmetic in `value-model.md` to **every one
 
 | Card | Type | Command | Est. value | Target | Δ | Fit |
 |---|---|---:|---:|---:|---:|---|
-| The Wolf Skirmishers | Force | 2 | 4.50 | 5.00 | -0.50 | IN BAND |
+| The Fifty Men | Force | 2 | 4.00 | 5.00 | -1.00 | LOW |
 | Seven Black Ships | Force | 2 | 4.65 | 5.00 | -0.35 | IN BAND |
 | The White Hands of Elara | Force | 1 | 2.11 | 3.00 | -0.89 | IN BAND |
 | The Red Shields | Force | 2 | 4.60 | 5.00 | -0.40 | IN BAND |
@@ -105,7 +105,7 @@ This audit applies the provisional arithmetic in `value-model.md` to **every one
 | The Battle Had Chosen Them | Narrative | 2 | 1.00 | 2.80 | -1.80 | LOW |
 | No One Would Be First to Leave | Narrative | 2 | 0.80 | 2.80 | -2.00 | LOW |
 | The King Had Given the Order | Narrative | 2 | 0.64 | 2.80 | -2.16 | LOW |
-| The Ash Bowmen | Force | 2 | 3.65 | 5.00 | -1.35 | LOW |
+| The Wolf Skirmishers | Force | 2 | 4.50 | 5.00 | -0.50 | IN BAND |
 | The Lantern Scouts | Force | 1 | 2.30 | 3.00 | -0.70 | IN BAND |
 | The River Raiders | Force | 2 | 4.50 | 5.00 | -0.50 | IN BAND |
 | The King's Spears | Force | 2 | 4.50 | 5.00 | -0.50 | IN BAND |
