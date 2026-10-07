@@ -356,11 +356,15 @@ def test_every_family_uses_shared_art_identity_rules_and_footer_structure() -> N
     for output in render_cards(CARDS):
         body = output.one("card-body")
         regions = [output.one(name) for name in ("motif-field", "card-identity", "rules")]
+        if output.all("class-line"):
+            regions.append(output.one("class-line"))
         assert [node for node in output.elements if node["ancestors"] and node["ancestors"][-1] is body] == regions
         identity = output.one("card-identity")
         assert identity in output.one("card-title")["ancestors"]
         if output.all("class-line"):
-            assert identity in output.one("class-line")["ancestors"]
+            class_line = output.one("class-line")
+            assert body in class_line["ancestors"]
+            assert identity not in class_line["ancestors"]
         assert output.one("card-footer") in output.one("cost-gem")["ancestors"]
 
 
