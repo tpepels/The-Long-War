@@ -686,6 +686,14 @@ cdef int _fe_legal_pending_effect_actions(
                             state.force[dest] >= 0
                             and state.bond[dest] < 0
                             and front_from_slot(dest) == front_from_slot(source2)
+                            and (
+                                v2_effect.target2 != V2_TARGET_DIRECTLY_AHEAD
+                                or (
+                                    source >= 0
+                                    and front_from_slot(dest) == front_from_slot(source)
+                                    and rank_from_slot(source) == rank_from_slot(dest) + 1
+                                )
+                            )
                         ):
                             n = _append_action(
                                 actions, n,
@@ -703,6 +711,14 @@ cdef int _fe_legal_pending_effect_actions(
                             state.force[dest] >= 0
                             and state.name[dest] < 0
                             and front_from_slot(dest) == front_from_slot(source2)
+                            and (
+                                v2_effect.target2 != V2_TARGET_DIRECTLY_AHEAD
+                                or (
+                                    source >= 0
+                                    and front_from_slot(dest) == front_from_slot(source)
+                                    and rank_from_slot(source) == rank_from_slot(dest) + 1
+                                )
+                            )
                         ):
                             n = _append_action(
                                 actions, n,
