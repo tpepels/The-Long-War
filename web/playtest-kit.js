@@ -9,10 +9,14 @@ function chunk(items,size){
 function expandDeck(deck){
   return (deck.cards||[]).flatMap(entry=>Array.from({length:Number(entry.copies)||0},()=>entry.id));
 }
-function scheduleInspect(root){
-  const run=()=>window.V2Cards?.inspect(root);
-  requestAnimationFrame(run);
-  if(document.fonts?.ready)document.fonts.ready.then(run);
+async function preloadArt(ids){
+  const unique=[...new Set(ids)];
+  await Promise.all(unique.map(id=>new Promise(resolve=>{
+    const image=new Image();
+    image.onload=resolve;
+    image.onerror=resolve;
+    image.src="art/v2/cards-print/"+encodeURIComponent(id)+".webp";
+  })));
 }
 async function main(){
   const [cardsResponse,decksResponse]=await Promise.all([
@@ -36,6 +40,8 @@ async function main(){
   const printButton=document.getElementById("print-selected");
   const summary=document.getElementById("print-summary");
   const selected=new Set(decks.slice(0,2).map(deck=>deck.id));
+  let renderGeneration=0;
+  let readyPromise=Promise.resolve();
 
   if(reference){
     const rows=[
@@ -87,46 +93,70 @@ async function main(){
       '</label>';
   }).join("");
 
-  root.innerHTML=decks.map((deck,deckIndex)=>{
-    const expanded=expandedByDeck.get(deck.id);
-    return '<section class="print-deck" data-deck-id="'+esc(deck.id)+'">'+
-      '<header class="deck-sheet-heading"><strong>The Long War · playtest deck '+(deckIndex+1)+' of '+decks.length+'</strong>'+
-      '<span>'+esc(deck.title)+' · '+expanded.length+' cards</span></header>'+
-      '<div class="deck-screen-summary"><div><p class="deck-print-kicker">PLAYTEST DECK '+(deckIndex+1)+'</p><h2>'+esc(deck.title)+'</h2><p>'+esc(deck.playstyle||"")+'</p></div>'+
-      '<aside><strong>What this deck tests</strong><p>'+esc(deck.hypothesis||"")+'</p></aside></div>'+
-      chunk(expanded,8).map((sheet,sheetIndex)=>
-        '<div class="deck-card-grid print-sheet" data-sheet="'+(sheetIndex+1)+'">'+
-        sheet.map(id=>window.V2Cards.cardArticle(index.get(id),"print-card deck-card")).join("")+
-        '</div>'
-      ).join("")+
-      '</section>';
-  }).join("");
+  function selectedDecks(){
+    return decks.filter(deck=>selected.has(deck.id));
+  }
 
-  function applySelection(){
+  function renderSelectedDecks(chosenDecks){
+    root.innerHTML=chosenDecks.map((deck,deckIndex)=>{
+      const expanded=expandedByDeck.get(deck.id);
+      return '<section class="print-deck" data-deck-id="'+esc(deck.id)+'">'+
+        '<header class="deck-sheet-heading"><strong>The Long War · playtest deck '+(deckIndex+1)+' of '+chosenDecks.length+'</strong>'+
+        '<span>'+esc(deck.title)+' · '+expanded.length+' cards</span></header>'+
+        '<div class="deck-screen-summary"><div><p class="deck-print-kicker">PLAYTEST DECK</p><h2>'+esc(deck.title)+'</h2><p>'+esc(deck.playstyle||"")+'</p></div>'+
+        '<aside><strong>What this deck tests</strong><p>'+esc(deck.hypothesis||"")+'</p></aside></div>'+
+        chunk(expanded,8).map((sheet,sheetIndex)=>
+          '<div class="deck-card-grid print-sheet" data-sheet="'+(sheetIndex+1)+'">'+
+          sheet.map(id=>window.V2Cards.cardArticle(index.get(id),"print-card deck-card",{printArt:true})).join("")+
+          '</div>'
+        ).join("")+
+        '</section>';
+    }).join("");
+  }
+
+  function selectionSummary(chosenDecks,loading=false){
+    if(!chosenDecks.length)return "Select at least one deck to print.";
+    const cardsToPrint=chosenDecks.reduce((sum,deck)=>sum+expandedByDeck.get(deck.id).length,0);
+    const sheets=chosenDecks.reduce((sum,deck)=>sum+Math.ceil(expandedByDeck.get(deck.id).length/8),0);
+    const extra=includeMechanics.checked?1:0;
+    return chosenDecks.length+" deck"+(chosenDecks.length===1?"":"s")+" selected · "+cardsToPrint+" cards · "+sheets+" card sheets"+
+      (extra?" + 1 mechanics sheet":"")+(loading?" · loading print artwork…":" · ready to print");
+  }
+
+  function updatePicker(){
     document.querySelectorAll(".deck-choice").forEach(label=>{
       const input=label.querySelector("input");
       const id=input.value;
       label.classList.toggle("is-selected",selected.has(id));
       input.checked=selected.has(id);
     });
-    document.querySelectorAll(".print-deck").forEach(section=>{
-      const chosen=selected.has(section.dataset.deckId);
-      section.classList.toggle("screen-excluded",!chosen);
-      section.classList.toggle("print-excluded",!chosen);
-    });
+  }
+
+  async function applySelection(){
+    const generation=++renderGeneration;
+    const chosenDecks=selectedDecks();
+    updatePicker();
     if(reference)reference.classList.toggle("print-excluded",!includeMechanics.checked);
 
-    const chosenDecks=decks.filter(deck=>selected.has(deck.id));
-    const cardsToPrint=chosenDecks.reduce((sum,deck)=>sum+expandedByDeck.get(deck.id).length,0);
-    const sheets=chosenDecks.reduce((sum,deck)=>sum+Math.ceil(expandedByDeck.get(deck.id).length/8),0);
-    const extra=includeMechanics.checked?1:0;
-    summary.textContent=chosenDecks.length
-      ? chosenDecks.length+" deck"+(chosenDecks.length===1?"":"s")+" selected · "+cardsToPrint+" cards · "+sheets+" card sheets"+(extra?" + 1 mechanics sheet":"")
-      : "Select at least one deck to print.";
     document.getElementById("kit-count").textContent=chosenDecks.length
       ? chosenDecks.length+" of "+decks.length+" decks selected"
       : decks.length+" playtest decks";
-    printButton.disabled=chosenDecks.length===0;
+
+    renderSelectedDecks(chosenDecks);
+    printButton.disabled=true;
+    summary.textContent=selectionSummary(chosenDecks,chosenDecks.length>0);
+
+    if(!chosenDecks.length)return;
+
+    const selectedIds=chosenDecks.flatMap(deck=>expandedByDeck.get(deck.id));
+    readyPromise=(async()=>{
+      await preloadArt(selectedIds);
+      if(document.fonts?.ready)await document.fonts.ready;
+      if(generation!==renderGeneration)return;
+      printButton.disabled=false;
+      summary.textContent=selectionSummary(chosenDecks,false);
+    })();
+    await readyPromise;
   }
 
   picker.addEventListener("change",event=>{
@@ -135,7 +165,10 @@ async function main(){
     if(input.checked)selected.add(input.value);else selected.delete(input.value);
     applySelection();
   });
-  includeMechanics.addEventListener("change",applySelection);
+  includeMechanics.addEventListener("change",()=>{
+    if(reference)reference.classList.toggle("print-excluded",!includeMechanics.checked);
+    summary.textContent=selectionSummary(selectedDecks(),printButton.disabled);
+  });
   document.getElementById("select-first-two").addEventListener("click",()=>{
     selected.clear();
     decks.slice(0,2).forEach(deck=>selected.add(deck.id));
@@ -146,14 +179,14 @@ async function main(){
     decks.forEach(deck=>selected.add(deck.id));
     applySelection();
   });
-  printButton.addEventListener("click",()=>{
-    applySelection();
+  printButton.addEventListener("click",async()=>{
+    printButton.disabled=true;
+    await readyPromise;
+    printButton.disabled=false;
     window.print();
   });
-  window.addEventListener("beforeprint",applySelection);
 
-  applySelection();
-  scheduleInspect(root);
+  await applySelection();
 }
 main().catch(error=>{
   const root=document.getElementById("playtest-decks");
