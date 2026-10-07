@@ -89,11 +89,26 @@ function liveMarkup(effect){
   const redundant=effect.timing==="continuous"||reminder.toUpperCase().startsWith(timing);
   return '<span class="edge-mechanic" data-timing="'+esc(effect.timing)+'" data-reminder-has-timing="'+redundant+'" aria-label="'+esc(timing+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing-word">'+esc(timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
 }
+function placementRows(card){
+  return Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
+}
 function placementMarkup(card){
-  const rows=Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
+  const rows=placementRows(card);
   if(!rows.length)return"";
   const label=rows.map(titleCase).join(" / ")+" only";
   return '<span class="edge-placement" title="'+esc(label)+'">'+rowGlyph(rows)+'</span>';
+}
+function placementRuleText(card){
+  const rows=placementRows(card);
+  if(!rows.length)return"";
+  const labels=rows.map(titleCase);
+  const joined=labels.length===1?labels[0]:labels.slice(0,-1).join(", ")+" or "+labels.at(-1);
+  return "This Force may only occupy the "+joined+" row"+(labels.length>1?"s":"")+".";
+}
+function placementRuleBlock(card){
+  const rows=placementRows(card),text=placementRuleText(card);
+  if(!text)return"";
+  return '<section class="placement-rule"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+rowGlyph(rows)+'</span><span class="effect-label">PLACEMENT</span></div><div class="effect-text">'+formatRuleText(text)+'</div></section>';
 }
 function stackEdge(card){
   const reminders=liveEffects(card);
@@ -159,13 +174,14 @@ function heroModeHeading(mode){
   return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
 }
 function rules(card){
-  if(card.type==="hero")return '<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
-  return effects(card).map(effect=>effectBlock(effect,{inlineClassIcons:card.type==="tactic"})).join("");
+  const placement=placementRuleBlock(card);
+  if(card.type==="hero")return placement+'<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
+  return placement+effects(card).map(effect=>effectBlock(effect,{inlineClassIcons:card.type==="tactic"})).join("");
 }
 function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.type!=="narrative")bits.push("This Battle");return bits.join(" · ")}
 function costSeal(card){return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>'}
 function densityClass(card){
-  const es=effects(card),chars=es.reduce((n,e)=>n+(e.text||"").length+mechanicReminder(e).length,0);
+  const es=effects(card),chars=placementRuleText(card).length+es.reduce((n,e)=>n+(e.text||"").length+mechanicReminder(e).length,0);
   if(card.type==="hero"){
     if(chars>180||(es.length>=3&&chars>120))return " very-dense";
     if(es.length>=3||chars>100)return " dense";
