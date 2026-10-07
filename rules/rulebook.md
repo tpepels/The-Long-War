@@ -80,9 +80,7 @@ Take **up to 2 Actions**. Each of the following uses one Action:
 - **Maneuver** a Named Formation.
 - **Cycle your hand:** discard 2 cards from your hand, then draw 1 card.
 
-You may take the same kind of Action twice if it is legal. You may also end your turn after zero, one, or two Actions. Ending early is often useful when you want to conserve Command or avoid committing another card.
-
-You may end your turn after zero, one, or two Actions. Ending your turn voluntarily is **not Pass** and does not start or extend the Battle's closing sequence.
+You may take the same kind of Action twice if it is legal. You may end your turn after zero, one, or two Actions. Ending early is often useful when you want to conserve Command or avoid committing another card. Ending your turn voluntarily is **not Pass** and does not start or extend the Battle's closing sequence.
 
 That distinction matters. On an ordinary turn, if no legal Action remains after your draw, you must **Pass** instead of ending the turn voluntarily. During one of the two closing turns after a Pass, having no legal Action simply ends that closing turn.
 
@@ -268,11 +266,11 @@ A card marked **Unique** may appear at most once in your deck. Unique is a deck-
 
 Words such as *Swordsman*, *Archer*, *Human*, *King*, or *Ship* are classifications. They have no rule of their own unless a card refers to them.
 
-# Reference
+## Reference {#reference}
 
 The sections below collect precise card vocabulary and edge-case procedures. You do not need to memorize them before your first game; use them when a card or board state calls for them.
 
-## Card shorthand and battlefield states
+### Card shorthand and battlefield states
 
 The following words have a fixed meaning when they appear on cards:
 
@@ -292,7 +290,7 @@ Multiple active **SUPPORT**, **RESERVE**, and **PRESS** bonuses add together. Mu
 
 A formation **provides SUPPLY** only while an active, unsuppressed SUPPLY effect on that formation is live. A Supply raid does not remove SUPPLY unless its card says so.
 
-## Markers created by cards
+### Markers created by cards
 
 A **Tax marker** belongs to the Front where it was placed. If the next matching card satisfies multiple Tax markers, all matching increases apply and all of those next-card markers are consumed. A Tax marker also expires when its own card text says it does.
 
@@ -300,7 +298,7 @@ A **-Strength marker** records a Battle-long negative Strength modifier created 
 
 A **temporary negative marker** is any finite-duration adverse marker created by a card effect, including -Strength, text suppression, or an ability lock. It does **not** include Exhaustion or a Tax marker. If a card removes one temporary negative marker, remove one such marker and end its effect.
 
-## Position and movement words
+### Position and movement words
 
 A few position words appear often on cards:
 
@@ -312,7 +310,7 @@ A few position words appear often on cards:
 
 An inactive Front cannot be entered by Maneuver and cannot count as an adjacent Front for an effect. Vertical adjacency within an active Front is unaffected. The Frontline has no position directly in front of it, and the Rear has no position directly behind it.
 
-## Card movement and removal {#reference}
+### Card movement and removal
 
 Most cards stay where they are unless an effect explicitly moves or removes them. When a component does leave a formation, use the following results unless the card says otherwise:
 
@@ -327,7 +325,7 @@ Most cards stay where they are unless an effect explicitly moves or removes them
 
 Battle resolution by itself never causes any of these removals.
 
-## Timing
+### Timing
 
 There is no reaction stack. A **REACTION** or visible **TRIGGER** happens when its stated event occurs, before play continues. If an effect is optional or limited, its controller chooses whether to use it at that moment. A face-down Stratagem with a **REVEAL** condition is revealed and resolved when that condition occurs.
 
@@ -345,7 +343,7 @@ Some cards require a later Action to do something **if possible**. An Action **a
 
 If several effects require your next Action to do particular things, satisfy all of them together if one legal Action can do so. If no single legal Action can satisfy all requirements, satisfy one requirement that can be satisfied. If none can be satisfied, take your turn normally.
 
-## Deck construction
+### Deck construction
 
 A legal deck contains at least **34 cards**, with at most **4 copies** of any non-Unique title and at most **1 copy** of any Unique title.
 
