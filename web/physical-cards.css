@@ -671,6 +671,7 @@ EXPOSED TOP ROW - TUNING PANEL
 .card-tactic .event-crown,
 .card-stratagem .event-crown,
 .card-narrative .event-crown {
+  --edge-event-family-font-size: var(--edge-special-event-family-font-size);
   grid-template-columns:
     var(--edge-special-event-side-width)
     minmax(0, 1fr)
@@ -680,11 +681,6 @@ EXPOSED TOP ROW - TUNING PANEL
 .card-stratagem .event-crown .edge-zone-middle,
 .card-narrative .event-crown .edge-zone-middle {
   justify-content: center;
-}
-.card-tactic .event-family,
-.card-stratagem .event-family,
-.card-narrative .event-family {
-  font-size: var(--edge-special-event-family-font-size);
 }
 
 .event-family,
