@@ -90,7 +90,7 @@ def test_ismcts_records_single_canonical_card_pool(capsys):
 
     assert context["engine_pool"] == "cards/cards.json"
     assert context["engine_status"] == "canonical"
-    assert context["engine_card_count"] == 128
+    assert context["engine_card_count"] == 131
     assert context["canonical_sources"] == 1
     assert "v2_pool" not in context
 

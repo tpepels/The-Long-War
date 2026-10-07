@@ -1,12 +1,12 @@
 # Effect audit
 
-This audit reviews **all 168 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
+This audit reviews **all 171 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
 
 ## Result
 
 - Pure `1/BATTLE -> +1 Strength` bookkeeping effects remaining: **0**.
 - Regular Force once-per-Battle effects remaining: **0**.
-- Buried ACTION/REACTION effects remaining: **4**.
+- Buried ACTION/REACTION effects remaining: **5**.
 - Bonds with buried ACTION/REACTION abilities: **0**.
 - Orders are immediate self-support; all five 0-Command Orders are conditional and spend the normal play Action.
 
@@ -38,6 +38,9 @@ This audit reviews **all 168 current card effects** for superfluous bookkeeping,
 | The Ilyri | force | continuous | Exposed strip | KEEP | The opposing formation directly opposite gets no Strength from its Bond. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Damar | force | exhausted | Exposed strip | KEEP | This formation has +2 Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | The Serekh | force | front | Exposed strip | KEEP | Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command. _(Complete live meaning remains visible in the exposed strip.)_ |
+| The Relief Column | force | middle | Exposed strip | KEEP | While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS. _(Middle-only reserve support keeps an exhausted front line able to Maneuver.)_ |
+| The Field Train | force | action | Exposed strip | KEEP | Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal. _(Middle-only logistics turns prepared components into forward reinforcement.)_ |
+| The Signal Company | force | middle | Exposed strip | KEEP | While this formation is in the Middle row, the friendly Force directly ahead is MOBILE. _(Middle-only command support lets an Unnamed front-line Force Maneuver.)_ |
 | Followed | bond | while_named | Exposed strip | KEEP | This Bond contributes +1 additional Strength. _(Complete live meaning remains visible in the exposed strip.)_ |
 | Guarded | bond | play | Buried after PLAY | KEEP | Remove one temporary negative marker from this formation. _(Resolves before this layer can be covered.)_ |
 | Marched With | bond | play | Buried after PLAY | KEEP | Move this formation one position. _(Resolves before this layer can be covered.)_ |

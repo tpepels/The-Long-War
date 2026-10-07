@@ -9,10 +9,10 @@
       "playstyle": "Use row changes, MOBILE/TIRELESS movement, local support and information to keep reshaping a Front after both players have committed.",
       "hypothesis": "Do movement and relief effects create a real positional puzzle when the deck has enough Riders, Scouts and rank-sensitive support to make rearranging the line worth an Action?",
       "combo_notes": [
-        "Grey Riders + The Long March gives cheap early movement; TIRELESS then lets those Riders remain useful after a lost Front.",
+        "Signal Company sits only in Middle and makes the Force directly ahead MOBILE, letting an Unnamed front-line Force reposition without first completing a Named Formation.",
+        "Grey Riders + The Long March gives cheap early movement; Signal Company adds a different route to mobility by coordinating the line from behind.",
         "Re-form the Line, Neris, Kael, Elian and Sela provide different kinds of repositioning, so the deck can rotate a damaged line rather than simply add Strength.",
-        "Crow Archers, Banner Singers, Supported By and First Spear reward building an actual Front/Middle/Rear order.",
-        "Rear Scouts turn Send a Runner, The Scouts Found the Gap and hidden-information cards into a secondary engine rather than isolated tricks."
+        "Crow Archers, Banner Singers, Supported By and First Spear reward building an actual Front/Middle/Rear order."
       ],
       "cards": [
         {
@@ -56,12 +56,8 @@
           "copies": 1
         },
         {
-          "id": "the-fifty-men",
-          "copies": 1
-        },
-        {
-          "id": "seven-black-ships",
-          "copies": 1
+          "id": "the-signal-company",
+          "copies": 2
         },
         {
           "id": "the-late-banner",
@@ -199,14 +195,18 @@
       "playstyle": "Prepare pieces, reduce attachment costs, complete formations in bursts and turn naming/attachment events into card and Command flow.",
       "hypothesis": "Can a player plan one or two turns ahead and then cash prepared Bonds, Names and discounts into satisfying multi-card sequences without the deck becoming a pure efficiency engine?",
       "combo_notes": [
+        "Field Train is Middle-only and spends an Action to move a prepared Bond or Name onto the Formation directly ahead, making the second line a real logistics engine.",
         "House of Reed, Supplied By and Tovan can take Bonds to 0 Command, while Late Banner, Swore Again To and the King package make Names easier to finish.",
         "Stayed Behind For, Nara, Torren and Oren convert prepared or unbonded positions into completed formations without requiring every piece to arrive in order.",
-        "Teren, There Was No Road Back and Fresh Orders reward the moment formations become Named and help the chain keep moving.",
-        "Take Stock, Sorin and Yara-like selection effects are deliberately paid or conditional, so the deck must spend Actions to assemble its best turns."
+        "Teren, There Was No Road Back and Fresh Orders reward the moment formations become Named and help the chain keep moving."
       ],
       "cards": [
         {
           "id": "the-house-of-reed",
+          "copies": 2
+        },
+        {
+          "id": "the-field-train",
           "copies": 2
         },
         {
@@ -215,7 +215,7 @@
         },
         {
           "id": "the-banner-singers",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-kings-spears",
@@ -227,10 +227,6 @@
         },
         {
           "id": "the-red-shields",
-          "copies": 1
-        },
-        {
-          "id": "the-white-hands-of-elara",
           "copies": 1
         },
         {
@@ -563,10 +559,10 @@
       "playstyle": "Build resilient columns, let the opponent commit into them, then turn Exhaustion, Reserve, protection and second-line support into the counter-push.",
       "hypothesis": "Can a defensive deck remain active and positional when its payoff is rotating and reinforcing damaged lines rather than simply preventing interaction?",
       "combo_notes": [
-        "Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the strength of the line ahead.",
-        "Damar becomes dangerous after Exhaustion, while Maelin and Catch Your Breath decide whether to keep that exhausted payoff or clear the token for mobility.",
-        "Serekh, Red Shields, Alda, Veyra and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield.",
-        "Bind the Wound and White Hands spend Actions on recovery, while Had Been Ordered Forward and Doros reward the Guard/Spearman core for surviving long enough to counter."
+        "Relief Column is Middle-only and makes the Force directly ahead TIRELESS, so an exhausted front line can still Maneuver instead of becoming a static liability.",
+        "Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the line ahead.",
+        "Damar becomes dangerous after Exhaustion, while Relief Column, Maelin and Catch Your Breath offer different choices between exploiting Exhaustion and restoring mobility.",
+        "Serekh, Red Shields, Alda, Veyra and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield."
       ],
       "cards": [
         {
@@ -590,10 +586,6 @@
           "copies": 1
         },
         {
-          "id": "thirty-spears",
-          "copies": 1
-        },
-        {
           "id": "a-hundred-shields",
           "copies": 1
         },
@@ -610,8 +602,8 @@
           "copies": 1
         },
         {
-          "id": "the-ash-bowmen",
-          "copies": 1
+          "id": "the-relief-column",
+          "copies": 2
         },
         {
           "id": "the-unnamed-host",

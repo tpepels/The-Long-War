@@ -1,73 +1,71 @@
 # Printed cards
 
-The physical-card system now has one renderer.
+The physical-card system has one canonical renderer.
 
-`web/physical-cards.js` is the canonical physical-card renderer for the full
-catalogue, playtest kit, stack proofs and print sheets. `web/physical-cards.css`
-owns the shared 68 × 96 mm physical design. `web/card-symbols.js` supplies the
-functional symbols. The former `print-cards.js` / `print-cards.css` renderer
-has been removed so the playtest kit cannot drift into a separate card design.
+`web/physical-cards.js` renders the full catalogue, playtest decks and print
+sheets. `web/physical-cards.css` owns the shared 68 × 96 mm design, and
+`web/card-symbols.js` supplies the functional symbols. There is no separate old
+or V2 card presentation to maintain.
 
-The visual hierarchy deliberately follows the earlier print-card design: a thin
-outer cutting border, a restrained inset accent frame, large EB Garamond title,
-compact Gentium classification row, simple framed illustration, straightforward
-rule dividers, restrained family color and a quiet footer. The current rules and
-mechanics use the shared physical-card system: formations keep the 10.5 mm exposed battlefield row,
-functional SVG symbols, current timing vocabulary, graphical Hero FORCE / NAME
-dividers, the bottom-right octagonal Command seal and per-card illustrations.
+## Card design
 
-## Geometry
+All card families use the same four decorative frame rasters from
+`web/art/card-frame/`: `card-shell.png`, `art-window.png`,
+`title-divider.png` and `command-seal.png`. Force keeps the original sand
+treatment; the other families use CSS filters on all four frame rasters so their
+colours can be tuned without recolouring text, symbols or illustrations.
 
-Cards are **68 × 96 mm**. The exposed formation row is **10.5 mm**. The shared
-illustration window is **20 mm** high. Force art is normalized offline to the
-shared aperture ratio; runtime artwork is centered by default, with
-`art_focus_x` / `art_focus_y` retained only as escape hatches.
+The face combines those raster assets with live per-card artwork, rules, numbers
+and SVG symbols. Formation cards use a **12 mm exposed row** so Strength,
+classifications, legal-rank restrictions and live reminders remain visible when
+cards are stacked. Tactic, Order, Stratagem and Narrative use a centred event
+header. The footer identifies the card family and, for formation cards, its
+classifications.
 
-Print sheets use **A4 landscape** with 9 mm top/bottom and 12.5 mm side margins.
-Four 68 mm cards across and two 96 mm cards down form an exact **272 × 192 mm**
-eight-card block with **no gaps between cards**. Adjacent outer borders touch, so
-one straight cut separates both cards instead of requiring a trim on each side.
-Print cards use square outer corners on the sheet so the shared cut seams remain
-continuous; the normal rounded on-screen card shape is unchanged. Print at 100%
-/ actual size without browser headers or footers.
+The exposed row is a reminder, not a second rules source. Placement restrictions
+and state conditions shown there are also written explicitly in the body.
 
-`cards.html` prints the complete canonical card catalogue. `playtest-kit.html`
-loads `cards/playtest-decks.json`, expands copy counts, and prints those same
-card faces. There is no second print-only markup implementation.
+Normal cards use a **30 mm** illustration region. Dense cards reclaim space with a
+**25 mm** region and smaller rule type; Heroes use their own compact geometry.
+Placement text counts as a real rule block when density is determined.
 
-Every printable page receives the Pages build revision via
-`meta[name="lw-build-version"]`. Each card footer renders that revision as well,
-so physical playtest cards can be traced to the exact build.
+See [`cards/visual-spec.md`](../cards/visual-spec.md) for the complete layout
+contract and the CSS tuning panels.
 
-## Typography and hierarchy
+## Artwork
 
-EB Garamond SemiBold is used for titles and numerals, Gentium Book for rules and
-classification prose, and Arial only for compact utility labels. Family identity
-comes from restrained accent color rather than a different shell per card type.
-The exposed row reads as a compact engraved status bar: Strength, intrinsic
-classification symbols, placement restrictions and live reminders stay visible
-when cards are stacked.
+Canonical card illustrations live in `web/art/cards/`. Cards may temporarily
+reuse another canonical illustration through an explicit `art_id`; both the
+catalogue and playtest-kit preload that resolved artwork ID.
 
-Hero rule modes are section dividers rather than duplicate prose labels:
-`FORCE` and `NAME` sit between fine horizontal rules with their functional
-symbols. Dense cards tighten rule typography only; they do not move the
-illustration or change the physical card skeleton.
+The Pages build publishes optimized WebP derivatives under
+`dist/art/cards-print/`. Raw illustration sources remain in
+`cards/art-sources/`. Do not replace authoring PNGs with deployed derivatives.
+
+`tools/build_pages.py` also publishes lossless WebP versions of the four frame
+rasters and rewrites built CSS to use them. Frame assets participate in the build
+digest, so changing the shell or ornament changes the printed revision.
+
+## Print geometry
+
+Cards are **68 × 96 mm**. Four across and two down form a **272 × 192 mm** block
+on A4 landscape, with no gaps between cards. Print at **100% / actual size** with
+browser headers and footers disabled.
+
+`cards.html` prints the complete canonical catalogue.
+`playtest-kit.html` expands copy counts from `cards/playtest-decks.json` and
+renders the same card faces. Every printable page and card footer carries the
+Pages build revision.
 
 ## Verify and export
 
 From the repository root, with Chrome/Chromium installed:
 
 ```sh
-# Optional visual print audit.
-python tools/check_card_layout.py --surface print --require-browser \
-  --pdf artifacts/print/cards.pdf
-
-# This is the actual deployability check.
 make pages
+python tools/check_card_layout.py --surface print --require-browser
 ```
 
-The physical check validates all current cards, formation stack proofs,
-numeric-range stress, overflow detection, exact 68 × 96 mm geometry, 10.5 mm
-exposed rows and eight-card A4 landscape pagination. The browser play cards are
-still a separate in-game surface and are checked by
-`python tools/check_card_layout.py --surface browser`.
+The layout checker is diagnostic: it checks physical dimensions, stacking,
+overflow, long titles, dense rules, raster assets and representative print
+pagination. The built Cards and Decks pages are the final visual review surface.

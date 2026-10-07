@@ -206,13 +206,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is in the Rear, it has +1 Strength.",
+          "text": "While this formation is Bonded and in the Rear row, it has +1 Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "BONDED · REAR +1"
         }
       ],
-      "text": "BONDED - While this formation is in the Rear, it has +1 Strength.",
+      "text": "BONDED - While this formation is Bonded and in the Rear row, it has +1 Strength.",
       "design_tags": [
         "formation-building",
         "persistent-state",
@@ -237,7 +237,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is in the Rear, it has +1 Strength."
+          "text": "While this formation is Bonded and in the Rear row, it has +1 Strength."
         }
       ]
     },
@@ -260,7 +260,7 @@
           "exposed": "CLEAR AHEAD"
         }
       ],
-      "text": "ACTION - Remove one temporary negative marker from the friendly formation directly ahead.",
+      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nACTION - Remove one temporary negative marker from the friendly formation directly ahead.",
       "design_tags": [
         "action-engine",
         "healing",
@@ -288,6 +288,11 @@
       },
       "rule_blocks": [
         {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle or Rear rows."
+        },
+        {
           "kind": "effect",
           "label": "ACTION",
           "text": "Remove one temporary negative marker from the friendly formation directly ahead."
@@ -307,13 +312,13 @@
       "effects": [
         {
           "timing": "front",
-          "text": "Opposing Tactics targeting this formation cost 1 additional Command.",
+          "text": "While this formation is in the Front row, opposing Tactics targeting this formation cost 1 additional Command.",
           "scope": "self",
           "memory": [],
           "exposed": "TACTICS +1"
         }
       ],
-      "text": "FRONT - Opposing Tactics targeting this formation cost 1 additional Command.",
+      "text": "FRONT - While this formation is in the Front row, opposing Tactics targeting this formation cost 1 additional Command.",
       "design_tags": [
         "protection",
         "positional-support",
@@ -338,7 +343,7 @@
         {
           "kind": "continuous",
           "label": "FRONT",
-          "text": "Opposing Tactics targeting this formation cost 1 additional Command."
+          "text": "While this formation is in the Front row, opposing Tactics targeting this formation cost 1 additional Command."
         }
       ]
     },
@@ -355,13 +360,13 @@
       "effects": [
         {
           "timing": "rear",
-          "text": "SUPPORT +1.",
+          "text": "While this formation is in the Rear row, SUPPORT +1.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPORT +1"
         }
       ],
-      "text": "REAR - SUPPORT +1.",
+      "text": "REAR - While this formation is in the Rear row, SUPPORT +1.",
       "design_tags": [
         "positional-support",
         "strength"
@@ -384,7 +389,7 @@
         {
           "kind": "continuous",
           "label": "REAR",
-          "text": "SUPPORT +1."
+          "text": "While this formation is in the Rear row, SUPPORT +1."
         }
       ]
     },
@@ -401,13 +406,13 @@
       "effects": [
         {
           "timing": "rear",
-          "text": "SUPPLY.",
+          "text": "While this formation is in the Rear row, SUPPLY.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPLY"
         }
       ],
-      "text": "REAR - SUPPLY.",
+      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nREAR - While this formation is in the Rear row, SUPPLY.",
       "design_tags": [
         "command",
         "formation-building",
@@ -433,9 +438,14 @@
       },
       "rule_blocks": [
         {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle or Rear rows."
+        },
+        {
           "kind": "continuous",
           "label": "REAR",
-          "text": "SUPPLY."
+          "text": "While this formation is in the Rear row, SUPPLY."
         }
       ]
     },
@@ -520,13 +530,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is in the Front or Middle row, it has +1 Strength.",
+          "text": "While this formation is Bonded and in the Front or Middle row, it has +1 Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "BONDED · FRONT/MIDDLE +1"
         }
       ],
-      "text": "BONDED - While this formation is in the Front or Middle row, it has +1 Strength.",
+      "text": "BONDED - While this formation is Bonded and in the Front or Middle row, it has +1 Strength.",
       "design_tags": [
         "formation-building",
         "persistent-state",
@@ -554,7 +564,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is in the Front or Middle row, it has +1 Strength."
+          "text": "While this formation is Bonded and in the Front or Middle row, it has +1 Strength."
         }
       ]
     },
@@ -572,13 +582,13 @@
       "effects": [
         {
           "timing": "exhausted",
-          "text": "PRESS +2.",
+          "text": "While this formation is Exhausted, PRESS +2.",
           "scope": "self",
           "memory": [],
           "exposed": "PRESS +2"
         }
       ],
-      "text": "EXHAUSTED - PRESS +2.",
+      "text": "EXHAUSTED - While this formation is Exhausted, PRESS +2.",
       "design_tags": [
         "exhaustion",
         "hostile-interaction",
@@ -604,7 +614,7 @@
         {
           "kind": "continuous",
           "label": "EXHAUSTED",
-          "text": "PRESS +2."
+          "text": "While this formation is Exhausted, PRESS +2."
         }
       ]
     },
@@ -671,13 +681,13 @@
       "effects": [
         {
           "timing": "rear",
-          "text": "You may look at opposing face-down Stratagems in this Front or an adjacent Front.",
+          "text": "While this formation is in the Rear row, you may look at opposing face-down Stratagems in this Front or an adjacent Front.",
           "scope": "opponent",
           "memory": [],
           "exposed": "LOOK STRATAGEMS HERE/ADJ"
         }
       ],
-      "text": "REAR - You may look at opposing face-down Stratagems in this Front or an adjacent Front.",
+      "text": "REAR - While this formation is in the Rear row, you may look at opposing face-down Stratagems in this Front or an adjacent Front.",
       "design_tags": [
         "information",
         "persistent-state",
@@ -701,7 +711,7 @@
         {
           "kind": "continuous",
           "label": "REAR",
-          "text": "You may look at opposing face-down Stratagems in this Front or an adjacent Front."
+          "text": "While this formation is in the Rear row, you may look at opposing face-down Stratagems in this Front or an adjacent Front."
         }
       ]
     },
@@ -769,13 +779,13 @@
       "effects": [
         {
           "timing": "front",
-          "text": "If the position directly behind is occupied by a friendly formation, this formation has +1 Strength.",
+          "text": "While this formation is in the Front row, it has +1 Strength if the position directly behind is occupied by a friendly formation.",
           "scope": "self",
           "memory": [],
           "exposed": "BEHIND +1"
         }
       ],
-      "text": "FRONT - If the position directly behind is occupied by a friendly formation, this formation has +1 Strength.",
+      "text": "FRONT - While this formation is in the Front row, it has +1 Strength if the position directly behind is occupied by a friendly formation.",
       "design_tags": [
         "positional-support",
         "strength"
@@ -799,7 +809,7 @@
         {
           "kind": "continuous",
           "label": "FRONT",
-          "text": "If the position directly behind is occupied by a friendly formation, this formation has +1 Strength."
+          "text": "While this formation is in the Front row, it has +1 Strength if the position directly behind is occupied by a friendly formation."
         }
       ]
     },
@@ -817,13 +827,13 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "RESERVE +2.",
+          "text": "While this formation is in the Middle row, RESERVE +2.",
           "scope": "self",
           "memory": [],
           "exposed": "RESERVE +2"
         }
       ],
-      "text": "MIDDLE - RESERVE +2.",
+      "text": "MIDDLE - While this formation is in the Middle row, RESERVE +2.",
       "design_tags": [
         "outmatched",
         "positional-support",
@@ -848,7 +858,7 @@
         {
           "kind": "continuous",
           "label": "MIDDLE",
-          "text": "RESERVE +2."
+          "text": "While this formation is in the Middle row, RESERVE +2."
         }
       ]
     },
@@ -915,13 +925,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "Names played onto this formation cost 1 less Command, to a minimum of 1.",
+          "text": "While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1.",
           "scope": "self",
           "memory": [],
           "exposed": "BONDED · NAME -1"
         }
       ],
-      "text": "BONDED - Names played onto this formation cost 1 less Command, to a minimum of 1.",
+      "text": "BONDED - While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -951,7 +961,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "Names played onto this formation cost 1 less Command, to a minimum of 1."
+          "text": "While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1."
         }
       ]
     },
@@ -968,13 +978,13 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "While this formation is in the Middle row, SUPPORT +1.",
+          "text": "While this formation is Named and in the Middle row, SUPPORT +1.",
           "scope": "self",
           "memory": [],
           "exposed": "MIDDLE · SUPPORT +1"
         }
       ],
-      "text": "WHILE NAMED - While this formation is in the Middle row, SUPPORT +1.",
+      "text": "WHILE NAMED - While this formation is Named and in the Middle row, SUPPORT +1.",
       "design_tags": [
         "named-payoff",
         "positional-support",
@@ -999,7 +1009,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "While this formation is in the Middle row, SUPPORT +1."
+          "text": "While this formation is Named and in the Middle row, SUPPORT +1."
         }
       ]
     },
@@ -1060,7 +1070,7 @@
       "effects": [
         {
           "timing": "front",
-          "text": "This formation has +1 Strength.",
+          "text": "While this formation is in the Front row, this formation has +1 Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "FRONT +1"
@@ -1073,7 +1083,7 @@
           "exposed": "PAY 1 · MOVE 1"
         }
       ],
-      "text": "FRONT - This formation has +1 Strength.\nACTION - Pay 1 Command. MOVE 1.",
+      "text": "FRONT - While this formation is in the Front row, this formation has +1 Strength.\nACTION - Pay 1 Command. MOVE 1.",
       "design_tags": [
         "action-engine",
         "command",
@@ -1109,7 +1119,7 @@
         {
           "kind": "continuous",
           "label": "FRONT",
-          "text": "This formation has +1 Strength."
+          "text": "While this formation is in the Front row, this formation has +1 Strength."
         },
         {
           "kind": "effect",
@@ -1230,13 +1240,13 @@
       "effects": [
         {
           "timing": "exhausted",
-          "text": "This formation has +2 Strength.",
+          "text": "While this formation is Exhausted, this formation has +2 Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "+2"
         }
       ],
-      "text": "EXHAUSTED - This formation has +2 Strength.",
+      "text": "EXHAUSTED - While this formation is Exhausted, this formation has +2 Strength.",
       "design_tags": [
         "exhaustion",
         "persistent-state",
@@ -1260,7 +1270,7 @@
         {
           "kind": "continuous",
           "label": "EXHAUSTED",
-          "text": "This formation has +2 Strength."
+          "text": "While this formation is Exhausted, this formation has +2 Strength."
         }
       ]
     },
@@ -1277,13 +1287,13 @@
       "effects": [
         {
           "timing": "front",
-          "text": "Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+          "text": "While this formation is in the Front row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
           "scope": "self",
           "memory": [],
           "exposed": "BEHIND TACTICS +1"
         }
       ],
-      "text": "FRONT - Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+      "text": "FRONT - While this formation is in the Front row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
       "design_tags": [
         "positional-support",
         "protection",
@@ -1308,7 +1318,185 @@
         {
           "kind": "continuous",
           "label": "FRONT",
-          "text": "Opposing Tactics targeting the friendly formation directly behind cost 1 additional Command."
+          "text": "While this formation is in the Front row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command."
+        }
+      ]
+    },
+    {
+      "id": "the-relief-column",
+      "title": "The Relief Column",
+      "type": "force",
+      "classes": [
+        "human",
+        "healer",
+        "steward"
+      ],
+      "command_cost": 2,
+      "strength": 2,
+      "effects": [
+        {
+          "timing": "middle",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "AHEAD TIRELESS"
+        }
+      ],
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS.",
+      "design_tags": [
+        "middle-only",
+        "positional-support",
+        "reserve",
+        "exhaustion",
+        "movement"
+      ],
+      "allowed_rows": [
+        "middle"
+      ],
+      "unique": false,
+      "art_id": "the-white-hands-of-elara",
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "middle",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "tireless",
+            "target": "directly_ahead"
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle row."
+        },
+        {
+          "kind": "continuous",
+          "label": "MIDDLE",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS."
+        }
+      ]
+    },
+    {
+      "id": "the-field-train",
+      "title": "The Field Train",
+      "type": "force",
+      "classes": [
+        "human",
+        "builder",
+        "steward"
+      ],
+      "command_cost": 2,
+      "strength": 2,
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "PREPARED → AHEAD"
+        }
+      ],
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nACTION - Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal.",
+      "design_tags": [
+        "middle-only",
+        "positional-support",
+        "reserve",
+        "prepared",
+        "attachment"
+      ],
+      "allowed_rows": [
+        "middle"
+      ],
+      "unique": false,
+      "art_id": "the-house-of-reed",
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "action",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "attach_prepared",
+            "target": "prepared_component_same_front",
+            "destination": "directly_ahead"
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle row."
+        },
+        {
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Choose one prepared Bond or prepared Name in this Front. Attach it to the friendly Formation directly ahead if legal."
+        }
+      ]
+    },
+    {
+      "id": "the-signal-company",
+      "title": "The Signal Company",
+      "type": "force",
+      "classes": [
+        "human",
+        "scout",
+        "captain"
+      ],
+      "command_cost": 2,
+      "strength": 2,
+      "effects": [
+        {
+          "timing": "middle",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is MOBILE.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "AHEAD MOBILE"
+        }
+      ],
+      "text": "PLACEMENT - This Force may only occupy the Middle row.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is MOBILE.",
+      "design_tags": [
+        "middle-only",
+        "positional-support",
+        "reserve",
+        "movement",
+        "command"
+      ],
+      "allowed_rows": [
+        "middle"
+      ],
+      "unique": false,
+      "art_id": "the-lantern-scouts",
+      "design_rules": {
+        "effects": [
+          {
+            "timing": "middle",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "maneuver_unnamed",
+            "target": "directly_ahead"
+          }
+        ],
+        "modes": {}
+      },
+      "rule_blocks": [
+        {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle row."
+        },
+        {
+          "kind": "continuous",
+          "label": "MIDDLE",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead is MOBILE."
         }
       ]
     },
@@ -1323,13 +1511,13 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "This Bond contributes +1 additional Strength.",
+          "text": "While this formation is Named, this Bond contributes +1 additional Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "NAMED · +1"
         }
       ],
-      "text": "WHILE NAMED - This Bond contributes +1 additional Strength.",
+      "text": "WHILE NAMED - While this formation is Named, this Bond contributes +1 additional Strength.",
       "design_tags": [
         "persistent-state",
         "strength"
@@ -1353,7 +1541,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "This Bond contributes +1 additional Strength."
+          "text": "While this formation is Named, this Bond contributes +1 additional Strength."
         }
       ]
     },
@@ -1527,13 +1715,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "The friendly formation directly ahead is TIRELESS.",
+          "text": "While this formation is Bonded, the friendly formation directly ahead is TIRELESS.",
           "scope": "self",
           "memory": [],
           "exposed": "AHEAD TIRELESS"
         }
       ],
-      "text": "BONDED - The friendly formation directly ahead is TIRELESS.",
+      "text": "BONDED - While this formation is Bonded, the friendly formation directly ahead is TIRELESS.",
       "design_tags": [
         "exhaustion",
         "movement",
@@ -1558,7 +1746,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "The friendly formation directly ahead is TIRELESS."
+          "text": "While this formation is Bonded, the friendly formation directly ahead is TIRELESS."
         }
       ]
     },
@@ -1626,13 +1814,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "RESERVE +1.",
+          "text": "While this formation is Bonded, RESERVE +1.",
           "scope": "self",
           "memory": [],
           "exposed": "RESERVE +1"
         }
       ],
-      "text": "BONDED - RESERVE +1.",
+      "text": "BONDED - While this formation is Bonded, RESERVE +1.",
       "design_tags": [
         "formation-building",
         "outmatched",
@@ -1657,7 +1845,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "RESERVE +1."
+          "text": "While this formation is Bonded, RESERVE +1."
         }
       ]
     },
@@ -1711,7 +1899,8 @@
           "label": "PLAY",
           "text": "If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "stayed-behind-for",
@@ -1768,13 +1957,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "Names played onto this formation cost 1 less Command, to a minimum of 1.",
+          "text": "While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1.",
           "scope": "self",
           "memory": [],
           "exposed": "BONDED · NAME -1"
         }
       ],
-      "text": "BONDED - Names played onto this formation cost 1 less Command, to a minimum of 1.",
+      "text": "BONDED - While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -1804,7 +1993,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "Names played onto this formation cost 1 less Command, to a minimum of 1."
+          "text": "While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1."
         }
       ]
     },
@@ -1952,13 +2141,13 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "This formation is TIRELESS.",
+          "text": "While this formation is Named, this formation is TIRELESS.",
           "scope": "self",
           "memory": [],
           "exposed": "TIRELESS"
         }
       ],
-      "text": "WHILE NAMED - This formation is TIRELESS.",
+      "text": "WHILE NAMED - While this formation is Named, this formation is TIRELESS.",
       "design_tags": [
         "exhaustion",
         "named-payoff",
@@ -1982,7 +2171,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "This formation is TIRELESS."
+          "text": "While this formation is Named, this formation is TIRELESS."
         }
       ]
     },
@@ -1997,7 +2186,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "If this formation contains a Captain or King, this Bond contributes +1 additional Strength.",
+          "text": "While this formation is Bonded, if this formation contains a Captain or King, this Bond contributes +1 additional Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "CAPTAIN/KING · +1"
@@ -2007,7 +2196,7 @@
         "captain",
         "king"
       ],
-      "text": "BONDED - If this formation contains a Captain or King, this Bond contributes +1 additional Strength.",
+      "text": "BONDED - While this formation is Bonded, if this formation contains a Captain or King, this Bond contributes +1 additional Strength.",
       "design_tags": [
         "classification-synergy",
         "formation-building",
@@ -2037,7 +2226,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "If this formation contains a Captain or King, this Bond contributes +1 additional Strength."
+          "text": "While this formation is Bonded, if this formation contains a Captain or King, this Bond contributes +1 additional Strength."
         }
       ]
     },
@@ -2052,13 +2241,13 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "This formation's Name text cannot be suppressed.",
+          "text": "While this formation is Named, this formation's Name text cannot be suppressed.",
           "scope": "self",
           "memory": [],
           "exposed": "NAME CANNOT BE SUPPRESSED"
         }
       ],
-      "text": "WHILE NAMED - This formation's Name text cannot be suppressed.",
+      "text": "WHILE NAMED - While this formation is Named, this formation's Name text cannot be suppressed.",
       "design_tags": [
         "named-payoff",
         "protection"
@@ -2081,7 +2270,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "This formation's Name text cannot be suppressed."
+          "text": "While this formation is Named, this formation's Name text cannot be suppressed."
         }
       ]
     },
@@ -2096,7 +2285,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "If this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
+          "text": "While this formation is Bonded, if this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "GUARD/SPEAR · +1"
@@ -2106,7 +2295,7 @@
         "guard",
         "spearman"
       ],
-      "text": "BONDED - If this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
+      "text": "BONDED - While this formation is Bonded, if this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
       "design_tags": [
         "classification-synergy",
         "formation-building",
@@ -2136,7 +2325,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "If this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength."
+          "text": "While this formation is Bonded, if this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength."
         }
       ]
     },
@@ -2213,7 +2402,8 @@
           "label": "ACTION",
           "text": "Pay 1 Command. Choose another friendly Human formation in this Front. The next card played onto it this turn costs 1 less Command, to a minimum of 1."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "iria",
@@ -2284,7 +2474,8 @@
           "label": "TRIGGER · 1/BATTLE",
           "text": "When your opponent sets a Stratagem in this Front, you may look at it."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "oren",
@@ -2357,7 +2548,8 @@
           "label": "ACTION · 1/BATTLE",
           "text": "Play one Bond from your hand onto this formation or the friendly formation directly ahead, paying its Command cost."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "elian",
@@ -2496,7 +2688,8 @@
           "label": "TRIGGER",
           "text": "When another friendly formation in this Front becomes Named, draw 1 card."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "mara",
@@ -2638,7 +2831,8 @@
           "label": "TRIGGER · 1/BATTLE",
           "text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "edrin",
@@ -2733,12 +2927,12 @@
         },
         {
           "timing": "while_named",
-          "text": "This formation is TIRELESS.",
+          "text": "While this formation is Named, this formation is TIRELESS.",
           "scope": "self",
           "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nWHILE NAMED - This formation is TIRELESS.",
+      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nWHILE NAMED - While this formation is Named, this formation is TIRELESS.",
       "design_tags": [
         "exhaustion",
         "movement",
@@ -2777,7 +2971,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "This formation is TIRELESS."
+          "text": "While this formation is Named, this formation is TIRELESS."
         }
       ]
     },
@@ -2862,7 +3056,8 @@
           "label": "ACTION · 1/BATTLE",
           "text": "Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "tala",
@@ -3013,7 +3208,8 @@
           "label": "ACTION",
           "text": "Pay 2 Command. Discard 1 card, then draw 2 cards."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "iven",
@@ -3690,7 +3886,7 @@
           "effects": [
             {
               "timing": "front",
-              "text": "Opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.",
+              "text": "While this formation is in the Front row, opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.",
               "scope": "self",
               "memory": [],
               "exposed": "TACTICS +1 HERE/BEHIND"
@@ -3717,7 +3913,7 @@
           ]
         }
       },
-      "text": "AS FORCE\nFRONT - Opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.\n\nAS NAME\nBECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.\nTRIGGER · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+      "text": "AS FORCE\nFRONT - While this formation is in the Front row, opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.\n\nAS NAME\nBECOMES NAMED - Remove all temporary negative markers from one friendly formation in this Front.\nTRIGGER · 1/BATTLE - When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
       "design_tags": [
         "marker-state",
         "named-payoff",
@@ -3770,7 +3966,7 @@
         {
           "kind": "continuous",
           "label": "FRONT",
-          "text": "Opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.",
+          "text": "While this formation is in the Front row, opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.",
           "mode": "force"
         },
         {
@@ -3910,7 +4106,8 @@
           "text": "Bonds you play cost 1 less Command, to a minimum of 0. Names you play cost 1 less Command, to a minimum of 1.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "nara-builder-of-walls",
@@ -4142,7 +4339,8 @@
           "text": "Move this or another friendly formation in this Front one position.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "veyra-keeper-of-oaths",
@@ -4258,7 +4456,8 @@
           "text": "Opposing Tactics that target this formation cost 1 additional Command.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "yara-the-chronicler",
@@ -4901,7 +5100,8 @@
           "label": "HIDDEN",
           "text": "Reveal when a Front would tie. If you have a Named Formation there and your opponent does not, you win that Front instead."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "the-lines-held",
@@ -4949,7 +5149,8 @@
           "label": "HIDDEN",
           "text": "Reveal after Front results are known. Up to two Fronts you lost do not reduce your Command this Battle."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "no-step-back",
@@ -6027,13 +6228,13 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "This formation has +1 Strength.",
+          "text": "While this formation is Named, this formation has +1 Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "NAMED · +1"
         }
       ],
-      "text": "WHILE NAMED - This formation has +1 Strength.",
+      "text": "WHILE NAMED - While this formation is Named, this formation has +1 Strength.",
       "design_tags": [
         "persistent-state",
         "strength"
@@ -6056,7 +6257,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "This formation has +1 Strength."
+          "text": "While this formation is Named, this formation has +1 Strength."
         }
       ]
     },
@@ -6073,13 +6274,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "Tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
+          "text": "While this formation is Bonded, tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
           "scope": "self",
           "memory": [],
           "exposed": "TACTICS HERE MIN 0"
         }
       ],
-      "text": "BONDED - Tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
+      "text": "BONDED - While this formation is Bonded, tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -6105,7 +6306,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "Tactics you play targeting this Front cost 1 less Command, to a minimum of 0."
+          "text": "While this formation is Bonded, tactics you play targeting this Front cost 1 less Command, to a minimum of 0."
         }
       ]
     },
@@ -6122,13 +6323,13 @@
       "effects": [
         {
           "timing": "rear",
-          "text": "You may look at opposing face-down Stratagems in any active Front.",
+          "text": "While this formation is in the Rear row, you may look at opposing face-down Stratagems in any active Front.",
           "scope": "opponent",
           "memory": [],
           "exposed": "LOOK STRATAGEMS ANYWHERE"
         }
       ],
-      "text": "REAR - You may look at opposing face-down Stratagems in any active Front.",
+      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nREAR - While this formation is in the Rear row, you may look at opposing face-down Stratagems in any active Front.",
       "design_tags": [
         "information",
         "persistent-state",
@@ -6154,9 +6355,14 @@
       },
       "rule_blocks": [
         {
+          "kind": "constraint",
+          "label": "PLACEMENT",
+          "text": "This Force may only occupy the Middle or Rear rows."
+        },
+        {
           "kind": "continuous",
           "label": "REAR",
-          "text": "You may look at opposing face-down Stratagems in any active Front."
+          "text": "While this formation is in the Rear row, you may look at opposing face-down Stratagems in any active Front."
         }
       ]
     },
@@ -6171,7 +6377,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "If this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
+          "text": "While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
           "scope": "self",
           "memory": [],
           "exposed": "ARCHER/SCOUT · +1"
@@ -6181,7 +6387,7 @@
         "archer",
         "scout"
       ],
-      "text": "BONDED - If this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
+      "text": "BONDED - While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
       "design_tags": [
         "classification-synergy",
         "formation-building",
@@ -6211,7 +6417,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "If this formation contains an Archer or Scout, this Bond contributes +1 Strength."
+          "text": "While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength."
         }
       ]
     },
@@ -6226,7 +6432,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "The friendly formation directly behind is TIRELESS.",
+          "text": "While this formation is Bonded, the friendly formation directly behind is TIRELESS.",
           "scope": "self",
           "memory": [],
           "exposed": "BEHIND TIRELESS"
@@ -6236,7 +6442,7 @@
         "guard",
         "stronghold"
       ],
-      "text": "BONDED - The friendly formation directly behind is TIRELESS.",
+      "text": "BONDED - While this formation is Bonded, the friendly formation directly behind is TIRELESS.",
       "design_tags": [
         "exhaustion",
         "positional-support",
@@ -6260,7 +6466,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "The friendly formation directly behind is TIRELESS."
+          "text": "While this formation is Bonded, the friendly formation directly behind is TIRELESS."
         }
       ]
     },
@@ -6381,13 +6587,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "SUPPORT +1.",
+          "text": "While this formation is Bonded, SUPPORT +1.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPORT +1"
         }
       ],
-      "text": "BONDED - SUPPORT +1.",
+      "text": "BONDED - While this formation is Bonded, SUPPORT +1.",
       "design_tags": [
         "positional-support",
         "strength"
@@ -6410,9 +6616,10 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "SUPPORT +1."
+          "text": "While this formation is Bonded, SUPPORT +1."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "supplied-by",
@@ -6425,13 +6632,13 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "SUPPLY.",
+          "text": "While this formation is Bonded, SUPPLY.",
           "scope": "self",
           "memory": [],
           "exposed": "SUPPLY"
         }
       ],
-      "text": "BONDED - SUPPLY.",
+      "text": "BONDED - While this formation is Bonded, SUPPLY.",
       "design_tags": [
         "command",
         "formation-building",
@@ -6455,7 +6662,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "SUPPLY."
+          "text": "While this formation is Bonded, SUPPLY."
         }
       ]
     },
@@ -6537,7 +6744,8 @@
           "label": "CONTINUOUS",
           "text": "Other friendly Archers in this Front have +1 Strength."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "lysa-the-listener",
@@ -6779,7 +6987,7 @@
           "effects": [
             {
               "timing": "bonded",
-              "text": "If another friendly Archer is in this Front, Serai has +1 Strength.",
+              "text": "While this formation is Bonded, it has +1 Strength if another friendly Archer is in this Front.",
               "scope": "self",
               "memory": [],
               "exposed": "BONDED · WITH ARCHER +1"
@@ -6807,7 +7015,7 @@
           ]
         }
       },
-      "text": "AS FORCE\nBONDED - If another friendly Archer is in this Front, Serai has +1 Strength.\n\nAS NAME\nBECOMES NAMED - Your Archers in this Front get +1 Strength this Battle.\nACTION - Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle.",
+      "text": "AS FORCE\nBONDED - While this formation is Bonded, it has +1 Strength if another friendly Archer is in this Front.\n\nAS NAME\nBECOMES NAMED - Your Archers in this Front get +1 Strength this Battle.\nACTION - Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle.",
       "design_tags": [
         "action-engine",
         "command",
@@ -6869,7 +7077,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "If another friendly Archer is in this Front, Serai has +1 Strength.",
+          "text": "While this formation is Bonded, it has +1 Strength if another friendly Archer is in this Front.",
           "mode": "force"
         },
         {
@@ -6904,7 +7112,7 @@
           "effects": [
             {
               "timing": "bonded",
-              "text": "While Doros is in the Front row, he has +1 Strength.",
+              "text": "While this formation is Bonded and in the Front row, it has +1 Strength.",
               "scope": "self",
               "memory": [],
               "exposed": "BONDED · FRONT +1"
@@ -6930,7 +7138,7 @@
           ]
         }
       },
-      "text": "AS FORCE\nBONDED - While Doros is in the Front row, he has +1 Strength.\n\nAS NAME\nBECOMES NAMED - Regain 1 Command.\nCONTINUOUS - Opposing Tactics cannot reduce this formation's Strength.",
+      "text": "AS FORCE\nBONDED - While this formation is Bonded and in the Front row, it has +1 Strength.\n\nAS NAME\nBECOMES NAMED - Regain 1 Command.\nCONTINUOUS - Opposing Tactics cannot reduce this formation's Strength.",
       "design_tags": [
         "command",
         "command-recovery",
@@ -6983,7 +7191,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While Doros is in the Front row, he has +1 Strength.",
+          "text": "While this formation is Bonded and in the Front row, it has +1 Strength.",
           "mode": "force"
         },
         {
@@ -6998,7 +7206,8 @@
           "text": "Opposing Tactics cannot reduce this formation's Strength.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "a-volley-before-dawn",
