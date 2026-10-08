@@ -673,7 +673,7 @@
         "human",
         "raider"
       ],
-      "command_cost": 4,
+      "command_cost": 3,
       "strength": 5,
       "effects": [],
       "text": "No special rules.",
