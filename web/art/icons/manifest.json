@@ -1,8 +1,7 @@
 {
   "status": "candidates_only",
   "style": "C",
-  "batch": 3,
-  "source": "generated transparent PNG icons",
+  "batch": 5,
   "icon_count": 10,
   "sizes_px": [
     16,
@@ -16,164 +15,194 @@
   ],
   "icons": [
     {
-      "name": "human",
-      "path": "web/art/icons/human.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/human.png",
-        "web/art/icons/sizes/24/human.png",
-        "web/art/icons/sizes/32/human.png",
-        "web/art/icons/sizes/48/human.png",
-        "web/art/icons/sizes/64/human.png",
-        "web/art/icons/sizes/128/human.png",
-        "web/art/icons/sizes/256/human.png",
-        "web/art/icons/sizes/512/human.png"
+      "name": "strength",
+      "path": "web/art/icons/strength.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "44ca7b976dbcbca7bdfefd92a9976cad3db427c8145c0f9fc22b7287efebe6f2"
+      "sizes": [
+        "web/art/icons/sizes/16/strength.png",
+        "web/art/icons/sizes/24/strength.png",
+        "web/art/icons/sizes/32/strength.png",
+        "web/art/icons/sizes/48/strength.png",
+        "web/art/icons/sizes/64/strength.png",
+        "web/art/icons/sizes/128/strength.png",
+        "web/art/icons/sizes/256/strength.png",
+        "web/art/icons/sizes/512/strength.png"
+      ],
+      "sha256": "7889ebdc7eb45db9d14ef3685a1c2ab9e0dd5ae74b936f764335537929d1a377"
     },
     {
-      "name": "steward",
-      "path": "web/art/icons/steward.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/steward.png",
-        "web/art/icons/sizes/24/steward.png",
-        "web/art/icons/sizes/32/steward.png",
-        "web/art/icons/sizes/48/steward.png",
-        "web/art/icons/sizes/64/steward.png",
-        "web/art/icons/sizes/128/steward.png",
-        "web/art/icons/sizes/256/steward.png",
-        "web/art/icons/sizes/512/steward.png"
+      "name": "eye",
+      "path": "web/art/icons/eye.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "010ddb015e6fa01fe774de3b8422aa97eb9e4eb5cf2a42d0c4a3b85d42a10ad8"
+      "sizes": [
+        "web/art/icons/sizes/16/eye.png",
+        "web/art/icons/sizes/24/eye.png",
+        "web/art/icons/sizes/32/eye.png",
+        "web/art/icons/sizes/48/eye.png",
+        "web/art/icons/sizes/64/eye.png",
+        "web/art/icons/sizes/128/eye.png",
+        "web/art/icons/sizes/256/eye.png",
+        "web/art/icons/sizes/512/eye.png"
+      ],
+      "sha256": "4f510c8d70d87e1eaa482cf39d0f491ff94c4071a31eb46b092e0c1b28063687"
     },
     {
-      "name": "builder",
-      "path": "web/art/icons/builder.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/builder.png",
-        "web/art/icons/sizes/24/builder.png",
-        "web/art/icons/sizes/32/builder.png",
-        "web/art/icons/sizes/48/builder.png",
-        "web/art/icons/sizes/64/builder.png",
-        "web/art/icons/sizes/128/builder.png",
-        "web/art/icons/sizes/256/builder.png",
-        "web/art/icons/sizes/512/builder.png"
+      "name": "suppress",
+      "path": "web/art/icons/suppress.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "be92a0be79113a8b11772fb38b0323230ce118f0996af1a159e709b6c22e5805"
+      "sizes": [
+        "web/art/icons/sizes/16/suppress.png",
+        "web/art/icons/sizes/24/suppress.png",
+        "web/art/icons/sizes/32/suppress.png",
+        "web/art/icons/sizes/48/suppress.png",
+        "web/art/icons/sizes/64/suppress.png",
+        "web/art/icons/sizes/128/suppress.png",
+        "web/art/icons/sizes/256/suppress.png",
+        "web/art/icons/sizes/512/suppress.png"
+      ],
+      "sha256": "ea1ff8181cbc7bb9639da0c9022e81d118c532b48cd7753c208d0ac8cb8968ab"
     },
     {
-      "name": "seer",
-      "path": "web/art/icons/seer.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/seer.png",
-        "web/art/icons/sizes/24/seer.png",
-        "web/art/icons/sizes/32/seer.png",
-        "web/art/icons/sizes/48/seer.png",
-        "web/art/icons/sizes/64/seer.png",
-        "web/art/icons/sizes/128/seer.png",
-        "web/art/icons/sizes/256/seer.png",
-        "web/art/icons/sizes/512/seer.png"
+      "name": "shield",
+      "path": "web/art/icons/shield.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "3b618837b011e526cbd6e8c97f9d1fea552a3348d40ad311427ddb1fa9ee930d"
+      "sizes": [
+        "web/art/icons/sizes/16/shield.png",
+        "web/art/icons/sizes/24/shield.png",
+        "web/art/icons/sizes/32/shield.png",
+        "web/art/icons/sizes/48/shield.png",
+        "web/art/icons/sizes/64/shield.png",
+        "web/art/icons/sizes/128/shield.png",
+        "web/art/icons/sizes/256/shield.png",
+        "web/art/icons/sizes/512/shield.png"
+      ],
+      "sha256": "f0cc7d70234014f5f59f200f42d12728aa2d7efd0cd7627a886a721ae8b4fc7f"
     },
     {
-      "name": "king",
-      "path": "web/art/icons/king.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/king.png",
-        "web/art/icons/sizes/24/king.png",
-        "web/art/icons/sizes/32/king.png",
-        "web/art/icons/sizes/48/king.png",
-        "web/art/icons/sizes/64/king.png",
-        "web/art/icons/sizes/128/king.png",
-        "web/art/icons/sizes/256/king.png",
-        "web/art/icons/sizes/512/king.png"
+      "name": "marker",
+      "path": "web/art/icons/marker.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "0a1c31e4c92663397cbfdc0c0a24784b497acf0b36951217106d9f1f8d6d7a9c"
+      "sizes": [
+        "web/art/icons/sizes/16/marker.png",
+        "web/art/icons/sizes/24/marker.png",
+        "web/art/icons/sizes/32/marker.png",
+        "web/art/icons/sizes/48/marker.png",
+        "web/art/icons/sizes/64/marker.png",
+        "web/art/icons/sizes/128/marker.png",
+        "web/art/icons/sizes/256/marker.png",
+        "web/art/icons/sizes/512/marker.png"
+      ],
+      "sha256": "635b8dd7c94fdca689e13a05673e34e4ad34bea76d34a73be648fa858820d24d"
     },
     {
-      "name": "captain",
-      "path": "web/art/icons/captain.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/captain.png",
-        "web/art/icons/sizes/24/captain.png",
-        "web/art/icons/sizes/32/captain.png",
-        "web/art/icons/sizes/48/captain.png",
-        "web/art/icons/sizes/64/captain.png",
-        "web/art/icons/sizes/128/captain.png",
-        "web/art/icons/sizes/256/captain.png",
-        "web/art/icons/sizes/512/captain.png"
+      "name": "ally",
+      "path": "web/art/icons/ally.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "337f4e7cc698bc98c0e20ba89c406db64d4d8f10fba4e68667414ad1900dd784"
+      "sizes": [
+        "web/art/icons/sizes/16/ally.png",
+        "web/art/icons/sizes/24/ally.png",
+        "web/art/icons/sizes/32/ally.png",
+        "web/art/icons/sizes/48/ally.png",
+        "web/art/icons/sizes/64/ally.png",
+        "web/art/icons/sizes/128/ally.png",
+        "web/art/icons/sizes/256/ally.png",
+        "web/art/icons/sizes/512/ally.png"
+      ],
+      "sha256": "4db6230dcdce6600438d77db8535db3c290c8e404504ff97eccfe694bed7e22e"
     },
     {
-      "name": "veteran",
-      "path": "web/art/icons/veteran.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/veteran.png",
-        "web/art/icons/sizes/24/veteran.png",
-        "web/art/icons/sizes/32/veteran.png",
-        "web/art/icons/sizes/48/veteran.png",
-        "web/art/icons/sizes/64/veteran.png",
-        "web/art/icons/sizes/128/veteran.png",
-        "web/art/icons/sizes/256/veteran.png",
-        "web/art/icons/sizes/512/veteran.png"
+      "name": "cycle",
+      "path": "web/art/icons/cycle.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "aea3aae59d3c63e6a05b08ec47bd91226f8cad71b287eb9ed1ac43f24b0c72bf"
+      "sizes": [
+        "web/art/icons/sizes/16/cycle.png",
+        "web/art/icons/sizes/24/cycle.png",
+        "web/art/icons/sizes/32/cycle.png",
+        "web/art/icons/sizes/48/cycle.png",
+        "web/art/icons/sizes/64/cycle.png",
+        "web/art/icons/sizes/128/cycle.png",
+        "web/art/icons/sizes/256/cycle.png",
+        "web/art/icons/sizes/512/cycle.png"
+      ],
+      "sha256": "981cc5b737c994bf8ad7e0ffa14be54a15bee101c406351f160191dfb0bb58bc"
     },
     {
-      "name": "heir",
-      "path": "web/art/icons/heir.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/heir.png",
-        "web/art/icons/sizes/24/heir.png",
-        "web/art/icons/sizes/32/heir.png",
-        "web/art/icons/sizes/48/heir.png",
-        "web/art/icons/sizes/64/heir.png",
-        "web/art/icons/sizes/128/heir.png",
-        "web/art/icons/sizes/256/heir.png",
-        "web/art/icons/sizes/512/heir.png"
+      "name": "prepared",
+      "path": "web/art/icons/prepared.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "a12ca235962df2fc6c12541e9be4306d0acf5980a56cc6da11626b14d7f9d26d"
+      "sizes": [
+        "web/art/icons/sizes/16/prepared.png",
+        "web/art/icons/sizes/24/prepared.png",
+        "web/art/icons/sizes/32/prepared.png",
+        "web/art/icons/sizes/48/prepared.png",
+        "web/art/icons/sizes/64/prepared.png",
+        "web/art/icons/sizes/128/prepared.png",
+        "web/art/icons/sizes/256/prepared.png",
+        "web/art/icons/sizes/512/prepared.png"
+      ],
+      "sha256": "f2a35b0eb6ea7b6ddf0866b0ddbfb86f54f4d72e7bf3b1623c08bbc1a623c537"
     },
     {
-      "name": "bonded",
-      "path": "web/art/icons/bonded.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/bonded.png",
-        "web/art/icons/sizes/24/bonded.png",
-        "web/art/icons/sizes/32/bonded.png",
-        "web/art/icons/sizes/48/bonded.png",
-        "web/art/icons/sizes/64/bonded.png",
-        "web/art/icons/sizes/128/bonded.png",
-        "web/art/icons/sizes/256/bonded.png",
-        "web/art/icons/sizes/512/bonded.png"
+      "name": "hand",
+      "path": "web/art/icons/hand.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "cf54fe1f0cd6143f1c6a36c620edc1478176ed6968a2653a3abf3bbc5b3c0aaf"
+      "sizes": [
+        "web/art/icons/sizes/16/hand.png",
+        "web/art/icons/sizes/24/hand.png",
+        "web/art/icons/sizes/32/hand.png",
+        "web/art/icons/sizes/48/hand.png",
+        "web/art/icons/sizes/64/hand.png",
+        "web/art/icons/sizes/128/hand.png",
+        "web/art/icons/sizes/256/hand.png",
+        "web/art/icons/sizes/512/hand.png"
+      ],
+      "sha256": "211681411e116c525c6cdece6cea30bebfcd47a7a2ba9f6f166ed10de6b30213"
     },
     {
-      "name": "while_named",
-      "path": "web/art/icons/while_named.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/while_named.png",
-        "web/art/icons/sizes/24/while_named.png",
-        "web/art/icons/sizes/32/while_named.png",
-        "web/art/icons/sizes/48/while_named.png",
-        "web/art/icons/sizes/64/while_named.png",
-        "web/art/icons/sizes/128/while_named.png",
-        "web/art/icons/sizes/256/while_named.png",
-        "web/art/icons/sizes/512/while_named.png"
+      "name": "target",
+      "path": "web/art/icons/target.png",
+      "original_size": [
+        1254,
+        1254
       ],
-      "sha256": "da97e5d279396e142833f60afe9646205cafb13502676d9af96e5cb60eb3f3fd"
+      "sizes": [
+        "web/art/icons/sizes/16/target.png",
+        "web/art/icons/sizes/24/target.png",
+        "web/art/icons/sizes/32/target.png",
+        "web/art/icons/sizes/48/target.png",
+        "web/art/icons/sizes/64/target.png",
+        "web/art/icons/sizes/128/target.png",
+        "web/art/icons/sizes/256/target.png",
+        "web/art/icons/sizes/512/target.png"
+      ],
+      "sha256": "454725a3fe2879f4b8dc3160977b6ae1ec668cba68e439fe1f11ae814b485814"
     }
   ]
 }

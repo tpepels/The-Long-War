@@ -1,21 +1,22 @@
-# The Long War — Style C PNG icon candidates (Batch 3)
+# The Long War — Style C PNG icon candidates (Batch 5)
 
-These ten transparent PNGs are archived Style C candidate assets. Builder, Veteran, and Heir are retired classifications; their PNG source assets remain on disk but are no longer referenced by the card renderer or preview.
-They use the approved manuscript-stamp direction: deep navy / charcoal with antique-gold accents, simplified silhouettes, and transparent backgrounds.
+These ten transparent PNGs are the approved **Style C** direction: manuscript-stamp symbols with deep navy / charcoal fills and antique-gold accents.
 
-## Batch 3 mapping
+## Batch 5 mapping
 
-| Candidate | Role |
+| Candidate | Meaning |
 |---|---|
-| `human.png` | Classification: `human` |
-| `steward.png` | Classification: `steward` |
-| `builder.png` | Classification: `builder` |
-| `seer.png` | Classification: `seer` |
-| `king.png` | Classification: `king` |
-| `captain.png` | Classification: `captain` |
-| `veteran.png` | Classification: `veteran` |
-| `heir.png` | Classification: `heir` |
-| `bonded.png` | Status: `bonded` |
-| `while_named.png` | Utility / state: `while_named` |
+| `strength.png` | Strength |
+| `eye.png` | Eye |
+| `suppress.png` | Suppress |
+| `shield.png` | Shield |
+| `marker.png` | Marker |
+| `ally.png` | Ally |
+| `cycle.png` | Cycle |
+| `prepared.png` | Prepared |
+| `hand.png` | Hand |
+| `target.png` | Target |
 
-Each root file is a 1254×1254 transparent PNG. The `sizes/` subdirectories contain 16, 24, 32, 48, 64, 128, 256, and 512 px variants.
+The root files are the original transparent PNGs. The `sizes/` subdirectories contain centered square PNGs at 16, 24, 32, 48, 64, 128, 256, and 512 pixels.
+
+These are source assets only. Uploading them does not automatically wire them into the SVG icon system.
