@@ -846,14 +846,16 @@ EXPOSED TOP ROW - TUNING PANEL
   gap: 0.25mm;
   font: var(--card-class-font-size)/1 var(--card-class-font-family);
 }
-.class-body-item svg {
+.class-body-item svg,
+.class-body-item img.glyph-png {
   width: 3.2mm;
   height: 3.2mm;
 }
 .class-type-item {
   font-weight: 700;
 }
-.class-type-item svg {
+.class-type-item svg,
+.class-type-item img.glyph-png {
   width: 3.2mm;
   height: 3.2mm;
 }
@@ -934,7 +936,8 @@ EXPOSED TOP ROW - TUNING PANEL
   vertical-align: -0.08em;
   white-space: nowrap;
 }
-.inline-class-ref svg {
+.inline-class-ref svg,
+.inline-class-ref img.glyph-png {
   width: 1em;
   height: 1em;
   flex: none;
@@ -980,7 +983,8 @@ EXPOSED TOP ROW - TUNING PANEL
   gap: 0.7mm;
   white-space: nowrap;
 }
-.mode-heading-core svg {
+.mode-heading-core svg,
+.mode-heading-core img.glyph-png {
   width: 3.2mm;
   height: 3.2mm;
 }
@@ -1001,7 +1005,8 @@ EXPOSED TOP ROW - TUNING PANEL
   grid-column: 1;
   grid-row: 1;
 }
-.footer-mark svg {
+.footer-mark svg,
+.footer-mark img.glyph-png {
   display: block;
   width: 3.3mm;
   height: 3.3mm;
@@ -1166,14 +1171,16 @@ EXPOSED TOP ROW - TUNING PANEL
 .card-hero .mode-heading-core::after {
   content: " ·";
 }
-.card-hero .mode-heading-core svg {
+.card-hero .mode-heading-core svg,
+.card-hero .mode-heading-core img.glyph-png {
   vertical-align: middle;
   margin-right: 0.4mm;
 }
 .card-hero .effect-block:first-of-type {
   display: inline;
 }
-.card-hero .mode-heading-core svg {
+.card-hero .mode-heading-core svg,
+.card-hero .mode-heading-core img.glyph-png {
   width: 2.8mm;
   height: 2.8mm;
 }
