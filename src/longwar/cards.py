@@ -20,11 +20,9 @@ RANKS = frozenset({"front", "middle", "rear"})
 # card text must use these bits instead of string comparisons in search code.
 CARD_CLASS_BITS = {
     "archer": 1 << 0,
-    "builder": 1 << 1,
     "captain": 1 << 2,
     "guard": 1 << 3,
     "healer": 1 << 4,
-    "heir": 1 << 5,
     "human": 1 << 6,
     "king": 1 << 7,
     "raider": 1 << 8,
@@ -33,10 +31,8 @@ CARD_CLASS_BITS = {
     "seer": 1 << 11,
     "ship": 1 << 12,
     "skirmisher": 1 << 13,
-    "spearman": 1 << 14,
     "steward": 1 << 15,
     "stronghold": 1 << 16,
-    "veteran": 1 << 17,
 }
 
 # Kept as a public compatibility symbol while the old capability-bit compiler
