@@ -1,6 +1,6 @@
 # Exploratory combination decks
 
-These four decks are **48 cards each** - exactly six full 8-card print sheets per deck. They are combination/playstyle decks rather than optimized tournament lists. The four lists collectively contain **every current card at least once**.
+These four decks are **48 cards each** - exactly six full 8-card print sheets per deck. The deck membership remains unchanged by the cost rebalance; current effects and costs are from the [physical print ledger](physical-cost-review.md), not the native engine's older card definitions. They are combination/playstyle decks rather than optimized tournament lists. The four lists collectively contain **every current card at least once**.
 
 Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Names, 3 Heroes, 4 Tactics, 4 Stratagems, 4 Narratives and 3 Orders - so comparisons are about playstyle and interactions rather than one deck simply having more of a card family.
 

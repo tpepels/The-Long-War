@@ -24,9 +24,8 @@ def main() -> None:
     assert printed["print_only"] is True, "Print cards not marked as separate source"
     assert all("design_rules" not in c for c in after.values()), "Stale engine spec leaked into print"
     assert all(before[i]["type"] == after[i]["type"] for i in before), "Card type changed"
-    assert len(overrides["replacements"]) == 28, "Unexpected replacement count"
-    assert len(overrides["once_per_battle_text_fixes"]) == 4, "Unexpected timing-fix count"
-    assert len(overrides["exposed_only"]) == 23, "Unexpected older edge reminder count"
+    assert len(set(item["id"] for item in overrides["replacements"])) == len(overrides["replacements"]), "Duplicate print replacements"
+    assert len(set(item["id"] for item in overrides.get("cost_adjustments", []))) == len(overrides.get("cost_adjustments", [])), "Duplicate cost adjustments"
 
     changed = set()
     for source in overrides["replacements"]:
@@ -37,6 +36,15 @@ def main() -> None:
         assert len(card["effects"]) == len(card["rule_blocks"]), "Rule blocks mismatch: " + card_id
         assert all(effect["text"] == block["text"]
                    for effect, block in zip(card["effects"], card["rule_blocks"])), card_id
+        assert card["command_cost"] == source.get("command_cost", before[card_id]["command_cost"]), card_id
+        if "allowed_rows" in source:
+            assert card["allowed_rows"] == source["allowed_rows"], card_id
+        if "strength_value" in source:
+            key = "strength_modifier" if card["type"] == "bond" else "strength"
+            assert card[key] == source["strength_value"], card_id
+        for effect, block in zip(card["effects"], card["rule_blocks"]):
+            if effect.get("limit") == "once_per_battle":
+                assert "1/BATTLE" in block["label"], card_id
     for card_id in overrides["once_per_battle_text_fixes"]:
         changed.add(card_id)
         assert after[card_id]["text"].startswith("ACTION · 1/BATTLE"), card_id
@@ -54,6 +62,25 @@ def main() -> None:
                 assert effect.get("exposed"), "Buried live ability missing: " + card["id"]
                 assert len(effect["exposed"]) <= 75, "Very long print reminder: " + card["id"]
 
+    for entry in overrides.get("cost_adjustments", []):
+        card_id = entry["id"]
+        changed.add(card_id)
+        assert after[card_id]["command_cost"] == entry["command_cost"], card_id
+        assert after[card_id]["command_cost"] != before[card_id]["command_cost"], card_id
+        if card_id not in overrides["once_per_battle_text_fixes"]:
+            assert after[card_id]["text"] == before[card_id]["text"], card_id
+
+    # Verify representative counterplay and cost changes, not just text counts.
+    assert after["the-first-spear"]["allowed_rows"] == ["front"]
+    assert after["the-iron-boars"]["allowed_rows"] == ["front"]
+    assert after["the-red-duelists"]["allowed_rows"] == ["front"]
+    assert "Empowered" in after["the-crow-archers"]["text"]
+    assert "Guarded" in after["guarded"]["text"]
+    assert "Inspired" in after["endured-with"]["text"]
+    assert "Depleted" in after["the-iron-boars"]["text"]
+    assert after["no-one-would-be-first-to-leave"]["effects"][0]["limit"] == "once_per_battle"
+    assert after["the-crows-came-down"]["effects"][0]["limit"] == "once_per_battle"
+
     for card_id in set(before) - changed:
         # Existing rules, stats and identities stay unchanged. Exposed-strip
         # text is a print-only display change, never a gameplay redesign.
@@ -65,8 +92,10 @@ def main() -> None:
 
     assert CANONICAL.read_bytes() == executable_before, "Modified executable source"
     print(
-        f"PASS: {len(after)} printed cards, 28 print replacements, "
-        f"4 printed limits, 23 legacy strip fixes, {live_count} exposed live rules. "
+        f"PASS: {len(after)} printed cards, {len(overrides['replacements'])} print replacements, "
+        f"{len(overrides.get('cost_adjustments', []))} cost-only adjustments, "
+        f"{len(overrides['once_per_battle_text_fixes'])} legacy printed limits, "
+        f"{len(overrides['exposed_only'])} legacy strip fixes, {live_count} exposed live rules. "
         "Canonical native/Webgame cards unchanged."
     )
 

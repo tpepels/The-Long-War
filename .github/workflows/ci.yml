@@ -97,6 +97,8 @@ jobs:
       - run: pip install -e '.[dev]'
       - name: Validate all printable cards
         run: python tools/check_print_cards.py
+      - name: Check physical cost and choice scenarios
+        run: python tools/check_physical_cost_balance.py
       - name: Build inspection website
         env:
           TLW_PAGES_INSPECTION_ONLY: '1'

@@ -1,5 +1,8 @@
 # Physical print implementation — cohesion sidegrades
 
+> **Historical print-cohesion phase.** Later print-only card effects and Command costs supersede some examples below. For current effects and the full 131-card ledger, see [physical-cost-review.md](physical-cost-review.md) and `cards/print-overrides.json`.
+
+
 **Implemented for print only:** physical card catalogue and 48-card deck sheets use `cards/print-overrides.json` over the existing 131-card pool. This is not an engine rules update. See `tools/print_cards.py` for the export. Webgame, native code, and `cards/cards.json` remain unchanged.
 
 ## Card changes (16 replacements)
