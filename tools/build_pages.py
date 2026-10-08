@@ -290,7 +290,7 @@ def enrich_rulebook_layout(rendered: str) -> str:
         return body.replace(f"<{tag}>", f'<{tag} class="{class_name}">', 1)
 
     pattern = re.compile(
-        r'(<section class="rule-section">)(<h2\\b[^>]*id="([^"]+)"[^>]*>.*?</h2>)'
+        r'(<section class="rule-section">)(<h2\b[^>]*id="([^"]+)"[^>]*>.*?</h2>)'
         r'(.*?)(</section>)',
         re.DOTALL,
     )
@@ -314,7 +314,7 @@ def enrich_rulebook_layout(rendered: str) -> str:
         elif section_id == "scoring":
             # Each heading and its explanation form a single resolution step.
             body = re.sub(
-                r'(<h3\\b[^>]*>.*?</h3>)(.*?)(?=<h3\\b|\\Z)',
+                r'(<h3\b[^>]*>.*?</h3>)(.*?)(?=<h3\b|\Z)',
                 lambda step: (
                     '<div class="resolution-step">' + step.group(1)
                     + step.group(2) + "</div>"
@@ -338,7 +338,7 @@ def enrich_rulebook_layout(rendered: str) -> str:
         elif section_id == "stories":
             body = re.sub(
                 r'<p>(<strong>(?:Tactics|Narrative|Stratagem|Heroes)</strong>)',
-                r'<p class="card-kind-note">\\1',
+                r'<p class="card-kind-note">\1',
                 body,
             )
         elif section_id == "command":
