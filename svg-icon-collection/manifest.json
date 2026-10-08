@@ -579,7 +579,7 @@
       "path": "svg-icon-collection/decorative/webgame-setup-map.svg",
       "used": true,
       "source_file": "web/play.html",
-      "source_line": 64,
+      "source_line": 15,
       "note": "Decorative inline setup map, not an icon; displayed by the development Webgame only"
     }
   ]
