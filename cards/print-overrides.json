@@ -1,6 +1,6 @@
 {
   "format": "physical-print-overrides-v1",
-  "description": "Physical print only: 16 cohesion sidegrades and 11 reconciled effect texts; not executable engine input.",
+  "description": "Physical print only: 16 cohesion sidegrades, 11 rules clarifications and Grey Riders terminology modernization; native/Webgame unaffected.",
   "replacements": [
     {
       "id": "the-damar",
@@ -287,6 +287,22 @@
         }
       ],
       "design_note": "One application per formation, other card effects still stack."
+    },
+    {
+      "id": "the-grey-riders",
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "This Force may Maneuver without being Named.",
+          "exposed": "May Maneuver unnamed"
+        },
+        {
+          "timing": "continuous",
+          "text": "This Force may Maneuver while Exhausted.",
+          "exposed": "May Maneuver while Exhausted"
+        }
+      ],
+      "design_note": "Retire the player-facing MOBILE and TIRELESS headers without altering movement permissions."
     }
   ],
   "once_per_battle_text_fixes": [
