@@ -10,37 +10,36 @@ The following counts are distinct cards carrying each `design_tags` label, not m
 
 | Design tag | Cards |
 |---|---| 
+| Marker State | 33 |
 | Named Payoff | 33 |
-| Marker State | 32 |
-| Classification Synergy | 26 |
+| Classification Synergy | 25 |
 | Command | 25 |
 | Baseline | 20 |
 | Formation Building | 20 |
-| Hostile Interaction | 19 |
-| Exhaustion | 18 |
-| Positional Support | 18 |
+| Positional Support | 20 |
+| Movement | 19 |
+| Card Flow | 18 |
+| Hostile Interaction | 18 |
 | Action Engine | 17 |
-| Card Flow | 17 |
-| Movement | 17 |
+| Exhaustion | 17 |
+| Strength | 17 |
 | Simple | 16 |
-| Strength | 16 |
 | Information | 13 |
+| Protection | 13 |
 | Command Recovery | 11 |
 | Hidden Plan | 11 |
 | Persistent State | 11 |
-| Protection | 10 |
+| Tax | 10 |
 | Army Support | 9 |
-| Prepared Cards | 9 |
 | Suppression | 9 |
+| Prepared Cards | 8 |
 | Single Ability Name | 8 |
-| Raids | 7 |
-| Tax | 7 |
-| Zero Command | 5 |
-| Flank Defense | 4 |
+| Raids | 6 |
+| Zero Command | 6 |
+| Positional Interaction | 5 |
 | Healing | 4 |
-| Positional Interaction | 4 |
+| Play Effect | 4 |
 | Archer | 3 |
-| Play Effect | 3 |
 | Battlefield | 2 |
 | Exposure | 2 |
 | Logistics | 2 |
@@ -85,7 +84,7 @@ These count `memory` annotations on printed effects; a card may have multiple ef
 | Representation | Effects |
 |---|---| 
 | Used Marker | 21 |
-| Effect Marker | 11 |
+| Effect Marker | 12 |
 | Face Up Source | 11 |
 | Face Down Source | 11 |
 | Suppression Marker | 6 |
