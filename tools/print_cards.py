@@ -93,6 +93,35 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         card.pop("design_rules", None)
         card.pop("combat_redesign_proposal", None)
 
+    for fix in overrides.get("exposed_only", []):
+        card_id = fix["id"]
+        if card_id in seen or card_id in limit_ids or card_id not in by_id:
+            raise ValueError("Invalid pre-existing print strip reminder: " + card_id)
+        card = by_id[card_id]
+        if card["type"] not in ("force", "bond"):
+            raise ValueError("Live reminder must belong to Force or Bond: " + card_id)
+        index = fix["index"]
+        effects = card.get("effects", [])
+        if not isinstance(index, int) or index < 0 or index >= len(effects):
+            raise ValueError("Invalid live reminder effect index: " + card_id)
+        if effects[index]["timing"] not in ONGOING:
+            raise ValueError("Cannot expose non-live effect: " + card_id)
+        if not fix.get("exposed"):
+            raise ValueError("Empty live reminder: " + card_id)
+        effects[index]["exposed"] = fix["exposed"]
+        card["print_revision"] = "stack-reminder"
+        card.pop("design_rules", None)
+        card.pop("combat_redesign_proposal", None)
+
+    # All buried, live abilities need a visible reminder; no silent fallback to
+    # 100+ character body text which would overflow the 10.5 mm exposed edge.
+    for card in printed["cards"]:
+        if card["type"] not in ("force", "bond"):
+            continue
+        for effect in card.get("effects", []):
+            if effect.get("timing") in ONGOING and not effect.get("exposed"):
+                raise ValueError("Buried effect lacks an exposed reminder: " + card["id"])
+
     # Printed cards are presentation data, not an executable rules source.
     # Drop stale engine instructions and unimplemented proposal fields in ALL
     # cards to prevent this separate export being mistaken for cards.json.
