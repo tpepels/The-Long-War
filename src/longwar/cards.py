@@ -110,7 +110,6 @@ V2_EFFECT_OPS = frozenset({
     "flank_guard",
     "return_component",
     "swap_fronts",
-    "revive_force",
     "swap_bonds",
     "supply",
     "support",
