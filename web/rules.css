@@ -2053,3 +2053,414 @@
     gap: 0 12px;
   }
 }
+
+
+/*
+==============================================================================
+PLAYER HANDBOOK — EDITORIAL LAYOUT
+==============================================================================
+  The rulebook is a readable manual, not a two-column research paper.
+  Prose stays intact. Existing lists, stages, examples and tables get their own
+  rhythm without hiding any authoritative details or requiring illustrations.
+  Dedicated print rules below keep the same hierarchy on paper.
+==============================================================================
+*/
+.rulebook-body {
+  --rb-ink: #242723;
+  --rb-navy: #293c47;
+  --rb-rust: #8c4e38;
+  --rb-gold: #ab8950;
+  --rb-line: rgba(44, 48, 43, .2);
+  --rb-paper: #faf6ed;
+  background: #e9e5dc;
+}
+.rulebook-shell {
+  max-width: 1280px;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 30px;
+}
+.rulebook-jump {
+  padding: 16px 14px;
+  border: 1px solid var(--rb-line);
+  border-top: 4px solid var(--rb-navy);
+  background: rgba(250,246,237,.85);
+  border-radius: 3px;
+}
+.rulebook-jump a {
+  border-bottom-color: var(--rb-line);
+  line-height: 1.35;
+}
+.rulebook {
+  column-count: 1;
+  column-rule: none;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  padding: clamp(26px, 4.5vw, 58px);
+  background: var(--rb-paper);
+  border: 1px solid #d4c9b6;
+  border-top: 7px solid var(--rb-navy);
+  box-shadow: 0 10px 32px rgba(40,37,30,.11);
+  color: var(--rb-ink);
+  line-height: 1.55;
+}
+.rulebook > h1:first-child {
+  max-width: none;
+  padding: 0 0 .32em;
+  font-size: clamp(46px, 7vw, 74px);
+  border-bottom: 2px solid var(--rb-ink);
+}
+.rulebook > h1:first-child + p {
+  max-width: none;
+  margin: 10px 0 22px;
+  font-size: clamp(16px, 2vw, 21px);
+}
+.rulebook > h1:first-child + p + p,
+.rulebook > h1:first-child + p + p + p {
+  max-width: 74ch;
+}
+.rulebook .rule-section {
+  margin: 0;
+  padding: 24px 0 30px;
+  border-top: 1px solid var(--rb-line);
+}
+.rulebook .rule-section > h2 {
+  display: block;
+  margin: 0 0 14px;
+  padding: 0 0 0 40px;
+  border: 0;
+  border-left: 4px solid var(--rb-gold);
+  font-size: clamp(22px, 2.8vw, 33px);
+  line-height: 1.16;
+  letter-spacing: -.025em;
+}
+.rulebook .rule-section > h2::before {
+  top: .65em;
+  left: 9px;
+  font-size: 12px;
+  opacity: .7;
+}
+.rulebook .rule-section:nth-of-type(3n+1) > h2 { border-left-color: var(--rb-navy); }
+.rulebook .rule-section:nth-of-type(3n+2) > h2 { border-left-color: var(--rb-rust); }
+.rulebook .rule-section > p,
+.rulebook .rule-section > blockquote {
+  max-width: 76ch;
+}
+.rulebook .rule-section p,
+.rulebook .rule-section li {
+  font-size: clamp(13px, 1.15vw, 15px);
+  line-height: 1.58;
+}
+.rulebook .rule-section > h3 {
+  margin: 23px 0 8px;
+  font-size: 13px;
+  color: var(--rb-navy);
+  letter-spacing: .08em;
+}
+.rulebook .rule-section > p:first-of-type { margin-top: 8px; }
+.rulebook-fast-facts {
+  margin: 24px 0 34px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 3px solid var(--rb-navy);
+  border-bottom: 1px solid var(--rb-line);
+  background: #f0e9dd;
+}
+.rulebook-fast-facts > div {
+  min-width: 0;
+  padding: 17px 14px 18px;
+  border-right: 1px solid var(--rb-line);
+}
+.rulebook-fast-facts > div:last-child { border-right: 0; }
+.rulebook-fast-facts b {
+  display: block;
+  font: 500 clamp(27px, 3vw, 42px)/1 Georgia,serif;
+  color: var(--rb-navy);
+}
+.rulebook-fast-facts span {
+  display: block;
+  margin-top: 5px;
+  font: 700 11px/1.4 system-ui,sans-serif;
+  letter-spacing: .035em;
+}
+/* The four opening stages: reused from the canonical Battle list. */
+.rulebook .war-timeline {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 8px;
+  margin: 22px 0;
+  padding: 0;
+  counter-reset: timeline;
+}
+.rulebook .war-timeline li {
+  position: relative;
+  min-width: 0;
+  min-height: 130px;
+  margin: 0;
+  padding: 36px 13px 14px;
+  background: #eae4d8;
+  border-top: 4px solid var(--rb-navy);
+  counter-increment: timeline;
+}
+.rulebook .war-timeline li:nth-child(even) {
+  border-top-color: var(--rb-rust);
+  background: #f1eae0;
+}
+.rulebook .war-timeline li::before {
+  content: counter(timeline, upper-roman);
+  position: absolute;
+  top: 10px;
+  left: 13px;
+  font: 700 12px/1 system-ui,sans-serif;
+  color: var(--rb-rust);
+}
+/* Short, friendly preparation checklist. */
+.rulebook .component-checklist {
+  max-width: none;
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px 18px;
+}
+.rulebook .component-checklist li {
+  margin: 0;
+  padding: 9px 10px 9px 29px;
+  position: relative;
+  border-bottom: 1px solid var(--rb-line);
+}
+.rulebook .component-checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 7px;
+  top: 9px;
+  font: 800 15px/1.35 system-ui,sans-serif;
+  color: var(--rb-navy);
+}
+/* Setup and passing use numbered steps rather than unstructured prose. */
+.rulebook .setup-steps,
+.rulebook .closing-sequence {
+  max-width: none;
+  margin: 18px 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+  list-style: none;
+  counter-reset: rb-step;
+}
+.rulebook .setup-steps { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.rulebook .closing-sequence { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.rulebook .setup-steps li,
+.rulebook .closing-sequence li {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: 36px 14px 14px;
+  border: 1px solid #d5c9b9;
+  border-top: 3px solid var(--rb-gold);
+  background: #f3ecdf;
+  counter-increment: rb-step;
+}
+.rulebook .setup-steps li::before,
+.rulebook .closing-sequence li::before {
+  content: counter(rb-step, decimal-leading-zero);
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  font: 800 12px/1 system-ui,sans-serif;
+  color: var(--rb-rust);
+}
+/* Five standard actions: a menu that can be scanned during a turn. */
+.rulebook .action-menu {
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+  list-style: none;
+  margin: 18px 0;
+  padding: 0;
+}
+.rulebook .action-menu li {
+  margin: 0;
+  padding: 13px 15px;
+  border-left: 4px solid var(--rb-navy);
+  background: #e9ebea;
+}
+.rulebook .action-menu li:nth-child(even) {
+  border-left-color: var(--rb-rust);
+  background: #f1e7df;
+}
+.rulebook .action-menu li:last-child { grid-column: 1 / -1; }
+/* Condition families intentionally contrast but share identical typography. */
+.rulebook .condition-list {
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+  padding: 0;
+  margin: 16px 0;
+  list-style: none;
+}
+.rulebook .condition-list li {
+  margin: 0;
+  padding: 13px;
+  background: #f2e8df;
+  border: 1px solid #d9c3b4;
+  border-top: 4px solid var(--rb-rust);
+}
+.rulebook .condition-list--boons li {
+  background: #e9eee8;
+  border-color: #c2cfc4;
+  border-top-color: #56715f;
+}
+/* The physical stack: top-to-bottom order in three compact bands. */
+.rulebook .formation-anatomy {
+  max-width: none;
+  margin: 20px 0 0;
+  padding: 17px 18px;
+  border: 1px solid #c6b69e;
+  background: #eee6d9;
+}
+.rulebook .formation-anatomy figcaption {
+  margin-bottom: 12px;
+  font: 800 11px/1.3 system-ui,sans-serif;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.rulebook .formation-layers {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+}
+.rulebook .formation-layers span {
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fdf9f1;
+  border: 1px solid #d2c3ae;
+  border-bottom: 4px solid var(--rb-navy);
+}
+.rulebook .formation-layers span:nth-child(2) { border-bottom-color: var(--rb-rust); }
+.rulebook .formation-layers span:nth-child(3) { border-bottom-color: var(--rb-gold); }
+.rulebook .formation-layers b { font: 600 22px/1.2 Georgia,serif; }
+.rulebook .formation-layers small { font: 600 11px/1.35 system-ui,sans-serif; }
+.rulebook .formation-anatomy p { margin: 12px 0 0; font-size: 13px; }
+/* A few special-card introductions become notes, not every paragraph. */
+.rulebook .card-kind-note,
+.rulebook .command-primer {
+  max-width: none;
+  padding: 16px 19px;
+  border-left: 4px solid var(--rb-gold);
+  background: #efe9dd;
+}
+.rulebook .card-kind-note:nth-of-type(even) {
+  border-left-color: var(--rb-navy);
+  background: #e9eceb;
+}
+.rulebook .command-primer {
+  background: #e8edec;
+  border-left-color: var(--rb-navy);
+}
+.rulebook .resolution-step {
+  margin: 14px 0;
+  padding: 14px 18px;
+  border-left: 4px solid var(--rb-navy);
+  background: #f0ede6;
+}
+.rulebook .resolution-step:nth-of-type(even) {
+  border-left-color: var(--rb-rust);
+  background: #f3eae3;
+}
+.rulebook .resolution-step > h3 {
+  margin: 0 0 9px;
+  font: 700 16px/1.3 Georgia,serif;
+  letter-spacing: 0;
+  color: var(--rb-navy);
+  text-transform: none;
+}
+.rulebook .resolution-step > p:last-child { margin-bottom: 0; }
+.rulebook blockquote {
+  max-width: 76ch;
+  padding: 14px 18px;
+  background: #f0e9dd;
+  border-left: 4px solid var(--rb-gold);
+}
+.rulebook blockquote p {
+  font-size: 14px;
+  line-height: 1.55;
+}
+.rulebook .rule-table-scroll {
+  width: 100%;
+  margin: 16px 0 23px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.rulebook .rule-table-scroll:focus-visible {
+  outline: 2px solid var(--rb-navy);
+  outline-offset: 3px;
+}
+.rulebook .rule-table-scroll table {
+  width: 100%;
+  min-width: 540px;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.rulebook .rule-table-scroll th {
+  background: var(--rb-navy);
+  color: #fcf7ee;
+}
+.rulebook .rule-table-scroll tr:nth-child(even) td { background: #f1ece1; }
+.rulebook .rule-table-scroll td,
+.rulebook .rule-table-scroll th {
+  border-right: 1px solid rgba(47,50,45,.08);
+}
+@media (max-width: 1100px) {
+  .rulebook-shell { gap: 16px; grid-template-columns: 168px minmax(0,1fr); }
+  .rulebook .war-timeline { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .rulebook .condition-list { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .rulebook-shell { grid-template-columns: minmax(0,1fr); }
+  .rulebook-jump { position: static; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .rulebook-jump p { grid-column: 1 / -1; }
+  .rulebook { padding: 24px 22px 40px; }
+}
+@media (max-width: 600px) {
+  .rulebook-fast-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .rulebook-fast-facts > div:nth-child(2) { border-right: 0; }
+  .rulebook-fast-facts > div:nth-child(-n+2) { border-bottom: 1px solid var(--rb-line); }
+  .rulebook .component-checklist,
+  .rulebook .setup-steps,
+  .rulebook .action-menu,
+  .rulebook .closing-sequence { grid-template-columns: 1fr; }
+  .rulebook .action-menu li:last-child { grid-column: auto; }
+  .rulebook .formation-layers { grid-template-columns: 1fr; }
+  .rulebook .formation-layers span { padding: 8px 12px; }
+  .rulebook .rule-section { padding: 20px 0; }
+  .rulebook .war-timeline li { min-height: 0; }
+}
+@media (max-width: 420px) {
+  .rulebook { padding: 18px 15px 30px; }
+  .rulebook .war-timeline { grid-template-columns: 1fr; }
+  .rulebook-jump { grid-template-columns: 1fr; }
+}
+@media print {
+  .rulebook-body { background: white; }
+  .rulebook-jump, .rulebook-body .screen-toolbar { display: none !important; }
+  .rulebook-shell { display: block; width: 100%; max-width: none; margin: 0; padding: 0; }
+  .rulebook { max-width: none; border: 0; box-shadow: none; padding: 10mm; background: white; }
+  .rulebook-fast-facts, .war-timeline, .action-menu, .setup-steps,
+  .closing-sequence, .condition-list, .formation-anatomy,
+  .resolution-step, .rule-table-scroll {
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .rulebook .rule-table-scroll { overflow: visible; }
+  .rulebook .rule-table-scroll table { min-width: 0; }
+  .rulebook .rule-section { break-inside: auto; }
+}
