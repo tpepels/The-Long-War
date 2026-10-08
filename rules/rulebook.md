@@ -49,7 +49,7 @@ There is no single winner of a Battle as a whole. Each active Front is settled s
 
 For a two-player print-and-play game, each player needs a deck. The published playtest decks contain 48 cards each, while custom decks follow the construction rules at the end of this book.
 
-You will also need a visible way to track **Command from 0 to 20**, **Exhaustion tokens**, a small supply of **Exhausted**, **Shaken**, **Depleted**, **Tax**, suppression, and used/once-per-Battle markers, and **4 Front markers** to show which parts of the battlefield are active. The printed **Reference** sheet and optional marker sheet are designed to cover these needs.
+You will also need a visible way to track **Command from 0 to 20**, a small supply of **Exhausted**, **Shaken**, **Depleted**, **Tax**, suppression, and used/once-per-Battle markers, and **4 Front markers** to show which parts of the battlefield are active. The printed **Reference** sheet and optional marker sheet are designed to cover these needs.
 
 You do not need a dedicated playmat. Arrange four Front columns between the players, with a Frontline, Middle/Support, and Rear position on each side of every Front.
 
@@ -318,7 +318,7 @@ A **Tax marker** belongs to the Front where it was placed. If the next matching 
 
 A **-Strength marker** records a Battle-long negative Strength modifier created by card text.
 
-A **temporary negative marker** is any finite-duration adverse marker created by a card effect, including -Strength, text suppression, or an ability lock. It does **not** include Exhaustion or a Tax marker. If a card removes one temporary negative marker, remove one such marker and end its effect.
+A **temporary negative marker** is any finite-duration adverse marker created by a card effect, including Shaken, Depleted, Exhausted, legacy -Strength, text suppression, or an ability lock. It does **not** include a Tax marker. If a card removes one temporary negative marker, remove one such marker and end its effect.
 
 ### Position and movement words
 
