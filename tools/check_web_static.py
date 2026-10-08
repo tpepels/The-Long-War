@@ -28,7 +28,7 @@ IMPORT_META_RE = re.compile(
     r'new URL\(\s*["\']([^"\']+)["\']\s*,\s*import\.meta\.url\s*\)'
 )
 PNG_ICON_DECL_RE = re.compile(r"PNG_ICONS\s*=\s*new Set\(\s*\[([\s\S]*?)\]\s*\)")
-PNG_ICON_NAME_RE = re.compile(r'"([a-z0-9_]+)"')
+PNG_ICON_NAME_RE = re.compile(r'"([a-z0-9_-]+)"')
 
 DOM_HELPER_ID_RE = re.compile(r'\$\(\s*["\']([^"\']+)["\']\s*\)')
 GET_ELEMENT_ID_RE = re.compile(
