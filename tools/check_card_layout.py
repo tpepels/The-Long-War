@@ -482,7 +482,7 @@ def check_physical_layout(browser: str, pdf_path: Path | None = None) -> None:
     numeric_probe = {
         "id": "numeric-range-probe", "title": "Ariadne of the Twenty Standards", "type": "hero",
         "force_strength": 12, "name_strength_modifier": -2, "command_cost": 20,
-        "classes": ["human", "king", "veteran"], "unique": True,
+        "classes": ["human", "king", "captain"], "unique": True,
         "modes": {"force": {"effects": []}, "name": {"effects": []}},
     }
     if pdf_path is not None:
