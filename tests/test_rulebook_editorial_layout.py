@@ -47,3 +47,17 @@ def test_print_rulebook_handles_lists_quotes_and_tables() -> None:
     assert "#table(" in typst
     assert "Gather these things" in typst
     assert "Command" in typst
+
+def test_print_rulebook_uses_player_handbook_layout() -> None:
+    """Printed handbook must not fall back to the old 2-column novel."""
+    from tools.build_rulebook_pdf import markdown_to_typst
+
+    md = (ROOT / "rules" / "rulebook.md").read_text(encoding="utf-8")
+    rendered = markdown_to_typst(md, "test")
+    assert "#columns(2" not in rendered
+    assert "FIELD MANUAL" in rendered
+    assert "FORMATION LAYERS" in rendered
+    assert rendered.count("#grid(") >= 6
+    assert rendered.count('stroke: (left: 3pt + rgb(') >= 6
+    assert "The shape of the war" in rendered
+    assert "Strength example:" in rendered

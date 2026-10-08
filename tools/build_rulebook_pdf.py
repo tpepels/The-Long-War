@@ -65,7 +65,15 @@ def _flush_paragraph(lines: list[str], out: list[str]) -> None:
         return
     text = " ".join(line.strip() for line in lines).strip()
     if text:
-        out.append(_inline(text))
+        if re.match(r"^\\*\\*(?:Tactics|Orders|Narrative|Stratagem|Heroes)\\*\\*", text):
+            out.append(
+                '#block(fill: rgb("#ecebe4"), '
+                'stroke: (left: 2pt + rgb("#ad8a50")), '
+                'inset: (x: 10pt, y: 8pt), width: 100%)['
+                + _inline(text) + ']'
+            )
+        else:
+            out.append(_inline(text))
         out.append("")
     lines.clear()
 
@@ -82,68 +90,150 @@ def markdown_to_typst(source: str, version: str) -> str:
     quote_lines: list[str] = []
     in_table = False
     table_rows: list[list[str]] = []
-    columns_started = False
+    current_section = ""
+    pending_list: list[str] = []
+    pending_kind = ""
+    resolution_open = False
+    resolution_index = 0
 
     preamble = f"""#set page(
   paper: "a4",
-  margin: (top: 12mm, bottom: 14mm, x: 13mm),
-  fill: rgb("#f8f3e9"),
+  margin: (top: 17mm, bottom: 18mm, x: 17mm),
+  fill: rgb("#faf7ef"),
+  header: [
+    #text(size: 7pt, weight: "bold", fill: rgb("#53636a"))[THE LONG WAR   /   FIELD MANUAL]
+    #v(3pt)
+    #line(length: 100%, stroke: .55pt + rgb("#c5b9a4"))
+  ],
   footer: context [
-    #align(right)[
-      #text(size: 7pt, fill: rgb("#666666"))[
-        TLW print v{version} · #counter(page).display("1")
-      ]
-    ]
+    #line(length: 100%, stroke: .45pt + rgb("#c5b9a4"))
+    #v(3pt)
+    #grid(
+      columns: (1fr, 1fr),
+      [#text(size: 7pt, fill: rgb("#666056"))[TLW print v{version}]],
+      align(right)[#text(size: 7pt, fill: rgb("#666056"))[PAGE #counter(page).display("1")]],
+    )
   ],
 )
-#set text(size: 9.2pt, fill: rgb("#222222"))
-#set par(justify: true, leading: 0.5em)
-#set list(indent: 12pt, body-indent: 6pt, spacing: 2pt)
-#set enum(indent: 12pt, body-indent: 6pt, spacing: 2pt)
+#set text(size: 9.5pt, fill: rgb("#242620"))
+#set par(justify: false, leading: .63em, spacing: .78em)
+#set list(indent: 12pt, body-indent: 6pt, spacing: 4pt)
+#set enum(indent: 12pt, body-indent: 6pt, spacing: 4pt)
 #set heading(numbering: none)
 
 #show heading.where(level: 2): it => block(
   sticky: true,
-  above: 8pt,
-  below: 4pt,
+  above: 15pt,
+  below: 7pt,
   breakable: false,
-  fill: rgb("#e8e8e0"),
-  stroke: (left: 2pt + rgb("#293c47"), bottom: 0.35pt + rgb("#b6a487")),
-  inset: (x: 7pt, y: 5pt),
-  radius: 2pt,
-)[#text(size: 15pt, weight: "semibold", fill: rgb("#2d261f"))[#it.body]]
+  fill: rgb("#e7ebea"),
+  stroke: (left: 3pt + rgb("#293c47"), bottom: .55pt + rgb("#bbc6c4")),
+  inset: (x: 11pt, y: 9pt),
+  radius: 1pt,
+)[#text(size: 17pt, weight: "semibold", fill: rgb("#283b45"))[#it.body]]
 
 #show heading.where(level: 3): it => block(
   sticky: true,
-  above: 6pt,
-  below: 2.5pt,
+  above: 11pt,
+  below: 4pt,
   breakable: false,
-  fill: rgb("#f3ece1"),
-  stroke: (left: 1pt + rgb("#8c4e38")),
-  inset: (x: 5pt, y: 3pt),
-  radius: 1.5pt,
-)[#text(size: 9pt, weight: "bold", fill: rgb("#3a3229"))[#it.body]]
+  fill: rgb("#f0e8dc"),
+  stroke: (left: 1.6pt + rgb("#986448")),
+  inset: (x: 8pt, y: 5pt),
+  radius: 1pt,
+)[#text(size: 10.5pt, weight: "bold", fill: rgb("#39342d"))[#it.body]]
 
-#align(left)[
-  #text(size: 31pt, weight: "semibold")[The Long War]
+#block(
+  fill: rgb("#293c47"),
+  width: 100%,
+  inset: (x: 14pt, y: 16pt),
+)[
+  #text(size: 7.5pt, weight: "bold", fill: rgb("#eacb92"))[A GAME OF COMMITMENT AND CONSEQUENCE]
+  #v(7pt)
+  #text(size: 32pt, weight: "semibold", fill: white)[The Long War]
+  #v(5pt)
+  #text(size: 12pt, style: "italic", fill: rgb("#f6edda"))[Fight now. Live with it later.]
 ]
-#line(length: 100%, stroke: 1.1pt + rgb("#222222"))
-#v(4pt)
-#text(size: 12pt, style: "italic", fill: rgb("#666666"))[Fight now. Live with it later.]
-#v(8pt)
-#table(
+#v(10pt)
+#grid(
   columns: (1fr, 1fr, 1fr, 1fr),
-  inset: 7pt,
-  stroke: 0.4pt + rgb("#d2c3ae"),
-  fill: rgb("#efe8db"),
-  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[20] #linebreak() #text(size: 7pt, weight: "bold")[STARTING COMMAND]],
-  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[2] #linebreak() #text(size: 7pt, weight: "bold")[ACTIONS / NORMAL TURN]],
-  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[4] #linebreak() #text(size: 7pt, weight: "bold")[FRONTS BY BATTLE III]],
-  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[3] #linebreak() #text(size: 7pt, weight: "bold")[MAX FORMATION LAYERS]],
+  gutter: 5pt,
+  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[20]
+    #v(3pt)
+    #text(size: 7pt, weight: "bold")[STARTING COMMAND]
+  ]],
+  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[2]
+    #v(3pt)
+    #text(size: 7pt, weight: "bold")[ACTIONS PER TURN]
+  ]],
+  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[4]
+    #v(3pt)
+    #text(size: 7pt, weight: "bold")[FRONTS BY BATTLE III]
+  ]],
+  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[3]
+    #v(3pt)
+    #text(size: 7pt, weight: "bold")[FORMATION LAYERS]
+  ]],
 )
-#v(11pt)
+#v(9pt)
 """
     out.append(preamble)
+
+    def finish_list() -> None:
+        """Render actual Markdown lists as legible decision aids where helpful."""
+        nonlocal pending_list, pending_kind
+        if not pending_list:
+            return
+
+        cards = {
+            ("The shape of the war", "bullet"): (2, "BATTLE", "#e8e8e1", "#293c47"),
+            ("What you need", "bullet"): (2, "PREPARE", "#f0e8d9", "#ad8a50"),
+            ("Setup", "numbered"): (2, "STEP", "#f0e8d9", "#986448"),
+            ("Your turn", "bullet"): (2, "ACTION", "#e8eeed", "#293c47"),
+            ("Conditions and protection", "bullet"): (2, "CONDITION", "#f3e8df", "#986448"),
+            ("Passing and ending a Battle", "numbered"): (3, "CLOSING TURN", "#e8eeed", "#293c47"),
+        }
+        style = cards.get((current_section, pending_kind))
+        if style is None:
+            for index, item in enumerate(pending_list):
+                out.append(("- " if pending_kind == "bullet" else "+ ") + _inline(item))
+        else:
+            count, label, bg, accent = style
+            out.append("#grid(")
+            out.append("  columns: (" + ", ".join(["1fr"] * count) + "),")
+            out.append("  gutter: 6pt,")
+            for index, item in enumerate(pending_list, 1):
+                # In Conditions, the first list is afflictions and the second
+                # is boons; distinguish them without changing the source text.
+                item_bg, item_accent = bg, accent
+                if current_section == "Conditions and protection" and item.startswith(
+                    ("**Guarded:**", "**Inspired:**", "**Empowered:**")
+                ):
+                    item_bg, item_accent = "#e7eee7", "#5f7966"
+                out.append(
+                    '  [#block(fill: rgb("' + item_bg
+                    + '"), stroke: (left: 2.3pt + rgb("' + item_accent
+                    + '")), inset: 10pt, width: 100%, breakable: true)['
+                    + '#text(size: 7.3pt, weight: "bold", fill: rgb("' + item_accent
+                    + '"))[' + label + ' ' + f"{index:02d}" + ']'
+                    + '#v(5pt)'
+                    + _inline(item) + ']],'
+                )
+            out.append(")")
+        out.append("")
+        pending_list = []
+        pending_kind = ""
+
+    def close_resolution() -> None:
+        nonlocal resolution_open
+        if resolution_open:
+            out.append("]")
+            out.append("")
+            resolution_open = False
 
     def finish_quote() -> None:
         nonlocal quote_lines, in_quote
@@ -204,6 +294,7 @@ def markdown_to_typst(source: str, version: str) -> str:
         image_match = re.fullmatch(r"!\[([^]]*)\]\(([^)]+)\)", line.strip())
         if image_match:
             _flush_paragraph(paragraph, out)
+            finish_list()
             finish_quote()
             finish_table()
             alt, path = image_match.groups()
@@ -213,6 +304,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 
         if line.strip().startswith("```"):
             _flush_paragraph(paragraph, out)
+            finish_list()
             finish_quote()
             finish_table()
             in_code = True
@@ -220,6 +312,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 
         if line.startswith(">"):
             _flush_paragraph(paragraph, out)
+            finish_list()
             finish_table()
             in_quote = True
             quote_lines.append(line[1:].strip())
@@ -233,6 +326,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 
         if line.startswith("|") and line.endswith("|"):
             _flush_paragraph(paragraph, out)
+            finish_list()
             finish_quote()
             in_table = True
             table_rows.append([cell.strip() for cell in line.strip("|").split("|")])
@@ -242,6 +336,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 
         if not line.strip():
             _flush_paragraph(paragraph, out)
+            finish_list()
             continue
 
         if line.startswith("# "):
@@ -254,17 +349,43 @@ def markdown_to_typst(source: str, version: str) -> str:
 
         if line.startswith("## "):
             _flush_paragraph(paragraph, out)
-            if not columns_started:
-                out.append("#columns(2, gutter: 9mm)[")
-                columns_started = True
-            title = re.sub(r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip())
-            out.append(f"== {title}")
+            finish_list()
+            close_resolution()
+            current_section = re.sub(
+                r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip()
+            )
+            out.append(f"== {current_section}")
+            if current_section == "The battlefield":
+                out.append(
+                    '#grid(columns: (1fr, 1fr, 1fr), gutter: 6pt,'
+                    ' [#block(fill: rgb("#e7ebea"), inset: 9pt, stroke: (bottom: 2pt + rgb("#293c47")))[#text(weight: "bold")[NAME] #linebreak() #text(size: 8pt)[Top · identity]]],'
+                    ' [#block(fill: rgb("#f0e8dc"), inset: 9pt, stroke: (bottom: 2pt + rgb("#986448")))[#text(weight: "bold")[BOND] #linebreak() #text(size: 8pt)[Middle · attachment]]],'
+                    ' [#block(fill: rgb("#f3e8d6"), inset: 9pt, stroke: (bottom: 2pt + rgb("#ad8a50")))[#text(weight: "bold")[FORCE] #linebreak() #text(size: 8pt)[Base · Strength]]])'
+                )
             continue
 
         if line.startswith("### "):
             _flush_paragraph(paragraph, out)
+            finish_list()
+            close_resolution()
             title = re.sub(r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[4:].strip())
-            out.append(f"=== {title}")
+            if current_section == "Resolving a Battle" and re.match(r"^\d+\.", title):
+                resolution_index += 1
+                accent = "#986448" if resolution_index % 2 == 0 else "#293c47"
+                fill = "#f5ece4" if resolution_index % 2 == 0 else "#e9eeec"
+                out.append(
+                    '#block(width: 100%, breakable: true, inset: (x: 11pt, y: 10pt),'
+                    ' fill: rgb("' + fill + '"),'
+                    ' stroke: (left: 3pt + rgb("' + accent + '")))['
+                )
+                out.append(
+                    '#text(size: 12pt, weight: "bold", fill: rgb("' + accent
+                    + '"))[' + _string(title) + ']'
+                )
+                out.append("#v(5pt)")
+                resolution_open = True
+            else:
+                out.append(f"=== {title}")
             continue
 
         if line.strip() == "---":
@@ -277,22 +398,29 @@ def markdown_to_typst(source: str, version: str) -> str:
         bullet = re.match(r"^\s*-\s+(.+)$", line)
         if bullet:
             _flush_paragraph(paragraph, out)
-            out.append("- " + _inline(bullet.group(1)))
+            if pending_list and pending_kind != "bullet":
+                finish_list()
+            pending_kind = "bullet"
+            pending_list.append(bullet.group(1))
             continue
 
         numbered = re.match(r"^\s*\d+\.\s+(.+)$", line)
         if numbered:
             _flush_paragraph(paragraph, out)
-            out.append("+ " + _inline(numbered.group(1)))
+            if pending_list and pending_kind != "numbered":
+                finish_list()
+            pending_kind = "numbered"
+            pending_list.append(numbered.group(1))
             continue
 
+        finish_list()
         paragraph.append(line)
 
     _flush_paragraph(paragraph, out)
+    finish_list()
     finish_quote()
     finish_table()
-    if columns_started:
-        out.append("]")
+    close_resolution()
 
     return "\n".join(out).rstrip() + "\n"
 
