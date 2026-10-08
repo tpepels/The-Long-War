@@ -62,13 +62,17 @@ CARD ICON SIZES — TUNING PANEL
   and printed card dimensions are intentionally unchanged. Oversized icons
   can crowd labels or reminders: adjust carefully and print a test sheet.
 
-  For a single symbol (rather than all symbols in the same slot), add a
-  targeted override below this panel, e.g.:
-    .physical-card :is(svg[aria-label="guard"], img[alt="guard"]) {
-      transform: scale(1.1);
-    }
-  This scales just the Guard glyph, including the SVG comparison version,
-  without changing the space its slot reserves. Leave this example commented.
+  PER-ICON FINE TUNING
+    The --icon-scale-... variables are multipliers, not millimetres.
+    Set --icon-scale-guard: 1.2 to enlarge ONLY Guard symbols in every slot.
+    Set --icon-scale-force: 0.9 to shrink only the Force family symbol.
+    Values of 1 keep the current appearance. They change the visible mark but
+    not the space reserved for it, which protects the hand-tuned card layout.
+    Underscores in icon names are written as hyphens in CSS variable names
+    (for example: while_named -> --icon-scale-while-named).
+
+  The scale controls cover the SVG fallbacks as well as the approved PNGs.
+  Avoid increasing several large symbols too far: their marks can overlap text.
 ===============================================================================
 */
 :root {
@@ -94,6 +98,66 @@ CARD ICON SIZES — TUNING PANEL
   /* Once-per-Battle markers */
   --icon-used-marker-size: 2.35mm;
   --icon-hero-used-size: 2mm;
+
+  /* Card families - visual multipliers (1 = current size) */
+  --icon-scale-force: 1;
+  --icon-scale-bond: 1;
+  --icon-scale-name: 1;
+  --icon-scale-hero: 1;
+  --icon-scale-tactic: 1;
+  --icon-scale-order: 1;
+  --icon-scale-stratagem: 1;
+  --icon-scale-narrative: 1;
+
+  /* Classifications - visual multipliers (1 = current size) */
+  --icon-scale-human: 1;
+  --icon-scale-ship: 1;
+  --icon-scale-stronghold: 1;
+  --icon-scale-archer: 1;
+  --icon-scale-guard: 1;
+  --icon-scale-scout: 1;
+  --icon-scale-rider: 1;
+  --icon-scale-skirmisher: 1;
+  --icon-scale-raider: 1;
+  --icon-scale-healer: 1;
+  --icon-scale-spearman: 1;
+  --icon-scale-steward: 1;
+  --icon-scale-builder: 1;
+  --icon-scale-seer: 1;
+  --icon-scale-king: 1;
+  --icon-scale-captain: 1;
+  --icon-scale-veteran: 1;
+  --icon-scale-heir: 1;
+
+  /* Timing and utility - visual multipliers (1 = current size) */
+  --icon-scale-strength: 1;
+  --icon-scale-action: 1;
+  --icon-scale-reaction: 1;
+  --icon-scale-bonded: 1;
+  --icon-scale-while-named: 1;
+  --icon-scale-becomes-named: 1;
+  --icon-scale-trigger: 1;
+  --icon-scale-play: 1;
+  --icon-scale-continuous: 1;
+  --icon-scale-hidden: 1;
+  --icon-scale-eye: 1;
+  --icon-scale-move: 1;
+  --icon-scale-suppress: 1;
+  --icon-scale-shield: 1;
+  --icon-scale-marker: 1;
+  --icon-scale-ally: 1;
+  --icon-scale-cycle: 1;
+  --icon-scale-prepared: 1;
+  --icon-scale-hand: 1;
+  --icon-scale-target: 1;
+  --icon-scale-clear: 1;
+  --icon-scale-card: 1;
+  --icon-scale-lock: 1;
+  --icon-scale-enemy: 1;
+
+  /* Position and Command - visual multipliers (1 = current size) */
+  --icon-scale-row: 1;
+  --icon-scale-command: 1;
 
   --card-width: 68mm;
   --card-height: 96mm;
@@ -728,6 +792,169 @@ EXPOSED TOP ROW - TUNING PANEL
   max-height: 100%;
   flex: none;
 }
+/* Per-symbol visual scale: does not resize the slot or shift neighbours.
+ * data-icon is supplied by CardSymbols for both SVG and PNG versions. */
+.physical-card :is(svg, img.glyph-png)[data-icon] {
+  transform: scale(var(--icon-symbol-scale, 1));
+  transform-origin: center center;
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="force"] {
+  --icon-symbol-scale: var(--icon-scale-force);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="bond"] {
+  --icon-symbol-scale: var(--icon-scale-bond);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="name"] {
+  --icon-symbol-scale: var(--icon-scale-name);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="hero"] {
+  --icon-symbol-scale: var(--icon-scale-hero);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="tactic"] {
+  --icon-symbol-scale: var(--icon-scale-tactic);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="order"] {
+  --icon-symbol-scale: var(--icon-scale-order);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="stratagem"] {
+  --icon-symbol-scale: var(--icon-scale-stratagem);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="narrative"] {
+  --icon-symbol-scale: var(--icon-scale-narrative);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="human"] {
+  --icon-symbol-scale: var(--icon-scale-human);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="ship"] {
+  --icon-symbol-scale: var(--icon-scale-ship);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="stronghold"] {
+  --icon-symbol-scale: var(--icon-scale-stronghold);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="archer"] {
+  --icon-symbol-scale: var(--icon-scale-archer);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="guard"] {
+  --icon-symbol-scale: var(--icon-scale-guard);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="scout"] {
+  --icon-symbol-scale: var(--icon-scale-scout);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="rider"] {
+  --icon-symbol-scale: var(--icon-scale-rider);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="skirmisher"] {
+  --icon-symbol-scale: var(--icon-scale-skirmisher);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="raider"] {
+  --icon-symbol-scale: var(--icon-scale-raider);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="healer"] {
+  --icon-symbol-scale: var(--icon-scale-healer);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="spearman"] {
+  --icon-symbol-scale: var(--icon-scale-spearman);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="steward"] {
+  --icon-symbol-scale: var(--icon-scale-steward);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="builder"] {
+  --icon-symbol-scale: var(--icon-scale-builder);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="seer"] {
+  --icon-symbol-scale: var(--icon-scale-seer);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="king"] {
+  --icon-symbol-scale: var(--icon-scale-king);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="captain"] {
+  --icon-symbol-scale: var(--icon-scale-captain);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="veteran"] {
+  --icon-symbol-scale: var(--icon-scale-veteran);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="heir"] {
+  --icon-symbol-scale: var(--icon-scale-heir);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="strength"] {
+  --icon-symbol-scale: var(--icon-scale-strength);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="action"] {
+  --icon-symbol-scale: var(--icon-scale-action);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="reaction"] {
+  --icon-symbol-scale: var(--icon-scale-reaction);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="bonded"] {
+  --icon-symbol-scale: var(--icon-scale-bonded);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="while_named"] {
+  --icon-symbol-scale: var(--icon-scale-while-named);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="becomes_named"] {
+  --icon-symbol-scale: var(--icon-scale-becomes-named);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="trigger"] {
+  --icon-symbol-scale: var(--icon-scale-trigger);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="play"] {
+  --icon-symbol-scale: var(--icon-scale-play);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="continuous"] {
+  --icon-symbol-scale: var(--icon-scale-continuous);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="hidden"] {
+  --icon-symbol-scale: var(--icon-scale-hidden);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="eye"] {
+  --icon-symbol-scale: var(--icon-scale-eye);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="move"] {
+  --icon-symbol-scale: var(--icon-scale-move);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="suppress"] {
+  --icon-symbol-scale: var(--icon-scale-suppress);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="shield"] {
+  --icon-symbol-scale: var(--icon-scale-shield);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="marker"] {
+  --icon-symbol-scale: var(--icon-scale-marker);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="ally"] {
+  --icon-symbol-scale: var(--icon-scale-ally);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="cycle"] {
+  --icon-symbol-scale: var(--icon-scale-cycle);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="prepared"] {
+  --icon-symbol-scale: var(--icon-scale-prepared);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="hand"] {
+  --icon-symbol-scale: var(--icon-scale-hand);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="target"] {
+  --icon-symbol-scale: var(--icon-scale-target);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="clear"] {
+  --icon-symbol-scale: var(--icon-scale-clear);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="card"] {
+  --icon-symbol-scale: var(--icon-scale-card);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="lock"] {
+  --icon-symbol-scale: var(--icon-scale-lock);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="enemy"] {
+  --icon-symbol-scale: var(--icon-scale-enemy);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="row"] {
+  --icon-symbol-scale: var(--icon-scale-row);
+}
+.physical-card :is(svg, img.glyph-png)[data-icon="command"] {
+  --icon-symbol-scale: var(--icon-scale-command);
+}
+
 .glyph-type,
 .glyph-strength,
 .glyph-timing,
