@@ -100,14 +100,10 @@
     "skirmisher": "Harassment, temporary suppression, and pressure against already Exhausted enemies.",
     "raider": "Attack Exhausted Forces, prepared components, and unsupported Middle/Rear formations.",
     "healer": "Remove Exhaustion and recover temporary adverse states.",
-    "spearman": "Simple, dependable battlefield Strength, especially in the Front.",
     "king": "Command, broad coordination, and high-impact Named payoffs.",
     "captain": "Local formation-building, Bonds, Names, and action efficiency.",
-    "veteran": "Reliability, marker removal, and once-per-Battle resilience.",
     "seer": "Deep information and deck/hidden-plan manipulation.",
-    "steward": "Organize prepared Bonds and Names and maintain the second line.",
-    "builder": "Bonds, prepared cards, and Stronghold-style development.",
-    "heir": "Succession and access to King synergies once fully established."
+    "steward": "Organize prepared Bonds and Names and maintain the second line."
   },
   "classification_rule": "Classifications determine the basic Attacks and screening specified in the rulebook. Other effects apply only when their card text or executable mechanics explicitly refers to a classification.",
   "memory_vocabulary": {
@@ -176,8 +172,7 @@
       "title": "The Fifty Men",
       "type": "force",
       "classes": [
-        "human",
-        "spearman"
+        "human"
       ],
       "command_cost": 2,
       "strength": 4,
@@ -375,8 +370,7 @@
       "title": "The House of Reed",
       "type": "force",
       "classes": [
-        "stronghold",
-        "builder"
+        "stronghold"
       ],
       "command_cost": 2,
       "strength": 3,
@@ -549,7 +543,6 @@
       "type": "force",
       "classes": [
         "human",
-        "veteran",
         "skirmisher"
       ],
       "command_cost": 4,
@@ -694,8 +687,7 @@
       "type": "force",
       "classes": [
         "human",
-        "guard",
-        "spearman"
+        "guard"
       ],
       "command_cost": 2,
       "strength": 4,
@@ -718,8 +710,7 @@
       "type": "force",
       "classes": [
         "human",
-        "guard",
-        "veteran"
+        "guard"
       ],
       "command_cost": 2,
       "strength": 3,
@@ -893,8 +884,7 @@
       "title": "Thirty Spears",
       "type": "force",
       "classes": [
-        "human",
-        "spearman"
+        "human"
       ],
       "command_cost": 1,
       "strength": 3,
@@ -1031,8 +1021,7 @@
       "title": "The Damar",
       "type": "force",
       "classes": [
-        "human",
-        "veteran"
+        "human"
       ],
       "command_cost": 2,
       "strength": 4,
@@ -1162,7 +1151,6 @@
       "type": "force",
       "classes": [
         "human",
-        "builder",
         "steward"
       ],
       "command_cost": 2,
@@ -2366,8 +2354,7 @@
       "title": "Edrin",
       "type": "name",
       "classes": [
-        "human",
-        "veteran"
+        "human"
       ],
       "command_cost": 1,
       "strength_modifier": 1,
@@ -2890,8 +2877,7 @@
       "title": "Eira",
       "type": "name",
       "classes": [
-        "human",
-        "heir"
+        "human"
       ],
       "command_cost": 2,
       "strength_modifier": 1,
@@ -3549,8 +3535,7 @@
       "title": "Nara, Builder of Walls",
       "type": "hero",
       "classes": [
-        "human",
-        "builder"
+        "human"
       ],
       "command_cost": 3,
       "unique": true,
@@ -3782,8 +3767,7 @@
       "title": "Veyra, Keeper of Oaths",
       "type": "hero",
       "classes": [
-        "human",
-        "veteran"
+        "human"
       ],
       "command_cost": 3,
       "unique": true,
@@ -4894,7 +4878,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal before Strength is compared in a Front containing one of your Kings, Captains, or Heirs. Every other friendly Human formation there gets +1 Strength this Battle.",
+          "text": "Reveal before Strength is compared in a Front containing one of your Kings or Captains. Every other friendly Human formation there gets +1 Strength this Battle.",
           "scope": "self",
           "memory": [
             "face_down_source",
@@ -4903,7 +4887,7 @@
           "reveal": "leadership_front_strength_comparison"
         }
       ],
-      "text": "HIDDEN - Reveal before Strength is compared in a Front containing one of your Kings, Captains, or Heirs. Every other friendly Human formation there gets +1 Strength this Battle.",
+      "text": "HIDDEN - Reveal before Strength is compared in a Front containing one of your Kings or Captains. Every other friendly Human formation there gets +1 Strength this Battle.",
       "design_tags": [
         "classification-synergy",
         "hidden-plan",
@@ -4925,8 +4909,7 @@
             "reveal": "leadership_front_strength_comparison",
             "required_any_class": [
               "king",
-              "captain",
-              "heir"
+              "captain"
             ],
             "target_classes": [
               "human"
@@ -4941,7 +4924,7 @@
         {
           "kind": "trigger",
           "label": "HIDDEN",
-          "text": "Reveal before Strength is compared in a Front containing one of your Kings, Captains, or Heirs. Every other friendly Human formation there gets +1 Strength this Battle."
+          "text": "Reveal before Strength is compared in a Front containing one of your Kings or Captains. Every other friendly Human formation there gets +1 Strength this Battle."
         }
       ]
     },
@@ -5162,7 +5145,7 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Choose one of your Veterans or Healers. Remove one temporary negative marker from its formation.",
+          "text": "Choose one of your Healers. Remove one temporary negative marker from its formation.",
           "scope": "self",
           "memory": [
             "used_marker"
@@ -5171,7 +5154,7 @@
         }
       ],
       "duration": "this_battle",
-      "text": "ACTION · 1/BATTLE - Choose one of your Veterans or Healers. Remove one temporary negative marker from its formation.",
+      "text": "ACTION · 1/BATTLE - Choose one of your Healers. Remove one temporary negative marker from its formation.",
       "design_tags": [
         "action-engine",
         "army-support",
@@ -5192,7 +5175,6 @@
             "op": "remove_negative_marker",
             "target": "friendly_any_class",
             "classes": [
-              "veteran",
               "healer"
             ],
             "count": 1
@@ -5204,7 +5186,7 @@
         {
           "kind": "effect",
           "label": "ACTION · 1/BATTLE",
-          "text": "Choose one of your Veterans or Healers. Remove one temporary negative marker from its formation."
+          "text": "Choose one of your Healers. Remove one temporary negative marker from its formation."
         }
       ]
     },
@@ -5554,8 +5536,7 @@
       "type": "force",
       "classes": [
         "human",
-        "guard",
-        "spearman"
+        "guard"
       ],
       "command_cost": 2,
       "strength": 4,
@@ -6338,9 +6319,7 @@
       "title": "Doros, the Last Spear",
       "type": "hero",
       "classes": [
-        "human",
-        "veteran",
-        "spearman"
+        "human"
       ],
       "command_cost": 3,
       "unique": true,
@@ -6594,12 +6573,12 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
+          "text": "Choose an opposing Guard in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
           "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
+      "text": "PLAY - Choose an opposing Guard in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
       "design_tags": [
         "forced-movement",
         "flanking",
@@ -6616,8 +6595,7 @@
             "op": "move",
             "target": "opposing_class_front_with_friendly_class",
             "classes": [
-              "guard",
-              "spearman"
+              "guard"
             ],
             "required_friendly_class": "skirmisher",
             "direction": "rear"
@@ -6629,7 +6607,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty."
+          "text": "Choose an opposing Guard in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty."
         }
       ],
       "combat_redesign_proposal": "PLAY - Choose an opposing Frontline Guard or Spearman in a Front containing your Skirmisher. Move it one rank toward Rear if legal and empty, then Shake it."
@@ -7229,16 +7207,12 @@
       "skirmisher",
       "raider",
       "healer",
-      "spearman",
       "steward",
-      "builder",
       "seer"
     ],
     "rank": [
       "king",
-      "captain",
-      "veteran",
-      "heir"
+      "captain"
     ]
   },
   "timing_vocabulary": {
