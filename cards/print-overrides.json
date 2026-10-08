@@ -328,16 +328,6 @@
       "exposed": "ACTION: pay 1; attach prepared Bond/Name ahead"
     },
     {
-      "id": "the-grey-riders",
-      "index": 0,
-      "exposed": "Maneuver without being Named"
-    },
-    {
-      "id": "the-grey-riders",
-      "index": 1,
-      "exposed": "Maneuver while Exhausted"
-    },
-    {
       "id": "the-dust-riders",
       "index": 0,
       "exposed": "Bonded: Maneuver without Name"
