@@ -287,7 +287,6 @@ class CardField(StrEnum):
     EFFECTS = "effects"
     MODES = "modes"
     ALLOWED_ROWS = "allowed_rows"
-    REFERENCES = "references"
     DURATION = "duration"
     BOND_KIND = "bond_kind"
     DESIGN_TAGS = "design_tags"
