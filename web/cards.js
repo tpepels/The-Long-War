@@ -12,12 +12,12 @@ async function preloadArt(ids){
   })));
 }
 async function main(){
-  const response=await fetch("data/cards.json",{cache:"no-cache"});
-  if(!response.ok)throw new Error("Could not load current card data");
+  const response=await fetch("data/print-cards.json",{cache:"no-cache"});
+  if(!response.ok)throw new Error("Could not load physical print card data");
   const cards=(await response.json()).cards||[];
   const count=document.getElementById("card-count");
   const printButton=document.getElementById("print-catalogue-button");
-  count.textContent=cards.length+" current cards · preparing print artwork…";
+  count.textContent=cards.length+" print-version cards · preparing print artwork…";
   const root=document.getElementById("print-catalogue");
   root.innerHTML=chunk(cards,8).map((sheet,index)=>
     '<section class="print-sheet card-sheet" data-sheet="'+(index+1)+'">'+
@@ -26,7 +26,7 @@ async function main(){
   ).join("");
   await preloadArt([...new Set(cards.map(card=>card.art_id||card.id))]);
   if(document.fonts?.ready)await document.fonts.ready;
-  count.textContent=cards.length+" current cards · ready to print";
+  count.textContent=cards.length+" print-version cards · ready to print";
   if(printButton)printButton.disabled=false;
 }
 main().catch(error=>{
