@@ -72,6 +72,7 @@
     "action","reaction","bonded","while_named"
   ]);
   const png=(name,title,cssClass)=>{
+    if(new URLSearchParams(window.location.search).get("icons")==="svg")return "";
     if(!PNG_ICONS.has(name))return "";
     const safeTitle=String(title).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;");
     return '<img class="'+cssClass+' glyph-png" src="art/icons/sizes/128/'+name+'.png" alt="'+safeTitle+'" title="'+safeTitle+'" width="24" height="24" draggable="false">';
