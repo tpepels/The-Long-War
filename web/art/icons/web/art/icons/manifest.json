@@ -1,0 +1,126 @@
+{
+  "icons": [
+    {
+      "name": "hero",
+      "path": "web/art/icons/hero.png",
+      "source": "gouden_ridderembleem_met_kroon.png",
+      "sha256": "dbbc5fed887016c2ae7f504cbe80c55ea7923f1bc70fdde6abcc38d84aa810ae",
+      "sizes": [
+        "web/art/icons/sizes/16/hero.png",
+        "web/art/icons/sizes/24/hero.png",
+        "web/art/icons/sizes/32/hero.png",
+        "web/art/icons/sizes/48/hero.png",
+        "web/art/icons/sizes/64/hero.png",
+        "web/art/icons/sizes/128/hero.png",
+        "web/art/icons/sizes/256/hero.png",
+        "web/art/icons/sizes/512/hero.png"
+      ]
+    },
+    {
+      "name": "tactic",
+      "path": "web/art/icons/tactic.png",
+      "source": "middeleeuws_schaakpaard_met_strategiekaart.png",
+      "sha256": "46630119b68fa825fd1055cdea4094aa2c914a44b2be4cb590e16efe45de3e1e",
+      "sizes": [
+        "web/art/icons/sizes/16/tactic.png",
+        "web/art/icons/sizes/24/tactic.png",
+        "web/art/icons/sizes/32/tactic.png",
+        "web/art/icons/sizes/48/tactic.png",
+        "web/art/icons/sizes/64/tactic.png",
+        "web/art/icons/sizes/128/tactic.png",
+        "web/art/icons/sizes/256/tactic.png",
+        "web/art/icons/sizes/512/tactic.png"
+      ]
+    },
+    {
+      "name": "order",
+      "path": "web/art/icons/order.png",
+      "source": "antieke_marine_gouden_banierembleem.png",
+      "sha256": "fc1f1d280d9a1cf859288689db257cac47560c5b6faa4f7ca33f30ce0437949c",
+      "sizes": [
+        "web/art/icons/sizes/16/order.png",
+        "web/art/icons/sizes/24/order.png",
+        "web/art/icons/sizes/32/order.png",
+        "web/art/icons/sizes/48/order.png",
+        "web/art/icons/sizes/64/order.png",
+        "web/art/icons/sizes/128/order.png",
+        "web/art/icons/sizes/256/order.png",
+        "web/art/icons/sizes/512/order.png"
+      ]
+    },
+    {
+      "name": "stratagem",
+      "path": "web/art/icons/stratagem.png",
+      "source": "antiek_gouden_strategievlaggenembleem.png",
+      "sha256": "abd10cd5955ebcd8c98a4251e6b3effb6c26ce0ff7fcb6a555e618e470cb7632",
+      "sizes": [
+        "web/art/icons/sizes/16/stratagem.png",
+        "web/art/icons/sizes/24/stratagem.png",
+        "web/art/icons/sizes/32/stratagem.png",
+        "web/art/icons/sizes/48/stratagem.png",
+        "web/art/icons/sizes/64/stratagem.png",
+        "web/art/icons/sizes/128/stratagem.png",
+        "web/art/icons/sizes/256/stratagem.png",
+        "web/art/icons/sizes/512/stratagem.png"
+      ]
+    },
+    {
+      "name": "narrative",
+      "path": "web/art/icons/narrative.png",
+      "source": "antieke_gouden_rol_en_veer.png",
+      "sha256": "2cfc1de15fd76d1571962fdbe4c4529582eeff835f8a95d9186ac5af074e45fa",
+      "sizes": [
+        "web/art/icons/sizes/16/narrative.png",
+        "web/art/icons/sizes/24/narrative.png",
+        "web/art/icons/sizes/32/narrative.png",
+        "web/art/icons/sizes/48/narrative.png",
+        "web/art/icons/sizes/64/narrative.png",
+        "web/art/icons/sizes/128/narrative.png",
+        "web/art/icons/sizes/256/narrative.png",
+        "web/art/icons/sizes/512/narrative.png"
+      ]
+    },
+    {
+      "name": "scout",
+      "path": "web/art/icons/scout.png",
+      "source": "gestileerde_valk_met_kompasembleem.png",
+      "sha256": "4e61d557937f00a93ab5c9fa7eb7f80c1ddbcfe99a6efeedcfa160ce5050192a",
+      "sizes": [
+        "web/art/icons/sizes/16/scout.png",
+        "web/art/icons/sizes/24/scout.png",
+        "web/art/icons/sizes/32/scout.png",
+        "web/art/icons/sizes/48/scout.png",
+        "web/art/icons/sizes/64/scout.png",
+        "web/art/icons/sizes/128/scout.png",
+        "web/art/icons/sizes/256/scout.png",
+        "web/art/icons/sizes/512/scout.png"
+      ]
+    },
+    {
+      "name": "spearman",
+      "path": "web/art/icons/spearman.png",
+      "source": "antieke_gouden_speerembleemnaald.png",
+      "sha256": "e01cd71bdcc0a66f761c3a18b61c2774d99d8c9381345d1bbab1049f996d2c23",
+      "sizes": [
+        "web/art/icons/sizes/16/spearman.png",
+        "web/art/icons/sizes/24/spearman.png",
+        "web/art/icons/sizes/32/spearman.png",
+        "web/art/icons/sizes/48/spearman.png",
+        "web/art/icons/sizes/64/spearman.png",
+        "web/art/icons/sizes/128/spearman.png",
+        "web/art/icons/sizes/256/spearman.png",
+        "web/art/icons/sizes/512/spearman.png"
+      ]
+    }
+  ],
+  "sizes": [
+    16,
+    24,
+    32,
+    48,
+    64,
+    128,
+    256,
+    512
+  ]
+}
