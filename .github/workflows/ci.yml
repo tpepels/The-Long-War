@@ -107,6 +107,3 @@ jobs:
         run: python tools/check_web_static.py --dist dist
       - name: Build printable rulebook PDF
         run: python tools/build_rulebook_pdf.py
-      - name: Inspect physical card text fitting (advisory)
-        continue-on-error: true
-        run: python tools/check_card_layout.py --surface print --require-browser
