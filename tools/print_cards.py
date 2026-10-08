@@ -16,10 +16,10 @@ CANONICAL = ROOT / "cards" / "cards.json"
 
 LABELS = {
     "play": "PLAY", "attack": "ATTACK", "middle": "MIDDLE",
-    "bonded": "BONDED", "hidden": "HIDDEN", "becomes_named": "BECOMES NAMED",
+    "bonded": "BONDED", "hidden": "HIDDEN", "continuous": "CONTINUOUS", "becomes_named": "BECOMES NAMED",
     "action": "ACTION",
 }
-ONGOING = {"attack", "middle", "bonded", "while_named", "action", "front", "rear", "continuous"}
+ONGOING = {"attack", "middle", "bonded", "while_named", "action", "reaction", "front", "rear", "continuous", "tireless", "mobile"}
 CARD_TYPES = {"force", "bond", "name", "hero", "tactic", "order", "stratagem", "narrative"}
 
 
@@ -68,7 +68,7 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
              "label": LABELS[e["timing"]], "text": e["text"]}
             for e in effects
         ]
-        card["print_revision"] = "cohesion-v1"
+        card["print_revision"] = "physical-rules-v2"
         # Executable specs from the source would describe the OLD effects.
         # Never leak stale design_rules into the physical-print JSON.
         card.pop("design_rules", None)
