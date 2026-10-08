@@ -357,42 +357,18 @@
       ],
       "command_cost": 2,
       "strength": 3,
-      "effects": [
-        {
-          "timing": "play",
-          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it.",
-          "scope": "opponent",
-          "memory": []
-        }
-      ],
-      "text": "PLAY - If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "exposure",
-        "archer",
-        "hostile-interaction"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "play",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [],
-            "op": "exhaust",
-            "target": "opposing_support_open_front"
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "effect",
-          "label": "PLAY",
-          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it."
-        }
-      ],
-      "combat_redesign_proposal": "ATTACK - When this Force's basic Archer Attack would Exhaust a Rear Force, you may Shake that Force instead."
+      "rule_blocks": []
     },
     {
       "id": "the-house-of-reed",
@@ -460,7 +436,7 @@
         "human",
         "rider"
       ],
-      "command_cost": 2,
+      "command_cost": 3,
       "strength": 3,
       "effects": [
         {
@@ -576,7 +552,7 @@
         "veteran",
         "skirmisher"
       ],
-      "command_cost": 3,
+      "command_cost": 4,
       "strength": 4,
       "effects": [
         {
@@ -627,45 +603,18 @@
       ],
       "command_cost": 2,
       "strength": 3,
-      "effects": [
-        {
-          "timing": "continuous",
-          "text": "The opposing formation directly opposite pays 1 additional Command to use an ACTION ability.",
-          "scope": "opponent",
-          "memory": [],
-          "exposed": "OPPOSITE ACTION +1"
-        }
-      ],
-      "text": "CONTINUOUS - The opposing formation directly opposite pays 1 additional Command to use an ACTION ability.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "command",
-        "disruption",
-        "positional-support",
-        "tax"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "continuous",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [],
-            "op": "action_tax",
-            "target": "opposite",
-            "amount": 1
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "The opposing formation directly opposite pays 1 additional Command to use an ACTION ability."
-        }
-      ],
-      "combat_redesign_proposal": "ATTACK - After this Force Shakes an opposing Middle Force, its next printed ACTION ability this Battle costs 1 additional Command."
+      "rule_blocks": []
     },
     {
       "id": "the-thornbow-hunters",
@@ -724,48 +673,20 @@
         "human",
         "raider"
       ],
-      "command_cost": 3,
+      "command_cost": 4,
       "strength": 5,
-      "effects": [
-        {
-          "timing": "continuous",
-          "text": "Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach.",
-          "scope": "opponent",
-          "memory": [],
-          "exposed": "PREPARED ATTACH +1"
-        }
-      ],
-      "text": "CONTINUOUS - Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "command",
-        "disruption",
-        "persistent-state",
-        "prepared-pressure",
-        "tax"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "continuous",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [],
-            "op": "prepared_attach_tax",
-            "front": "this",
-            "amount": 1
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach."
-        }
-      ],
-      "combat_redesign_proposal": "ATTACK - When this Force uses its basic Raider Attack against an already Depleted Force, its controller loses 1 Command and you regain 1 Command (minimum 1 for the opponent during a Battle), instead of applying Depleted."
+      "rule_blocks": []
     },
     {
       "id": "the-first-spear",
@@ -778,42 +699,18 @@
       ],
       "command_cost": 2,
       "strength": 4,
-      "effects": [
-        {
-          "timing": "front",
-          "text": "While this formation is in the Front row, flanking cannot Exhaust it.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "FRONT · Ignore flanking"
-        }
-      ],
-      "text": "FRONT - While this formation is in the Front row, flanking cannot Exhaust it.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "frontline",
-        "flank-defense"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "front",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "flank_guard",
-            "target": "self"
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "FRONT",
-          "text": "While this formation is in the Front row, flanking cannot Exhaust it."
-        }
-      ],
-      "combat_redesign_proposal": "FRONT - While this Force is in the Frontline, it cannot be targeted by basic Rider Attacks."
+      "rule_blocks": []
     },
     {
       "id": "the-old-guard",
@@ -826,43 +723,18 @@
       ],
       "command_cost": 2,
       "strength": 3,
-      "effects": [
-        {
-          "timing": "middle",
-          "text": "While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "MIDDLE · Guard Front Force from flanking"
-        }
-      ],
-      "text": "MIDDLE - While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "frontline",
-        "flank-defense",
-        "positional-support"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "middle",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "flank_guard",
-            "target": "directly_ahead"
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "MIDDLE",
-          "text": "While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
-        }
-      ],
-      "combat_redesign_proposal": "MIDDLE - While this Force is in Middle, the friendly Rear Force directly behind it cannot be targeted by basic Archer Attacks, even if this Guard is Shaken or Depleted."
+      "rule_blocks": []
     },
     {
       "id": "the-unnamed-host",
@@ -872,7 +744,7 @@
         "human",
         "raider"
       ],
-      "command_cost": 2,
+      "command_cost": 3,
       "strength": 5,
       "effects": [
         {
@@ -1118,46 +990,18 @@
       ],
       "command_cost": 2,
       "strength": 3,
-      "effects": [
-        {
-          "timing": "continuous",
-          "text": "Opposing Bonds played into this Front cost 1 additional Command.",
-          "scope": "opponent",
-          "memory": [],
-          "exposed": "BONDS HERE +1"
-        }
-      ],
-      "text": "CONTINUOUS - Opposing Bonds played into this Front cost 1 additional Command.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "command",
-        "persistent-state",
-        "tax"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "continuous",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [],
-            "op": "front_card_tax",
-            "card_types": [
-              "bond"
-            ],
-            "front": "this",
-            "amount": 1
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "Opposing Bonds played into this Front cost 1 additional Command."
-        }
-      ]
+      "rule_blocks": []
     },
     {
       "id": "the-ilyri",
@@ -1169,43 +1013,18 @@
       ],
       "command_cost": 2,
       "strength": 3,
-      "effects": [
-        {
-          "timing": "continuous",
-          "text": "The opposing formation directly opposite gets no Strength from its Bond.",
-          "scope": "opponent",
-          "memory": [],
-          "exposed": "OPPOSITE BOND STR 0"
-        }
-      ],
-      "text": "CONTINUOUS - The opposing formation directly opposite gets no Strength from its Bond.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "disruption",
-        "positional-support",
-        "suppression"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "continuous",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [],
-            "op": "suppress_bond_strength",
-            "target": "opposite",
-            "duration": "continuous"
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "The opposing formation directly opposite gets no Strength from its Bond."
-        }
-      ]
+      "rule_blocks": []
     },
     {
       "id": "the-damar",
@@ -1217,42 +1036,18 @@
       ],
       "command_cost": 2,
       "strength": 4,
-      "effects": [
-        {
-          "timing": "exhausted",
-          "text": "This Force may Maneuver while Exhausted, provided it is Named.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "Exhausted · may Maneuver if Named"
-        }
-      ],
-      "text": "EXHAUSTED - This Force may Maneuver while Exhausted, provided it is Named.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "exhaustion",
-        "movement"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "exhausted",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "tireless",
-            "target": "self"
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "EXHAUSTED",
-          "text": "This Force may Maneuver while Exhausted, provided it is Named."
-        }
-      ],
-      "combat_redesign_proposal": "WHILE NAMED - While this formation is Named, its Force may Maneuver while Exhausted."
+      "rule_blocks": []
     },
     {
       "id": "the-serekh",
@@ -1735,50 +1530,18 @@
       "bond_kind": "defence",
       "command_cost": 1,
       "strength_modifier": 1,
-      "effects": [
-        {
-          "timing": "play",
-          "text": "Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command.",
-          "scope": "opponent",
-          "memory": [
-            "front_marker"
-          ]
-        }
-      ],
-      "text": "PLAY - Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "command",
-        "play-effect",
-        "tax"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "play",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [
-              "front_marker"
-            ],
-            "op": "tax",
-            "front": "this",
-            "card_types": [
-              "any"
-            ],
-            "amount": 1,
-            "expires": "before_next_turn"
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "effect",
-          "label": "PLAY",
-          "text": "Place a Tax marker on this Front. The next card your opponent plays here before your next turn costs 1 additional Command."
-        }
-      ]
+      "rule_blocks": []
     },
     {
       "id": "held-the-line-for",
@@ -1834,49 +1597,22 @@
       "bond_kind": "capture",
       "command_cost": 1,
       "strength_modifier": 1,
-      "effects": [
-        {
-          "timing": "play",
-          "text": "If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
-          "scope": "opponent",
-          "memory": []
-        }
-      ],
+      "effects": [],
       "references": [
         "raider",
         "skirmisher"
       ],
-      "text": "PLAY - If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand.",
+      "text": "No special rules.",
       "design_tags": [
-        "information",
-        "play-effect"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "play",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [],
-            "op": "look_hand",
-            "target": "opponent_random",
-            "count": 2,
-            "requires_any_class": [
-              "raider",
-              "skirmisher"
-            ]
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "effect",
-          "label": "PLAY",
-          "text": "If this formation contains a Raider or Skirmisher, look at two random cards from your opponent's hand."
-        }
-      ],
+      "rule_blocks": [],
       "art_focus_y": "0%"
     },
     {
@@ -1931,48 +1667,18 @@
       "bond_kind": "loyalty",
       "command_cost": 1,
       "strength_modifier": 1,
-      "effects": [
-        {
-          "timing": "bonded",
-          "text": "While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "BONDED · NAME -1"
-        }
-      ],
-      "text": "BONDED - While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "command",
-        "command-recovery",
-        "formation-building",
-        "persistent-state"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "bonded",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "slot_discount",
-            "card_types": [
-              "name",
-              "hero_name"
-            ],
-            "amount": 1,
-            "minimum": 1
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "BONDED",
-          "text": "While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1."
-        }
-      ]
+      "rule_blocks": []
     },
     {
       "id": "endured-with",
@@ -1982,42 +1688,18 @@
       "bond_kind": "resolve",
       "command_cost": 1,
       "strength_modifier": 1,
-      "effects": [
-        {
-          "timing": "play",
-          "text": "Remove one -Strength marker from this formation.",
-          "scope": "self",
-          "memory": []
-        }
-      ],
-      "text": "PLAY - Remove one -Strength marker from this formation.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "play-effect",
-        "protection"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "play",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "remove_strength_marker",
-            "target": "self",
-            "count": 1
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "effect",
-          "label": "PLAY",
-          "text": "Remove one -Strength marker from this formation."
-        }
-      ],
-      "combat_redesign_proposal": "PLAY - Remove Shaken from this formation."
+      "rule_blocks": []
     },
     {
       "id": "rallied-behind",
@@ -2218,41 +1900,18 @@
       "bond_kind": "oath",
       "command_cost": 1,
       "strength_modifier": 1,
-      "effects": [
-        {
-          "timing": "while_named",
-          "text": "While this formation is Named, this formation's Name text cannot be suppressed.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "NAME CANNOT BE SUPPRESSED"
-        }
-      ],
-      "text": "WHILE NAMED - While this formation is Named, this formation's Name text cannot be suppressed.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "named-payoff",
-        "protection"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "while_named",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "name_suppression_immunity",
-            "target": "self"
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "WHILE NAMED",
-          "text": "While this formation is Named, this formation's Name text cannot be suppressed."
-        }
-      ]
+      "rule_blocks": []
     },
     {
       "id": "had-been-ordered-forward",
@@ -2262,52 +1921,22 @@
       "bond_kind": "order",
       "command_cost": 1,
       "strength_modifier": 1,
-      "effects": [
-        {
-          "timing": "bonded",
-          "text": "While this formation is Bonded, if this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "GUARD/SPEAR · +1"
-        }
-      ],
+      "effects": [],
       "references": [
         "guard",
         "spearman"
       ],
-      "text": "BONDED - While this formation is Bonded, if this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength.",
+      "text": "No special rules.",
       "design_tags": [
-        "classification-synergy",
-        "formation-building",
-        "persistent-state",
-        "strength"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "bonded",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "component_strength",
-            "component": "bond",
-            "amount": 1,
-            "requires_any_class": [
-              "guard",
-              "spearman"
-            ]
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "BONDED",
-          "text": "While this formation is Bonded, if this formation contains a Guard or Spearman, this Bond contributes +1 additional Strength."
-        }
-      ]
+      "rule_blocks": []
     },
     {
       "id": "namar",
@@ -2317,7 +1946,7 @@
         "human",
         "king"
       ],
-      "command_cost": 3,
+      "command_cost": 4,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -3200,7 +2829,7 @@
         "human",
         "steward"
       ],
-      "command_cost": 3,
+      "command_cost": 4,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -3728,7 +3357,7 @@
         "human",
         "raider"
       ],
-      "command_cost": 3,
+      "command_cost": 4,
       "unique": true,
       "force_strength": 5,
       "name_strength_modifier": 1,
@@ -5079,7 +4708,7 @@
       "type": "stratagem",
       "classes": [],
       "references": [],
-      "command_cost": 1,
+      "command_cost": 3,
       "effects": [
         {
           "timing": "hidden",
@@ -5303,7 +4932,7 @@
         "raider",
         "skirmisher"
       ],
-      "command_cost": 2,
+      "command_cost": 3,
       "effects": [
         {
           "timing": "hidden",
@@ -5819,7 +5448,7 @@
       "type": "narrative",
       "classes": [],
       "references": [],
-      "command_cost": 2,
+      "command_cost": 4,
       "effects": [
         {
           "timing": "action",
@@ -5968,7 +5597,7 @@
       "type": "narrative",
       "classes": [],
       "references": [],
-      "command_cost": 2,
+      "command_cost": 3,
       "effects": [
         {
           "timing": "action",
@@ -6168,44 +5797,18 @@
       ],
       "command_cost": 2,
       "strength": 4,
-      "effects": [
-        {
-          "timing": "while_named",
-          "text": "While this formation is Named, flanking cannot Exhaust it.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "NAMED · Ignore flanking"
-        }
-      ],
-      "text": "WHILE NAMED - While this formation is Named, flanking cannot Exhaust it.",
+      "effects": [],
+      "text": "No special rules.",
       "design_tags": [
-        "named-payoff",
-        "frontline",
-        "flank-defense"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "while_named",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "flank_guard",
-            "target": "self",
-            "requires_named": true
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "WHILE NAMED",
-          "text": "While this formation is Named, flanking cannot Exhaust it."
-        }
-      ],
-      "combat_redesign_proposal": "FRONT - While this Force is in Frontline, opposing Rider Attacks targeting friendly Frontline Forces in an adjacent active Front cost 1 Command."
+      "rule_blocks": []
     },
     {
       "id": "the-salt-road-fleet",
@@ -6317,53 +5920,22 @@
       "bond_kind": "vigil",
       "command_cost": 1,
       "strength_modifier": 0,
-      "effects": [
-        {
-          "timing": "bonded",
-          "text": "While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "ARCHER/SCOUT · +1"
-        }
-      ],
+      "effects": [],
       "references": [
         "archer",
         "scout"
       ],
-      "text": "BONDED - While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
+      "text": "No special rules.",
       "design_tags": [
-        "classification-synergy",
-        "formation-building",
-        "persistent-state",
-        "strength"
+        "simple",
+        "baseline"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [
-          {
-            "timing": "bonded",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "component_strength",
-            "component": "bond",
-            "amount": 1,
-            "requires_any_class": [
-              "archer",
-              "scout"
-            ]
-          }
-        ],
+        "effects": [],
         "modes": {}
       },
-      "rule_blocks": [
-        {
-          "kind": "continuous",
-          "label": "BONDED",
-          "text": "While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength."
-        }
-      ],
-      "combat_redesign_proposal": "BONDED - If this formation contains an Archer, its basic Attack may target a screened Rear Force, but Shakes instead of Exhausting it."
+      "rule_blocks": []
     },
     {
       "id": "kept-the-gate-for",
