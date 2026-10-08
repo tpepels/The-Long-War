@@ -72,11 +72,9 @@ If a Bond or Name is played into a position without a Force, it is **prepared** 
 
 Each position holds one of each layer. To change an attached Bond or Name, use a card effect that removes, returns, or exchanges it; this makes attachment-manipulation cards valuable. A Force is played into a position that has no Force. Unless a card says otherwise, components stay on the battlefield between Battles.
 
-**PLAY** text resolves when the particular card is played, including when placed prepared. If it needs a Force or other legal target that does not exist at that moment, that effect does nothing; it does not wait for a later attachment. **BECOMES NAMED** text resolves whenever an actual formation changes from not Named to Named, including after rebuilding it with a newly attached Bond or Name. An existing Named Formation does not trigger again merely because it is moved or a Battle begins.
+**PLAY** effects resolve as you play a card, including a prepared Bond or Name. **BECOMES NAMED** effects happen when a formation gains its final missing layer. This makes completing a formation an event in its own right, and sometimes a rewarding combination with the card that completed it.
 
-When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
-
-For example, if Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, resolve the Bond's PLAY effect (its free Maneuver) first; then resolve Mara's BECOMES NAMED effect. A Maneuver or Move can change where Mara finishes before her effect is resolved.
+For instance, a Force joined with a Bond and Name immediately becomes a Named Formation. Read the new component's PLAY instructions first, then the newly completed formation's BECOMES NAMED instructions. The Reference explains the rarer cases involving preparation, rebuilding and several effects at once.
 
 ### Row and placement restrictions
 
@@ -164,9 +162,7 @@ A **Stratagem** is a hidden plan. Playing one costs one Action and its printed C
 
 When the Stratagem's printed trigger occurs, its owner **may** reveal and resolve it or leave it face-down for a later eligible opportunity that Battle. If a card explicitly tells you to reveal an opponent's Stratagem, that is a compulsory inspection/reveal effect, not the opponent choosing to activate its ability. A revealed Stratagem resolves once and is discarded. All unrevealed Stratagems are discarded at Battle end. A used Stratagem does not move to another Front unless a card explicitly moves it.
 
-When both players can reveal eligible Stratagems **at the same event**, each chooses privately whether to reveal, then they reveal simultaneously. Eligibility is checked against the **same board state before either reveal**. Prevention overrides the action it prevents; incompatible simultaneous attempts to move the **same formation** cancel, while independent effects both apply. If necessary, apply each effect's independent portions after cancelling the conflicting movement. No player gains a timing advantage from who Passed.
-
-During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. This deliberate single-window rule keeps the final outcome unambiguous.
+When opposing Stratagems have the same trigger, each player decides privately whether to reveal and both decisions are shown together. The Battle resolution procedure below explains the special single reveal window used when Fronts are compared; the Reference covers conflicting effects.
 
 **Heroes** are Unique cards played **either as a Force or as a Name**. Choose a mode when playing the card and use only that mode's printed Strength and abilities. Each Battle, you may play at most **1 Hero as a Force** and **1 Hero as a Name** from your hand. Heroes already on the battlefield from earlier Battles do not use those allowances. A Hero used as a Name contributes its printed Name modifier and classifications, not its Force Strength.
 
@@ -231,6 +227,20 @@ Draw until you hold **10 cards**; reset printed once-per-Battle allowances; open
 ## Reference {#reference}
 
 The following details settle unusual card interactions. You can learn the game from the previous sections and consult this Reference when a card calls for it.
+
+### Completing and rebuilding formations
+
+**PLAY** text resolves when the particular card is played, including when placed prepared. If it needs a Force or other legal target that does not exist at that moment, that effect does nothing; it does not wait for a later attachment. **BECOMES NAMED** text resolves whenever an actual formation changes from not Named to Named, including after rebuilding it with a newly attached Bond or Name. An existing Named Formation does not trigger again merely because it is moved or a Battle begins.
+
+When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
+
+For example, if Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, resolve the Bond's PLAY effect (its free Maneuver) first; then resolve Mara's BECOMES NAMED effect. A Maneuver or Move can change where Mara finishes before her effect is resolved.
+
+### Simultaneous Stratagems
+
+When both players can reveal eligible Stratagems **at the same event**, each chooses privately whether to reveal, then they reveal simultaneously. Eligibility is checked against the **same board state before either reveal**. Prevention overrides the action it prevents; incompatible simultaneous attempts to move the **same formation** cancel, while independent effects both apply. If necessary, apply each effect's independent portions after cancelling the conflicting movement. No player gains a timing advantage from who Passed.
+
+During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. This deliberate single-window rule keeps the final outcome unambiguous.
 
 ### Timing words
 
