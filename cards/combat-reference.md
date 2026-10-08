@@ -1,35 +1,47 @@
-# Combat and condition quick reference
+# Combat and conditions — physical quick reference
 
-> **Design reference only:** the Attack, affliction and Boon system is specified in the rulebook, but not fully implemented by the current native runtime. The canonical card catalogue still displays executable card text from `cards.json`.
+> **Print version, not native/Webgame rules.** The definitive rules are in [the rulebook](../rules/rulebook.md). Cards use the printable overlay in `cards/print-overrides.json`.
 
-## Actions and Attack
+## Turn and Pass
 
-On a normal turn, draw one card and take up to two Actions: play a card, Maneuver a Named Formation (1 Command), Attack with an eligible Force, or discard two cards to draw one. A Force may Attack once per Battle, without Command payment by default, unless Depleted. A multi-class Force chooses one basic Attack.
+Before drawing, either **Pass** (a complete turn with no draw and no Actions) or draw **1** and take up to **2 Actions**: play a card, use a printed ACTION ability, Maneuver (1 Command), Attack, or cycle two cards into one. Passing voluntarily starts exactly two closing turns: opponent (draw, up to 2 Actions), then passer (draw, up to 2 Actions), then Battle resolution.
 
-| Force | Target | Attack |
-|---|---|---|
-| Archer | Opposing Rear Force in the same Front | Exhaust |
-| Skirmisher | Opposing Middle Force in the same Front | Shake |
-| Raider | Opposing Middle/Rear Force in the same Front if its opposing Frontline is empty | Deplete |
-| Rider | Flanked opposing Frontline Force in adjacent active Front | Shake |
+## Formation Strength and classifications
 
-## Conditions
+Force Strength + printed Bond modifier + printed Name modifier (including Hero-as-Name) + applicable effects, minimum **0 per formation**. Add all formations across a Front. Attachments contribute no Strength without a Force. An attached Name contributes all its classifications to the Force; multiple Attack types still allow **one Attack per Force per Battle**. Separate card effects stack; one effect is applied only once per formation.
 
-| Code | Condition | Meaning |
-|---|---|---|
-| E | Exhausted | Cannot initiate Maneuver |
-| S | Shaken | -2 formation Strength at Front resolution; minimum zero |
-| D | Depleted | Cannot Attack or activate printed formation ACTION abilities |
-| G | Guarded | Prevent next affliction on that Force, then remove Guarded |
-| I | Inspired | Remove/prevent Shaken while active |
-| P | Empowered | Next Attack ignores screening, then remove Empowered |
+| Classification | Basic Attack target | Result |
+| --- | --- | --- |
+| Archer | Opposing Rear Force in same Front | Exhaust |
+| Skirmisher | Opposing Middle Force in same Front | Shake |
+| Raider | Opposing Middle or Rear Force if opposing Frontline empty | Deplete |
+| Rider | Opposing flanked Frontline Force in adjacent active Front | Shake |
 
-All conditions are binary, move with the affected formation and clear at Battle end. A condition marker never covers buried Force/Bond reminders or the top Name's rules. A single six-position check strip beside the formation can record all six with generic cubes or pencil marks; used-Attack is tracked separately. Flanking itself needs no marker.
+A Middle Guard screens the Rear from a basic Archer Attack unless Shaken or Depleted, except when a card grants explicit screening while Shaken.
 
-## Position and screening
+## Flanking and markers
 
-Adjacent active Frontlines can flank each other **in either direction**. A Frontline Force is flanked if the opponent occupies the neighboring Frontline and it does not. An inactive Front and the outside battlefield edge never create a flank. Being flanked has no automatic penalty. A Middle Guard screens the Rear Force directly behind from basic Archer Attacks, unless Shaken or Depleted. A card that explicitly bypasses screening can still target it.
+A Frontline Force is flanked when its opponent has a Frontline Force in an adjacent active Front but it has no matching friendly Frontline Force there. **−1 Strength while flanked** (only once even if threatened on two sides). The penalty disappears when the flank closes; **no flank marker**.
 
-## Recovery and Battle end
+| Marker | Meaning |
+| --- | --- |
+| Exhausted | Cannot initiate Maneuvers. May still Attack, use abilities and add Strength. |
+| Shaken | −2 Strength to this formation and loses basic Guard screening. |
+| Depleted | Cannot Attack or activate ACTION abilities; loses basic Guard screening. |
+| Guarded | Prevent next affliction, including defeat Exhaustion, then remove. |
+| Inspired | Remove and prevent Shaken while present. |
+| Empowered | Next Attack ignores screening, but not range or flanking rules. |
 
-No general recovery Action. Printed Healer, Steward, Druid, Order and other card effects can remove or prevent conditions. After resolving Fronts, applying Command losses and checking Collapse, clear all conditions and Attack-used markers. Force, Bond, Name and battlefield positioning persist between Battles.
+## End of Battle
+
+1. Eligible pre-comparison and tie-related Stratagems are chosen **secretly and revealed simultaneously** in a single window, checked against the state before reveals.
+2. Resolve independent effects, prevent prevented actions, cancel contradictory movement, then compare each Front.
+3. Resolve Battle-end effects, lose 1 Command per lost Front, and check Collapse at 0 or less **before** recovery.
+4. Before clearing Boons, Guarded can prevent loss-based Exhaustion. Clear old afflictions and Boons, then apply **one new Exhaustion token** to each unprotected Force in each lost Front. These tokens last **through the next Battle**, unless removed early.
+5. Discard Battle-duration Narratives and unused Stratagems, clear used Attack/once-per-Battle markers, recover Command, refill hands to 10, open the next Front, and let the non-passer start.
+
+## Card-timing reminders
+
+PLAY resolves when played (also when prepared), not later. BECOMES NAMED can retrigger upon rebuilding after a genuine loss of Named status. Attached Force/Name classifications combine. ACTION takes a turn Action. ATTACK modifies an existing Attack. Move into compatible prepared cards to attach them; don't overwrite an occupied Bond/Name layer. Printed once-per-Battle use stays spent even if a card is returned and replayed. Narratives stay face-up until Battle end (max **4**). A set Stratagem is publicly assigned to an active Front and optionally revealed when eligible.
+
+A condition tracker alongside a formation should not obscure buried live reminders on the exposed 10.5 mm edges.

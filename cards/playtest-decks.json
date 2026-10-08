@@ -6,10 +6,10 @@
     {
       "id": "reposition-reuse",
       "title": "Maneuver & Relief",
-      "playstyle": "Use row changes, MOBILE/TIRELESS movement, local support and information to keep reshaping a Front after both players have committed.",
+      "playstyle": "Use row changes, unnamed and Exhausted movement exceptions, local support and information to keep reshaping a Front after both players have committed.",
       "hypothesis": "Do movement and relief effects create a real positional puzzle when the deck has enough Riders, Scouts and rank-sensitive support to make rearranging the line worth an Action?",
       "combo_notes": [
-        "Signal Company sits only in Middle and makes the Force directly ahead MOBILE, letting an Unnamed front-line Force reposition without first completing a Named Formation.",
+        "Signal Company sits only in Middle and lets the Force directly ahead Maneuver without being Named, so a front-line Force can reposition before becoming Named.",
         "Grey Riders + The Long March gives cheap early movement; Signal Company adds a different route to mobility by coordinating the line from behind.",
         "Re-form the Line, Neris, Kael, Elian and Sela provide different kinds of repositioning, so the deck can rotate a damaged line rather than simply add Strength.",
         "The Salt-Road Fleet moves an ally toward Rear, enabling a Ship alongside Before Sunset's Ship-or-Scout information effect; Banner Singers and Supported By now protect the second line by taxing opposing Tactics."
@@ -559,7 +559,7 @@
       "playstyle": "Build resilient columns, let the opponent commit into them, then turn Exhaustion, Reserve, protection and second-line support into the counter-push.",
       "hypothesis": "Can a defensive deck remain active and positional when its payoff is rotating and reinforcing damaged lines rather than simply preventing interaction?",
       "combo_notes": [
-        "Relief Column is Middle-only and makes the Force directly ahead TIRELESS, so an exhausted front line can still Maneuver instead of becoming a static liability.",
+        "Relief Column is Middle-only and lets the Force directly ahead Maneuver while Exhausted, so an Exhausted front line can still Maneuver rather than becoming fixed in place.",
         "Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the line ahead.",
         "Damar becomes dangerous after Exhaustion, while Relief Column, Maelin and Catch Your Breath offer different choices between exploiting Exhaustion and restoring mobility.",
         "Serekh, Red Shields, Alda, Veyra and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield."

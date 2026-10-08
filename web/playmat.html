@@ -30,7 +30,7 @@
 
     <div class="reference-v3-main">
       <section class="reference-v3-board" aria-label="Battlefield diagram">
-        <div class="rv-player"><strong>OPPONENT</strong><span>STRATAGEM AREA · face-down · one from hand per Battle</span></div>
+        <div class="rv-player"><strong>OPPONENT</strong><span>STRATAGEMS · face-down at a chosen active Front · one from hand per Battle</span></div>
         <div class="rv-front-labels"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
         <div class="rv-side opponent">
           <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot middle"><b>Middle / Support</b></span><span class="rv-slot front"><b>Frontline</b></span></div>
@@ -46,7 +46,7 @@
           <div><span class="rv-slot front"><b>Frontline</b></span><span class="rv-slot middle"><b>Middle / Support</b></span><span class="rv-slot rear"><b>Rear</b></span></div>
         </div>
         <div class="rv-front-labels bottom"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
-        <div class="rv-player you"><strong>YOU</strong><span>STRATAGEM AREA · face-down · one from hand per Battle</span></div>
+        <div class="rv-player you"><strong>YOU</strong><span>STRATAGEMS · face-down at a chosen active Front · one from hand per Battle</span></div>
         <div class="rv-language">
           <b>Active Fronts</b> = Battle I: middle 2 · Battle II: add left outer · Battle III+: all 4
           <b>Adjacent</b> = shares an edge: left/right or one rank forward/back · never diagonal
@@ -58,10 +58,10 @@
         <section class="rv-turn">
           <span>YOUR TURN</span>
           <ol>
-            <li><b>Start turn:</b> draw {{TURN_DRAW_COUNT}}. If your hand rises above {{HAND_LIMIT}} cards, discard down to {{HAND_LIMIT}} before play continues. Reshuffle discard only if deck empties.</li>
-            <li><b>Act:</b> take up to {{ACTIONS_PER_TURN}} Actions - play a card, Maneuver, or Cycle (discard 2, draw 1). You may repeat an Action type or end your turn early.</li>
+            <li><b>Before drawing:</b> choose to Pass (no draw, no Actions), or take a normal turn.</li><li><b>Normal turn:</b> draw {{TURN_DRAW_COUNT}}. Discard down to {{HAND_LIMIT}} if needed; reshuffle discard if the deck empties.</li>
+            <li><b>Act:</b> take up to {{ACTIONS_PER_TURN}} Actions: play a card, use an ACTION ability, Maneuver, Attack, or Cycle (discard 2, draw 1). Ending early is not Pass.</li>
             <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one adjacent active position - left/right or one rank forward/back, never diagonal - or swap with a friendly formation. Exhausted Forces cannot Maneuver.</li>
-            <li><b>Pass:</b> only when no legal Action remains after your draw. Opponent takes one full closing turn, then you take one full closing turn, then the Battle ends.</li>
+            <li><b>Pass:</b> voluntary, before drawing. Opponent takes one full closing turn (draw + up to 2 Actions), then the passer takes one; resolve the Battle.</li>
           </ol>
         </section>
 
@@ -72,34 +72,34 @@
             <div><dt>Bond</dt><dd>Any position without a Bond; may be prepared, but contributes 0 Strength without a Force.</dd></div>
             <div><dt>Name</dt><dd>Any position without a Name; may be prepared, but contributes 0 Strength without a Force.</dd></div>
             <div><dt>Hero</dt><dd>Play at most {{HERO_FORCE_PLAY_LIMIT_PER_BATTLE}} Hero as Force and {{HERO_NAME_PLAY_LIMIT_PER_BATTLE}} Hero as Name from hand per Battle.</dd></div>
-            <div><dt>Narrative</dt><dd>Legend, Saga, Myth, Omen, Warning, Prophecy, or Conspiracy; face-up; max {{ONGOING_NARRATIVE_LIMIT}} Ongoing per player.</dd></div>
+            <div><dt>Narrative</dt><dd>Face-up until this Battle ends; maximum <b>4</b> per player. CONTINUOUS text stays active; ACTION abilities require an Action.</dd></div>
             <div><dt>Tactic</dt><dd>One-shot hostile card; resolve immediately, then discard.</dd></div>
             <div><dt>Order</dt><dd>One-shot friendly card; resolve immediately, then discard.</dd></div>
-            <div><dt>Stratagem</dt><dd>Set face-down in your separate Stratagem area; existence and any chosen Front/direction/formation are public, identity hidden until revealed; max {{STRATAGEM_PLAY_LIMIT_PER_BATTLE}} from hand per Battle.</dd></div>
+            <div><dt>Stratagem</dt><dd>Choose an active Front publicly; place face-down beside it. Reveal is optional when triggered. Max {{STRATAGEM_PLAY_LIMIT_PER_BATTLE}} from hand per Battle.</dd></div>
           </dl>
         </section>
 
         <section>
           <span>CARD TEXT</span>
-          <p>Roles and classifications are labels. Printed row restrictions are hard occupancy restrictions. MOVE and SWAP are card effects, not Maneuvers. MOBILE ignores only the Named requirement; TIRELESS ignores only the Exhaustion restriction.</p>
+          <p><b>Stack:</b> Force + Bond + Name; modifiers add to Force Strength, minimum 0 per formation. Attached Name classifications combine with the Force, including basic Attacks (one Attack per Force per Battle). Compatible prepared layers attach when a formation moves into them. <b>Flanked Frontline:</b> −1 Strength while flanked, no marker. <b>PLAY</b> resolves on play; <b>BECOMES NAMED</b> triggers on genuine completion. MOVE and SWAP are not Maneuvers.</p>
         </section>
 
         <section class="rv-score">
           <span>AFTER THE TWO CLOSING TURNS</span>
           <ol>
-            <li>Resolve each active Front separately. Higher Strength wins; ties cost neither player Command.</li>
-            <li>Resolve Battle-end effects, then clear effects that last only for this Battle.</li>
-            <li>Each Force in a Front you lost gains one Exhaustion token (max 1) and can no longer Maneuver. Then lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost, applying the loss in full even below 0. The battlefield itself does not move or clear.</li>
-            <li>Check Command Collapse before recovery: lower Command loses; if both are equally at/below {{COLLAPSE_THRESHOLD}}, the player who Passed loses. If the war continues, recover and the player who did not Pass starts the next Battle.</li>
+            <li>One simultaneous Stratagem reveal window, using pre-reveal board and Strength for eligibility. Prevention wins; conflicting moves cancel.</li>
+            <li>Compare Strength in each active Front (minimum 0 per formation); record lost Fronts and ties. Resolve Battle-end card effects.</li>
+            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost; check Collapse at {{COLLAPSE_THRESHOLD}} before recovering.</li>
+            <li>Guarded can prevent lost-Front Exhaustion. Clear old temporary conditions, then Exhaust every other Force in a lost Front for the <b>next Battle</b>. Recover, refill and open the next Front.</li>
           </ol>
         </section>
       </aside>
     </div>
 
     <footer class="reference-v3-footer">
-      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. After Battle-end effects, lose {{LOST_FRONT_COMMAND_PENALTY}} per unprotected Front lost. If either player is at or below {{COLLAPSE_THRESHOLD}}, lower Command loses; if equal, the player who Passed loses.</span></div>
+      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}, cap {{COMMAND_CAP}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. Lose {{LOST_FRONT_COMMAND_PENALTY}} per unprotected Front lost. Collapse at {{COLLAPSE_THRESHOLD}} or below: lower Command loses, equal collapsed totals means passer loses.</span></div>
       <div><b>RECOVERY</b><span>If the war continues, recover the current base: <b>{{RECOVERY_SERIES}}</b>, minimum {{RECOVERY_FLOOR}}; Front losses have already reduced Command before Collapse; max total {{COMMAND_CAP}}.</span></div>
-      <div><b>BETWEEN BATTLES</b><span>The whole battlefield persists, including Exhaustion tokens, prepared and incomplete stacks · clear Battle-only effects and temporary Strength · refill to {{HAND_LIMIT}} · activate the next Front when appropriate · the player who did not Pass starts.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>Clear old afflictions and Boons, preserve Guarded protection from lost-Front Exhaustion, then place new Exhaustion on unprotected Forces in lost Fronts for the next Battle. Formations and prepared cards stay · refill to {{HAND_LIMIT}} · activate the next Front · non-passer starts.</span></div>
     </footer>
   </main>
 </body>
