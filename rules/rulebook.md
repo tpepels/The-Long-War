@@ -153,7 +153,7 @@ Boons are temporary beneficial conditions. They do not stack with themselves and
 - **Inspired:** remove Shaken and prevent Shaken while Inspired.
 - **Empowered:** the next Attack by this Force ignores **screening**. Remove Empowered after that Attack. It does not ignore target range, flanking or the once-per-Battle Attack limit.
 
-Prevented afflictions do not count as inflicted for card effects. A card's **name** need not be the same as a Boon: the Bond titled *Guarded* removes a negative marker, while *Endured With* grants the Guarded Boon.
+Prevented afflictions do not count as inflicted for card effects. The Bond *Guarded* grants the **Guarded** Boon, and *Endured With* grants **Inspired**. *The Crow Archers* can gain **Empowered** when played. These are examples of what the printed Boons look like in play.
 
 Middle Guards provide their usual screening. Other roles—Strongholds, Ships, Healers, Stewards and Scouts—do **not** have universal protection or movement rules merely because of their classification. Their individual cards specify what they do.
 
