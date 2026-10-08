@@ -57,7 +57,7 @@ CARD ICON SIZES — TUNING PANEL
     --icon-used-marker-size       Once-per-Battle circle beside rule text
     --icon-hero-used-size         Compact Hero once-per-Battle circle
 
-  Tip: try changing 4mm to 4.5mm or 3.5mm, then compare cards.html and
+  Tip: try 4.2mm for a subtler change or 4.8mm for a larger icon, then compare cards.html and
   playtest-kit.html in both normal and print views. The 10.5mm exposed strip
   and printed card dimensions are intentionally unchanged. Oversized icons
   can crowd labels or reminders: adjust carefully and print a test sheet.
@@ -77,12 +77,12 @@ CARD ICON SIZES — TUNING PANEL
 */
 :root {
   /* Exposed edge symbols */
-  --icon-edge-type-size: 4mm;
-  --icon-edge-hero-force-size: 4mm;
-  --icon-edge-hero-name-size: 4mm;
-  --icon-edge-class-size: 4mm;
-  --icon-edge-row-size: 4mm;
-  --icon-edge-event-size: 4mm;
+  --icon-edge-type-size: 4.5mm;
+  --icon-edge-hero-force-size: 4.5mm;
+  --icon-edge-hero-name-size: 4.5mm;
+  --icon-edge-class-size: 4.5mm;
+  --icon-edge-row-size: 4.5mm;
+  --icon-edge-event-size: 4.5mm;
 
   /* Body and footer */
   --icon-classification-size: 3.2mm;
