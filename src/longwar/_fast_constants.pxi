@@ -47,7 +47,9 @@ DEF PRE_RESOLUTION_CONTRIBUTION_END = PRE_RESOLUTION_RETREAT_END + SLOT_COUNT
 DEF PRE_RESOLUTION_SUPPRESSION_END = PRE_RESOLUTION_CONTRIBUTION_END + SLOT_COUNT
 DEF PRE_RESOLUTION_SACRIFICE_END = PRE_RESOLUTION_SUPPRESSION_END + SLOT_COUNT
 
-DEF MAX_CARDS = 128
+# The canonical pool has 131 identities. Reserve space for future additions
+# while staying below the 8-bit action-card sentinel limit (255).
+DEF MAX_CARDS = 192
 # A legal deck may contain four copies of every non-Unique card. Size native
 # card zones for the full wire-format card pool rather than imposing a hidden
 # 254-card deck rule.
