@@ -60,6 +60,18 @@ Guards in Middle screen the Rear Force directly behind against basic Archer Atta
 
 There are exactly three core afflictions: **Exhausted** prevents initiating Maneuvers; **Shaken** reduces formation Strength by 2 at Front resolution (minimum zero); **Depleted** prevents Attacks and printed ACTION abilities on the formation. Duplicate markers do not stack. All three clear at Battle end; recovery is card-specific, with no generic Recover Action.
 
+## Boons and protection
+
+Boons are temporary beneficial markers. Like afflictions, they do not stack with themselves, move with the Force, and all clear at Battle end.
+
+- **Guarded:** Prevent the next affliction that would affect this Force, then remove Guarded. It does not protect against forced movement, attachment removal or Command loss.
+- **Inspired:** Remove Shaken from this Force and prevent it becoming Shaken while Inspired.
+- **Empowered:** The next Attack this Force makes ignores screening. Remove Empowered after that Attack. All other range, flanking and eligibility restrictions still apply.
+
+A Depleted Force cannot Attack even if Empowered. A prevented affliction does not count as inflicted for card effects that refer to an enemy becoming afflicted. There is no generic Action to gain a Boon: cards grant them.
+
+Protection and support are different roles. Middle Guards screen Rear Forces from basic Archer Attacks. Strongholds may protect attachments and prepared cards; Ships may move friendly formations out of danger; Healers remove afflictions; Druids grant and transform Boons; Stewards remove Depletion; and Carriers move components or transfer Boons. These roles grant no universal bonuses unless explicitly stated on a card.
+
 ## Flanking
 
 A Frontline Force is flanked if an enemy Frontline Force occupies an immediately adjacent active Front and its controller has no Frontline Force in that neighboring Front. This applies in **both directions** between any active adjacent Fronts. Inactive Fronts and the outside edges of the active battlefield never create a flank. A flank is only a tactical condition; it **does not automatically apply an affliction**. Rider Attacks and specific card effects exploit it.
