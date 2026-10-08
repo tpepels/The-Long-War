@@ -5568,7 +5568,7 @@
         {
           "timing": "play",
           "text": "Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty.",
-          "scope": "opponent",
+          "scope": "self",
           "memory": []
         }
       ],
@@ -5583,7 +5583,7 @@
         "effects": [
           {
             "timing": "play",
-            "scope": "opponent",
+            "scope": "self",
             "limit": null,
             "memory": [],
             "op": "move",
