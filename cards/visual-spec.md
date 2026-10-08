@@ -69,9 +69,8 @@ very-compact typography fallback. The strip keeps fixed outer padding and clips
 nothing outside its own zone. Heroes show separate Force and Name values in the
 left zone.
 
-Human uses a profile medallion, Spearman an upright spearpoint, and Veteran
-double chevrons. Kinds retain circular outlines; roles and ranks use unframed
-silhouettes. The classification line repeats the symbols alongside their words.
+Human uses a profile medallion; remaining kinds retain circular outlines,
+while roles and ranks use unframed silhouettes. The classification line repeats the symbols alongside their words.
 Action uses a circled cross. These are functional SVGs, not decorative frames.
 
 The exposed strip uses a single **2.45 mm** text scale and a single **3.8 mm**
