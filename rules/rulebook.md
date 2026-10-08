@@ -49,7 +49,7 @@ There is no single winner of a Battle as a whole. Each active Front is settled s
 
 For a two-player print-and-play game, each player needs a deck. The published playtest decks contain 48 cards each, while custom decks follow the construction rules at the end of this book.
 
-You will also need a visible way to track **Command from 0 to 20**, a small supply of **Exhausted**, **Shaken**, **Depleted**, **Tax**, suppression, and used/once-per-Battle markers, and **4 Front markers** to show which parts of the battlefield are active. The printed **Reference** sheet and optional marker sheet are designed to cover these needs.
+You will also need a visible way to track **Command from 0 to 20**, a six-condition tracker beside each affected formation (Exhausted, Shaken, Depleted, Guarded, Inspired, Empowered), generic check markers, used-Attack and once-per-Battle markers, and any Tax markers required by printed cards, and **4 Front markers** to show which parts of the battlefield are active. The printed **Reference** sheet and optional marker sheet are designed to cover these needs.
 
 You do not need a dedicated playmat. Arrange four Front columns between the players, with a Frontline, Middle/Support, and Rear position on each side of every Front.
 
@@ -87,7 +87,7 @@ That distinction matters. On an ordinary turn, if no legal Action remains after 
 
 Playing a card or Maneuvering may also cost Command. You cannot voluntarily spend more Command than you have, and voluntary spending cannot take you below 0 Command. A cost reduction cannot reduce a card below 1 Command unless the card explicitly says it can cost 0.
 
-There is no generic Draw Action or Advance Action. Your choices come from playing cards, Maneuvering, and cycling.
+There is no generic Draw Action or Advance Action. Attacking is also an Action; the next section explains who can Attack and what happens.
 
 ## Playing cards {#cards}
 
@@ -125,23 +125,6 @@ A Force with an **Exhaustion token** cannot initiate a Maneuver. Exhaustion does
 
 During the resolution of a single Action or effect, each formation may initiate at most one Maneuver. There is no automatic Maneuver between Battles.
 
-### Attacking
-
-As one Action, choose one of your Forces with a basic Attack or an Attack granted by card text. It may Attack **once per Battle**, whether or not it is Named. An Attack costs no Command unless its text says otherwise. Mark the Force as having attacked; recovering afflictions does not restore its Attack allowance. A Depleted Force cannot initiate an Attack.
-
-Declare a legal opposing Force as the target, resolve reactions and applicable protection, then apply the Attack's effect. Attacks do not deal health damage or destroy Forces by default. An Attack cannot choose a prepared Bond or Name without explicit permission. An effect cannot bypass printed row restrictions. A Force with several combat classifications chooses one basic Attack, never one Attack per classification. An Attack granted by a card replaces or modifies the basic Attack only when its text says so.
-
-The following classifications have basic Attacks; other classifications have none unless a card grants one:
-
-| Attacker | Legal target | Effect |
-|---|---|---|
-| Archer | Opposing Rear Force in the same Front | Exhaust it |
-| Skirmisher | Opposing Middle Force in the same Front | Shake it |
-| Raider | Opposing Middle or Rear Force in the same Front, only if the opposing Frontline there is empty | Deplete it |
-| Rider | Opposing flanked Frontline Force in an adjacent active Front | Shake it |
-
-A Guard in the Middle rank **screens** the friendly Rear Force directly behind it from basic Archer Attacks. A Shaken or Depleted Guard cannot screen. Screening applies only to the basic Archer Attack, unless a card says otherwise.
-
 ### Afflictions and recovery
 
 A Force can have at most one marker of each of the following afflictions. A repeated application of an affliction it already has has no further effect unless the card explicitly says otherwise. Markers move with the complete formation.
@@ -169,6 +152,24 @@ Protection and support are different roles. Middle Guards screen Rear Forces fro
 A **Frontline Force** is flanked if an opposing Frontline Force occupies an immediately adjacent **active** Front and its controller has no Frontline Force in that neighboring Front. Either side can flank across any pair of adjacent active Fronts, in either direction. Fronts 2 and 3 can flank each other from Battle I.
 
 An inactive Front does not count, and the outside edge of the active battlefield is a **safe battlefield edge**: an absent neighboring Front never creates a flank by itself. Flanking is evaluated when an Attack or card needs it, not after every Action. It does **not** automatically cause Exhaustion, Shaken, damage or other penalties. Cards and Rider Attacks can exploit a flanked Force.
+
+## Attacking {#attacking}
+
+
+As one Action, choose one of your Forces with a basic Attack or an Attack granted by card text. It may Attack **once per Battle**, whether or not it is Named. An Attack costs no Command unless its text says otherwise. Mark the Force as having attacked; recovering afflictions does not restore its Attack allowance. A Depleted Force cannot initiate an Attack.
+
+Declare a legal opposing Force as the target, resolve reactions and applicable protection, then apply the Attack's effect. Attacks do not deal health damage or destroy Forces by default. An Attack cannot choose a prepared Bond or Name without explicit permission. An effect cannot bypass printed row restrictions. A Force with several combat classifications chooses one basic Attack, never one Attack per classification. An Attack granted by a card replaces or modifies the basic Attack only when its text says so.
+
+The following classifications have basic Attacks; other classifications have none unless a card grants one:
+
+| Attacker | Legal target | Effect |
+|---|---|---|
+| Archer | Opposing Rear Force in the same Front | Exhaust it |
+| Skirmisher | Opposing Middle Force in the same Front | Shake it |
+| Raider | Opposing Middle or Rear Force in the same Front, only if the opposing Frontline there is empty | Deplete it |
+| Rider | Opposing flanked Frontline Force in an adjacent active Front | Shake it |
+
+A Guard in the Middle rank **screens** the friendly Rear Force directly behind it from basic Archer Attacks. A Shaken or Depleted Guard cannot screen. Screening applies only to the basic Archer Attack, unless a card says otherwise.
 
 ## Cycling cards
 
@@ -306,7 +307,7 @@ During each Battle you may play up to two Heroes from your hand: at most **1 as 
 
 A card marked **Unique** may appear at most once in your deck. Unique is a deck-building restriction, not a shared battlefield limit, so both players may control their own copy of the same Unique card.
 
-Words such as *Swordsman*, *Archer*, *Human*, *King*, or *Ship* are classifications. They have no rule of their own unless a card refers to them.
+Classifications identify the kind, role or rank of a card. **Archer, Skirmisher, Raider and Rider** have the basic Attacks described in the Attacking section. **Guard** also has the screening rule described there. Other classifications, such as *Human*, *King* and *Ship*, have no automatic effect unless a card refers to them.
 
 ## Reference {#reference}
 
@@ -322,15 +323,15 @@ A card effect that says **move one position** moves the complete formation into 
 
 Some cards **return an attached Bond or Name to its owner's hand**. This leaves the Force in place and may cause its formation to stop being Bonded or Named. Prepared cards have no Force beneath them and may be moved or returned only when a card explicitly permits it. A Force without a Bond cannot become Named, even if it still has a Name.
 
-Strange Narrative effects may exchange the positions of every friendly card in two adjacent active Fronts, rank for rank, or exchange Bonds between two friendly Bonded Formations. These effects change the actual battlefield arrangement. The usual maximum of one Exhaustion token per Force, rank restrictions, active-Front restriction and card-layer rules remain in force.
+Strange Narrative effects may exchange the positions of every friendly card in two adjacent active Fronts, rank for rank, or exchange Bonds between two friendly Bonded Formations. These effects change the actual battlefield arrangement. The ordinary limit of one marker of each condition per Force, row restrictions, active-Front restriction and card-layer rules remain in force.
 
 ### Markers created by cards
 
 A **Tax marker** belongs to the Front where it was placed. If the next matching card satisfies multiple Tax markers, all matching increases apply and all of those next-card markers are consumed. A Tax marker also expires when its own card text says it does.
 
-A **-Strength marker** records a Battle-long negative Strength modifier created by card text.
+**Shaken** usually replaces an ordinary -2 Strength effect, but existing cards may still create a temporary -Strength modifier until all card definitions are migrated.
 
-A **temporary negative marker** is any finite-duration adverse marker created by a card effect, including Shaken, Depleted, Exhausted, legacy -Strength, text suppression, or an ability lock. It does **not** include a Tax marker. If a card removes one temporary negative marker, remove one such marker and end its effect.
+A **temporary negative marker** is any finite-duration adverse marker created by a card effect, including Shaken, Depleted, Exhausted, legacy -Strength, text suppression, or an ability lock. Boons are not negative markers. It does **not** include a Tax marker. If a card removes one temporary negative marker, remove one such marker and end its effect.
 
 ### Position and movement words
 
@@ -350,11 +351,11 @@ Most cards stay where they are unless an effect explicitly moves or removes them
 
 | Event | Result |
 | --- | --- |
-| Force is discarded | Discard its Bond and Name too; remove its Exhaustion token, if any. |
+| Force is discarded | Discard its Bond and Name too; remove all conditions on the Force. |
 | Bond is discarded | The Force stays; return its Name to its owner's hand. |
 | Bond is returned | The Force stays; return the Bond to its owner's hand. |
 | Name is returned or discarded | The Force and Bond stay; the Bond becomes open. |
-| Force moves | Its Bond, Name, and Exhaustion token move with it. |
+| Force moves | Its Bond, Name, and condition markers move with it. |
 | Formation Maneuvers | Move the Force, Bond, and Name together. |
 
 Battle resolution by itself never causes any of these removals.
