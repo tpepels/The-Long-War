@@ -436,6 +436,9 @@ cdef void _v2_apply_immediate_play_effects(
             V2_OP_CHOOSE_STRENGTH_TARGETS,
             V2_OP_DISCARD_DRAW,
             V2_OP_MOVE,
+            V2_OP_EXHAUST,
+            V2_OP_RETURN_COMPONENT,
+            V2_OP_SWAP_BONDS,
             V2_OP_PREPARED_PAY_OR_RETURN,
             V2_OP_REMOVE_NEGATIVE_MARKER,
             V2_OP_REMOVE_STRENGTH_MARKER,
@@ -509,6 +512,9 @@ cdef void _v2_apply_becomes_named_effects(
             V2_OP_REMOVE_NEGATIVE_MARKER,
             V2_OP_SET_STRATAGEM_FROM_HAND,
             V2_OP_SUPPRESS_COMPONENT,
+            V2_OP_EXHAUST,
+            V2_OP_RETURN_COMPONENT,
+            V2_OP_SWAP_BONDS,
             V2_OP_TAX,
         ):
             _v2_enqueue_effect(
@@ -1377,6 +1383,27 @@ cdef bint _v2_effect_can_resolve(
 
     if effect.op == V2_OP_TAX and effect.front_mode == V2_FRONT_CHOOSE_ACTIVE:
         return active_front_mask_for_battle(state.battle) != 0
+
+    if effect.op == V2_OP_SWAP_FRONTS:
+        for front in range(FRONT_COUNT - 1):
+            if (
+                front_is_active(state.battle, front)
+                and front_is_active(state.battle, front + 1)
+            ):
+                return True
+        return False
+
+    if effect.op == V2_OP_SWAP_BONDS:
+        rank = 0
+        for slot in range(
+            player * POSITIONS_PER_PLAYER,
+            (player + 1) * POSITIONS_PER_PLAYER,
+        ):
+            if state.force[slot] >= 0 and state.bond[slot] >= 0:
+                rank += 1
+                if rank >= 2:
+                    return True
+        return False
 
     if effect.op == V2_OP_MOVE and effect.target == V2_TARGET_SELF:
         if origin < 0 or state.force[origin] < 0:
