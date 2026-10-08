@@ -1,6 +1,6 @@
 # Mechanics and card grammar
 
-> Canonical card definitions live only in `cards/cards.json`. This file defines the design grammar the card pool should follow.
+> **Design guidance.** The authoritative current physical rules are `rules/rulebook.md`; printable cards are the 131 identities in `cards/cards.json` with `cards/print-overrides.json` applied. The executable native/Webgame card data is separate and intentionally not updated in this phase.
 
 ## Design direction
 
@@ -34,12 +34,12 @@ Strength modifiers remain useful as simple glue, but they are not the primary id
 
 ## Battlefield position
 
-The three ranks in a Front are **Front**, **Middle**, and **Rear**.
+The three ranks in a Front are **Frontline**, **Middle/Support**, and **Rear**.
 
 - **directly ahead** - the adjacent position in the same Front one rank toward Front.
 - **directly behind** - the adjacent position in the same Front one rank toward Rear.
 - **adjacent position** - one active Front left/right in the same rank, or one rank forward/back in the same Front. Never diagonal.
-- **move one position** - move the complete Formation to one orthogonally adjacent legal empty position. This is a card effect, not a Maneuver, so it costs no Maneuver Command and does not require the Formation to be Named.
+- **move one position** - move the complete formation to an orthogonally adjacent active position, either empty or holding only compatible prepared layers. This is a card effect, not a Maneuver, so it costs no Maneuver Command and does not require the formation to be Named.
 - **swap** - exchange the complete contents of two specified friendly positions. This is a card effect, not a Maneuver.
 - A Formation counts as having **moved** whenever its battlefield position changes through Maneuver, a card move, or a swap.
 
@@ -58,23 +58,23 @@ Attacking is an Action: once per Force per Battle, no Command by default, legal 
 
 Guards in Middle screen the Rear Force directly behind against basic Archer Attacks, unless the Guard is Shaken or Depleted.
 
-There are exactly three core afflictions: **Exhausted** prevents initiating Maneuvers; **Shaken** reduces formation Strength by 2 at Front resolution (minimum zero); **Depleted** prevents Attacks and printed ACTION abilities on the formation. Duplicate markers do not stack. All three clear at Battle end; recovery is card-specific, with no generic Recover Action.
+There are three core afflictions: **Exhausted** prevents initiating Maneuvers; **Shaken** reduces formation Strength by 2 (minimum zero per formation); **Depleted** prevents Attacks and printed ACTION abilities on the formation. Duplicate markers do not stack. Old conditions clear at Battle end, **then losing a Front Exhausts each unprotected Force there for the following Battle**. Guarded can prevent this Exhaustion. Recovery is card-specific; there is no generic recovery Action.
 
 ## Boons and protection
 
 Boons are temporary beneficial markers. Like afflictions, they do not stack with themselves, move with the Force, and all clear at Battle end.
 
-- **Guarded:** Prevent the next affliction that would affect this Force, then remove Guarded. It does not protect against forced movement, attachment removal or Command loss.
+- **Guarded:** Prevent the next affliction that would affect this Force, including Exhaustion caused by losing a Front, then remove Guarded. It does not protect against forced movement, attachment removal or Command loss.
 - **Inspired:** Remove Shaken from this Force and prevent it becoming Shaken while Inspired.
 - **Empowered:** The next Attack this Force makes ignores screening. Remove Empowered after that Attack. All other range, flanking and eligibility restrictions still apply.
 
 A Depleted Force cannot Attack even if Empowered. A prevented affliction does not count as inflicted for card effects that refer to an enemy becoming afflicted. There is no generic Action to gain a Boon: cards grant them.
 
-Protection and support are different roles. Middle Guards screen Rear Forces from basic Archer Attacks. Strongholds may protect attachments and prepared cards; Ships may move friendly formations out of danger; Healers remove afflictions; Druids grant and transform Boons; Stewards remove Depletion; and Carriers move components or transfer Boons. These roles grant no universal bonuses unless explicitly stated on a card.
+Protection and support are different roles. Middle Guards screen Rear Forces from basic Archer Attacks. Strongholds may protect attachments and prepared cards; Ships may move friendly formations out of danger; Healers remove afflictions; Stewards remove Depletion; Scouts reveal hidden plans. These roles grant no universal bonuses unless explicitly stated on a card.
 
 ## Flanking
 
-A Frontline Force is flanked if an enemy Frontline Force occupies an immediately adjacent active Front and its controller has no Frontline Force in that neighboring Front. This applies in **both directions** between any active adjacent Fronts. Inactive Fronts and the outside edges of the active battlefield never create a flank. A flank is only a tactical condition; it **does not automatically apply an affliction**. Rider Attacks and specific card effects exploit it.
+A Frontline Force is flanked if an enemy Frontline Force occupies an immediately adjacent active Front and its controller has no Frontline Force in that neighboring Front. This applies in **both directions** between active adjacent Fronts. Inactive Fronts and outside battlefield edges never create flanks. A flanked Force has **−1 Strength while flanked**, applied once even if threatened from both sides. This is positional, not a marker or affliction. Rider Attacks and specific card effects also exploit it.
 
 ## Open lines and support positions
 
@@ -198,7 +198,7 @@ These effects should usually replace bland arithmetic cards rather than expand t
 
 The overhaul should create more consequences without turning the game into unchecked snowballing.
 
-- **Flanking itself causes no affliction.** It creates a vulnerability for Rider Attacks and card effects, without automatically losing Command or discarding cards.
+- **Flanking is −1 Strength while flanked, not an affliction.** It also creates vulnerability to Rider Attacks and card effects, without automatically losing Command or discarding cards.
 - Returning an attached Bond or Name to hand normally costs a card/Action and requires a positional or Exhaustion condition.
 - Forced movement is usually one position. Moving multiple positions belongs on a Hero, Narrative, or expensive/conditional effect.
 - Repeated disruption should usually cost an Action and/or Command.
@@ -224,3 +224,15 @@ Each effect starts on a new line. Timing is visually distinct. Prose sits direct
 A printed Command cost of **0** removes only the Command payment. Playing the card still consumes an Action and the card leaves the player's hand.
 
 A 0-Command Order must require a class, position, board state or other real eligibility condition. Its value budget still includes spending half a normal two-Action turn.
+
+## Approved physical-rule reconciliation (8 October 2026)
+
+The physical print version uses **voluntary Pass before drawing**: Pass takes the whole turn, draws nothing and starts exactly two closing turns (opponent then passer). Normal turns draw one and take up to two Actions, including a printed ACTION ability. Cycling remains unlimited.
+
+A formation combines classifications from Force and Name, including basic Attacks; each Force still attacks only once per Battle. Strength is Force plus Bond and Name modifiers plus effects, minimum 0 per formation. A single effect applies once to a qualifying formation even when it matches multiple classes or conditions; effects from different cards stack.
+
+Playing a component resolves PLAY text immediately, even when prepared. After playing the card, BECOMES NAMED effects trigger on each genuine transition to complete Force + Bond + Name, including after rebuilding. A one-per-Battle allowance belongs to its physical card and remains spent even if replayed. Compatible prepared layers are collected by moving formations, but duplicate Bonds or Names are illegal; direct replacement of a layer is not permitted without a card effect.
+
+Up to **4 Narratives** stay face-up for the current Battle. Every Stratagem is face-down at a **publicly assigned active Front**; revealing when eligible is optional. At Battle comparison there is a single simultaneous reveal window based on the initial board state. Effects evaluate simultaneously; prevention overrides prevented effects and incompatible movement of the same formation cancels. No second reveal window opens for ties created by a reveal.
+
+At Battle end resolve results and Command losses, check Collapse, let Guarded prevent lost-Front Exhaustion, clear old conditions, and **then** Exhaust every other Force in lost Fronts for the **following Battle**. Such Exhaustion clears at the end of that next Battle unless removed earlier, and a new loss can apply it again.
