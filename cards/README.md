@@ -15,3 +15,5 @@ Canonical per-card PNGs live in `web/art/cards/`. Pages generates optimized WebP
 **Physical-print-only redesigns:** `print-overrides.json` is applied by `tools/print_cards.py` to produce the printable card catalogue and playtest deck sheets without modifying the native/Webgame rule data. PLAY effects may be buried; ongoing Force/Bond abilities must remain readable in the fixed 10.5 mm exposed strip. `cards.json` retains unchanged executable content during this print-only stage.
 
 **Print rulebook reconciliation (8 October 2026):** the approved physical rules and explanations are in [`rules/rulebook.md`](../rules/rulebook.md), with card-specific printed wording in [`print-overrides.json`](print-overrides.json). Every Stratagem is associated with a visible active Front; all Narratives last for their Battle, up to four per player. Do not infer these print mechanics from the native/Webgame card catalogue.
+
+**Physical cost rebalance (8 October 2026):** [131-card cost review and play-like hand checks](physical-cost-review.md). The seven cost-only changes and row restrictions are applied in `print-overrides.json`; the native deck and card data are untouched.
