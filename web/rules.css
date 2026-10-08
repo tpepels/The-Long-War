@@ -162,8 +162,9 @@
   text-transform: uppercase;
   letter-spacing: .06em;
 }
-.rulebook td:last-child,
-.rulebook th:last-child { text-align: right; }
+/* Explanatory rule tables contain prose in the last column; keep it left aligned. */
+.rulebook th,
+.rulebook td { text-align: left; }
 
 .rulebook-big-rule {
   margin: 7mm 0;
