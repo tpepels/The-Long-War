@@ -1598,10 +1598,6 @@
       "command_cost": 1,
       "strength_modifier": 1,
       "effects": [],
-      "references": [
-        "raider",
-        "skirmisher"
-      ],
       "text": "No special rules.",
       "design_tags": [
         "simple",
@@ -1922,10 +1918,6 @@
       "command_cost": 1,
       "strength_modifier": 1,
       "effects": [],
-      "references": [
-        "guard",
-        "spearman"
-      ],
       "text": "No special rules.",
       "design_tags": [
         "simple",
@@ -5762,10 +5754,6 @@
       "command_cost": 1,
       "strength_modifier": 0,
       "effects": [],
-      "references": [
-        "archer",
-        "scout"
-      ],
       "text": "No special rules.",
       "design_tags": [
         "simple",
@@ -5794,10 +5782,6 @@
           "memory": [],
           "exposed": "BONDED · Behind Maneuvers Exhausted"
         }
-      ],
-      "references": [
-        "guard",
-        "stronghold"
       ],
       "text": "BONDED - While this formation is Bonded, the friendly Force directly behind may Maneuver while Exhausted.",
       "design_tags": [
