@@ -6,7 +6,7 @@ This is a design constraint for the card pool, not a substitute for compiling an
 
 - **Forces:** 12/33 currently have no printed special effect. Inherent classification Attacks are not counted as printed effects. These are meaningful basic combatants or stable defensive bodies.
 - **Bonds:** 8/24 have no printed special effect. These remain valuable as the required middle layer of a Named Formation and should not be burdened with rules for the sake of having text.
-- **Names:** allow visible tactical abilities, but aim to reduce two-effect Names to one ability where their interaction is redundant or repetitive.
+- **Names:** 8/20 now have one visible becomes-Named effect; the remaining 12 retain two effects. These eight Names still complete a Named Formation and enable Maneuver, but their one-time value must be tested against more powerful Names.
 - **Heroes, Narratives, Stratagems:** reserve exceptional complexity for visible, limited, or one-shot choices; major battlefield transformations must be priced for how many Fronts they can affect.
 
 ## Physical stacking is authoritative
