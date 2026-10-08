@@ -2031,23 +2031,15 @@
           "text": "Look at the top 3 cards of your deck. Return them in any order.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "trigger",
-          "text": "When your opponent sets a Stratagem in this Front, you may look at it.",
-          "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle"
         }
       ],
-      "text": "BECOMES NAMED - Look at the top 3 cards of your deck. Return them in any order.\nTRIGGER · 1/BATTLE - When your opponent sets a Stratagem in this Front, you may look at it.",
+      "text": "BECOMES NAMED - Look at the top 3 cards of your deck. Return them in any order.",
       "design_tags": [
         "card-flow",
         "information",
         "marker-state",
-        "named-payoff"
+        "named-payoff",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -2058,16 +2050,6 @@
             "memory": [],
             "op": "reorder_top",
             "count": 3
-          },
-          {
-            "timing": "trigger",
-            "scope": "self",
-            "limit": "once_per_battle",
-            "memory": [
-              "used_marker"
-            ],
-            "op": "trigger_look_stratagem",
-            "trigger": "enemy_sets_stratagem_same_front"
           }
         ],
         "modes": {}
@@ -2077,11 +2059,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "Look at the top 3 cards of your deck. Return them in any order."
-        },
-        {
-          "kind": "trigger",
-          "label": "TRIGGER · 1/BATTLE",
-          "text": "When your opponent sets a Stratagem in this Front, you may look at it."
         }
       ],
       "art_focus_y": "0%"
@@ -2241,7 +2218,7 @@
         "human",
         "captain"
       ],
-      "command_cost": 2,
+      "command_cost": 1,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -2250,19 +2227,14 @@
           "text": "Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "trigger",
-          "text": "When another friendly formation in this Front becomes Named, draw 1 card.",
-          "scope": "self",
-          "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost.\nTRIGGER - When another friendly formation in this Front becomes Named, draw 1 card.",
+      "text": "BECOMES NAMED - Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost.",
       "design_tags": [
         "card-flow",
         "command",
-        "named-payoff"
+        "named-payoff",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -2273,15 +2245,6 @@
             "memory": [],
             "op": "set_stratagem_from_hand",
             "target": "same_front"
-          },
-          {
-            "timing": "trigger",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "trigger_draw",
-            "trigger": "other_friendly_named_same_front",
-            "draw": 1
           }
         ],
         "modes": {}
@@ -2291,11 +2254,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "Set a Stratagem from your hand in this Front without spending another Action. Pay its Command cost."
-        },
-        {
-          "kind": "trigger",
-          "label": "TRIGGER",
-          "text": "When another friendly formation in this Front becomes Named, draw 1 card."
         }
       ],
       "art_focus_y": "0%"
@@ -2317,22 +2275,14 @@
           "text": "Look at your opponent's hand.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "trigger",
-          "text": "When your opponent plays a Tactic in this Front, you may look at one opposing face-down Stratagem in this or an adjacent Front.",
-          "scope": "self",
-          "memory": [
-            "used_marker"
-          ],
-          "limit": "once_per_battle"
         }
       ],
-      "text": "BECOMES NAMED - Look at your opponent's hand.\nTRIGGER · 1/BATTLE - When your opponent plays a Tactic in this Front, you may look at one opposing face-down Stratagem in this or an adjacent Front.",
+      "text": "BECOMES NAMED - Look at your opponent's hand.",
       "design_tags": [
         "information",
         "marker-state",
-        "named-payoff"
+        "named-payoff",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -2343,17 +2293,6 @@
             "memory": [],
             "op": "look_hand",
             "target": "opponent_all"
-          },
-          {
-            "timing": "trigger",
-            "scope": "self",
-            "limit": "once_per_battle",
-            "memory": [
-              "used_marker"
-            ],
-            "op": "trigger_look_stratagem",
-            "trigger": "enemy_plays_tactic_same_front",
-            "area": "same_or_adjacent"
           }
         ],
         "modes": {}
@@ -2363,11 +2302,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "Look at your opponent's hand."
-        },
-        {
-          "kind": "trigger",
-          "label": "TRIGGER · 1/BATTLE",
-          "text": "When your opponent plays a Tactic in this Front, you may look at one opposing face-down Stratagem in this or an adjacent Front."
         }
       ]
     },
@@ -2592,7 +2526,7 @@
         "human",
         "captain"
       ],
-      "command_cost": 2,
+      "command_cost": 1,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -2601,19 +2535,9 @@
           "text": "Return one Bond from your discard pile to your hand.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "action",
-          "text": "Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0.",
-          "scope": "self",
-          "memory": [
-            "used_marker",
-            "effect_marker"
-          ],
-          "limit": "once_per_battle"
         }
       ],
-      "text": "BECOMES NAMED - Return one Bond from your discard pile to your hand.\nACTION · 1/BATTLE - Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0.",
+      "text": "BECOMES NAMED - Return one Bond from your discard pile to your hand.",
       "design_tags": [
         "action-engine",
         "card-flow",
@@ -2621,7 +2545,8 @@
         "command-recovery",
         "formation-building",
         "marker-state",
-        "named-payoff"
+        "named-payoff",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -2633,23 +2558,6 @@
             "op": "recover",
             "card_type": "bond",
             "count": 1
-          },
-          {
-            "timing": "action",
-            "scope": "self",
-            "limit": "once_per_battle",
-            "memory": [
-              "used_marker",
-              "effect_marker"
-            ],
-            "op": "next_slot_discount",
-            "target": "unbonded_friendly_same_front",
-            "card_types": [
-              "bond"
-            ],
-            "amount": 1,
-            "minimum": 0,
-            "duration": "turn"
           }
         ],
         "modes": {}
@@ -2659,11 +2567,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "Return one Bond from your discard pile to your hand."
-        },
-        {
-          "kind": "effect",
-          "label": "ACTION · 1/BATTLE",
-          "text": "Choose one Unbonded friendly Formation in this Front. The next Bond you play onto it this turn costs 1 less Command, to a minimum of 0."
         }
       ],
       "art_focus_y": "0%"
@@ -2759,7 +2662,7 @@
         "human",
         "steward"
       ],
-      "command_cost": 2,
+      "command_cost": 1,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -2768,20 +2671,15 @@
           "text": "Draw 2 cards, then put 1 card from your hand on top of your deck.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "action",
-          "text": "Pay 2 Command. Discard 1 card, then draw 2 cards.",
-          "scope": "self",
-          "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Draw 2 cards, then put 1 card from your hand on top of your deck.\nACTION - Pay 2 Command. Discard 1 card, then draw 2 cards.",
+      "text": "BECOMES NAMED - Draw 2 cards, then put 1 card from your hand on top of your deck.",
       "design_tags": [
         "action-engine",
         "card-flow",
         "command",
-        "named-payoff"
+        "named-payoff",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -2793,16 +2691,6 @@
             "op": "draw_put_top",
             "draw": 2,
             "put": 1
-          },
-          {
-            "timing": "action",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "discard_draw",
-            "discard": 1,
-            "draw": 2,
-            "activation_cost": 2
           }
         ],
         "modes": {}
@@ -2812,11 +2700,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "Draw 2 cards, then put 1 card from your hand on top of your deck."
-        },
-        {
-          "kind": "effect",
-          "label": "ACTION",
-          "text": "Pay 2 Command. Discard 1 card, then draw 2 cards."
         }
       ],
       "art_focus_y": "0%"
@@ -2978,7 +2861,7 @@
         "human",
         "captain"
       ],
-      "command_cost": 2,
+      "command_cost": 1,
       "strength_modifier": 1,
       "unique": true,
       "effects": [
@@ -2987,20 +2870,15 @@
           "text": "Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "trigger",
-          "text": "When another friendly formation in this Front becomes Named, regain 1 Command.",
-          "scope": "self",
-          "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost.\nTRIGGER - When another friendly formation in this Front becomes Named, regain 1 Command.",
+      "text": "BECOMES NAMED - Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost.",
       "design_tags": [
         "command",
         "command-recovery",
         "formation-building",
-        "named-payoff"
+        "named-payoff",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -3011,15 +2889,6 @@
             "memory": [],
             "op": "play_bond_from_hand",
             "target": "unbonded_friendly_same_front"
-          },
-          {
-            "timing": "trigger",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "trigger_gain_command",
-            "trigger": "other_friendly_named_same_front",
-            "amount": 1
           }
         ],
         "modes": {}
@@ -3029,11 +2898,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost."
-        },
-        {
-          "kind": "trigger",
-          "label": "TRIGGER",
-          "text": "When another friendly formation in this Front becomes Named, regain 1 Command."
         }
       ]
     },
@@ -3054,22 +2918,15 @@
           "text": "If you control another Named Human Formation, draw 2 cards.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "while_named",
-          "text": "While this formation is Named, Eira also has the King classification.",
-          "scope": "self",
-          "memory": [
-            "face_up_source"
-          ]
         }
       ],
-      "text": "BECOMES NAMED - If you control another Named Human Formation, draw 2 cards.\nWHILE NAMED - While this formation is Named, Eira also has the King classification.",
+      "text": "BECOMES NAMED - If you control another Named Human Formation, draw 2 cards.",
       "design_tags": [
         "card-flow",
         "classification-synergy",
         "named-payoff",
-        "persistent-state"
+        "persistent-state",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -3081,17 +2938,6 @@
             "op": "draw",
             "draw": 2,
             "condition": "other_named_human"
-          },
-          {
-            "timing": "while_named",
-            "scope": "self",
-            "limit": null,
-            "memory": [
-              "face_up_source"
-            ],
-            "op": "add_class",
-            "class": "king",
-            "requires_named": true
           }
         ],
         "modes": {}
@@ -3101,11 +2947,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "If you control another Named Human Formation, draw 2 cards."
-        },
-        {
-          "kind": "continuous",
-          "label": "WHILE NAMED",
-          "text": "While this formation is Named, Eira also has the King classification."
         }
       ]
     },
@@ -6288,20 +6129,15 @@
           "text": "Look at your opponent's hand.",
           "scope": "self",
           "memory": []
-        },
-        {
-          "timing": "action",
-          "text": "Pay 1 Command. Look at one opposing face-down Stratagem in any active Front.",
-          "scope": "opponent",
-          "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Look at your opponent's hand.\nACTION - Pay 1 Command. Look at one opposing face-down Stratagem in any active Front.",
+      "text": "BECOMES NAMED - Look at your opponent's hand.",
       "design_tags": [
         "action-engine",
         "command",
         "information",
-        "named-payoff"
+        "named-payoff",
+        "single-ability-name"
       ],
       "design_rules": {
         "effects": [
@@ -6312,16 +6148,6 @@
             "memory": [],
             "op": "look_hand",
             "target": "opponent_all"
-          },
-          {
-            "timing": "action",
-            "scope": "opponent",
-            "limit": null,
-            "memory": [],
-            "op": "look_stratagem",
-            "area": "any_active",
-            "count": 1,
-            "activation_cost": 1
           }
         ],
         "modes": {}
@@ -6331,11 +6157,6 @@
           "kind": "trigger",
           "label": "BECOMES NAMED",
           "text": "Look at your opponent's hand."
-        },
-        {
-          "kind": "effect",
-          "label": "ACTION",
-          "text": "Pay 1 Command. Look at one opposing face-down Stratagem in any active Front."
         }
       ]
     },
