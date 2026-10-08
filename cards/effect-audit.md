@@ -1,5 +1,7 @@
 # Effect audit
 
+> **Historical audit snapshot.** This report predates the nine-card replacement pass documented in [playtest-matrix.md](playtest-matrix.md). Card wording and runtime mechanics in [cards.json](cards.json) are canonical; text and counts below are not a current balance verdict.
+
 This audit reviews **all 171 current card effects** for superfluous bookkeeping, excessively narrow applicability, and buried-card readability.
 
 ## Result
