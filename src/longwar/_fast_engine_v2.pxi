@@ -1157,6 +1157,17 @@ cdef uint32_t _v2_target_mask(
             if owner_from_slot(slot) == player and state.force[slot] >= 0:
                 mask |= <uint32_t>(1 << slot)
 
+    # A component raid may target only slots that actually have something
+    # removable; otherwise a legal card play could silently do nothing.
+    if effect.op == V2_OP_RETURN_COMPONENT:
+        for slot in range(SLOT_COUNT):
+            if (
+                mask & (<uint32_t>1 << slot)
+                and state.bond[slot] < 0
+                and state.name[slot] < 0
+            ):
+                mask &= <uint32_t>(~(<uint32_t>1 << slot))
+
     # Movement effects targeting an opposing formation must also have a legal
     # destination one row toward Rear.
     if effect.op == V2_OP_MOVE and effect.flags & V2_FLAG_DIRECTION_REAR:
