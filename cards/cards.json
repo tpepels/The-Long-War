@@ -5563,7 +5563,7 @@
         "raider"
       ],
       "command_cost": 2,
-      "strength": 4,
+      "strength": 3,
       "effects": [
         {
           "timing": "play",
