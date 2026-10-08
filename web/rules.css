@@ -2040,3 +2040,16 @@
 .rulebook table {
   line-height: 1.42;
 }
+
+/* The later desktop manual grid must not override the smaller-screen layout. */
+@media (max-width: 900px) {
+  .rulebook-shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .rulebook-jump {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 12px;
+  }
+}
