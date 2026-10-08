@@ -1,7 +1,8 @@
 {
   "status": "candidates_only",
+  "style": "C",
   "batch": 3,
-  "source": "newly generated PNG icons",
+  "source": "generated transparent PNG icons",
   "icon_count": 10,
   "sizes_px": [
     16,
@@ -13,15 +14,6 @@
     256,
     512
   ],
-  "inventory_status": {
-    "batch_1": "generated",
-    "batch_2": "generated",
-    "batch_3": "generated",
-    "batch_4": "pending",
-    "batch_5": "pending",
-    "batch_6": "pending",
-    "batch_7": "pending"
-  },
   "icons": [
     {
       "name": "human",
@@ -37,7 +29,7 @@
         "web/art/icons/sizes/256/human.png",
         "web/art/icons/sizes/512/human.png"
       ],
-      "sha256": "25f83ccdf2ab426c1bcedcb2e01e556159e51ebf013bac5d7af119a25aae5dae"
+      "sha256": "44ca7b976dbcbca7bdfefd92a9976cad3db427c8145c0f9fc22b7287efebe6f2"
     },
     {
       "name": "steward",
@@ -53,7 +45,7 @@
         "web/art/icons/sizes/256/steward.png",
         "web/art/icons/sizes/512/steward.png"
       ],
-      "sha256": "6621171415788c838d4e477b8b6cc9dd1e7460f52f9889ea4d4d628abd6cb637"
+      "sha256": "010ddb015e6fa01fe774de3b8422aa97eb9e4eb5cf2a42d0c4a3b85d42a10ad8"
     },
     {
       "name": "builder",
@@ -69,7 +61,7 @@
         "web/art/icons/sizes/256/builder.png",
         "web/art/icons/sizes/512/builder.png"
       ],
-      "sha256": "97cafd90f8909ed3d78872dd23263158d40fe05787418c775546240d74397ed8"
+      "sha256": "be92a0be79113a8b11772fb38b0323230ce118f0996af1a159e709b6c22e5805"
     },
     {
       "name": "seer",
@@ -85,7 +77,7 @@
         "web/art/icons/sizes/256/seer.png",
         "web/art/icons/sizes/512/seer.png"
       ],
-      "sha256": "0aec56ef5a704874a810b530db4c59f12f30b91ae0ec17f7f709d7d5156309fc"
+      "sha256": "3b618837b011e526cbd6e8c97f9d1fea552a3348d40ad311427ddb1fa9ee930d"
     },
     {
       "name": "king",
@@ -101,7 +93,7 @@
         "web/art/icons/sizes/256/king.png",
         "web/art/icons/sizes/512/king.png"
       ],
-      "sha256": "4e22f0a296a845e58ee518cd08dc7749dbca5d1a742f8fd3f2c0df0c19430257"
+      "sha256": "0a1c31e4c92663397cbfdc0c0a24784b497acf0b36951217106d9f1f8d6d7a9c"
     },
     {
       "name": "captain",
@@ -117,7 +109,7 @@
         "web/art/icons/sizes/256/captain.png",
         "web/art/icons/sizes/512/captain.png"
       ],
-      "sha256": "7d3171c71e06056a0b290df7b0f7a82ba92e88e843726f346546a0e7372863c3"
+      "sha256": "337f4e7cc698bc98c0e20ba89c406db64d4d8f10fba4e68667414ad1900dd784"
     },
     {
       "name": "veteran",
@@ -133,7 +125,7 @@
         "web/art/icons/sizes/256/veteran.png",
         "web/art/icons/sizes/512/veteran.png"
       ],
-      "sha256": "0e98462125a06838f819a9cf8f4fd9e7596330adb4793e435e97f766c0eae034"
+      "sha256": "aea3aae59d3c63e6a05b08ec47bd91226f8cad71b287eb9ed1ac43f24b0c72bf"
     },
     {
       "name": "heir",
@@ -149,7 +141,7 @@
         "web/art/icons/sizes/256/heir.png",
         "web/art/icons/sizes/512/heir.png"
       ],
-      "sha256": "355ac854f26483b0784658cbf754fc9a2a1f65838fbed0815ff18c09800d8ebf"
+      "sha256": "a12ca235962df2fc6c12541e9be4306d0acf5980a56cc6da11626b14d7f9d26d"
     },
     {
       "name": "bonded",
@@ -165,7 +157,7 @@
         "web/art/icons/sizes/256/bonded.png",
         "web/art/icons/sizes/512/bonded.png"
       ],
-      "sha256": "c8bd6d794eff3384b96d346897fac42addb3e2f6c5f4e5fa50dd2ef4c6b99056"
+      "sha256": "cf54fe1f0cd6143f1c6a36c620edc1478176ed6968a2653a3abf3bbc5b3c0aaf"
     },
     {
       "name": "while_named",
@@ -181,7 +173,7 @@
         "web/art/icons/sizes/256/while_named.png",
         "web/art/icons/sizes/512/while_named.png"
       ],
-      "sha256": "fed3761d9b1c41b78633e42a24157f1672e18d1dd2d5e130f373495f8cc98042"
+      "sha256": "da97e5d279396e142833f60afe9646205cafb13502676d9af96e5cb60eb3f3fd"
     }
   ]
 }
