@@ -1,4 +1,6 @@
-# Card cohesion, mechanical spread and combo audit
+# Card cohesion, mechanical spread and combo audit — historical baseline
+
+> **Archived baseline.** This audit preceded the print-only cost and effect rebalance; several of its card criticisms were fixed afterward. For the CURRENT 131 printable cards and their prices, use [physical-cost-review.md](physical-cost-review.md). Numbers and card statuses below describe the older executable pool, not the active printable layer.
 
 > **Scope — 8 October 2026:** Static design audit of `cards/cards.json` at the current 131-card canonical pool. This report changes **no cards, rules, or engine behavior**. It does not claim measured win rates or completed AI playtests. Where the rulebook and native runtime diverge, intended tabletop combinations are marked as such.
 
