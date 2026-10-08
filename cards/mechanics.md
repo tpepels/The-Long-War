@@ -45,37 +45,24 @@ The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 
 Cards should normally say these things as sentences rather than as uppercase shorthand.
 
+## Attacks and afflictions
+
+Attacking is an Action: once per Force per Battle, no Command by default, legal without a Name. Depleted Forces cannot Attack. Attacks have no automatic health damage and a used Attack is not refreshed by recovery. Multi-class Forces choose one Attack.
+
+| Classification | Basic Attack |
+|---|---|
+| Archer | Exhaust opposing Rear Force in same Front |
+| Skirmisher | Shake opposing Middle Force in same Front |
+| Raider | Deplete opposing Middle/Rear Force in same Front, if the opposing Frontline is empty |
+| Rider | Shake flanked opposing Frontline Force in adjacent active Front |
+
+Guards in Middle screen the Rear Force directly behind against basic Archer Attacks, unless the Guard is Shaken or Depleted.
+
+There are exactly three core afflictions: **Exhausted** prevents initiating Maneuvers; **Shaken** reduces formation Strength by 2 at Front resolution (minimum zero); **Depleted** prevents Attacks and printed ACTION abilities on the formation. Duplicate markers do not stack. All three clear at Battle end; recovery is card-specific, with no generic Recover Action.
+
 ## Flanking
 
-Flanking is a core battlefield rule, not a card keyword.
-
-After **each Action** fully resolves, check every active Front. A Force in the **Front row** is flanked if, in an adjacent active Front:
-
-1. the opponent has a Force in that Front row; and
-2. its controller has no Force in that Front row.
-
-A flanked Force gains an **Exhaustion token**. A Force can have at most one Exhaustion token, so being flanked from both sides does not stack anything.
-
-Flanking is deliberately dangerous but not immediately lethal. It does not itself remove cards, reduce Strength or cost Command. Its consequence is that a hole in the line creates Exhaustion, and the card pool contains meaningful ways to exploit Exhausted enemies.
-
-This keeps the core rule easy to evaluate while making horizontal position and a continuous Front line matter after every Action.
-
-## Exhaustion
-
-A Force also becomes Exhausted when its controller loses that Force's Front at Battle resolution.
-
-Exhaustion:
-
-- persists between Battles;
-- moves with the Force;
-- normally prevents that Force from initiating a Maneuver;
-- does not prevent card effects from moving or swapping it;
-- never stacks above one token;
-- leaves play with the Force.
-
-Some cards explicitly allow a Force to Maneuver while Exhausted. Others remove Exhaustion or punish an opposing Exhausted Force. Write those consequences directly on the card.
-
-Exhaustion is now the main bridge between **position** and **attrition**: flanking creates it, losing Fronts creates it, recovery removes it, and Raiders/Skirmishers/Tactics can exploit it.
+A Frontline Force is flanked if an enemy Frontline Force occupies an immediately adjacent active Front and its controller has no Frontline Force in that neighboring Front. This applies in **both directions** between any active adjacent Fronts. Inactive Fronts and the outside edges of the active battlefield never create a flank. A flank is only a tactical condition; it **does not automatically apply an affliction**. Rider Attacks and specific card effects exploit it.
 
 ## Open lines and support positions
 
@@ -97,7 +84,7 @@ Middle-only Forces are second-line specialists. Their purpose is not extra Stren
 - move prepared components forward;
 - let the Force ahead reposition;
 - intercept Tactics;
-- recover Exhaustion;
+- remove afflictions;
 - react when the Front row opens.
 
 Rear specialists should feel safer and more logistical, but should become vulnerable once the line in front of them opens.
