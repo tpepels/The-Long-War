@@ -24,9 +24,9 @@ Symbols are a scanning language for the physical table. They do not create intri
 
 Kind: Human, Ship, Stronghold.
 
-Role: Archer, Guard, Scout, Rider, Skirmisher, Raider, Healer, Spearman, Steward, Builder, Seer.
+Role: Archer, Guard, Scout, Rider, Skirmisher, Raider, Healer, Steward, Seer.
 
-Rank: King, Captain, Veteran, Heir.
+Rank: King, Captain.
 
 The full face always spells these names out under the title. Only the exposed battlefield row relies on compact pictograms.
 

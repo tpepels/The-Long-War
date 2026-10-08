@@ -73,6 +73,8 @@ There are **0 RESOLUTION effects**, **0 bare 1/BATTLE timings**, **0 regular For
 
 ## Classification support
 
+This table is a historical coverage snapshot; the retired Builder, Heir, Spearman, and Veteran classes are omitted. Current card data is authoritative.
+
 | Classification | Layer | Carriers | Explicit support |
 |---|---|---:|---:|
 | **Human** | Kind | 57 | 2 |
@@ -82,17 +84,13 @@ There are **0 RESOLUTION effects**, **0 bare 1/BATTLE timings**, **0 regular For
 | **Rider** | Role | 6 | 3 |
 | **Scout** | Role | 6 | 9 |
 | **Skirmisher** | Role | 6 | 6 |
-| **Veteran** | Rank | 6 | 1 |
 | **Archer** | Role | 5 | 6 |
 | **King** | Rank | 4 | 6 |
-| **Spearman** | Role | 4 | 2 |
 | **Seer** | Role | 3 | 2 |
 | **Steward** | Role | 3 | 2 |
-| **Builder** | Role | 2 | 0 |
 | **Healer** | Role | 2 | 3 |
 | **Ship** | Kind | 2 | 1 |
 | **Stronghold** | Kind | 2 | 4 |
-| **Heir** | Rank | 1 | 1 |
 
 ## Playtest focus after the value/breadth pass
 

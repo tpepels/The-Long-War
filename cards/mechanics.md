@@ -147,16 +147,15 @@ Classifications should create recognizable play patterns.
 
 - **Rider** - creates or closes flanks through movement.
 - **Guard** - intercepts interaction, holds gaps, protects the line behind.
-- **Spearman** - anchors the Front row and punishes direct pressure.
 - **Raider** - attacks exhausted troops, prepared cards and support positions.
 - **Skirmisher** - forces movement, opens holes and exploits unstable lines.
 - **Archer** - reaches formations behind an open Front row and pressures support positions.
 - **Scout** - reveals plans, finds openings and enables precise movement.
 - **Healer** - removes Exhaustion and other attrition.
-- **Steward / Builder** - moves components, prepares reserves and creates battlefield infrastructure.
-- **Captain / King / Heir** - coordinates movement, replacement and timing.
+- **Steward** - moves components, prepares reserves and creates battlefield infrastructure.
+- **Captain / King** - coordinates movement, replacement and timing.
 - **Seer** - bends hidden information, timing, adjacency or other assumptions.
-- **Ship / Stronghold / Veteran** - retain distinct identities through card text rather than intrinsic glossary rules.
+- **Ship / Stronghold** - retain distinct identities through card text rather than intrinsic glossary rules.
 
 Classifications grant the basic Attacks and Guard screening defined in the rulebook; no other automatic abilities are implied. Additional class-dependent effects must be specified by card text.
 
