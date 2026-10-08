@@ -280,6 +280,98 @@ def group_rulebook_sections(rendered: str) -> str:
 
 
 
+def enrich_rulebook_layout(rendered: str) -> str:
+    """Add semantic, layout-only groupings around existing player-facing rules.
+
+    Keep the authoritative language in rules/rulebook.md: these wrappers style
+    the same lists, steps, and tables instead of maintaining a second ruleset.
+    """
+    def add_list_class(body: str, tag: str, class_name: str) -> str:
+        return body.replace(f"<{tag}>", f'<{tag} class="{class_name}">', 1)
+
+    pattern = re.compile(
+        r'(<section class="rule-section">)(<h2\b[^>]*id="([^"]+)"[^>]*>.*?</h2>)'
+        r'(.*?)(</section>)',
+        re.DOTALL,
+    )
+
+    def decorate_section(match: re.Match[str]) -> str:
+        _, heading, section_id, body, _ = match.groups()
+        class_name = f"rule-section rule-section--{section_id}"
+        if section_id == "learn":
+            body = add_list_class(body, "ul", "war-timeline")
+        elif section_id == "components":
+            body = add_list_class(body, "ul", "component-checklist")
+        elif section_id == "setup":
+            body = add_list_class(body, "ol", "setup-steps")
+        elif section_id == "turn":
+            body = add_list_class(body, "ul", "action-menu")
+        elif section_id == "conditions":
+            body = add_list_class(body, "ul", "condition-list condition-list--afflictions")
+            body = body.replace("<ul>", '<ul class="condition-list condition-list--boons">', 1)
+        elif section_id == "passing":
+            body = add_list_class(body, "ol", "closing-sequence")
+        elif section_id == "scoring":
+            # Each heading and its explanation form a single resolution step.
+            body = re.sub(
+                r'(<h3\b[^>]*>.*?</h3>)(.*?)(?=<h3\b|\Z)',
+                lambda step: (
+                    '<div class="resolution-step">' + step.group(1)
+                    + step.group(2) + "</div>"
+                ),
+                body,
+                flags=re.DOTALL,
+            )
+        elif section_id == "battlefield":
+            # A visual aid only: the layers and order come from the adjacent prose.
+            anatomy = (
+                '<figure class="formation-anatomy" aria-label="Formation layers">'
+                '<figcaption>One position · up to three layers</figcaption>'
+                '<div class="formation-layers">'
+                '<span><b>Name</b><small>Top · identity</small></span>'
+                '<span><b>Bond</b><small>Middle · attachment</small></span>'
+                '<span><b>Force</b><small>Base · Strength</small></span>'
+                '</div><p>Force + Bond + Name = <strong>Named Formation</strong></p>'
+                '</figure>'
+            )
+            body += anatomy
+        elif section_id == "stories":
+            body = re.sub(
+                r'<p>(<strong>(?:Tactics|Narrative|Stratagem|Heroes)</strong>)',
+                r'<p class="card-kind-note">\1',
+                body,
+            )
+        elif section_id == "command":
+            body = body.replace("<p>", '<p class="command-primer">', 1)
+        return f'<section class="{class_name}">' + heading + body + "</section>"
+
+    rendered = pattern.sub(decorate_section, rendered)
+
+    # Tables stay semantically intact; their container allows horizontal scroll
+    # on small screens without crushing multi-column reference text.
+    rendered = rendered.replace(
+        "<table>", '<div class="rule-table-scroll" tabindex="0" '
+        'role="region" aria-label="Rules table"><table>'
+    ).replace("</table>", "</table></div>")
+
+    # Keep quick facts subordinate to the introduction, not a duplicate rules
+    # section. The explanations and legal exceptions remain in the body text.
+    facts = (
+        '<aside class="rulebook-fast-facts" aria-label="At a glance">'
+        '<div><b>20</b><span>Starting Command</span></div>'
+        '<div><b>2</b><span>Actions per normal turn, up to</span></div>'
+        '<div><b>4</b><span>Fronts by Battle III</span></div>'
+        '<div><b>3</b><span>Formation layers, maximum</span></div>'
+        '</aside>'
+    )
+    rendered = rendered.replace(
+        '<section class="rule-section rule-section--learn">',
+        facts + '<section class="rule-section rule-section--learn">',
+        1,
+    )
+    return rendered
+
+
 def render_rule_tokens(source: str, rules: GameRules) -> str:
     recovery = [
         rules.command_recovery_for_battle(battle)
@@ -431,6 +523,7 @@ def main() -> None:
         extensions=["extra", "sane_lists", "attr_list"],
     )
     rulebook_html = group_rulebook_sections(rulebook_html)
+    rulebook_html = enrich_rulebook_layout(rulebook_html)
     template = (WEB / "rulebook.template.html").read_text(encoding="utf-8")
     rendered = template.replace("{{RULEBOOK}}", rulebook_html)
     (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")

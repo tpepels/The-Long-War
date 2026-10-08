@@ -31,7 +31,12 @@ Physical cards are stacked **Force on the bottom, Bond above it, Name on top**, 
 
 ## What you need {#components}
 
-Each player needs a deck. The published physical playtest decks contain **48 cards each**; the deck-building requirements for custom decks are at the end of this book. You'll also need Command tracks (0–20), markers for Exhausted, Shaken, Depleted, Guarded, Inspired and Empowered, used-Attack and once-per-Battle reminders, and any printed-card Tax or temporary-effect markers. Four Front markers show which Fronts are active.
+Gather these things before your first Battle:
+
+- **Two decks:** one per player. The published physical playtest decks contain **48 cards each**; custom deck requirements appear at the end of this book.
+- **Two Command tracks (0–20)** and **four Front markers** to show which Fronts are active.
+- **Condition markers:** Exhausted, Shaken, Depleted, Guarded, Inspired and Empowered.
+- **Use reminders:** used-Attack and once-per-Battle markers, plus any Tax or temporary-effect markers required by printed cards.
 
 You can play without a dedicated playmat. Set out four Front columns with three positions per player in each. The printed **Reference** and **marker sheet** summarize the shared rules, but this rulebook is authoritative if another printed sheet differs.
 
@@ -87,7 +92,7 @@ A Force supplies its printed Strength. A Bond and Name contribute their printed 
 
 At Battle resolution, add the Strength of every formation across all three ranks of one Front. Compare that total to the opponent's total in the same Front. Higher Strength wins; a tie means neither side wins or loses that Front. The winning margin does not matter unless a card says otherwise. There is **no overall winner of a Battle**: each active Front is settled separately.
 
-For example, a Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Shaken (−2), it contributes 3; if it is also flanked (−1), it contributes 2. If penalties reduce that formation below 0, it contributes 0 rather than weakening another friendly formation. A second friendly formation in that Front contributes its own Strength separately.
+> **Strength example:** A Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Shaken (−2), it contributes 3; if it is also flanked (−1), it contributes 2. If penalties reduce that formation below 0, it contributes 0 rather than weakening another friendly formation. A second friendly formation in that Front contributes its own Strength separately.
 
 ### Classifications {#classifications}
 
@@ -188,7 +193,7 @@ The first Pass starts the closing sequence:
 
 There is no second Pass during these closing turns and neither player can extend the sequence. The player who **did not Pass** starts the next Battle, if the war continues.
 
-For example, if you Pass before drawing, your opponent still has one full turn to Attack, play a card or respond to your position. You then have your own full closing turn. Choosing when to initiate this sequence is part of the strategy.
+> **Passing example:** If you Pass before drawing, your opponent still has one full turn to Attack, play a card or respond to your position. You then have your own full closing turn. Choosing when to initiate this sequence is part of the strategy.
 
 ## Resolving a Battle {#scoring}
 
@@ -234,7 +239,7 @@ The following details settle unusual card interactions. You can learn the game f
 
 When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
 
-For example, if Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, resolve the Bond's PLAY effect (its free Maneuver) first; then resolve Mara's BECOMES NAMED effect. A Maneuver or Move can change where Mara finishes before her effect is resolved.
+> **Formation example:** If Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, resolve the Bond's PLAY effect (its free Maneuver) first; then resolve Mara's BECOMES NAMED effect. A Maneuver or Move can change where Mara finishes before her effect is resolved.
 
 ### Simultaneous Stratagems
 
@@ -286,6 +291,13 @@ Components leave the battlefield only when a card specifically makes them do so:
 
 ### Deck construction
 
-A legal deck has **at least 34 cards**, at most **4 copies** of any non-Unique title, and at most **1 copy** of any Unique title. There is **no required minimum** number of Forces or printed Names. Heroes count as Unique cards and can be played in either mode.
+For a legal custom deck:
+
+- Include **at least 34 cards**.
+- Include **at most 4 copies** of any non-Unique title.
+- Include **at most 1 copy** of any Unique title.
+- There is **no required minimum** number of Forces or printed Names.
+
+Heroes count as Unique cards and can be played in either mode.
 
 > The battlefield grows. Your commitments remain. A lost Front matters next Battle. Win the war, not merely the Front in front of you.

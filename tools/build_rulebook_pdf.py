@@ -107,8 +107,8 @@ def markdown_to_typst(source: str, version: str) -> str:
   above: 8pt,
   below: 4pt,
   breakable: false,
-  fill: rgb("#efe6d4"),
-  stroke: 0.55pt + rgb("#b6a487"),
+  fill: rgb("#e8e8e0"),
+  stroke: (left: 2pt + rgb("#293c47"), bottom: 0.35pt + rgb("#b6a487")),
   inset: (x: 7pt, y: 5pt),
   radius: 2pt,
 )[#text(size: 15pt, weight: "semibold", fill: rgb("#2d261f"))[#it.body]]
@@ -118,7 +118,8 @@ def markdown_to_typst(source: str, version: str) -> str:
   above: 6pt,
   below: 2.5pt,
   breakable: false,
-  fill: rgb("#f2ecdf"),
+  fill: rgb("#f3ece1"),
+  stroke: (left: 1pt + rgb("#8c4e38")),
   inset: (x: 5pt, y: 3pt),
   radius: 1.5pt,
 )[#text(size: 9pt, weight: "bold", fill: rgb("#3a3229"))[#it.body]]
@@ -130,6 +131,17 @@ def markdown_to_typst(source: str, version: str) -> str:
 #v(4pt)
 #text(size: 12pt, style: "italic", fill: rgb("#666666"))[Fight now. Live with it later.]
 #v(8pt)
+#table(
+  columns: (1fr, 1fr, 1fr, 1fr),
+  inset: 7pt,
+  stroke: 0.4pt + rgb("#d2c3ae"),
+  fill: rgb("#efe8db"),
+  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[20] #linebreak() #text(size: 7pt, weight: "bold")[STARTING COMMAND]],
+  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[2] #linebreak() #text(size: 7pt, weight: "bold")[ACTIONS / NORMAL TURN]],
+  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[4] #linebreak() #text(size: 7pt, weight: "bold")[FRONTS BY BATTLE III]],
+  [#text(size: 20pt, weight: "semibold", fill: rgb("#293c47"))[3] #linebreak() #text(size: 7pt, weight: "bold")[MAX FORMATION LAYERS]],
+)
+#v(11pt)
 """
     out.append(preamble)
 
@@ -140,7 +152,7 @@ def markdown_to_typst(source: str, version: str) -> str:
             return
         text = " ".join(quote_lines).strip()
         out.append(
-            '#block(fill: rgb("#f2eee4"), stroke: (left: 2pt + rgb("#555555")), '
+            '#block(fill: rgb("#efe8db"), stroke: (left: 2pt + rgb("#ab8950")), '
             'inset: 8pt, width: 100%)[' + _inline(text) + "]"
         )
         out.append("")
@@ -168,7 +180,8 @@ def markdown_to_typst(source: str, version: str) -> str:
         column_widths = "(0.95fr, 1.65fr)" if width == 2 else f"({', '.join(['1fr'] * width)},)"
         out.append(
             f"#table(columns: {column_widths}, inset: 4pt, "
-            'stroke: 0.35pt + rgb("#aaaaaa"), ' + ", ".join(cells) + ")"
+            'fill: (x, y) => if y == 0 { rgb("#e6e6dd") } else if calc.odd(y) { rgb("#faf6ee") } else { rgb("#f1ebe0") }, '
+            'stroke: 0.35pt + rgb("#c7bba7"), ' + ", ".join(cells) + ")"
         )
         out.append("")
         table_rows = []
