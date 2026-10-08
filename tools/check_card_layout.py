@@ -9,6 +9,11 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+if __package__:
+    from .print_cards import load_print_cards
+else:
+    from print_cards import load_print_cards
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -471,7 +476,7 @@ def physical_layout_probes(cards: list[dict]) -> list[dict]:
 
 
 def check_physical_layout(browser: str, pdf_path: Path | None = None) -> None:
-    cards = json.loads((ROOT / "cards" / "cards.json").read_text(encoding="utf-8"))["cards"]
+    cards = load_print_cards()["cards"]
     probe = {
         "id": "oversized-reminder-probe", "title": "Oversized reminder probe", "type": "force",
         "strength": 0, "command_cost": 0, "classes": ["human"],
