@@ -1,19 +1,13 @@
-# The Long War — rank highlight icons
+# The Long War — Style C missing PNG icons
 
-These four transparent PNGs use the same base trapezoid motif with different highlighted ranks.
+This ZIP contains the six requested Style C PNG icons, ready to place in:
 
-Included icons:
-- front.png
-- middle.png
-- middle-rear.png
-- rear.png
+`web/art/icons/`
 
-Each file includes:
-- original 1254×1254 RGBA PNG
-- size variants at 16, 24, 32, 48, 64, 128, 256, and 512 px
-
-Mapping:
-- front = top rank highlighted
-- middle = middle rank highlighted
-- middle-rear = middle and rear highlighted
-- rear = rear rank highlighted
+Files included:
+- move.png
+- play.png
+- ship.png
+- raider.png
+- stronghold.png
+- trigger.png

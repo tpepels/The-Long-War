@@ -1,84 +1,10 @@
 {
-  "pack": "style-c-rank-icons",
-  "icon_count": 4,
-  "sizes_px": [
-    16,
-    24,
-    32,
-    48,
-    64,
-    128,
-    256,
-    512
-  ],
   "icons": [
-    {
-      "name": "front",
-      "path": "web/art/icons/front.png",
-      "source": "/mnt/data/gouden_rangplatforms_op_transparante_achtergrond.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/front.png",
-        "web/art/icons/sizes/24/front.png",
-        "web/art/icons/sizes/32/front.png",
-        "web/art/icons/sizes/48/front.png",
-        "web/art/icons/sizes/64/front.png",
-        "web/art/icons/sizes/128/front.png",
-        "web/art/icons/sizes/256/front.png",
-        "web/art/icons/sizes/512/front.png"
-      ],
-      "sha256": "5bd0e4ad3daec57d9796ecdf9f1e1880dd6b08d2cac4c634207c241e5c377c7b"
-    },
-    {
-      "name": "middle",
-      "path": "web/art/icons/middle.png",
-      "source": "/mnt/data/goudomrand_middelste_rangbalk.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/middle.png",
-        "web/art/icons/sizes/24/middle.png",
-        "web/art/icons/sizes/32/middle.png",
-        "web/art/icons/sizes/48/middle.png",
-        "web/art/icons/sizes/64/middle.png",
-        "web/art/icons/sizes/128/middle.png",
-        "web/art/icons/sizes/256/middle.png",
-        "web/art/icons/sizes/512/middle.png"
-      ],
-      "sha256": "1010c86b4228df5d02d22f1ca5e8453bcb23e7f38408cf224b4313eca79d7614"
-    },
-    {
-      "name": "middle-rear",
-      "path": "web/art/icons/middle-rear.png",
-      "source": "/mnt/data/ghostwriter_images/context/b167505b-60b3-550c-aa6f-f132ed82965c.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/middle-rear.png",
-        "web/art/icons/sizes/24/middle-rear.png",
-        "web/art/icons/sizes/32/middle-rear.png",
-        "web/art/icons/sizes/48/middle-rear.png",
-        "web/art/icons/sizes/64/middle-rear.png",
-        "web/art/icons/sizes/128/middle-rear.png",
-        "web/art/icons/sizes/256/middle-rear.png",
-        "web/art/icons/sizes/512/middle-rear.png"
-      ],
-      "sha256": "7b4f29ec3fd7fe3e27672952f1c597c56425af19b221d2763176ef5af0f4a76f"
-    },
-    {
-      "name": "rear",
-      "path": "web/art/icons/rear.png",
-      "source": "/mnt/data/gestapeld_rangsymbool_met_gouden_frame.png",
-      "pixels": 1254,
-      "sizes": [
-        "web/art/icons/sizes/16/rear.png",
-        "web/art/icons/sizes/24/rear.png",
-        "web/art/icons/sizes/32/rear.png",
-        "web/art/icons/sizes/48/rear.png",
-        "web/art/icons/sizes/64/rear.png",
-        "web/art/icons/sizes/128/rear.png",
-        "web/art/icons/sizes/256/rear.png",
-        "web/art/icons/sizes/512/rear.png"
-      ],
-      "sha256": "e95885ffcd35bd395ef8a95930681474f079d2f892fbd63d7b09eb7f2e23e27f"
-    }
+    "move.png",
+    "play.png",
+    "ship.png",
+    "raider.png",
+    "stronghold.png",
+    "trigger.png"
   ]
 }
