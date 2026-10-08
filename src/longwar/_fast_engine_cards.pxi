@@ -151,7 +151,6 @@ cdef void _v2_compile_effect(
         "flank_guard": V2_OP_FLANK_GUARD,
         "return_component": V2_OP_RETURN_COMPONENT,
         "swap_fronts": V2_OP_SWAP_FRONTS,
-        "revive_force": V2_OP_REVIVE_FORCE,
         "swap_bonds": V2_OP_SWAP_BONDS,
         "supply": V2_OP_SUPPLY,
         "support": V2_OP_SUPPORT,
