@@ -25,7 +25,76 @@
 * {
   box-sizing: border-box;
 }
+/*
+===============================================================================
+CARD ICON SIZES — TUNING PANEL
+===============================================================================
+  Edit only the values below to test icon sizes on cards and printable sheets.
+  Units: mm = physical print size (recommended); em follows surrounding text.
+  These control BOTH transparent PNG and SVG versions of each icon. They do not
+  change artwork, fonts, card dimensions, or the carefully tuned card geometry.
+
+  EXPOSED STACK STRIP (10.5 mm high)
+    --icon-edge-type-size         Force/Bond/Name symbol beside Strength
+    --icon-edge-hero-force-size   Force symbol in a Hero's two-mode strip
+    --icon-edge-hero-name-size    Name symbol in a Hero's two-mode strip
+    --icon-edge-class-size        Human/Archer/Guard/etc. classification symbols
+    --icon-edge-row-size          Three-bar Front/Middle/Rear placement symbol
+    --icon-edge-event-size        Tactic/Order/Stratagem/Narrative family symbol
+
+  CARD BODY / FOOTER
+    --icon-classification-size    Classifications beside their names in footer
+    --icon-family-size            Force/Bond/Name/etc. family in footer
+    --icon-rule-timing-size       Action/Play/Trigger/etc. above rules
+    --icon-rule-placement-size    Three-bar placement symbol above rules
+    --icon-inline-class-size      Symbol referenced inside a rule sentence
+    --icon-mode-heading-size      Force/Name next to a mode heading
+    --icon-hero-mode-size         Compact Hero Force/Name mode headings
+    --icon-footer-mark-size       Legacy footer mark (currently hidden)
+    --icon-command-seal-size      Bottom-right illustrated Command-cost seal
+
+  NON-ART MARKERS
+    --icon-used-marker-size       Once-per-Battle circle beside rule text
+    --icon-hero-used-size         Compact Hero once-per-Battle circle
+
+  Tip: try changing 4mm to 4.5mm or 3.5mm, then compare cards.html and
+  playtest-kit.html in both normal and print views. The 10.5mm exposed strip
+  and printed card dimensions are intentionally unchanged. Oversized icons
+  can crowd labels or reminders: adjust carefully and print a test sheet.
+
+  For a single symbol (rather than all symbols in the same slot), add a
+  targeted override below this panel, e.g.:
+    .physical-card :is(svg[aria-label="guard"], img[alt="guard"]) {
+      transform: scale(1.1);
+    }
+  This scales just the Guard glyph, including the SVG comparison version,
+  without changing the space its slot reserves. Leave this example commented.
+===============================================================================
+*/
 :root {
+  /* Exposed edge symbols */
+  --icon-edge-type-size: 4mm;
+  --icon-edge-hero-force-size: 4mm;
+  --icon-edge-hero-name-size: 4mm;
+  --icon-edge-class-size: 4mm;
+  --icon-edge-row-size: 4mm;
+  --icon-edge-event-size: 4mm;
+
+  /* Body and footer */
+  --icon-classification-size: 3.2mm;
+  --icon-family-size: 3.2mm;
+  --icon-rule-timing-size: 3.3mm;
+  --icon-rule-placement-size: 3.3mm;
+  --icon-inline-class-size: 1em;
+  --icon-mode-heading-size: 3.2mm;
+  --icon-hero-mode-size: 2.8mm;
+  --icon-footer-mark-size: 3.3mm;
+  --icon-command-seal-size: 12.5mm;
+
+  /* Once-per-Battle markers */
+  --icon-used-marker-size: 2.35mm;
+  --icon-hero-used-size: 2mm;
+
   --card-width: 68mm;
   --card-height: 96mm;
   --exposed-edge: 10.5mm;
@@ -439,13 +508,13 @@ EXPOSED TOP ROW - TUNING PANEL
 .event-crown {
   /* Typography variables are centralized in CARD TYPOGRAPHY - TUNING PANEL. */
 
-  /* --- icon sizes -------------------------------------------------------- */
-  --edge-type-icon-size: 4mm;
-  --edge-hero-icon-size: 4mm;
-  --edge-class-icon-size: 4mm;
-  --edge-row-icon-size: 4mm;
-  --edge-event-icon-size: 4mm;
-  --edge-socket-size: 2.35mm;
+  /* --- aliases for the ICON SIZES panel at the TOP of this stylesheet --- */
+  --edge-type-icon-size: var(--icon-edge-type-size);
+  --edge-hero-icon-size: var(--icon-edge-hero-force-size);
+  --edge-class-icon-size: var(--icon-edge-class-size);
+  --edge-row-icon-size: var(--icon-edge-row-size);
+  --edge-event-icon-size: var(--icon-edge-event-size);
+  --edge-socket-size: var(--icon-used-marker-size);
 
   /* --- layout / spacing -------------------------------------------------- */
   --edge-left-width: 16mm;
@@ -573,8 +642,8 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .hero-name-stat svg,
 .hero-name-stat img.glyph-png {
-  width: var(--edge-hero-icon-size);
-  height: var(--edge-hero-icon-size);
+  width: var(--icon-edge-hero-name-size);
+  height: var(--icon-edge-hero-name-size);
 }
 
 .edge-identity {
@@ -627,8 +696,8 @@ EXPOSED TOP ROW - TUNING PANEL
   display: none;
 }
 .use-socket {
-  width: var(--edge-socket-size);
-  height: var(--edge-socket-size);
+  width: var(--icon-used-marker-size);
+  height: var(--icon-used-marker-size);
   border: 0.2mm solid var(--deep);
   border-radius: 50%;
   display: inline-block;
@@ -843,16 +912,16 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .class-body-item svg,
 .class-body-item img.glyph-png {
-  width: 3.2mm;
-  height: 3.2mm;
+  width: var(--icon-classification-size);
+  height: var(--icon-classification-size);
 }
 .class-type-item {
   font-weight: 700;
 }
 .class-type-item svg,
 .class-type-item img.glyph-png {
-  width: 3.2mm;
-  height: 3.2mm;
+  width: var(--icon-family-size);
+  height: var(--icon-family-size);
 }
 .class-separator {
   font: var(--card-class-separator-font-size)/1 var(--card-class-font-family);
@@ -883,11 +952,15 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .effect-timing-icon,
 .placement-rule-icon {
-  width: 3.3mm;
-  height: 3.3mm;
+  width: var(--icon-rule-timing-size);
+  height: var(--icon-rule-timing-size);
   display: grid;
   place-items: center;
   flex: none;
+}
+.placement-rule-icon {
+  width: var(--icon-rule-placement-size);
+  height: var(--icon-rule-placement-size);
 }
 .effect-timing-icon svg,
 .effect-timing-icon img.glyph-png,
@@ -933,8 +1006,8 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .inline-class-ref svg,
 .inline-class-ref img.glyph-png {
-  width: 1em;
-  height: 1em;
+  width: var(--icon-inline-class-size);
+  height: var(--icon-inline-class-size);
   flex: none;
 }
 .effect-reminder {
@@ -980,8 +1053,8 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .mode-heading-core svg,
 .mode-heading-core img.glyph-png {
-  width: 3.2mm;
-  height: 3.2mm;
+  width: var(--icon-mode-heading-size);
+  height: var(--icon-mode-heading-size);
 }
 
 .card-footer {
@@ -1003,8 +1076,8 @@ EXPOSED TOP ROW - TUNING PANEL
 .footer-mark svg,
 .footer-mark img.glyph-png {
   display: block;
-  width: 3.3mm;
-  height: 3.3mm;
+  width: var(--icon-footer-mark-size);
+  height: var(--icon-footer-mark-size);
   display: none;
 }
 .footer-id {
@@ -1062,8 +1135,8 @@ EXPOSED TOP ROW - TUNING PANEL
   right: 2.4mm;
   bottom: 2.4mm;
   z-index: 20;
-  width: 12.5mm;
-  height: 12.5mm;
+  width: var(--icon-command-seal-size);
+  height: var(--icon-command-seal-size);
   display: grid;
   place-items: center;
   color: #f8e5bc;
@@ -1176,12 +1249,12 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .card-hero .mode-heading-core svg,
 .card-hero .mode-heading-core img.glyph-png {
-  width: 2.8mm;
-  height: 2.8mm;
+  width: var(--icon-hero-mode-size);
+  height: var(--icon-hero-mode-size);
 }
 .card-hero .effect-timing-icon {
-  width: 2.5mm;
-  height: 2.5mm;
+  width: var(--icon-rule-timing-size);
+  height: var(--icon-rule-timing-size);
 }
 .card-hero .effect-label {
   font-size: var(--card-hero-effect-label-font-size);
@@ -1190,8 +1263,8 @@ EXPOSED TOP ROW - TUNING PANEL
   font-size: var(--card-hero-use-font-size);
 }
 .card-hero .effect-use .use-socket {
-  width: 2mm;
-  height: 2mm;
+  width: var(--icon-hero-used-size);
+  height: var(--icon-hero-used-size);
 }
 
 .layout-overflow {
