@@ -160,7 +160,7 @@
     "max_movement_cards": 25,
     "force_and_bond_no_triggers": true,
     "tactic_opponent_only": true,
-    "stratagem_and_narrative_self_support": true,
+    "stratagem_and_narrative_self_support": false,
     "no_resolution_effects": true,
     "no_bare_once_per_battle": true,
     "no_automatic_strength_pumps_as_limited_uses": true,
@@ -462,20 +462,20 @@
       "effects": [
         {
           "timing": "mobile",
-          "text": "This formation may Maneuver while Unnamed.",
+          "text": "This Force may Maneuver without being Named.",
           "scope": "self",
           "memory": [],
-          "exposed": "MOBILE"
+          "exposed": "Maneuver without Name"
         },
         {
           "timing": "tireless",
-          "text": "This formation may Maneuver while Exhausted.",
+          "text": "This Force may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "TIRELESS"
+          "exposed": "Maneuver while Exhausted"
         }
       ],
-      "text": "MOBILE - This formation may Maneuver while Unnamed.\nTIRELESS - This formation may Maneuver while Exhausted.",
+      "text": "MOVEMENT - This Force may Maneuver without being Named.\nEXHAUSTION - This Force may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
         "movement",
@@ -506,13 +506,13 @@
       "rule_blocks": [
         {
           "kind": "continuous",
-          "label": "MOBILE",
-          "text": "This formation may Maneuver while Unnamed."
+          "label": "MOVEMENT",
+          "text": "This Force may Maneuver without being Named."
         },
         {
           "kind": "continuous",
-          "label": "TIRELESS",
-          "text": "This formation may Maneuver while Exhausted."
+          "label": "EXHAUSTION",
+          "text": "This Force may Maneuver while Exhausted."
         }
       ]
     },
@@ -2889,12 +2889,12 @@
         },
         {
           "timing": "while_named",
-          "text": "While this formation is Named, this formation is TIRELESS.",
+          "text": "While this formation is Named, it may Maneuver while Exhausted.",
           "scope": "self",
           "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nWHILE NAMED - While this formation is Named, this formation is TIRELESS.",
+      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nWHILE NAMED - This formation may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
         "movement",
@@ -2933,7 +2933,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "While this formation is Named, this formation is TIRELESS."
+          "text": "While this formation is Named, it may Maneuver while Exhausted."
         }
       ]
     },
