@@ -1,6 +1,6 @@
 {
   "format": "physical-print-overrides-v1",
-  "description": "Physical print only: 16 cohesion sidegrades, 11 rules clarifications and Grey Riders terminology modernization; native/Webgame unaffected.",
+  "description": "Physical print only. 131 identities retained. Sidegrades, assigned-Front rulings, and focused Command/effect rebalancing, not native gameplay input.",
   "replacements": [
     {
       "id": "the-damar",
@@ -17,12 +17,16 @@
       "id": "the-crow-archers",
       "effects": [
         {
+          "timing": "play",
+          "text": "Give this Force Empowered."
+        },
+        {
           "timing": "attack",
           "text": "If the opposing Frontline in this Front is empty, this Force's basic Archer Attack may target an opposing Middle Force.",
-          "exposed": "Archer Attack: Middle if Frontline empty"
+          "exposed": "ARCHER · May target Middle through gap"
         }
       ],
-      "design_note": "An expanded target, not a second Attack."
+      "design_note": "Archer entry boon lets one Attack ignore Guard screening; keeps special Middle targeting."
     },
     {
       "id": "the-ilyri",
@@ -108,10 +112,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If this position contains a Force, give that Force Guarded."
+          "text": "If this position contains a Force, give that Force Inspired."
         }
       ],
-      "design_note": "One-use Boon when played."
+      "design_note": "Inspired-Bond sidegrade to Guarded; Shaken immunity differs from first-affliction prevention."
     },
     {
       "id": "carried-the-oath-of",
@@ -159,14 +163,14 @@
     },
     {
       "id": "the-lines-held",
-      "command_cost": 2,
+      "command_cost": 1,
       "effects": [
         {
           "timing": "hidden",
           "text": "Reveal during Battle resolution. If your Frontline here is empty, move one friendly Middle formation here into it, if legal. That formation gets +2 Strength this Battle."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing."
+      "design_note": "One-time +2 and row transfer at resolution has a real setup and hidden-plan Action cost."
     },
     {
       "id": "fresh-orders",
@@ -206,7 +210,8 @@
           "text": "Reveal during Battle resolution if this Front contains one of your Kings or Captains. Up to two other friendly formations here each get +1 Strength this Battle."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing."
+      "design_note": "2 temporary Strength on two other formations still requires a King/Captain and a set Stratagem Action.",
+      "command_cost": 1
     },
     {
       "id": "the-flank-was-refused",
@@ -223,10 +228,11 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal after one of your Raiders or Skirmishers in this Front puts a temporary negative marker on an opposing formation here. Another friendly Raider or Skirmisher here gets +2 Strength this Battle."
+          "text": "Reveal after one of your Raiders or Skirmishers in this Front gives an opposing Force here a temporary negative marker. Return one attached Bond or Name on that Force to its owner's hand, if it has one."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing."
+      "design_note": "2C positional ambush replaces transient +2 with attachment disruption after actual pressure.",
+      "command_cost": 2
     },
     {
       "id": "the-battle-turned-east",
@@ -303,12 +309,193 @@
         }
       ],
       "design_note": "Retire the player-facing MOBILE and TIRELESS headers without altering movement permissions."
+    },
+    {
+      "id": "the-first-spear",
+      "allowed_rows": [
+        "front"
+      ],
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If you play this Force into Frontline, give the friendly Force directly behind it Guarded, if there is one."
+        }
+      ],
+      "design_note": "A committed Frontline spear protecting a supporting rank; 2C/4S Guard retains a tradeoff against unrestricted Red Shields."
+    },
+    {
+      "id": "the-iron-boars",
+      "allowed_rows": [
+        "front"
+      ],
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If the opposing Frontline here is empty, choose an opposing Middle or Rear Force here and give it Depleted."
+        }
+      ],
+      "design_note": "Frontline-only breakthrough; only useful when a gap is already open, unlike persistent Command-stealing Reavers."
+    },
+    {
+      "id": "the-red-duelists",
+      "allowed_rows": [
+        "front"
+      ],
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If an opposing Frontline Force is in this Front, give it Shaken."
+        }
+      ],
+      "design_note": "Frontline-only entry shock; different from unrestricted Rider/Skirmisher Dust Riders."
+    },
+    {
+      "id": "no-one-would-be-first-to-leave",
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Choose a friendly formation. Remove Exhaustion from its Force, if present. You may then Move that formation one orthogonally adjacent position, if legal.",
+          "limit": "once_per_battle"
+        }
+      ],
+      "design_note": "2C+setup Action buys one reposition and optional recovery, not only one costly Exhaustion removal."
+    },
+    {
+      "id": "the-crows-came-down",
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Choose up to two opposing Forces in a single Front containing one of your Archers. Exhaust each chosen Force.",
+          "limit": "once_per_battle"
+        }
+      ],
+      "design_note": "2C+setup Action becomes a local multi-target Archer pressure event."
+    },
+    {
+      "id": "they-knew-the-ground",
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "While you control a Seer, your formations treat the two outermost active Fronts as adjacent for Maneuvers and Move card effects this Battle. This does not create flanks or change Attack targets."
+        }
+      ],
+      "design_note": "1C Seer-driven geography change; low early payoff but unusual tactical reach after Battle I."
+    },
+    {
+      "id": "the-raiders-came-home-loaded",
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "When you play a Tactic targeting a card or formation in a Front containing one of your Raider or Skirmisher formations, it costs 1 less Command (minimum 0). After that Tactic, you may Move one friendly Raider or Skirmisher formation there one legal position."
+        }
+      ],
+      "design_note": "1C tactical raid engine makes Tactics and shifting pressure reinforce each other, rather than only saving 1 Command."
+    },
+    {
+      "id": "the-long-march",
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "Your Rider formations may Maneuver without being Named and pay 0 Command to Maneuver this Battle."
+        }
+      ],
+      "design_note": "2C Rider Narrative enables otherwise unavailable Maneuvers as well as waiving their Command."
+    },
+    {
+      "id": "the-wall-did-not-break",
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "Your Guards and Strongholds may initiate Maneuvers while Exhausted and pay 0 Command to Maneuver this Battle."
+        }
+      ],
+      "design_note": "2C defensive counterpart is recovery through positioning; Named requirement still applies."
+    },
+    {
+      "id": "they-lived-to-tell-it",
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Choose one friendly Force. Remove one temporary negative marker from it, if present, then give it Inspired."
+        }
+      ],
+      "design_note": "1C ongoing defense Narrative introduces underused Inspired and can work even without a removable marker."
+    },
+    {
+      "id": "guarded",
+      "strength_value": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If this position contains a Force, give that Force Guarded."
+        }
+      ],
+      "design_note": "Name now matches effect; trades +1 bond Strength for protective Guarded Boon."
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Look at one opposing face-down Stratagem in any active Front. You may then draw 1 card and discard 1 card.",
+          "limit": "once_per_battle",
+          "exposed": "ACTION · 1/B · Look + sift any Front"
+        }
+      ],
+      "design_note": "Replace permanent global hidden-plan surveillance with a paid Action and one useful sift per Battle."
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "effects": [
+        {
+          "timing": "reaction",
+          "text": "Once per Battle, when an opponent sets a Stratagem in this Front or an adjacent active Front while this formation is in Rear, you may look at it.",
+          "limit": "once_per_battle",
+          "exposed": "REAR · Peek adjacent new plan 1/B"
+        }
+      ],
+      "design_note": "Limited local early warning, not permanent access to all existing face-down plans."
+    },
+    {
+      "id": "the-lantern-scouts",
+      "effects": [
+        {
+          "timing": "reaction",
+          "text": "Once per Battle, when your opponent sets a Stratagem in this Front while this formation is in Middle or Rear, you may look at it, then draw 1 card and discard 1 card.",
+          "limit": "once_per_battle",
+          "exposed": "MIDDLE/REAR · New plan → peek+sift"
+        }
+      ],
+      "design_note": "Cheap local scouting provides card filtering, not repeatable omniscient inspection."
+    },
+    {
+      "id": "namar",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Regain 2 Command."
+        },
+        {
+          "timing": "action",
+          "text": "Choose another friendly Human formation in this Front. The next Bond or Name you play onto it this turn costs 2 less Command (minimum 0). Draw 1 card.",
+          "limit": "once_per_battle"
+        }
+      ],
+      "design_note": "4C King leader creates an actual two-Action attachment turn, with meaningful hand/cost swing."
+    },
+    {
+      "id": "the-baggage-was-abandoned",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Rear Force. Exhaust it, then give it Shaken."
+        }
+      ],
+      "design_note": "2C one-shot now affects Strength as well as movement; Shaken counterplay via Inspired."
     }
   ],
   "once_per_battle_text_fixes": [
-    "the-crows-came-down",
     "no-road-was-too-long",
-    "no-one-would-be-first-to-leave",
     "the-king-had-given-the-order"
   ],
   "exposed_only": [
@@ -426,6 +613,43 @@
       "id": "supported-by",
       "index": 0,
       "exposed": "Bonded Middle: enemy Tactics vs behind cost +1"
+    }
+  ],
+  "cost_adjustments": [
+    {
+      "id": "the-black-company",
+      "command_cost": 3,
+      "reason": "4C body plus 1C Action made attachment raid unattractive."
+    },
+    {
+      "id": "they-were-gathering-there",
+      "command_cost": 1,
+      "reason": "Conditional single Exhaustion is narrower than immediate 2C Strength denial."
+    },
+    {
+      "id": "all-banners-forward",
+      "command_cost": 1,
+      "reason": "Stops only printed ACTION abilities on a King/Captain for current Battle."
+    },
+    {
+      "id": "the-line-had-begun-to-move",
+      "command_cost": 1,
+      "reason": "2C Tax2 could at best trade equal Command and is avoidable by playing elsewhere."
+    },
+    {
+      "id": "iven",
+      "command_cost": 3,
+      "reason": "4C Name needs several subsequent discounted Tactics to recover initial cost."
+    },
+    {
+      "id": "no-road-was-too-long",
+      "command_cost": 3,
+      "reason": "Strong one-use board transformation, but 4C plus two Actions delayed it too far."
+    },
+    {
+      "id": "the-king-had-given-the-order",
+      "command_cost": 2,
+      "reason": "Bond exchange once/Battle requires 2 Actions and two Bonded formations."
     }
   ]
 }
