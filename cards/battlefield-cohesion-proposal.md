@@ -30,11 +30,11 @@ Use these as proposed physical card faces. A text line is a **whole replacement 
 | **The Old Guard** | 2 Command · 3 Strength (unchanged) | MIDDLE — While this Force is in the Middle row, it screens the friendly Rear Force from basic Archer Attacks even while Shaken. Depletion still disables its screening. | Reliable veteran defense with a weakness opponents can exploit, instead of a strictly smaller Guard body. | Attack/screening extension |
 | **The King's Spears** | 2 Command · 3 Strength (4 → 3) | PLAY — If this Force is played in the Middle row, you may swap its formation with the friendly Frontline formation in this Front, if both placements are legal. | A reserve Guard can relieve the Frontline immediately; cost of Strength pays for tempo. | PLAY row-specific friendly swap |
 | **The Wolf Skirmishers** | 3 Command · 4 Strength (3 → 4) | PLAY — Choose an opposing Frontline Force in this Front. Move it one row toward its Rear if the destination is empty and legal. | Breaks a line itself instead of depending on an Archer not present in Build & Chain. Strong in the correct board state; no help if enemy Middle is occupied. | Existing opposing rearward move, with Frontline target |
-| **Blocked the Road For** | 1 Command · +0 Strength (+1 → 0) | BONDED — Opposing card effects cannot move this formation. | Positional insurance against forced movement rather than another generic +1 Bond. | New movement-protection check |
-| **Seized the Standard Of** | 1 Command · +0 Strength (+1 → 0) | PLAY — Choose an opposing Bonded Formation in this Front. Return its Bond to its owner's hand. | A one-shot capture that disrupts formation completeness; opponents can play around it by separating their valuables. | Existing return-component effect with same-Front target |
+| **Blocked the Road for** | 1 Command · +0 Strength (+1 → 0) | BONDED — Opposing card effects cannot move this formation. | Positional insurance against forced movement rather than another generic +1 Bond. | New movement-protection check |
+| **Seized the Standard of** | 1 Command · +0 Strength (+1 → 0) | PLAY — Choose an opposing Bonded Formation in this Front. Return its Bond to its owner's hand. | A one-shot capture that disrupts formation completeness; opponents can play around it by separating their valuables. | Existing return-component effect with same-Front target |
 | **Swore Again To** | 1 Command · +0 Strength (+1 → 0) | PLAY — If this Bond completes a Named Formation, you may immediately Maneuver that formation once without using another Action or spending Command. | A deliberate sequencing combo for prepared Force+Name stacks instead of a universally better Strength Bond. | New free-Maneuver completion effect |
 | **Endured With** | 1 Command · +0 Strength (+1 → 0) | PLAY — If this position contains a Force, give that Force Guarded. | Immediate protection against the next affliction, counterable by stripping Guarded or disrupting the Bond. | Guarded Boon / native Attack-condition parity |
-| **Carried the Oath Of** | 1 Command · +0 Strength (+1 → 0) | BONDED — The Name attached to this formation cannot have its text suppressed. | Protects a crucial Named payoff; a situational answer rather than extra Strength. | Existing name-text suppression immunity |
+| **Carried the Oath of** | 1 Command · +0 Strength (+1 → 0) | BONDED — The Name attached to this formation cannot have its text suppressed. | Protects a crucial Named payoff; a situational answer rather than extra Strength. | Existing name-text suppression immunity |
 | **Had Been Ordered Forward** | 1 Command · +0 Strength (+1 → 0) | BONDED — This formation may Maneuver without being Named. | An early mobility choice for any Force; complements rather than replaces the Dust Riders' innate identity. | Existing maneuver_unnamed primitive |
 | **Watched the Skies For** | 1 Command · +0 Strength (unchanged) | PLAY — Draw 1 card, then put 1 card from your hand on top of your deck. | Always has a useful on-play option and allows planning the next draw, without more Stratagem-peeking redundancy. | Existing draw_put_top primitive |
 | **Mara** | 1 Command · +1 Strength (unchanged) | BECOMES NAMED — Look at your opponent's hand. You may then move this formation one position into an adjacent active empty position, if legal. | Scout reconnaissance leads to repositioning; Lysa retains the simpler Scout/Seer hand-information niche. | Existing look_hand and self_move as a sequential completion effect |
@@ -48,7 +48,7 @@ Use these as proposed physical card faces. A text line is a **whole replacement 
 - **The Ilyri:** Its free PLAY movement is one square, not a Maneuver; it may move vertically or sideways into a legal empty active position, but cannot swap occupied positions. It trades one Strength for tempo.
 - **The King's Spears:** PLAY swap occurs only after its deployment into an empty Middle slot. Never violate a printed row restriction when swapping.
 - **The Wolf Skirmishers:** The attacking source is itself a Skirmisher; **no Archer prerequisite**. The front displacement opens a Raider line and may be countered by occupying the destination. Recheck whether 3 Command/4 Strength is excessive if this displacement is frequent.
-- **Blocked the Road For / Carried the Oath Of:** Protected effects should remain understandable in the exposed Bond strip. Both have relevant opponent counters: suppress the Bond's text or choose other targets.
+- **Blocked the Road for / Carried the Oath of:** Protected effects should remain understandable in the exposed Bond strip. Both have relevant opponent counters: suppress the Bond's text or choose other targets.
 - **Swore Again To:** The free Maneuver is granted *only* when playing this Bond **immediately completes** Force+Bond+Name. Preparing the Bond early does not reserve a free move. Enforce normal adjacency, activation and row legality.
 - **Endured With:** Guarded is a *single temporary Boon* preventing the next affliction, not unlimited immunity and not protection from card-driven movement or attachment removal. If played prepared, it has no immediate Force to affect and supplies no deferred trigger.
 - **The Lines Held:** The Stratagem is defensive, but its action changes the material of the battlefield, not just the Command ledger. The opponent can occupy its Middle/Front interactions or use a Scout to challenge the hidden plan. The +2 Strength is a proposed payoff, not a universal new rule.
@@ -69,11 +69,11 @@ Update `text`, `effects[].limit`, `rule_blocks`, catalogue and renderer-facing r
 
 ## Deck-archetype and combo coverage
 
-**Breach / infiltration:** The Wolf Skirmishers or The Line Was Baited moves a defender away; Raider basic Attack can Deplete an exposed Middle/Rear Force. An Archer (including the proposed Crow Archers) chooses a support target, while **Blocked the Road For** defends the line against hostile displacement. This must be playable with 2 Actions across one or more turns, and the defender can answer by filling Middle.
+**Breach / infiltration:** The Wolf Skirmishers or The Line Was Baited moves a defender away; Raider basic Attack can Deplete an exposed Middle/Rear Force. An Archer (including the proposed Crow Archers) chooses a support target, while **Blocked the Road for** defends the line against hostile displacement. This must be playable with 2 Actions across one or more turns, and the defender can answer by filling Middle.
 
 **Frontline rotation / relief:** **The Damar**, **The King's Spears**, **The Old Guard**, and the revised **Fresh Orders** offer different ways to keep a Frontline alive. Opposing player can exploit empty ranks, suppression or an alternative Front. Neither +1 Strength nor an automatic win should be the default result.
 
-**Formation-building burst:** **Swore Again To** completes a Named Formation and grants an immediate Maneuver; The Field Train, Nara and Torren handle prepared layers. **Carried the Oath Of** protects the Name's ongoing text. Opponent can remove an attachment or suppress a Bond before a planned sequence.
+**Formation-building burst:** **Swore Again To** completes a Named Formation and grants an immediate Maneuver; The Field Train, Nara and Torren handle prepared layers. **Carried the Oath of** protects the Name's ongoing text. Opponent can remove an attachment or suppress a Bond before a planned sequence.
 
 **Mobile reconnaissance:** **Mara** sees the hand then repositions, **The Ilyri** shifts on deployment, **Watched the Skies For** improves the next draw. **The Lines Held** turns hidden information into a positional countermove rather than another +Strength-only trap.
 
@@ -90,7 +90,7 @@ Each exploratory 48-card deck should exercise at least two complete proposed syn
 4. Fix orphan deck interactions, including the current Wolf Skirmishers Archer prerequisite, when updating that card/deck.
 
 **Slice B — low-engine-risk sidegrades**
-- Ilyri PLAY movement, Watched the Skies For card draw/reorder, Seized the Standard Of attachment return, Had Been Ordered Forward unnamed mobility, and Mara scouting + relocation (requires sequencing validation).
+- Ilyri PLAY movement, Watched the Skies For card draw/reorder, Seized the Standard of attachment return, Had Been Ordered Forward unnamed mobility, and Mara scouting + relocation (requires sequencing validation).
 - All are recognizable current effect operations; targeting/ordering and legal state transitions still require tests.
 
 **Slice C — signature battlefield effects**
@@ -98,7 +98,7 @@ Each exploratory 48-card deck should exercise at least two complete proposed syn
 - Build minimal reusable low-level targeting/trigger rules; avoid one-off hidden state flags for each card.
 
 **Slice D — physical cards and balance**
-- Bond replacements Blocked the Road For, Endured With, Carried the Oath Of after Guarded/suppression/movement protection behavior is verified.
+- Bond replacements Blocked the Road for, Endured With, Carried the Oath of after Guarded/suppression/movement protection behavior is verified.
 - Verify all exposed Bond text is readable without lifting. Update the catalogue and playtest matrix; regenerate deck fixtures and inspect print fit.
 - Playtest and then tune costs/Strength, not the other way round.
 
