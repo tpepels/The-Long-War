@@ -1,0 +1,177 @@
+{
+  "style": "C",
+  "phase": "phase1",
+  "status": "candidates_only",
+  "sizes_px": [
+    16,
+    24,
+    32,
+    48,
+    64,
+    128,
+    256,
+    512
+  ],
+  "icons": [
+    {
+      "name": "force",
+      "source_file": "/mnt/data/heraldisch_schild_met_goudrand.png",
+      "path": "web/art/icons/force.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/force.png",
+        "web/art/icons/sizes/24/force.png",
+        "web/art/icons/sizes/32/force.png",
+        "web/art/icons/sizes/48/force.png",
+        "web/art/icons/sizes/64/force.png",
+        "web/art/icons/sizes/128/force.png",
+        "web/art/icons/sizes/256/force.png",
+        "web/art/icons/sizes/512/force.png"
+      ],
+      "sha256": "95502f36f6967578884b11d9771257a38efe732e3c7e1cc8f51c201cf4241194"
+    },
+    {
+      "name": "guard",
+      "source_file": "/mnt/data/antiek_gouden_heraldisch_schildembleem.png",
+      "path": "web/art/icons/guard.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/guard.png",
+        "web/art/icons/sizes/24/guard.png",
+        "web/art/icons/sizes/32/guard.png",
+        "web/art/icons/sizes/48/guard.png",
+        "web/art/icons/sizes/64/guard.png",
+        "web/art/icons/sizes/128/guard.png",
+        "web/art/icons/sizes/256/guard.png",
+        "web/art/icons/sizes/512/guard.png"
+      ],
+      "sha256": "be72cdd6e13d6764d8f00a329755ee9f759025fd7fd4af3422c9540ae617158b"
+    },
+    {
+      "name": "archer",
+      "source_file": "/mnt/data/antiek_gouden_boog_en_pijlembleem.png",
+      "path": "web/art/icons/archer.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/archer.png",
+        "web/art/icons/sizes/24/archer.png",
+        "web/art/icons/sizes/32/archer.png",
+        "web/art/icons/sizes/48/archer.png",
+        "web/art/icons/sizes/64/archer.png",
+        "web/art/icons/sizes/128/archer.png",
+        "web/art/icons/sizes/256/archer.png",
+        "web/art/icons/sizes/512/archer.png"
+      ],
+      "sha256": "948ea919ab76df156ca659fb8bdbd5f85f8250df4e38395d6455336c5a70a442"
+    },
+    {
+      "name": "healer",
+      "source_file": "/mnt/data/antiek_gouden_geneeskundekruis_embleem.png",
+      "path": "web/art/icons/healer.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/healer.png",
+        "web/art/icons/sizes/24/healer.png",
+        "web/art/icons/sizes/32/healer.png",
+        "web/art/icons/sizes/48/healer.png",
+        "web/art/icons/sizes/64/healer.png",
+        "web/art/icons/sizes/128/healer.png",
+        "web/art/icons/sizes/256/healer.png",
+        "web/art/icons/sizes/512/healer.png"
+      ],
+      "sha256": "7f2340abe3441ca786c91ea366ea7a2a774eb964795900ed720fd263162ff32c"
+    },
+    {
+      "name": "bond",
+      "source_file": "/mnt/data/antiek_gouden_kettingsymbool_unerquicklich.png",
+      "path": "web/art/icons/bond.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/bond.png",
+        "web/art/icons/sizes/24/bond.png",
+        "web/art/icons/sizes/32/bond.png",
+        "web/art/icons/sizes/48/bond.png",
+        "web/art/icons/sizes/64/bond.png",
+        "web/art/icons/sizes/128/bond.png",
+        "web/art/icons/sizes/256/bond.png",
+        "web/art/icons/sizes/512/bond.png"
+      ],
+      "sha256": "f2c9d2bc772d8676e0734ae9998da39ebbbbc2cbf5c908e3ef8fba85c7c4d42c"
+    },
+    {
+      "name": "name",
+      "source_file": "/mnt/data/middeleeuwse_blauw_gouden_banier.png",
+      "path": "web/art/icons/name.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/name.png",
+        "web/art/icons/sizes/24/name.png",
+        "web/art/icons/sizes/32/name.png",
+        "web/art/icons/sizes/48/name.png",
+        "web/art/icons/sizes/64/name.png",
+        "web/art/icons/sizes/128/name.png",
+        "web/art/icons/sizes/256/name.png",
+        "web/art/icons/sizes/512/name.png"
+      ],
+      "sha256": "e434cbb38453ca4d734907465841fa9e56761fbf142cdafe1c95be6a9df127bb"
+    },
+    {
+      "name": "action",
+      "source_file": "/mnt/data/middeleeuws_kruis_embleem_in_goud_en_marineblauw.png",
+      "path": "web/art/icons/action.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/action.png",
+        "web/art/icons/sizes/24/action.png",
+        "web/art/icons/sizes/32/action.png",
+        "web/art/icons/sizes/48/action.png",
+        "web/art/icons/sizes/64/action.png",
+        "web/art/icons/sizes/128/action.png",
+        "web/art/icons/sizes/256/action.png",
+        "web/art/icons/sizes/512/action.png"
+      ],
+      "sha256": "1fef33b09a5e9c55ad37b78c0d7ab75aa943013afd13fd6adef22aa6c08341e5"
+    },
+    {
+      "name": "reaction",
+      "source_file": "/mnt/data/antieke_gouden_terugpijl.png",
+      "path": "web/art/icons/reaction.png",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "sizes": [
+        "web/art/icons/sizes/16/reaction.png",
+        "web/art/icons/sizes/24/reaction.png",
+        "web/art/icons/sizes/32/reaction.png",
+        "web/art/icons/sizes/48/reaction.png",
+        "web/art/icons/sizes/64/reaction.png",
+        "web/art/icons/sizes/128/reaction.png",
+        "web/art/icons/sizes/256/reaction.png",
+        "web/art/icons/sizes/512/reaction.png"
+      ],
+      "sha256": "231ffd35f37712489d989c2737bb13f8c283ca0c801d8e8658773b042b52493d"
+    }
+  ]
+}
