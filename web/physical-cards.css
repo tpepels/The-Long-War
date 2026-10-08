@@ -188,7 +188,6 @@ CARD TYPOGRAPHY - TUNING PANEL
   --card-title-font-size: 5.3mm;
   --card-title-long-font-size: 5mm;
   --card-title-very-long-font-size: 4.5mm;
-  --card-class-prefix-font-size: 2mm;
   --card-class-font-size: 2.5mm;
   --card-class-separator-font-size: 2mm;
   --card-class-line-height: 4mm; /* classification row inside footer */
@@ -835,10 +834,6 @@ EXPOSED TOP ROW - TUNING PANEL
   justify-content: center;
   gap: 0.55mm;
   white-space: nowrap;
-}
-.class-line-prefix {
-  margin-right: 0.2mm;
-  font: var(--card-class-prefix-font-size)/1 var(--card-class-font-family);
 }
 .class-body-item {
   display: flex;

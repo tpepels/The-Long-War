@@ -162,3 +162,29 @@ def test_web_static_checker_catches_missing_play_dom_id(tmp_path) -> None:
     assert checker._play_dom_errors(web) == [
         "web/play.js references missing DOM id #missing"
     ]
+
+
+def test_shared_footer_ignores_reference_metadata_for_all_families() -> None:
+    families = ("force", "bond", "name", "hero", "tactic", "order", "stratagem", "narrative")
+    cards = [
+        {
+            "id": f"reference-only-{family}",
+            "title": family.title(),
+            "type": family,
+            "command_cost": 1,
+            "classes": ["guard"] if family == "force" else [],
+            "references": ["rider", "scout"],
+            "effects": [],
+        }
+        for family in families
+    ]
+    for source, rendered in zip(cards, render_print_cards(cards)):
+        footer = rendered.one("class-line")
+        labels = [element["text"].strip() for element in rendered.all("class-body-item")]
+        expected = [source["type"].title()]
+        if source["classes"]:
+            expected.append("Guard")
+        assert labels == expected
+        assert "Involves" not in footer["text"]
+        assert "Rider" not in footer["text"]
+        assert "Scout" not in footer["text"]

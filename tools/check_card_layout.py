@@ -361,8 +361,13 @@ for (const card of articles) {
   rasterDecoration(card, identity, "::after", "title-divider");
   const source = sourceCards.get(card.dataset.cardId);
   const classification = card.querySelector(".class-line");
-  if ((source?.classes?.length || source?.references?.length) && !classification) fail(card, "missing-classification");
+  if (!classification) fail(card, "missing-classification");
   if (classification) {
+    const displayedClasses = [...classification.querySelectorAll(".class-body-item")];
+    if (displayedClasses.length !== 1 + (source?.classes?.length || 0))
+      fail(card, "classification-does-not-match-authored-classes");
+    if (classification.textContent.includes("Involves"))
+      fail(card, "obsolete-involves-footer");
     if (!visible(classification) || !rect(classification).height) fail(card, "classification-hidden");
     if (!inside(bounds, rect(classification)) || !identity || !inside(rect(identity), rect(classification)))
       fail(card, "classification-outside");

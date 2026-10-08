@@ -78,12 +78,12 @@ function decorativeGlyph(html){
     .replace(/ aria-label="[^"]*"/g,"");
 }
 function classificationLine(card){
+  // Only classifications the card actually has belong in its footer.
+  // "references" are engine metadata, never an "Involves" display row.
   const own=card.classes||[];
-  const refs=isFormationCard(card)?(card.references||[]):[];
-  const values=own.length?own:refs;
   const typeItem='<span class="class-body-item class-type-item">'+decorativeGlyph(typeGlyph(card.type))+'<span>'+esc(TYPE[card.type]||titleCase(card.type))+'</span></span>';
-  const classItems=values.map(name=>'<span class="class-body-item">'+decorativeGlyph(classGlyph(name))+'<span>'+esc(titleCase(name))+'</span></span>');
-  const suffix=classItems.length?'<span class="class-separator">·</span>'+(own.length?"":'<span class="class-line-prefix">Involves</span>')+classItems.join('<span class="class-separator">·</span>'):"";
+  const classItems=own.map(name=>'<span class="class-body-item">'+decorativeGlyph(classGlyph(name))+'<span>'+esc(titleCase(name))+'</span></span>');
+  const suffix=classItems.length?'<span class="class-separator">·</span>'+classItems.join('<span class="class-separator">·</span>'):"";
   return '<div class="class-line">'+typeItem+suffix+'</div>';
 }
 function liveEffects(card){if(card.type==="hero")return modeEffects(card,"force").filter(e=>LIVE.has(e.timing));return["force","bond"].includes(card.type)?(card.effects||[]).filter(e=>LIVE.has(e.timing)):[]}
