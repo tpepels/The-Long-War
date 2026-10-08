@@ -187,7 +187,7 @@ These effects should usually replace bland arithmetic cards rather than expand t
 
 The overhaul should create more consequences without turning the game into unchecked snowballing.
 
-- **Flanking itself only causes Exhaustion.** It does not automatically lose Command or discard cards.
+- **Flanking itself causes no affliction.** It creates a vulnerability for Rider Attacks and card effects, without automatically losing Command or discarding cards.
 - Returning an attached Bond or Name to hand normally costs a card/Action and requires a positional or Exhaustion condition.
 - Forced movement is usually one position. Moving multiple positions belongs on a Hero, Narrative, or expensive/conditional effect.
 - Repeated disruption should usually cost an Action and/or Command.
