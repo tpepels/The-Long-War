@@ -524,7 +524,8 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
   overflow: visible;
 }
-.hero-stat svg {
+.hero-stat svg,
+.hero-stat img.glyph-png {
   width: var(--edge-hero-icon-size);
   height: var(--edge-hero-icon-size);
   display: grid;
@@ -546,8 +547,11 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
 }
 .type-mark svg,
+.type-mark img.glyph-png,
 .class-sigil svg,
-.event-sigil svg {
+.class-sigil img.glyph-png,
+.event-sigil svg,
+.event-sigil img.glyph-png {
   width: 100%;
   height: 100%;
 }
@@ -568,7 +572,8 @@ EXPOSED TOP ROW - TUNING PANEL
 .hero-stat + .hero-stat {
   margin-left: var(--edge-value-gap);
 }
-.hero-name-stat svg {
+.hero-name-stat svg,
+.hero-name-stat img.glyph-png {
   width: var(--edge-hero-icon-size);
   height: var(--edge-hero-icon-size);
 }
@@ -645,6 +650,15 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .glyph-row .row-active {
   fill: currentColor;
+}
+/* Keep approved PNG marks inside the existing, manually tuned icon slots.
+ * SVG remains in use for all unconverted timing and row symbols. */
+.glyph-png {
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  flex: none;
 }
 .glyph-type,
 .glyph-strength,
@@ -879,7 +893,9 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
 }
 .effect-timing-icon svg,
-.placement-rule-icon svg {
+.effect-timing-icon img.glyph-png,
+.placement-rule-icon svg,
+.placement-rule-icon img.glyph-png {
   width: 100%;
   height: 100%;
 }
