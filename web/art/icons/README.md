@@ -1,6 +1,6 @@
 # The Long War — Style C PNG icon candidates (Batch 3)
 
-These ten transparent PNGs are the new Style C classification/state icons.
+These ten transparent PNGs are archived Style C candidate assets. Builder, Veteran, and Heir are retired classifications; their PNG source assets remain on disk but are no longer referenced by the card renderer or preview.
 They use the approved manuscript-stamp direction: deep navy / charcoal with antique-gold accents, simplified silhouettes, and transparent backgrounds.
 
 ## Batch 3 mapping

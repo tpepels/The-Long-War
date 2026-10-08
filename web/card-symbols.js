@@ -25,14 +25,10 @@
     skirmisher:'<path d="m3 2 4.5 1.8 9 11.3 1.8-1.4 1.8 2.2-2.4 1.9 3.6 4.5-1.8 1.4-3.6-4.5-2.4 1.9-1.8-2.2 1.8-1.4L4.4 6.2ZM21 2l-4.5 1.8-9 11.3-1.8-1.4-1.8 2.2 2.4 1.9-3.6 4.5 1.8 1.4 3.6-4.5 2.4 1.9 1.8-2.2-1.8-1.4 9.1-11.3Z"/>',
     raider:'<path d="m4 22-2-2 11.3-13L9.9 4l2.2-2.4 4 4.1c1.5.2 3.1-.2 4.3-1.2 2.4 4 1.3 7.6-2.7 10l-2.3-4.8Z"/>',
     healer:'<path d="M9.2 2h5.6v7.2H22v5.6h-7.2V22H9.2v-7.2H2V9.2h7.2Z"/>',
-    spearman:'<path d="M12 .6 7.3 15.5l3.5-2L12 4.8l1.2 8.7 3.5 2ZM10.8 14.7 12 23.4l1.2-8.7L12 13Z"/>',
     steward:'<path fill-rule="evenodd" d="M8 1.5a6.5 6.5 0 1 0 3.3 12.1l3.1 3.1-1.7 1.7 2 2 1.7-1.7 2 2-1.7 1.7 1.6 1.6 4-4-9-9A6.5 6.5 0 0 0 8 1.5Zm0 3a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"/>',
-    builder:'<path d="m2 20 10.7-11L11 7.3 8.8 9.5 6.5 7.2 12 1.7l2.3 2.2-1 1 4.4 4.4 1-1 3.6 3.6-4.5 4.5-3.6-3.6 1-1-1.7-1.7L5 23Z"/>',
     seer:'<path fill-rule="evenodd" d="M12 2.2a7.4 7.4 0 1 0 0 14.8 7.4 7.4 0 0 0 0-14.8Zm0 3.1 1.1 2.5 2.7.3-2 1.9.6 2.7-2.4-1.3-2.4 1.3.6-2.7-2-1.9 2.7-.3Z"/><path d="M7.2 17.2h9.6l2.1 4.6H5.1Z"/>',
     king:'<path d="M2 5.5 7.5 10 12 1.5l4.5 8.5L22 5.5 19.8 17H4.2ZM4.5 19h15v3h-15Z"/>',
     captain:'<path d="M3 4h18v3H3Zm2 6.5h14v3H5Zm2 6.5h10v3H7Z"/>',
-    veteran:'<path d="M4.5 9 12 2l7.5 7v5L12 7l-7.5 7Zm0 8L12 10l7.5 7v5L12 15l-7.5 7Z"/>',
-    heir:'<circle cx="12" cy="3.1" r="1.9"/><path d="m3.5 9 4.3 3.5L12 6l4.2 6.5L20.5 9l-1.9 9H5.4ZM5.5 20h13v2H5.5Z"/>'
   };
   const UTILITY = {
     strength:'<path d="M5 19 17 7m-2-3 5 0v5M7 17l-3 3M19 19 7 7m2-3H4v5m13 8 3 3"/>',
@@ -60,15 +56,15 @@
     lock:silhouette('<path fill-rule="evenodd" d="M6 9V7a6 6 0 0 1 12 0v2h2v13H4V9Zm3 0h6V7a3 3 0 0 0-6 0Zm1.8 4v5h2.4v-5Z"/>'),
     enemy:'<circle cx="12" cy="8" r="3"/><path d="M6 19c1-4 3-6 6-6s5 2 6 6M4 4l16 16"/>'
   };
-  const GROUP={human:"kind",ship:"kind",stronghold:"kind",archer:"role",guard:"role",scout:"role",rider:"role",skirmisher:"role",raider:"role",healer:"role",spearman:"role",steward:"role",builder:"role",seer:"role",king:"rank",captain:"rank",veteran:"rank",heir:"rank"};
+  const GROUP={human:"kind",ship:"kind",stronghold:"kind",archer:"role",guard:"role",scout:"role",rider:"role",skirmisher:"role",raider:"role",healer:"role",steward:"role",seer:"role",king:"rank",captain:"rank"};
   function svg(body,title,className=""){return '<svg class="'+className+'" viewBox="0 0 24 24" role="img" aria-label="'+title+'" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><title>'+title+'</title>'+body+'</svg>'}
   // Approved PNG candidates from batches 1–3. All other glyphs remain SVG.
   // Keep the pre-existing CSS class names so hand-tuned card geometry is unchanged.
   const PNG_ICONS=new Set([
     "force","bond","name","hero","tactic","order","stratagem","narrative",
     "human","ship","stronghold","archer","guard","scout","rider",
-    "skirmisher","raider","healer","spearman","steward","builder",
-    "seer","king","captain","veteran","heir",
+    "skirmisher","raider","healer","steward",
+    "seer","king","captain",
     "action","reaction","bonded","while_named"
   ]);
   const png=(name,title,cssClass)=>{

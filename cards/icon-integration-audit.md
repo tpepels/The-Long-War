@@ -2,23 +2,23 @@
 
 **Scope:** Icon-source substitution only. The physical card layout, 4 mm icon slots, 10.5 mm stack exposure, fonts, decorations, art crops and all card data remain unchanged.
 
-The repository includes 30 transparent candidate PNGs from batches 1–3. The card symbol module now renders those names as 128 px PNGs in its existing slots and leaves every unmatched symbol as the original inline SVG. The approved art packs are stored under `web/art/icons/`, with `web/art/icons/sizes/128/` copied into the Pages deployment.
+The repository retains 30 transparent candidate PNGs from batches 1–3. The current card symbol module uses 26 of those names as 128 px PNGs in its existing slots and leaves every unmatched active symbol as the original inline SVG. The four retired classification PNGs remain as unused source assets. The approved art packs are stored under `web/art/icons/`, with `web/art/icons/sizes/128/` copied into the Pages deployment.
 
 ## Counts and exclusions
 
 | Group | Integrated PNG names |
 |---|---|
 | Card types | force, bond, name, hero, tactic, order, stratagem, narrative |
-| Classifications | human, ship, stronghold, archer, guard, scout, rider, skirmisher, raider, healer, spearman, steward, builder, seer, king, captain, veteran, heir |
+| Classifications | human, ship, stronghold, archer, guard, scout, rider, skirmisher, raider, healer, steward, seer, king, captain |
 | Timings/states | action, reaction, bonded, while_named |
 
-**30 PNG-backed names total.** The old SVGs are retained as a reversible fallback. `reaction` is currently a defined but infrequently used timing symbol. The rest are referenced by the card pool.
+**26 active PNG-backed names.** The old SVGs for active classes are retained as a reversible fallback. `reaction` is currently a defined but infrequently used timing symbol. The rest are referenced by the card pool.
 
 **Excluded:** all art from batches 4–5; all rank indicators, utility icons without batch 1–3 PNGs, and the setup battlefield illustration. No unapproved image is in use.
 
 ## Inspect and compare
 
-- `icon-preview.html?icons=png`: all 30 new icons shown at 8 mm, 4 mm (actual card-edge target) and 16 px.
+- `icon-preview.html?icons=png`: all 26 currently active icons shown at 8 mm, 4 mm (actual card-edge target) and 16 px.
 - `icon-preview.html?icons=svg`: same gallery using original SVG glyphs.
 - `cards.html`: existing card views with PNG marks.
 - `cards.html?icons=svg`: existing card views with original SVG marks.
