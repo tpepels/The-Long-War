@@ -160,6 +160,36 @@ cdef void _v2_apply_resolved_effect(
     elif effect.op == V2_OP_REMOVE_EXHAUSTION:
         if target >= 0:
             state.exhausted[target] = 0
+    elif effect.op == V2_OP_EXHAUST:
+        if target >= 0 and state.force[target] >= 0:
+            state.exhausted[target] = 1
+    elif effect.op == V2_OP_RETURN_COMPONENT:
+        if target >= 0:
+            owner = owner_from_slot(target)
+            if option == V2_OPTION_BOND:
+                component = state.bond[target]
+                if component >= 0:
+                    state.bond[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
+            elif option == V2_OPTION_NAME:
+                component = state.name[target]
+                if component >= 0:
+                    state.name[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
+    elif effect.op == V2_OP_SWAP_FRONTS:
+        if source >= 0 and dest >= 0:
+            for i in range(RANK_COUNT):
+                _fe_swap_slots(
+                    self, state,
+                    slot_index(player, front_from_slot(source), i),
+                    slot_index(player, front_from_slot(dest), i),
+                )
+            _fe_resolve_force_pair_narratives(self, state, player)
+    elif effect.op == V2_OP_SWAP_BONDS:
+        if source >= 0 and dest >= 0 and state.bond[source] >= 0 and state.bond[dest] >= 0:
+            component = state.bond[source]
+            state.bond[source] = state.bond[dest]
+            state.bond[dest] = component
     elif effect.op == V2_OP_SUPPRESS_BOND_STRENGTH:
         if target >= 0:
             state.suppression_mask[target] |= SUPPRESS_BOND_STRENGTH
@@ -796,6 +826,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 V2_OP_LOOK_HAND,
                 V2_OP_LOOK_STRATAGEM,
                 V2_OP_MOVE,
+                V2_OP_EXHAUST,
+                V2_OP_RETURN_COMPONENT,
                 V2_OP_PREPARED_PAY_OR_RETURN,
                 V2_OP_TAX,
                 V2_OP_REMOVE_EXHAUSTION,
