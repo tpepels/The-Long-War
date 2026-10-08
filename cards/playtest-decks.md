@@ -17,7 +17,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 - Signal Company sits only in Middle and makes the Force directly ahead MOBILE, letting an Unnamed front-line Force reposition without first completing a Named Formation.
 - Grey Riders + The Long March gives cheap early movement; Signal Company adds a different route to mobility by coordinating the line from behind.
 - Re-form the Line, Neris, Kael, Elian and Sela provide different kinds of repositioning, so the deck can rotate a damaged line rather than simply add Strength.
-- Crow Archers, Banner Singers, Supported By and First Spear reward building an actual Front/Middle/Rear order.
+- Salt-Road Fleet moves another friendly formation toward Rear on PLAY; paired with Before Sunset, the Ford Would Be Ours, the deck can now test the Ship classification directly. Banner Singers and Supported By protect a developed line by taxing opposing Tactics.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -28,7 +28,7 @@ Each deck deliberately uses the same broad skeleton - 16 Forces, 8 Bonds, 6 Name
 | 1 | The Lantern Scouts | Force |
 | 1 | The Watchtowers of Eren | Force |
 | 1 | The First Spear | Force |
-| 1 | The Crow Archers | Force |
+| 1 | The Salt-Road Fleet | Force |
 | 1 | The Banner Singers | Force |
 | 1 | The White Hands of Elara | Force |
 | 2 | The Signal Company | Force |
