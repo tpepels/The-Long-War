@@ -1,7 +1,5 @@
 {
-  "status": "candidates_only",
-  "style": "C",
-  "batch": 5,
+  "batch": "style-c-batch-1",
   "icon_count": 10,
   "sizes_px": [
     16,
@@ -15,194 +13,174 @@
   ],
   "icons": [
     {
-      "name": "strength",
-      "path": "web/art/icons/strength.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "becomes_named",
+      "path": "web/art/icons/becomes_named.png",
+      "source": "/mnt/data/gouden_sterbanier_met_vlaggenpaal.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/strength.png",
-        "web/art/icons/sizes/24/strength.png",
-        "web/art/icons/sizes/32/strength.png",
-        "web/art/icons/sizes/48/strength.png",
-        "web/art/icons/sizes/64/strength.png",
-        "web/art/icons/sizes/128/strength.png",
-        "web/art/icons/sizes/256/strength.png",
-        "web/art/icons/sizes/512/strength.png"
+        "web/art/icons/sizes/16/becomes_named.png",
+        "web/art/icons/sizes/24/becomes_named.png",
+        "web/art/icons/sizes/32/becomes_named.png",
+        "web/art/icons/sizes/48/becomes_named.png",
+        "web/art/icons/sizes/64/becomes_named.png",
+        "web/art/icons/sizes/128/becomes_named.png",
+        "web/art/icons/sizes/256/becomes_named.png",
+        "web/art/icons/sizes/512/becomes_named.png"
       ],
-      "sha256": "7889ebdc7eb45db9d14ef3685a1c2ab9e0dd5ae74b936f764335537929d1a377"
+      "sha256": "31341bfb01597b089d41b9daa459268877b2b92c27ed47b3aac24f4c0adb7197"
     },
     {
-      "name": "eye",
-      "path": "web/art/icons/eye.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "continuous",
+      "path": "web/art/icons/continuous.png",
+      "source": "/mnt/data/verweerd_gouden_oneindigheidsembleem.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/eye.png",
-        "web/art/icons/sizes/24/eye.png",
-        "web/art/icons/sizes/32/eye.png",
-        "web/art/icons/sizes/48/eye.png",
-        "web/art/icons/sizes/64/eye.png",
-        "web/art/icons/sizes/128/eye.png",
-        "web/art/icons/sizes/256/eye.png",
-        "web/art/icons/sizes/512/eye.png"
+        "web/art/icons/sizes/16/continuous.png",
+        "web/art/icons/sizes/24/continuous.png",
+        "web/art/icons/sizes/32/continuous.png",
+        "web/art/icons/sizes/48/continuous.png",
+        "web/art/icons/sizes/64/continuous.png",
+        "web/art/icons/sizes/128/continuous.png",
+        "web/art/icons/sizes/256/continuous.png",
+        "web/art/icons/sizes/512/continuous.png"
       ],
-      "sha256": "4f510c8d70d87e1eaa482cf39d0f491ff94c4071a31eb46b092e0c1b28063687"
+      "sha256": "7669b93cb014eec541627c4eefad791b18a95dae3bab70aa17c04f5903e1ec09"
     },
     {
-      "name": "suppress",
-      "path": "web/art/icons/suppress.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "front",
+      "path": "web/art/icons/front.png",
+      "source": "/mnt/data/verweerde_gouden_soldatenformatie_insigne.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/suppress.png",
-        "web/art/icons/sizes/24/suppress.png",
-        "web/art/icons/sizes/32/suppress.png",
-        "web/art/icons/sizes/48/suppress.png",
-        "web/art/icons/sizes/64/suppress.png",
-        "web/art/icons/sizes/128/suppress.png",
-        "web/art/icons/sizes/256/suppress.png",
-        "web/art/icons/sizes/512/suppress.png"
+        "web/art/icons/sizes/16/front.png",
+        "web/art/icons/sizes/24/front.png",
+        "web/art/icons/sizes/32/front.png",
+        "web/art/icons/sizes/48/front.png",
+        "web/art/icons/sizes/64/front.png",
+        "web/art/icons/sizes/128/front.png",
+        "web/art/icons/sizes/256/front.png",
+        "web/art/icons/sizes/512/front.png"
       ],
-      "sha256": "ea1ff8181cbc7bb9639da0c9022e81d118c532b48cd7753c208d0ac8cb8968ab"
+      "sha256": "9ff46fb04f1c3a30e5279eb9b67b1efddce89132495d240c05c26ae5616eaa1b"
     },
     {
-      "name": "shield",
-      "path": "web/art/icons/shield.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "middle",
+      "path": "web/art/icons/middle.png",
+      "source": "/mnt/data/gestileerd_insigne_met_drie_rangbalken.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/shield.png",
-        "web/art/icons/sizes/24/shield.png",
-        "web/art/icons/sizes/32/shield.png",
-        "web/art/icons/sizes/48/shield.png",
-        "web/art/icons/sizes/64/shield.png",
-        "web/art/icons/sizes/128/shield.png",
-        "web/art/icons/sizes/256/shield.png",
-        "web/art/icons/sizes/512/shield.png"
+        "web/art/icons/sizes/16/middle.png",
+        "web/art/icons/sizes/24/middle.png",
+        "web/art/icons/sizes/32/middle.png",
+        "web/art/icons/sizes/48/middle.png",
+        "web/art/icons/sizes/64/middle.png",
+        "web/art/icons/sizes/128/middle.png",
+        "web/art/icons/sizes/256/middle.png",
+        "web/art/icons/sizes/512/middle.png"
       ],
-      "sha256": "f0cc7d70234014f5f59f200f42d12728aa2d7efd0cd7627a886a721ae8b4fc7f"
+      "sha256": "e1023b16c05fa86d9c4d6177c67145ad2933dfd03ca41ca849dac5f50ff701fd"
     },
     {
-      "name": "marker",
-      "path": "web/art/icons/marker.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "middle-rear",
+      "path": "web/art/icons/middle-rear.png",
+      "source": "/mnt/data/verweerde_marinetrappen_met_gouden_randen.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/marker.png",
-        "web/art/icons/sizes/24/marker.png",
-        "web/art/icons/sizes/32/marker.png",
-        "web/art/icons/sizes/48/marker.png",
-        "web/art/icons/sizes/64/marker.png",
-        "web/art/icons/sizes/128/marker.png",
-        "web/art/icons/sizes/256/marker.png",
-        "web/art/icons/sizes/512/marker.png"
+        "web/art/icons/sizes/16/middle-rear.png",
+        "web/art/icons/sizes/24/middle-rear.png",
+        "web/art/icons/sizes/32/middle-rear.png",
+        "web/art/icons/sizes/48/middle-rear.png",
+        "web/art/icons/sizes/64/middle-rear.png",
+        "web/art/icons/sizes/128/middle-rear.png",
+        "web/art/icons/sizes/256/middle-rear.png",
+        "web/art/icons/sizes/512/middle-rear.png"
       ],
-      "sha256": "635b8dd7c94fdca689e13a05673e34e4ad34bea76d34a73be648fa858820d24d"
+      "sha256": "7b4f29ec3fd7fe3e27672952f1c597c56425af19b221d2763176ef5af0f4a76f"
     },
     {
-      "name": "ally",
-      "path": "web/art/icons/ally.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "move",
+      "path": "web/art/icons/move.png",
+      "source": "/mnt/data/heraldische_vooruitgangspijl_met_snelheidstrepen.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/ally.png",
-        "web/art/icons/sizes/24/ally.png",
-        "web/art/icons/sizes/32/ally.png",
-        "web/art/icons/sizes/48/ally.png",
-        "web/art/icons/sizes/64/ally.png",
-        "web/art/icons/sizes/128/ally.png",
-        "web/art/icons/sizes/256/ally.png",
-        "web/art/icons/sizes/512/ally.png"
+        "web/art/icons/sizes/16/move.png",
+        "web/art/icons/sizes/24/move.png",
+        "web/art/icons/sizes/32/move.png",
+        "web/art/icons/sizes/48/move.png",
+        "web/art/icons/sizes/64/move.png",
+        "web/art/icons/sizes/128/move.png",
+        "web/art/icons/sizes/256/move.png",
+        "web/art/icons/sizes/512/move.png"
       ],
-      "sha256": "4db6230dcdce6600438d77db8535db3c290c8e404504ff97eccfe694bed7e22e"
+      "sha256": "cd9055542a561e4b5622125bcd548cf8096770c33ee2369a6f00249140d923bb"
     },
     {
-      "name": "cycle",
-      "path": "web/art/icons/cycle.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "hidden",
+      "path": "web/art/icons/hidden.png",
+      "source": "/mnt/data/verborgen_oog_onder_gouden_sluier.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/cycle.png",
-        "web/art/icons/sizes/24/cycle.png",
-        "web/art/icons/sizes/32/cycle.png",
-        "web/art/icons/sizes/48/cycle.png",
-        "web/art/icons/sizes/64/cycle.png",
-        "web/art/icons/sizes/128/cycle.png",
-        "web/art/icons/sizes/256/cycle.png",
-        "web/art/icons/sizes/512/cycle.png"
+        "web/art/icons/sizes/16/hidden.png",
+        "web/art/icons/sizes/24/hidden.png",
+        "web/art/icons/sizes/32/hidden.png",
+        "web/art/icons/sizes/48/hidden.png",
+        "web/art/icons/sizes/64/hidden.png",
+        "web/art/icons/sizes/128/hidden.png",
+        "web/art/icons/sizes/256/hidden.png",
+        "web/art/icons/sizes/512/hidden.png"
       ],
-      "sha256": "981cc5b737c994bf8ad7e0ffa14be54a15bee101c406351f160191dfb0bb58bc"
+      "sha256": "a3f16c798bb525b5de0bdaea916c93273aa98047ab231fe69bb3967233278286"
     },
     {
-      "name": "prepared",
-      "path": "web/art/icons/prepared.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "rear",
+      "path": "web/art/icons/rear.png",
+      "source": "/mnt/data/gouden_achterste_gelid_van_soldaten.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/prepared.png",
-        "web/art/icons/sizes/24/prepared.png",
-        "web/art/icons/sizes/32/prepared.png",
-        "web/art/icons/sizes/48/prepared.png",
-        "web/art/icons/sizes/64/prepared.png",
-        "web/art/icons/sizes/128/prepared.png",
-        "web/art/icons/sizes/256/prepared.png",
-        "web/art/icons/sizes/512/prepared.png"
+        "web/art/icons/sizes/16/rear.png",
+        "web/art/icons/sizes/24/rear.png",
+        "web/art/icons/sizes/32/rear.png",
+        "web/art/icons/sizes/48/rear.png",
+        "web/art/icons/sizes/64/rear.png",
+        "web/art/icons/sizes/128/rear.png",
+        "web/art/icons/sizes/256/rear.png",
+        "web/art/icons/sizes/512/rear.png"
       ],
-      "sha256": "f2a35b0eb6ea7b6ddf0866b0ddbfb86f54f4d72e7bf3b1623c08bbc1a623c537"
+      "sha256": "da7d85af2577959bcf3608f8ad402d49f3c0d3e285517b0f218bd63bfd77c1f6"
     },
     {
-      "name": "hand",
-      "path": "web/art/icons/hand.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "rider",
+      "path": "web/art/icons/rider.png",
+      "source": "/mnt/data/middeleeuws_ruiterembleem_met_banier.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/hand.png",
-        "web/art/icons/sizes/24/hand.png",
-        "web/art/icons/sizes/32/hand.png",
-        "web/art/icons/sizes/48/hand.png",
-        "web/art/icons/sizes/64/hand.png",
-        "web/art/icons/sizes/128/hand.png",
-        "web/art/icons/sizes/256/hand.png",
-        "web/art/icons/sizes/512/hand.png"
+        "web/art/icons/sizes/16/rider.png",
+        "web/art/icons/sizes/24/rider.png",
+        "web/art/icons/sizes/32/rider.png",
+        "web/art/icons/sizes/48/rider.png",
+        "web/art/icons/sizes/64/rider.png",
+        "web/art/icons/sizes/128/rider.png",
+        "web/art/icons/sizes/256/rider.png",
+        "web/art/icons/sizes/512/rider.png"
       ],
-      "sha256": "211681411e116c525c6cdece6cea30bebfcd47a7a2ba9f6f166ed10de6b30213"
+      "sha256": "79551f1737978cac6a87ea976d8fe532a5a9e74064bcef5db1ed481d4144b994"
     },
     {
-      "name": "target",
-      "path": "web/art/icons/target.png",
-      "original_size": [
-        1254,
-        1254
-      ],
+      "name": "skirmisher",
+      "path": "web/art/icons/skirmisher.png",
+      "source": "/mnt/data/gestileerde_duellerende_schurk_met_dubbele_messen.png",
+      "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/target.png",
-        "web/art/icons/sizes/24/target.png",
-        "web/art/icons/sizes/32/target.png",
-        "web/art/icons/sizes/48/target.png",
-        "web/art/icons/sizes/64/target.png",
-        "web/art/icons/sizes/128/target.png",
-        "web/art/icons/sizes/256/target.png",
-        "web/art/icons/sizes/512/target.png"
+        "web/art/icons/sizes/16/skirmisher.png",
+        "web/art/icons/sizes/24/skirmisher.png",
+        "web/art/icons/sizes/32/skirmisher.png",
+        "web/art/icons/sizes/48/skirmisher.png",
+        "web/art/icons/sizes/64/skirmisher.png",
+        "web/art/icons/sizes/128/skirmisher.png",
+        "web/art/icons/sizes/256/skirmisher.png",
+        "web/art/icons/sizes/512/skirmisher.png"
       ],
-      "sha256": "454725a3fe2879f4b8dc3160977b6ae1ec668cba68e439fe1f11ae814b485814"
+      "sha256": "870a420db8dda57d2bf6c29c9d344e87ee07e37d818a30daefb88e8e118b904c"
     }
   ]
 }
