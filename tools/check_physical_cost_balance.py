@@ -95,7 +95,7 @@ def run() -> None:
     # Opponent has two support Forces and friendly Archer threatens same Front.
     case("B2: Crows reward formation setup",
          cost("the-crows-came-down") == 2
-         and has("the-crows-came-down", "up to two", "one Front", "Archers")
+         and has("the-crows-came-down", "up to two", "single Front", "Archers")
          and used_once("the-crows-came-down")
          and cost("the-baggage-was-abandoned") == 2
          and has("the-baggage-was-abandoned", "Rear", "Exhaust", "Shaken"),
@@ -120,7 +120,7 @@ def run() -> None:
     # A prepared opponent's Bond is vulnerable only after pressure connects.
     case("B3: ambush damages a formation rather than adding Strength",
          cost("the-trap-closed") == 2
-         and has("the-trap-closed", "Raiders", "temporary negative marker",
+         and has("the-trap-closed", "Raider", "temporary negative marker",
                  "Bond or Name", "hand"),
          "Hidden plan requires a preceding tactical move and attached target")
 
