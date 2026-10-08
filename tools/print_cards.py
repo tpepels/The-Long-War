@@ -17,10 +17,19 @@ CANONICAL = ROOT / "cards" / "cards.json"
 LABELS = {
     "play": "PLAY", "attack": "ATTACK", "middle": "MIDDLE",
     "bonded": "BONDED", "hidden": "HIDDEN", "continuous": "CONTINUOUS", "becomes_named": "BECOMES NAMED",
-    "action": "ACTION",
+    "action": "ACTION", "reaction": "REACTION", "trigger": "TRIGGER",
+    "front": "FRONT", "rear": "REAR", "while_named": "WHILE NAMED",
 }
 ONGOING = {"attack", "middle", "bonded", "while_named", "action", "reaction", "front", "rear", "continuous", "tireless", "mobile"}
 CARD_TYPES = {"force", "bond", "name", "hero", "tactic", "order", "stratagem", "narrative"}
+RANKS = {"front", "middle", "rear"}
+
+
+def print_effect_label(effect: dict) -> str:
+    label = LABELS[effect["timing"]]
+    if effect.get("limit") == "once_per_battle":
+        return label + " · 1/BATTLE"
+    return label
 
 
 def load_print_cards(base: dict | None = None, overrides: dict | None = None) -> dict:
@@ -46,6 +55,11 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         card = by_id[card_id]
         if "command_cost" in change:
             card["command_cost"] = change["command_cost"]
+        if "allowed_rows" in change:
+            allowed = change["allowed_rows"]
+            if card["type"] != "force" or not isinstance(allowed, list) or not allowed or len(set(allowed)) != len(allowed) or not set(allowed) <= RANKS:
+                raise ValueError("Invalid printable row restriction: " + card_id)
+            card["allowed_rows"] = deepcopy(allowed)
         if "strength_value" in change:
             key = "strength_modifier" if card["type"] == "bond" else "strength"
             if card["type"] not in ("bond", "force"):
@@ -62,10 +76,10 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         if card["type"] == "hero":
             raise ValueError("Hero mode replacement requires explicit print model")
         card["effects"] = effects
-        card["text"] = "\n".join(LABELS[e["timing"]] + " - " + e["text"] for e in effects) or "No special rules."
+        card["text"] = "\n".join(print_effect_label(e) + " - " + e["text"] for e in effects) or "No special rules."
         card["rule_blocks"] = [
             {"kind": "continuous" if e["timing"] in ONGOING else "effect",
-             "label": LABELS[e["timing"]], "text": e["text"]}
+             "label": print_effect_label(e), "text": e["text"]}
             for e in effects
         ]
         card["print_revision"] = "physical-rules-v2"
@@ -113,6 +127,21 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         card.pop("design_rules", None)
         card.pop("combat_redesign_proposal", None)
 
+    cost_seen = set()
+    for change in overrides.get("cost_adjustments", []):
+        card_id = change["id"]
+        if card_id not in by_id or card_id in seen or card_id in cost_seen:
+            raise ValueError("Invalid print-only cost adjustment: " + card_id)
+        cost_seen.add(card_id)
+        new_cost = change["command_cost"]
+        if not isinstance(new_cost, int) or isinstance(new_cost, bool) or not 0 <= new_cost <= 20:
+            raise ValueError("Invalid printed Command cost: " + card_id)
+        card = by_id[card_id]
+        card["command_cost"] = new_cost
+        card["print_revision"] = "command-cost-correction"
+        card.pop("design_rules", None)
+        card.pop("combat_redesign_proposal", None)
+
     # All buried, live abilities need a visible reminder; no silent fallback to
     # 100+ character body text which would overflow the 10.5 mm exposed edge.
     for card in printed["cards"]:
@@ -138,4 +167,5 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
     printed["print_only"] = True
     printed["print_override_count"] = len(seen)
     printed["print_timing_fix_count"] = len(limit_ids)
+    printed["print_cost_adjustment_count"] = len(cost_seen)
     return printed
