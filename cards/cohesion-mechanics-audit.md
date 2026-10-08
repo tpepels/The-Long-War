@@ -59,6 +59,23 @@ Four Narratives implement `limit: once_per_battle` for ACTION abilities but do *
 6. **Test combo formation rates and counterplay:** does a card have at least one legal attractive use in ordinary early and late Battle states? Does its effect change a real decision rather than marginal Strength? Can the opponent respond? Is the two-Action turn limit meaningful?
 7. **Watch physical complexity:** no additional player-facing keywords until they replace more text than they add; a buried Force/Bond must not require lifting the stack.
 
+## Targeted test scenarios
+
+These test decision structure first, not win rates. Start with the printed rules and move to native simulation **after** the implementation parity blockers are resolved.
+
+| Setup | Meaningful choice and counterplay | What would constitute evidence |
+|---|---|---|
+| **Break an enemy Front.** Friendly Skirmisher and Raider face an opposing Frontline Force; its Middle row is empty. | Play The Line Was Baited to push the defender into Middle, then use the Raider basic Attack against the newly exposed formation. Opponent can occupy its Middle row or contest the Skirmisher. | Legal two-Action sequence changes Attack eligibility rather than merely giving +Strength; works without card-specific exceptions |
+| **Guard screening puzzle.** Opposing Middle Guard protects a Rear Force; friendly Skirmisher and Archer can Attack in the same Front. | Shake or Deplete the Guard so screening fails, then Attack the exposed Rear. Opponent may prioritize defending Guard or moving Rear. | At least two viable target/Action orderings with counterplay, consistent temporary markers |
+| **Complete a formation from reserve.** Frontline Force with Bond, Middle Field Train, prepared Name behind it. | Attach the Name through the Train, creating a Named Formation for later Maneuvers. Counterplay can pressure the Frontline or prevent preparation. | Actions/card placement produce a real timing advantage over playing the Name directly |
+| **Outflank or withdraw.** Grey Riders, a friendly Rider source and at least one adjacent active Front with opposing forces. | Rider movement can threaten a different Frontline; The Battle Turned East rewards committing to one move. | Players trade Actions, Command and rank exposure to alter a flank, not merely farm a numerical buff |
+| **Change the whole geography.** Two adjacent active Fronts have materially different friendly Force/Bond/Name layouts. | No Road Was Too Long swaps complete friendly Front columns. Opponent can pre-position to make either destination dangerous. | More than one Front outcome or subsequent maneuver changes; no illegal rank occupancy |
+| **Hidden-plan duel.** Teren can set a Stratagem, opposed by a Scout and The Scouts Found the Gap. | Free Stratagem timing versus the Scout's decision to reveal and tax the plan. | Information meaningfully changes when to play/withhold Tactics or which Front to contest |
+| **Defensive tax stack.** Named Banner Singers in Middle with another friendly target; Held the Line for and an enemy Tactic. | Verify which targeted Tactics pay which surcharges and whether 1C/2C Tactics remain legal. | Stacking is transparent, does not unintentionally deny all counterplay, and is worth its setup |
+| **Economic nonbo.** The Lines Held, Command about to be lost on Front resolution. | Compare playing the 3C Stratagem against holding it and absorbing up to two 1C Front penalties. | A legal state where paying to play improves survival or long-run Command; otherwise rework |
+
+For each scenario record legal Actions, Command and Action deltas, board positions before/after, counterplay, whether a Named/Bonded gate delayed the combo, and whether the effect remained relevant by Battle III or later.
+
 ## Audit rubric (all 131 identities)
 
 Statuses below are **qualitative**, not measured win rates: **Signature** is a distinct battlefield/tempo decision or combo anchor; **Keep** is useful identity or deliberate uncomplicated glue; **Glue** is a plain reference body/layer; **Test** has a narrow payoff or questionable cost; **Rework** is redundant, outclassed, inapplicable or economically unsound. The note describes why the status was assigned; it does not add executable behavior.
