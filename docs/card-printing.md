@@ -72,10 +72,14 @@ pagination. The built Cards and Decks pages are the final visual review surface.
 
 ### Physical-playtest-only card revisions
 
-`cards/print-overrides.json` contains 28 physical-print replacements (16 cohesion redesigns, 11 rulebook reconciliations, and the Grey Riders terminology update), plus four ACTION limit text fixes. `tools/print_cards.py` creates the separate `dist/data/print-cards.json` consumed by both printable Cards and Decks pages. `dist/data/cards.json` and `cards/cards.json` remain unchanged executable input; these printed effects are **not** promises about the webgame. Print-only exports deliberately omit stale executable `design_rules`.
+`cards/print-overrides.json` now contains **44 physical-print replacements** (including 16 focused new cost/diversity sidegrades), **7 additional cost-only adjustments**, and 2 remaining standalone ACTION-limit corrections; two former standalone corrections were integrated into reworked effects, so all prior once-per-Battle restrictions still apply. `tools/print_cards.py` creates the separate `dist/data/print-cards.json` consumed by both printable Cards and Decks pages. `dist/data/cards.json` and `cards/cards.json` remain unchanged executable input; these printed effects are **not** promises about the webgame. Print-only exports deliberately omit stale executable `design_rules`.
 
 Force/Bond/Name stacks reveal only the top 10.5 mm of each buried card. Thus new PLAY effects resolve immediately and may safely be covered; every new ongoing Force/Bond effect has an explicit exposed-strip reminder. The printed rules text remains the authority. All 23 remaining pre-existing live Force/Bond reminders have updated print-only strip wording to clarify conditions and targets; confirm edge fit in a rendered stack before printing in quantity.
 
 ### Rulebook and physical-playtest status
 
 The printed [rulebook](../rules/rulebook.md), [quick reference](../web/playmat.html), [marker sheet](../web/tokens.html), and mechanics page of the deck kit define the **physical 2026 reconciliation**. They use pre-draw voluntary Pass, four Narratives, assigned-Front hidden Stratagems, −1 flanking, and next-Battle lost-Front Exhaustion with Guarded protection. The executable Webgame/AI uses older behavior and is **not a rules reference for these cards**. Rule changes in this phase intentionally do not modify native gameplay code.
+
+### Cost/diversity verification
+
+Use `python tools/check_physical_cost_balance.py` for 15 static tabletop decision checks and [the complete 131-card cost ledger](../cards/physical-cost-review.md). A GitHub Actions advisory build checks the card export, generated Pages, PDF, and optional browser text fit. The build is not a full simulation of the print rules.
