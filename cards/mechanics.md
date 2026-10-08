@@ -158,7 +158,7 @@ Classifications should create recognizable play patterns.
 - **Seer** - bends hidden information, timing, adjacency or other assumptions.
 - **Ship / Stronghold / Veteran** - retain distinct identities through card text rather than intrinsic glossary rules.
 
-Classifications themselves still have no automatic rules.
+Classifications grant the basic Attacks and Guard screening defined in the rulebook; no other automatic abilities are implied. Additional class-dependent effects must be specified by card text.
 
 ## Card-type grammar
 
