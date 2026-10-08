@@ -12,7 +12,7 @@
         "Signal Company sits only in Middle and makes the Force directly ahead MOBILE, letting an Unnamed front-line Force reposition without first completing a Named Formation.",
         "Grey Riders + The Long March gives cheap early movement; Signal Company adds a different route to mobility by coordinating the line from behind.",
         "Re-form the Line, Neris, Kael, Elian and Sela provide different kinds of repositioning, so the deck can rotate a damaged line rather than simply add Strength.",
-        "Crow Archers, Banner Singers, Supported By and First Spear reward building an actual Front/Middle/Rear order."
+        "The Salt-Road Fleet moves an ally toward Rear, enabling a Ship alongside Before Sunset's Ship-or-Scout information effect; Banner Singers and Supported By now protect the second line by taxing opposing Tactics."
       ],
       "cards": [
         {
@@ -44,7 +44,7 @@
           "copies": 1
         },
         {
-          "id": "the-crow-archers",
+          "id": "the-salt-road-fleet",
           "copies": 1
         },
         {

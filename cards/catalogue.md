@@ -22,7 +22,7 @@
 | **The Old Guard** | human · guard | 2 | 3 | No special rules. |
 | **The Salt-Road Reavers** | human · raider | 3 | 5 | PLAY - If an opposing Force in this Front is Exhausted, your opponent loses 1 Command, then you regain the amount lost (to a minimum of 1 Command for them). |
 | **The Late Banner** | human · captain | 2 | 3 | BONDED - While this formation is Bonded, names played onto this formation cost 1 less Command, to a minimum of 1. |
-| **The Banner Singers** | human · captain | 1 | 2 | WHILE NAMED - While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead. |
+| **The Banner Singers** | human · captain | 1 | 2 | WHILE NAMED - While this formation is Named and in the Middle row, opposing Tactics targeting another friendly formation in this Front cost 1 additional Command. |
 | **Thirty Spears** | human | 1 | 3 | No special rules. |
 | **A Hundred Shields** | human · guard | 3 | 6 | No special rules. |
 | **The Vardai** | human · rider | 2 | 3 | ACTION - Pay 1 Command. Move this formation one position to an adjacent active empty position. |
@@ -37,7 +37,7 @@
 | **The Lantern Scouts** | human · scout | 1 | 2 | CONTINUOUS - While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front. |
 | **The River Raiders** | human · raider | 3 | 4 | ACTION - Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand. |
 | **The King's Spears** | human · guard | 2 | 4 | No special rules. |
-| **The Salt-Road Fleet** | ship · raider | 2 | 4 | PLAY - Return one opposing prepared Bond or Name in this Front to its owner's hand. |
+| **The Salt-Road Fleet** | ship · raider | 2 | 3 | PLAY - Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty. |
 | **The Watchtowers of Eren** | stronghold · scout | 2 | 3 | Legal rows: middle, rear<br>PLACEMENT - This Force may only occupy the Middle or Rear rows.<br>REAR - While this formation is in the Rear row, you may look at opposing face-down Stratagems in any active Front. |
 
 ## Bonds
@@ -51,7 +51,7 @@
 | **Kept Pace With** | — | 1 | — | PLAY - If this formation contains a Rider or Scout, draw 1 card, then discard 1 card. |
 | **Covered the Withdrawal of** | — | 1 | — | BONDED - While this formation is Bonded, the friendly Force directly ahead may Maneuver while Exhausted. |
 | **Blocked the Road for** | — | 1 | — | No special rules. |
-| **Held the Line for** | — | 1 | — | BONDED - While this formation is Bonded, flanking cannot Exhaust its Force. |
+| **Held the Line for** | — | 1 | — | BONDED - While this formation is Bonded, opposing Tactics targeting it cost 1 additional Command. |
 | **Seized the Standard of** | — | 1 | — | No special rules. |
 | **Stayed Behind For** | — | 1 | — | PLAY - Choose a prepared Name in this Front. Attach it to this formation if its Name slot is empty. |
 | **Swore Again To** | — | 1 | — | No special rules. |
@@ -66,7 +66,7 @@
 | **Kept the Gate For** | — | 1 | — | BONDED - While this formation is Bonded, the friendly Force directly behind may Maneuver while Exhausted. |
 | **Shared the Spoils With** | — | 1 | — | PLAY - If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost. |
 | **Carried Messages For** | — | 1 | — | PLAY - If this formation contains a Captain or Scout, draw 1 card, then discard 1 card. |
-| **Supported By** | — | 1 | — | BONDED - While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead. |
+| **Supported By** | — | 1 | — | BONDED - While this formation is Bonded and in the Middle row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command. |
 | **Supplied By** | — | 1 | — | PLAY - Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead, if its matching slot is empty. |
 
 ## Names
@@ -124,10 +124,10 @@
 | **They Let Them Through** | — | 1 | — | PLAY - Choose an opposing Formation. Its 1/BATTLE abilities cannot be used this Battle. |
 | **All Reserves Forward** | — | 2 | — | PLAY - Choose an opposing Bonded Formation. Return one of its Bonds or Names to its owner's hand. |
 | **The Line Had Begun to Move** | — | 2 | — | PLAY - Place a Tax marker on an active Front. The next card your opponent plays there costs 2 additional Command. |
-| **A Volley Before Dawn** | — | 2 | — | PLAY - Choose an opposing Force in a Front containing one of your Archers. Exhaust it. |
+| **A Volley Before Dawn** | — | 2 | — | PLAY - Choose an opposing Force in a Front containing one of your Archers. It gets -2 Strength this Battle. |
 | **The Scouts Found the Gap** | — | 1 | — | PLAY - Choose one of your Scouts. Reveal one opposing face-down Stratagem in its Front or an adjacent Front. Its owner returns it to hand or pays 1 Command to set it face-down again. |
 | **The Stores Were Taken** | — | 1 | — | PLAY - Choose one opposing prepared Bond or prepared Name in a Front containing one of your Raiders. Its owner pays 2 Command or returns it to hand. |
-| **The Line Was Baited** | — | 1 | — | PLAY - Choose an opposing Guard in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty. |
+| **The Line Was Baited** | — | 0 | — | PLAY - Choose an opposing Force in a Front containing one of your Skirmishers. Move it one row toward its Rear if that position is empty. |
 
 ## Orders
 
@@ -161,15 +161,15 @@
 | Card | Classifications | Command | Strength | Current printed text |
 |---|---|---:|---:|---|
 | **The Long March** | — | 2 | — | CONTINUOUS - Your Riders pay 0 Command to Maneuver this Battle. |
-| **The Wall Did Not Break** | — | 2 | — | CONTINUOUS - Your Guards and Strongholds cannot become Exhausted from flanking this Battle. |
+| **The Wall Did Not Break** | — | 2 | — | CONTINUOUS - Your Guards and Strongholds pay 0 Command to Maneuver this Battle. |
 | **The Crows Came Down** | — | 2 | — | ACTION - Pay 1 Command. Choose an opposing Force in a Front containing one of your Archers. Exhaust it. |
 | **Before Sunset, the Ford Would Be Ours** | — | 1 | — | ACTION · 1/BATTLE - Choose one of your Scouts or Ships. Look at one opposing face-down Stratagem in its Front or an adjacent Front. |
-| **They Lived to Tell It** | — | 1 | — | ACTION · 1/BATTLE - Choose one of your Healers. Remove one temporary negative marker from its formation. |
+| **They Lived to Tell It** | — | 1 | — | ACTION · 1/BATTLE - Choose a friendly formation. Remove one temporary negative marker from it. |
 | **No Road Was Too Long** | — | 4 | — | ACTION - Exchange all your cards in two adjacent active Fronts, rank for rank. Prepared cards and Exhaustion move with their positions. |
 | **The Battle Had Chosen Them** | — | 2 | — | CONTINUOUS - Your Heroes and Named Formations have +1 Strength this Battle. |
 | **No One Would Be First to Leave** | — | 2 | — | ACTION - Pay 1 Command. Choose a friendly Force. Remove its Exhaustion. |
 | **The King Had Given the Order** | — | 3 | — | ACTION - Exchange the Bonds attached to two of your Bonded Formations, in any active Fronts. |
 | **Every Bow Was Strung** | — | 1 | — | CONTINUOUS - Your Bonded Archer formations have +1 Strength this Battle. |
-| **They Knew the Ground** | — | 1 | — | ACTION · 1/BATTLE - Choose one of your Scouts or Seers. Look at one opposing face-down Stratagem in any active Front. |
+| **They Knew the Ground** | — | 1 | — | ACTION · 1/BATTLE - If you control a Seer, look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order. |
 | **The Raiders Came Home Loaded** | — | 1 | — | CONTINUOUS - Tactics you play targeting a Front containing one of your Raiders or Skirmishers cost 1 less Command, to a minimum of 1. |
 

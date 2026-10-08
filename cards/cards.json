@@ -842,17 +842,18 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+          "text": "While this formation is Named and in the Middle row, opposing Tactics targeting another friendly formation in this Front cost 1 additional Command.",
           "scope": "self",
           "memory": [],
-          "exposed": "NAMED · MIDDLE: protect Front from flank"
+          "exposed": "NAMED · MIDDLE: protect friendly Front"
         }
       ],
-      "text": "WHILE NAMED - While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+      "text": "WHILE NAMED - While this formation is Named and in the Middle row, opposing Tactics targeting another friendly formation in this Front cost 1 additional Command.",
       "design_tags": [
         "named-payoff",
         "positional-support",
-        "flank-defense"
+        "tax",
+        "protection"
       ],
       "unique": false,
       "design_rules": {
@@ -862,8 +863,9 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "flank_guard",
-            "target": "directly_ahead",
+            "op": "tactic_tax",
+            "target": "other_friendly_same_front",
+            "amount": 1,
             "requires_rank": "middle",
             "requires_named": true
           }
@@ -874,7 +876,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
+          "text": "While this formation is Named and in the Middle row, opposing Tactics targeting another friendly formation in this Front cost 1 additional Command."
         }
       ],
       "combat_redesign_proposal": "WHILE NAMED - While this formation is Named and in Middle, a friendly Frontline Force directly ahead cannot be Shaken by a basic Rider Attack."
@@ -1538,16 +1540,17 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, flanking cannot Exhaust its Force.",
+          "text": "While this formation is Bonded, opposing Tactics targeting it cost 1 additional Command.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · Ignore flanking"
+          "exposed": "BONDED · Enemy Tactics cost +1"
         }
       ],
-      "text": "BONDED - While this formation is Bonded, flanking cannot Exhaust its Force.",
+      "text": "BONDED - While this formation is Bonded, opposing Tactics targeting it cost 1 additional Command.",
       "design_tags": [
         "formation-building",
-        "flank-defense"
+        "tax",
+        "protection"
       ],
       "unique": false,
       "design_rules": {
@@ -1557,8 +1560,9 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "flank_guard",
+            "op": "tactic_tax",
             "target": "self",
+            "amount": 1,
             "requires_bonded": true
           }
         ],
@@ -1568,7 +1572,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, flanking cannot Exhaust its Force."
+          "text": "While this formation is Bonded, opposing Tactics targeting it cost 1 additional Command."
         }
       ],
       "combat_redesign_proposal": "BONDED - While this formation is Bonded and in Frontline, it cannot be targeted by basic Rider Attacks."
@@ -4988,7 +4992,7 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "Your Guards and Strongholds cannot become Exhausted from flanking this Battle.",
+          "text": "Your Guards and Strongholds pay 0 Command to Maneuver this Battle.",
           "scope": "self",
           "memory": [
             "face_up_source"
@@ -4996,11 +5000,12 @@
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Your Guards and Strongholds cannot become Exhausted from flanking this Battle.",
+      "text": "CONTINUOUS - Your Guards and Strongholds pay 0 Command to Maneuver this Battle.",
       "design_tags": [
-        "flank-defense",
         "battlefield",
-        "army-support"
+        "army-support",
+        "movement",
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
@@ -5012,12 +5017,12 @@
             "memory": [
               "face_up_source"
             ],
-            "op": "flank_guard",
-            "target": "friendly_any_class",
+            "op": "maneuver_cost_class",
             "classes": [
               "guard",
               "stronghold"
-            ]
+            ],
+            "cost": 0
           }
         ],
         "modes": {}
@@ -5026,7 +5031,7 @@
         {
           "kind": "continuous",
           "label": "CONTINUOUS",
-          "text": "Your Guards and Strongholds cannot become Exhausted from flanking this Battle."
+          "text": "Your Guards and Strongholds pay 0 Command to Maneuver this Battle."
         }
       ],
       "combat_redesign_proposal": "CONTINUOUS - Your Guards and Strongholds cannot become Shaken this Battle."
@@ -5145,7 +5150,7 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Choose one of your Healers. Remove one temporary negative marker from its formation.",
+          "text": "Choose a friendly formation. Remove one temporary negative marker from it.",
           "scope": "self",
           "memory": [
             "used_marker"
@@ -5154,11 +5159,10 @@
         }
       ],
       "duration": "this_battle",
-      "text": "ACTION · 1/BATTLE - Choose one of your Healers. Remove one temporary negative marker from its formation.",
+      "text": "ACTION · 1/BATTLE - Choose a friendly formation. Remove one temporary negative marker from it.",
       "design_tags": [
         "action-engine",
         "army-support",
-        "classification-synergy",
         "marker-state",
         "protection"
       ],
@@ -5173,10 +5177,7 @@
               "used_marker"
             ],
             "op": "remove_negative_marker",
-            "target": "friendly_any_class",
-            "classes": [
-              "healer"
-            ],
+            "target": "friendly_any",
             "count": 1
           }
         ],
@@ -5186,7 +5187,7 @@
         {
           "kind": "effect",
           "label": "ACTION · 1/BATTLE",
-          "text": "Choose one of your Healers. Remove one temporary negative marker from its formation."
+          "text": "Choose a friendly formation. Remove one temporary negative marker from it."
         }
       ]
     },
@@ -5562,20 +5563,20 @@
         "raider"
       ],
       "command_cost": 2,
-      "strength": 4,
+      "strength": 3,
       "effects": [
         {
           "timing": "play",
-          "text": "Return one opposing prepared Bond or Name in this Front to its owner's hand.",
+          "text": "Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty.",
           "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Return one opposing prepared Bond or Name in this Front to its owner's hand.",
+      "text": "PLAY - Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty.",
       "design_tags": [
-        "raids",
-        "prepared-cards",
-        "hostile-interaction"
+        "movement",
+        "positional-support",
+        "play-effect"
       ],
       "unique": false,
       "design_rules": {
@@ -5585,8 +5586,10 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "return_prepared",
-            "target": "opposing_prepared_same_front"
+            "op": "move",
+            "target": "other_friendly_same_front",
+            "steps": 1,
+            "direction": "rear"
           }
         ],
         "modes": {}
@@ -5595,7 +5598,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Return one opposing prepared Bond or Name in this Front to its owner's hand."
+          "text": "Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty."
         }
       ]
     },
@@ -5832,17 +5835,18 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+          "text": "While this formation is Bonded and in the Middle row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
           "scope": "self",
           "memory": [],
-          "exposed": "MIDDLE · Protect Front from flanking"
+          "exposed": "MIDDLE · Rear Tactics cost +1"
         }
       ],
-      "text": "BONDED - While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+      "text": "BONDED - While this formation is Bonded and in the Middle row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
       "design_tags": [
         "formation-building",
-        "flank-defense",
-        "positional-support"
+        "positional-support",
+        "tax",
+        "protection"
       ],
       "unique": false,
       "design_rules": {
@@ -5852,8 +5856,9 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "flank_guard",
-            "target": "directly_ahead",
+            "op": "tactic_tax",
+            "target": "directly_behind",
+            "amount": 1,
             "requires_bonded": true,
             "requires_rank": "middle"
           }
@@ -5864,7 +5869,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
+          "text": "While this formation is Bonded and in the Middle row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command."
         }
       ],
       "art_focus_y": "0%",
@@ -6436,16 +6441,19 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. It gets -2 Strength this Battle.",
           "scope": "opponent",
-          "memory": []
+          "memory": [
+            "effect_marker"
+          ]
         }
       ],
-      "text": "PLAY - Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Archers. It gets -2 Strength this Battle.",
       "design_tags": [
         "archer",
-        "exhaustion",
-        "hostile-interaction"
+        "strength",
+        "hostile-interaction",
+        "marker-state"
       ],
       "unique": false,
       "design_rules": {
@@ -6454,10 +6462,14 @@
             "timing": "play",
             "scope": "opponent",
             "limit": null,
-            "memory": [],
-            "op": "exhaust",
+            "memory": [
+              "effect_marker"
+            ],
+            "op": "add_strength_marker",
             "target": "opposing_front_with_friendly_class",
-            "required_friendly_class": "archer"
+            "required_friendly_class": "archer",
+            "amount": -2,
+            "duration": "battle"
           }
         ],
         "modes": {}
@@ -6466,7 +6478,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
+          "text": "Choose an opposing Force in a Front containing one of your Archers. It gets -2 Strength this Battle."
         }
       ],
       "combat_redesign_proposal": "PLAY - Exhaust an opposing Rear Force in a Front containing one of your Archers, unless it is screened."
@@ -6569,20 +6581,22 @@
       "title": "The Line Was Baited",
       "type": "tactic",
       "classes": [],
-      "command_cost": 1,
+      "command_cost": 0,
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Guard in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
+          "text": "Choose an opposing Force in a Front containing one of your Skirmishers. Move it one row toward its Rear if that position is empty.",
           "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Choose an opposing Guard in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Skirmishers. Move it one row toward its Rear if that position is empty.",
       "design_tags": [
         "forced-movement",
         "flanking",
-        "hostile-interaction"
+        "hostile-interaction",
+        "zero-command",
+        "positional-interaction"
       ],
       "unique": false,
       "design_rules": {
@@ -6593,10 +6607,7 @@
             "limit": null,
             "memory": [],
             "op": "move",
-            "target": "opposing_class_front_with_friendly_class",
-            "classes": [
-              "guard"
-            ],
+            "target": "opposing_front_with_friendly_class",
             "required_friendly_class": "skirmisher",
             "direction": "rear"
           }
@@ -6607,7 +6618,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing Guard in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty."
+          "text": "Choose an opposing Force in a Front containing one of your Skirmishers. Move it one row toward its Rear if that position is empty."
         }
       ],
       "combat_redesign_proposal": "PLAY - Choose an opposing Frontline Guard or Spearman in a Front containing your Skirmisher. Move it one rank toward Rear if legal and empty, then Shake it."
@@ -6786,7 +6797,7 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Choose one of your Scouts or Seers. Look at one opposing face-down Stratagem in any active Front.",
+          "text": "If you control a Seer, look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.",
           "scope": "self",
           "memory": [
             "used_marker"
@@ -6795,11 +6806,12 @@
         }
       ],
       "duration": "this_battle",
-      "text": "ACTION · 1/BATTLE - Choose one of your Scouts or Seers. Look at one opposing face-down Stratagem in any active Front.",
+      "text": "ACTION · 1/BATTLE - If you control a Seer, look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.",
       "design_tags": [
         "action-engine",
         "army-support",
         "classification-synergy",
+        "card-flow",
         "information",
         "marker-state"
       ],
@@ -6813,13 +6825,12 @@
             "memory": [
               "used_marker"
             ],
-            "op": "look_stratagem",
-            "area": "any_active",
+            "op": "pick_top_to_hand_bottom_rest",
             "source_classes": [
-              "scout",
               "seer"
             ],
-            "count": 1
+            "count": 3,
+            "pick": 1
           }
         ],
         "modes": {}
@@ -6828,7 +6839,7 @@
         {
           "kind": "effect",
           "label": "ACTION · 1/BATTLE",
-          "text": "Choose one of your Scouts or Seers. Look at one opposing face-down Stratagem in any active Front."
+          "text": "If you control a Seer, look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order."
         }
       ]
     },
