@@ -1,6 +1,6 @@
 # Card catalogue
 
-131 canonical card identities. Generated directly from [cards.json](cards.json) on this branch. **Only the current executable/printed `text` is shown; proposed Attack, Boon and affliction effects in `combat_redesign_proposal` are not yet implemented.** This catalogue does not change physical card layouts.
+131 executable card identities, generated from [cards.json](cards.json). **This is the Webgame/native baseline, not the updated physical-print text.** The printable Cards and Decks pages use [print-overrides.json](print-overrides.json) over the same 131 identities; see [print-cohesion-implementation.md](print-cohesion-implementation.md) for the 16 redesigned physical cards, four printed timing corrections, and updated exposed-strip reminders. The separate physical print data is not executable engine input.
 
 ## Forces
 
