@@ -57,7 +57,10 @@
     enemy:'<circle cx="12" cy="8" r="3"/><path d="M6 19c1-4 3-6 6-6s5 2 6 6M4 4l16 16"/>'
   };
   const GROUP={human:"kind",ship:"kind",stronghold:"kind",archer:"role",guard:"role",scout:"role",rider:"role",skirmisher:"role",raider:"role",healer:"role",steward:"role",seer:"role",king:"rank",captain:"rank"};
-  function svg(body,title,className=""){return '<svg class="'+className+'" viewBox="0 0 24 24" role="img" aria-label="'+title+'" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><title>'+title+'</title>'+body+'</svg>'}
+  function svg(body,title,className="",iconName=title){
+    const key=String(iconName).toLowerCase().replaceAll(" ","_");
+    return '<svg class="'+className+'" data-icon="'+key+'" viewBox="0 0 24 24" role="img" aria-label="'+title+'" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><title>'+title+'</title>'+body+'</svg>';
+  }
   // Approved PNG candidates from batches 1–3. All other glyphs remain SVG.
   // Keep the pre-existing CSS class names so hand-tuned card geometry is unchanged.
   const PNG_ICONS=new Set([
@@ -71,7 +74,7 @@
     if(new URLSearchParams(window.location.search).get("icons")==="svg")return "";
     if(!PNG_ICONS.has(name))return "";
     const safeTitle=String(title).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;");
-    return '<img class="'+cssClass+' glyph-png" src="art/icons/sizes/128/'+name+'.png" alt="'+safeTitle+'" title="'+safeTitle+'" width="24" height="24" draggable="false">';
+    return '<img class="'+cssClass+' glyph-png" data-icon="'+name+'" src="art/icons/sizes/128/'+name+'.png" alt="'+safeTitle+'" title="'+safeTitle+'" width="24" height="24" draggable="false">';
   };
   const symbol=type=>png(type,type,"glyph-type")||svg(silhouette(TYPE[type]||TYPE.force),type,"glyph-type");
   const strength=()=>svg(UTILITY.strength,"Strength","glyph-strength");
@@ -85,8 +88,8 @@
     let body="";
     for(let i=0;i<3;i++)body+='<rect x="4" y="'+(4+i*6)+'" width="16" height="3.5" rx=".8"'+(active.has(names[i])?' class="row-active"':'')+'/>';
     const label=values.length>1?values.join(" / ")+" rows":(values[0]||"row")+" row";
-    return svg(body,label,"glyph-row");
+    return svg(body,label,"glyph-row","row");
   }
-  function command(value=""){const number=value===""?"":'<text x="12" y="14.5" text-anchor="middle" class="glyph-number">'+value+'</text>';return '<svg class="glyph-command" viewBox="0 0 24 24" role="img" aria-label="Command '+value+'"><title>Command '+value+'</title><path d="M12 1.5 20 5l2.5 8-5.5 8H7l-5.5-8L4 5Z"/><path d="M4 5l8 8 8-8M12 1.5V13m-10.5 0H12m10.5 0H12M7 21l5-8 5 8"/>'+number+'</svg>'}
+  function command(value=""){const number=value===""?"":'<text x="12" y="14.5" text-anchor="middle" class="glyph-number">'+value+'</text>';return '<svg class="glyph-command" data-icon="command" viewBox="0 0 24 24" role="img" aria-label="Command '+value+'"><title>Command '+value+'</title><path d="M12 1.5 20 5l2.5 8-5.5 8H7l-5.5-8L4 5Z"/><path d="M4 5l8 8 8-8M12 1.5V13m-10.5 0H12m10.5 0H12M7 21l5-8 5 8"/>'+number+'</svg>'}
   window.CardSymbols={symbol,strength,timing,utility,classification,row,command,group:name=>GROUP[name]||"role"};
 })();
