@@ -16,8 +16,8 @@ const RULE_TERMS=[
   "prepared Bond","prepared Name"
 ];
 const CLASSIFICATION_TERMS=[
-  "Human","Archer","Builder","Captain","Guard","Healer","Heir","King","Raider",
-  "Rider","Scout","Seer","Ship","Skirmisher","Spearman","Steward","Stronghold","Veteran"
+  "Human","Archer","Captain","Guard","Healer","King","Raider",
+  "Rider","Scout","Seer","Ship","Skirmisher","Steward","Stronghold"
 ];
 const REFERENT_TERMS=[
   ...CLASSIFICATION_TERMS,
