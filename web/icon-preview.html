@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Long War — icon inspection (batches 1–3)</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0 auto; padding: 22px; max-width: 1180px; font: 15px/1.45 system-ui,sans-serif; color:#30271b; background:#efe8d9; }
+    h1, h2 { font-family: Georgia,serif; margin: 0 0 12px; }
+    h2 { margin-top: 30px; }
+    .note { max-width: 850px; }
+    nav { display:flex; flex-wrap:wrap; gap:12px; margin:18px 0; }
+    nav a { color:#513e23; border:1px solid #9e8b6a; border-radius:5px; padding:8px 12px; text-decoration:none; background:#fff9ed; }
+    nav a[aria-current="page"] { background:#d8c49f; font-weight:700; }
+    .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+    .item { box-sizing:border-box; border:1px solid #c7b99e; border-radius:7px; padding:14px; min-width:0; background:#fbf6eb; }
+    .label { display:block; font-weight:650; margin-bottom:10px; }
+    .samples { display:flex; align-items:center; gap:20px; min-height:66px; }
+    .samples span { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:11px; color:#665944; }
+    .samples img,.samples svg { display:block; object-fit:contain; max-width:none; max-height:none; }
+    .large img,.large svg { width:8mm; height:8mm; }
+    .actual img,.actual svg { width:4mm; height:4mm; }
+    .tiny img,.tiny svg { width:16px; height:16px; }
+    .muted { color:#675d4c; }
+    @media print { body { background:white; padding:12mm; } nav { display:none; } .item { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <h1>The Long War — PNG / SVG comparison</h1>
+  <p class="note">This is an inspection page, not a replacement card layout. Batches 1–3 contain 30 transparent PNG icon candidates. Use the links to compare them with the original SVGs at 8 mm, the <strong>existing 4 mm card-edge size</strong>, and 16 px. Other icons, including rank and unconverted timing symbols, remain SVG.</p>
+  <nav><a id="png-link" href="icon-preview.html?icons=png">Show PNG replacements</a><a id="svg-link" href="icon-preview.html?icons=svg">Show original SVGs</a><a href="cards.html">Inspect cards</a></nav>
+  <p class="muted">Known concern: Force and Guard are hard to distinguish. Ornamental linework may also disappear at small sizes. No card geometry or original artwork has been changed.</p>
+  <main id="gallery"></main>
+  <script src="card-symbols.js"></script>
+  <script>
+  (() => {
+    const groups=[
+      ["Card types",["force","bond","name","hero","tactic","order","stratagem","narrative"],"symbol"],
+      ["Classifications",["human","ship","stronghold","archer","guard","scout","rider","skirmisher","raider","healer","spearman","steward","builder","seer","king","captain","veteran","heir"],"classification"],
+      ["Timing and states",["action","reaction","bonded","while_named"],"timing"]
+    ];
+    const chosen=new URLSearchParams(location.search).get("icons")==="svg"?"svg":"png";
+    document.getElementById(chosen+"-link").setAttribute("aria-current","page");
+    const root=document.getElementById("gallery");
+    for(const [title,names,method] of groups){
+      const heading=document.createElement("h2");
+      heading.textContent=title;
+      const grid=document.createElement("div");
+      grid.className="gallery";
+      for(const name of names){
+        const box=document.createElement("div");box.className="item";
+        const label=document.createElement("strong");label.className="label";label.textContent=name.replaceAll("_"," ");
+        const samples=document.createElement("div");samples.className="samples";
+        for(const [size,caption] of [["large","8 mm"],["actual","4 mm"],["tiny","16 px"]]){
+          const sample=document.createElement("span");sample.className=size;
+          sample.innerHTML=window.CardSymbols[method](name);
+          const note=document.createElement("small");note.textContent=caption;sample.appendChild(note);
+          samples.appendChild(sample);
+        }
+        box.append(label,samples);grid.appendChild(box);
+      }
+      root.append(heading,grid);
+    }
+  })();
+  </script>
+</body>
+</html>

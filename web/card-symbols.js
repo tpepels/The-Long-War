@@ -62,11 +62,26 @@
   };
   const GROUP={human:"kind",ship:"kind",stronghold:"kind",archer:"role",guard:"role",scout:"role",rider:"role",skirmisher:"role",raider:"role",healer:"role",spearman:"role",steward:"role",builder:"role",seer:"role",king:"rank",captain:"rank",veteran:"rank",heir:"rank"};
   function svg(body,title,className=""){return '<svg class="'+className+'" viewBox="0 0 24 24" role="img" aria-label="'+title+'" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><title>'+title+'</title>'+body+'</svg>'}
-  const symbol=type=>svg(silhouette(TYPE[type]||TYPE.force),type,"glyph-type");
+  // Approved PNG candidates from batches 1–3. All other glyphs remain SVG.
+  // Keep the pre-existing CSS class names so hand-tuned card geometry is unchanged.
+  const PNG_ICONS=new Set([
+    "force","bond","name","hero","tactic","order","stratagem","narrative",
+    "human","ship","stronghold","archer","guard","scout","rider",
+    "skirmisher","raider","healer","spearman","steward","builder",
+    "seer","king","captain","veteran","heir",
+    "action","reaction","bonded","while_named"
+  ]);
+  const png=(name,title,cssClass)=>{
+    if(new URLSearchParams(window.location.search).get("icons")==="svg")return "";
+    if(!PNG_ICONS.has(name))return "";
+    const safeTitle=String(title).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;");
+    return '<img class="'+cssClass+' glyph-png" src="art/icons/sizes/128/'+name+'.png" alt="'+safeTitle+'" title="'+safeTitle+'" width="24" height="24" draggable="false">';
+  };
+  const symbol=type=>png(type,type,"glyph-type")||svg(silhouette(TYPE[type]||TYPE.force),type,"glyph-type");
   const strength=()=>svg(UTILITY.strength,"Strength","glyph-strength");
-  const timing=name=>svg(UTILITY[name]||UTILITY.trigger,name.replaceAll("_"," "),"glyph-timing");
-  const utility=name=>svg(UTILITY[name]||UTILITY.marker,name,"glyph-utility");
-  function classification(name){const group=GROUP[name]||"role";const frame=group==="kind"?'<circle cx="12" cy="12" r="10.4" fill="none" stroke="currentColor" stroke-width="1"/>':"";return svg(frame+(CLASSES[name]?silhouette(CLASSES[name]):UTILITY.marker),name,"glyph-class glyph-class-"+group)}
+  const timing=name=>png(name,name.replaceAll("_"," "),"glyph-timing")||svg(UTILITY[name]||UTILITY.trigger,name.replaceAll("_"," "),"glyph-timing");
+  const utility=name=>png(name,name,"glyph-utility")||svg(UTILITY[name]||UTILITY.marker,name,"glyph-utility");
+  function classification(name){const group=GROUP[name]||"role";const frame=group==="kind"?'<circle cx="12" cy="12" r="10.4" fill="none" stroke="currentColor" stroke-width="1"/>':"";return png(name,name,"glyph-class glyph-class-"+group)||svg(frame+(CLASSES[name]?silhouette(CLASSES[name]):UTILITY.marker),name,"glyph-class glyph-class-"+group)}
   function row(position){
     const values=(Array.isArray(position)?position:[position]).map(value=>String(value||"").toLowerCase()).filter(Boolean);
     const active=new Set(values);

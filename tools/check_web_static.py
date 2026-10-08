@@ -27,6 +27,9 @@ META_RUNTIME_RE = re.compile(
 IMPORT_META_RE = re.compile(
     r'new URL\(\s*["\']([^"\']+)["\']\s*,\s*import\.meta\.url\s*\)'
 )
+PNG_ICON_DECL_RE = re.compile(r"PNG_ICONS\s*=\s*new Set\(\s*\[([\s\S]*?)\]\s*\)")
+PNG_ICON_NAME_RE = re.compile(r'"([a-z0-9_]+)"')
+
 DOM_HELPER_ID_RE = re.compile(r'\$\(\s*["\']([^"\']+)["\']\s*\)')
 GET_ELEMENT_ID_RE = re.compile(
     r'getElementById\(\s*["\']([^"\']+)["\']\s*\)'
@@ -102,6 +105,25 @@ def _play_dom_errors(root: Path) -> list[str]:
     return [
         f"{_display_path(script, root)} references missing DOM id #{value}"
         for value in missing
+    ]
+
+
+def _png_icon_errors(root: Path) -> list[str]:
+    """Verify every opted-in PNG exists in both authored and built site assets."""
+    script = root / "card-symbols.js"
+    if not script.exists():
+        return []
+    source = script.read_text(encoding="utf-8")
+    match = PNG_ICON_DECL_RE.search(source)
+    if not match:
+        return []
+    names = PNG_ICON_NAME_RE.findall(match.group(1))
+    if len(names) != len(set(names)):
+        return ["card-symbols.js declares duplicate PNG icon names"]
+    return [
+        f"{_display_path(script, root)}: missing PNG icon asset for {name}"
+        for name in names
+        if not (root / "art" / "icons" / "sizes" / "128" / (name + ".png")).is_file()
     ]
 
 
@@ -185,9 +207,11 @@ def _dist_reference_errors(root: Path) -> list[str]:
 def check(source: Path = WEB, dist: Path | None = None) -> list[str]:
     errors = _node_syntax_errors(source)
     errors.extend(_source_reference_errors(source))
+    errors.extend(_png_icon_errors(source))
     if dist is not None:
         errors.extend(_node_syntax_errors(dist))
         errors.extend(_dist_reference_errors(dist))
+        errors.extend(_png_icon_errors(dist))
     return errors
 
 

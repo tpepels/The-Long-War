@@ -524,7 +524,8 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
   overflow: visible;
 }
-.hero-stat svg {
+.hero-stat svg,
+.hero-stat img.glyph-png {
   width: var(--edge-hero-icon-size);
   height: var(--edge-hero-icon-size);
   display: grid;
@@ -546,8 +547,11 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
 }
 .type-mark svg,
+.type-mark img.glyph-png,
 .class-sigil svg,
-.event-sigil svg {
+.class-sigil img.glyph-png,
+.event-sigil svg,
+.event-sigil img.glyph-png {
   width: 100%;
   height: 100%;
 }
@@ -568,7 +572,8 @@ EXPOSED TOP ROW - TUNING PANEL
 .hero-stat + .hero-stat {
   margin-left: var(--edge-value-gap);
 }
-.hero-name-stat svg {
+.hero-name-stat svg,
+.hero-name-stat img.glyph-png {
   width: var(--edge-hero-icon-size);
   height: var(--edge-hero-icon-size);
 }
@@ -645,6 +650,15 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .glyph-row .row-active {
   fill: currentColor;
+}
+/* Keep approved PNG marks inside the existing, manually tuned icon slots.
+ * SVG remains in use for all unconverted timing and row symbols. */
+.glyph-png {
+  display: block;
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  flex: none;
 }
 .glyph-type,
 .glyph-strength,
@@ -832,14 +846,16 @@ EXPOSED TOP ROW - TUNING PANEL
   gap: 0.25mm;
   font: var(--card-class-font-size)/1 var(--card-class-font-family);
 }
-.class-body-item svg {
+.class-body-item svg,
+.class-body-item img.glyph-png {
   width: 3.2mm;
   height: 3.2mm;
 }
 .class-type-item {
   font-weight: 700;
 }
-.class-type-item svg {
+.class-type-item svg,
+.class-type-item img.glyph-png {
   width: 3.2mm;
   height: 3.2mm;
 }
@@ -879,7 +895,9 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
 }
 .effect-timing-icon svg,
-.placement-rule-icon svg {
+.effect-timing-icon img.glyph-png,
+.placement-rule-icon svg,
+.placement-rule-icon img.glyph-png {
   width: 100%;
   height: 100%;
 }
@@ -918,7 +936,8 @@ EXPOSED TOP ROW - TUNING PANEL
   vertical-align: -0.08em;
   white-space: nowrap;
 }
-.inline-class-ref svg {
+.inline-class-ref svg,
+.inline-class-ref img.glyph-png {
   width: 1em;
   height: 1em;
   flex: none;
@@ -964,7 +983,8 @@ EXPOSED TOP ROW - TUNING PANEL
   gap: 0.7mm;
   white-space: nowrap;
 }
-.mode-heading-core svg {
+.mode-heading-core svg,
+.mode-heading-core img.glyph-png {
   width: 3.2mm;
   height: 3.2mm;
 }
@@ -985,7 +1005,8 @@ EXPOSED TOP ROW - TUNING PANEL
   grid-column: 1;
   grid-row: 1;
 }
-.footer-mark svg {
+.footer-mark svg,
+.footer-mark img.glyph-png {
   display: block;
   width: 3.3mm;
   height: 3.3mm;
@@ -1150,14 +1171,16 @@ EXPOSED TOP ROW - TUNING PANEL
 .card-hero .mode-heading-core::after {
   content: " ·";
 }
-.card-hero .mode-heading-core svg {
+.card-hero .mode-heading-core svg,
+.card-hero .mode-heading-core img.glyph-png {
   vertical-align: middle;
   margin-right: 0.4mm;
 }
 .card-hero .effect-block:first-of-type {
   display: inline;
 }
-.card-hero .mode-heading-core svg {
+.card-hero .mode-heading-core svg,
+.card-hero .mode-heading-core img.glyph-png {
   width: 2.8mm;
   height: 2.8mm;
 }
