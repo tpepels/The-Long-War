@@ -18,6 +18,10 @@ else:
     from build_browser_runtime import ensure_browser_runtime
     from longwar.reference_decks import REFERENCE_DECK_PATHS
 from longwar.cards import load_card_file
+if __package__:
+    from .print_cards import load_print_cards
+else:
+    from print_cards import load_print_cards
 from longwar.decks import (
     MINIMUM_DECK_SIZE,
     MINIMUM_FORCE_COUNT,
@@ -89,6 +93,7 @@ def print_build_version() -> str:
     inputs = [
         RULEBOOK,
         CARDS,
+        ROOT / "cards" / "print-overrides.json",
         PLAYTEST_DECKS,
         ROOT / "src" / "longwar" / "rules.py",
         WEB / "physical-cards.css",
@@ -213,7 +218,7 @@ def version_static_assets() -> str:
             path.suffix in {".js", ".mjs", ".css", ".whl"}
             or (path.parent == DIST / "art" / "card-frame" and path.suffix == ".webp")
             or path.relative_to(DIST).as_posix()
-            in {"data/cards.json", "data/playtest-decks.json", "data/reference-decks.json"}
+            in {"data/cards.json", "data/print-cards.json", "data/playtest-decks.json", "data/reference-decks.json"}
         )
     ]
     digest = hashlib.sha256()
@@ -390,6 +395,10 @@ def main() -> None:
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
+    (data_dir / "print-cards.json").write_text(
+        json.dumps(load_print_cards(card_data), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
     shutil.copy2(PLAYTEST_DECKS, data_dir / "playtest-decks.json")
 
     known_cards = {card["id"] for card in card_data["cards"]}
