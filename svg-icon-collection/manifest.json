@@ -1,0 +1,586 @@
+{
+  "repository": "tpepels/The-Long-War",
+  "branch": "main",
+  "icon_source": "web/card-symbols.js",
+  "source_blob_sha": "0898c1c42c3da1b3e5d8cc4972151d1d3c2f5829",
+  "source_play_blob_sha": "80ecefb99c2eb749572463a050d3df8dbed21daa",
+  "card_data_blob_sha": "7d95ce40429ebe8a1fc1df2d79691839d84ca4e1",
+  "source_policy": "Exact path geometry copied from original inline SVG definitions. No live assets, styles or card layouts edited.",
+  "counts": {
+    "card-types": {
+      "total": 8,
+      "active": 8
+    },
+    "classifications": {
+      "total": 18,
+      "active": 18
+    },
+    "utility": {
+      "total": 24,
+      "active": 9
+    },
+    "rows": {
+      "total": 4,
+      "active": 4
+    },
+    "command": {
+      "total": 6,
+      "active": 0
+    },
+    "decorative": {
+      "total": 1,
+      "active": 1
+    }
+  },
+  "items": [
+    {
+      "family": "card-types",
+      "name": "force",
+      "path": "svg-icon-collection/card-types/force.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 8,
+      "note": ""
+    },
+    {
+      "family": "card-types",
+      "name": "bond",
+      "path": "svg-icon-collection/card-types/bond.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 9,
+      "note": ""
+    },
+    {
+      "family": "card-types",
+      "name": "name",
+      "path": "svg-icon-collection/card-types/name.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 10,
+      "note": ""
+    },
+    {
+      "family": "card-types",
+      "name": "hero",
+      "path": "svg-icon-collection/card-types/hero.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 11,
+      "note": ""
+    },
+    {
+      "family": "card-types",
+      "name": "tactic",
+      "path": "svg-icon-collection/card-types/tactic.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 12,
+      "note": ""
+    },
+    {
+      "family": "card-types",
+      "name": "order",
+      "path": "svg-icon-collection/card-types/order.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 13,
+      "note": ""
+    },
+    {
+      "family": "card-types",
+      "name": "stratagem",
+      "path": "svg-icon-collection/card-types/stratagem.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 14,
+      "note": ""
+    },
+    {
+      "family": "card-types",
+      "name": "narrative",
+      "path": "svg-icon-collection/card-types/narrative.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 15,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "human",
+      "path": "svg-icon-collection/classifications/human.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 18,
+      "note": "Kind icon includes circular outline"
+    },
+    {
+      "family": "classifications",
+      "name": "ship",
+      "path": "svg-icon-collection/classifications/ship.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 19,
+      "note": "Kind icon includes circular outline"
+    },
+    {
+      "family": "classifications",
+      "name": "stronghold",
+      "path": "svg-icon-collection/classifications/stronghold.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 20,
+      "note": "Kind icon includes circular outline"
+    },
+    {
+      "family": "classifications",
+      "name": "archer",
+      "path": "svg-icon-collection/classifications/archer.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 21,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "guard",
+      "path": "svg-icon-collection/classifications/guard.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 22,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "scout",
+      "path": "svg-icon-collection/classifications/scout.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 23,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "rider",
+      "path": "svg-icon-collection/classifications/rider.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 24,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "skirmisher",
+      "path": "svg-icon-collection/classifications/skirmisher.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 25,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "raider",
+      "path": "svg-icon-collection/classifications/raider.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 26,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "healer",
+      "path": "svg-icon-collection/classifications/healer.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 27,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "spearman",
+      "path": "svg-icon-collection/classifications/spearman.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 28,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "steward",
+      "path": "svg-icon-collection/classifications/steward.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 29,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "builder",
+      "path": "svg-icon-collection/classifications/builder.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 30,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "seer",
+      "path": "svg-icon-collection/classifications/seer.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 31,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "king",
+      "path": "svg-icon-collection/classifications/king.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 32,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "captain",
+      "path": "svg-icon-collection/classifications/captain.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 33,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "veteran",
+      "path": "svg-icon-collection/classifications/veteran.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 34,
+      "note": ""
+    },
+    {
+      "family": "classifications",
+      "name": "heir",
+      "path": "svg-icon-collection/classifications/heir.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 35,
+      "note": ""
+    },
+    {
+      "family": "utility",
+      "name": "strength",
+      "path": "svg-icon-collection/utility/strength.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 38,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "action",
+      "path": "svg-icon-collection/utility/action.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 39,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "reaction",
+      "path": "svg-icon-collection/utility/reaction.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 40,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "bonded",
+      "path": "svg-icon-collection/utility/bonded.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 41,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "while_named",
+      "path": "svg-icon-collection/utility/while_named.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 42,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "becomes_named",
+      "path": "svg-icon-collection/utility/becomes_named.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 43,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "trigger",
+      "path": "svg-icon-collection/utility/trigger.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 44,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "play",
+      "path": "svg-icon-collection/utility/play.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 45,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "continuous",
+      "path": "svg-icon-collection/utility/continuous.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 46,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "hidden",
+      "path": "svg-icon-collection/utility/hidden.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 47,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "eye",
+      "path": "svg-icon-collection/utility/eye.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 48,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "move",
+      "path": "svg-icon-collection/utility/move.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 49,
+      "note": "Timing icon currently used in physical card rendering"
+    },
+    {
+      "family": "utility",
+      "name": "suppress",
+      "path": "svg-icon-collection/utility/suppress.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 50,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "shield",
+      "path": "svg-icon-collection/utility/shield.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 51,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "marker",
+      "path": "svg-icon-collection/utility/marker.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 52,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "ally",
+      "path": "svg-icon-collection/utility/ally.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 53,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "cycle",
+      "path": "svg-icon-collection/utility/cycle.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 54,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "prepared",
+      "path": "svg-icon-collection/utility/prepared.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 55,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "hand",
+      "path": "svg-icon-collection/utility/hand.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 56,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "target",
+      "path": "svg-icon-collection/utility/target.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 57,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "clear",
+      "path": "svg-icon-collection/utility/clear.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 58,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "card",
+      "path": "svg-icon-collection/utility/card.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 59,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "lock",
+      "path": "svg-icon-collection/utility/lock.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 60,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "utility",
+      "name": "enemy",
+      "path": "svg-icon-collection/utility/enemy.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 61,
+      "note": "Defined by icon library but no active direct use in physical-card renderer"
+    },
+    {
+      "family": "rows",
+      "name": "front",
+      "path": "svg-icon-collection/rows/front.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 70,
+      "note": "Used as timing or legal-row reminder"
+    },
+    {
+      "family": "rows",
+      "name": "middle",
+      "path": "svg-icon-collection/rows/middle.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 70,
+      "note": "Used as timing or legal-row reminder"
+    },
+    {
+      "family": "rows",
+      "name": "rear",
+      "path": "svg-icon-collection/rows/rear.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 70,
+      "note": "Used as timing or legal-row reminder"
+    },
+    {
+      "family": "rows",
+      "name": "middle-rear",
+      "path": "svg-icon-collection/rows/middle-rear.svg",
+      "used": true,
+      "source_file": "web/card-symbols.js",
+      "source_line": 70,
+      "note": "Used as timing or legal-row reminder"
+    },
+    {
+      "family": "command",
+      "name": "command-base",
+      "path": "svg-icon-collection/command/command-base.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 79,
+      "note": "Defined but currently not invoked by physical card renderer"
+    },
+    {
+      "family": "command",
+      "name": "command-0",
+      "path": "svg-icon-collection/command/command-0.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 79,
+      "note": "Value variant; defined command function currently not invoked"
+    },
+    {
+      "family": "command",
+      "name": "command-1",
+      "path": "svg-icon-collection/command/command-1.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 79,
+      "note": "Value variant; defined command function currently not invoked"
+    },
+    {
+      "family": "command",
+      "name": "command-2",
+      "path": "svg-icon-collection/command/command-2.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 79,
+      "note": "Value variant; defined command function currently not invoked"
+    },
+    {
+      "family": "command",
+      "name": "command-3",
+      "path": "svg-icon-collection/command/command-3.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 79,
+      "note": "Value variant; defined command function currently not invoked"
+    },
+    {
+      "family": "command",
+      "name": "command-4",
+      "path": "svg-icon-collection/command/command-4.svg",
+      "used": false,
+      "source_file": "web/card-symbols.js",
+      "source_line": 79,
+      "note": "Value variant; defined command function currently not invoked"
+    },
+    {
+      "family": "decorative",
+      "name": "webgame-setup-map",
+      "path": "svg-icon-collection/decorative/webgame-setup-map.svg",
+      "used": true,
+      "source_file": "web/play.html",
+      "source_line": 64,
+      "note": "Decorative inline setup map, not an icon; displayed by the development Webgame only"
+    }
+  ]
+}
