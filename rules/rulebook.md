@@ -83,7 +83,7 @@ For example, if Mara is already attached to a Force and playing **Swore Again To
 Each Force's printed row icons tell you where it can stand throughout the game. A **Frontline-only** Force stays in the Frontline, including after Moves and swaps. Play, move, and attach cards only into active Fronts and positions where every resulting card is legal.
 
 
-### Strength
+### Strength {#strength}
 
 A Force supplies its printed Strength. A Bond and Name contribute their printed **Strength modifiers** to the same formation. A Hero played as a Force uses its Force Strength; a Hero played as a Name contributes its printed Name modifier instead. Add any active bonuses and penalties, then apply a **minimum of 0 Strength to each individual formation**. Prepared Bonds and Names without a Force contribute no Strength.
 
@@ -91,7 +91,7 @@ At Battle resolution, add the Strength of every formation across all three ranks
 
 For example, a Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Shaken (−2), it contributes 3; if it is also flanked (−1), it contributes 2. If penalties reduce that formation below 0, it contributes 0 rather than weakening another friendly formation. A second friendly formation in that Front contributes its own Strength separately.
 
-### Classifications
+### Classifications {#classifications}
 
 A classification describes a card's role: **Archer, Rider, Guard, Scout, King**, and so on. When a Name is attached to a Force, the formation combines **all classifications printed on both cards**. A Hero played as a Name contributes its classifications in the same way. A prepared Name without a Force does not supply an independent attacker.
 
