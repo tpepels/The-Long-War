@@ -162,8 +162,9 @@
   text-transform: uppercase;
   letter-spacing: .06em;
 }
-.rulebook td:last-child,
-.rulebook th:last-child { text-align: right; }
+/* Explanatory rule tables contain prose in the last column; keep it left aligned. */
+.rulebook th,
+.rulebook td { text-align: left; }
 
 .rulebook-big-rule {
   margin: 7mm 0;
@@ -2038,4 +2039,17 @@
 
 .rulebook table {
   line-height: 1.42;
+}
+
+/* The later desktop manual grid must not override the smaller-screen layout. */
+@media (max-width: 900px) {
+  .rulebook-shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .rulebook-jump {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 12px;
+  }
 }

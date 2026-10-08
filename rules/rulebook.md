@@ -29,22 +29,6 @@ The player controls the cards on their own side. Each Force and any attached Bon
 
 Physical cards are stacked **Force on the bottom, Bond above it, Name on top**, staggered by **10.5 mm** so the relevant numbers, classifications and ongoing reminders on the buried cards stay visible. Read the whole card when you first play it. A one-time PLAY effect need not remain visible, but an ongoing effect still applies while its condition is met.
 
-### Strength
-
-A Force supplies its printed Strength. A Bond and Name contribute their printed **Strength modifiers** to the same formation. A Hero played as a Force uses its Force Strength; a Hero played as a Name contributes its printed Name modifier instead. Add any active bonuses and penalties, then apply a **minimum of 0 Strength to each individual formation**. Prepared Bonds and Names without a Force contribute no Strength.
-
-At Battle resolution, add the Strength of every formation across all three ranks of one Front. Compare that total to the opponent's total in the same Front. Higher Strength wins; a tie means neither side wins or loses that Front. The winning margin does not matter unless a card says otherwise. There is **no overall winner of a Battle**: each active Front is settled separately.
-
-For example, a Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Shaken (−2), it contributes 3; if it is also flanked (−1), it contributes 2. If penalties reduce that formation below 0, it contributes 0 rather than weakening another friendly formation. A second friendly formation in that Front contributes its own Strength separately.
-
-### Classifications
-
-A classification describes a card's role: **Archer, Rider, Guard, Scout, King**, and so on. When a Name is attached to a Force, the formation combines **all classifications printed on both cards**. A Hero played as a Name contributes its classifications in the same way. A prepared Name without a Force does not supply an independent attacker.
-
-This union matters for effects referring to formations containing a classification and for the four basic Attack types. For example, attaching a Rider Name to a non-Rider Force gives that Force access to a basic Rider Attack. A Force with several Attack classifications **still gets only one Attack per Battle**, choosing which Attack to use. **Guard** also supplies the standard screening rule. Other classifications have no inherent rule unless a card refers to them.
-
-An effect referring to your *Archers*, *Kings*, or *Captains* means friendly formations with that classification from either Force or attached Name, unless it specifies a particular card layer. If a single effect lists several eligible categories, a formation matching more than one receives that effect **only once**. Separate effects from different cards can stack.
-
 ## What you need {#components}
 
 Each player needs a deck. The published physical playtest decks contain **48 cards each**; the deck-building requirements for custom decks are at the end of this book. You'll also need Command tracks (0–20), markers for Exhausted, Shaken, Depleted, Guarded, Inspired and Empowered, used-Attack and once-per-Battle reminders, and any printed-card Tax or temporary-effect markers. Four Front markers show which Fronts are active.
@@ -60,29 +44,9 @@ You can play without a dedicated playmat. Set out four Front columns with three 
 
 Hands and decks are hidden. The battlefield, discard piles, each hand and deck size, Command totals, face-up Narratives, and the existence and **assigned Front** of a face-down Stratagem are public. A face-down Stratagem's identity is hidden.
 
-## Playing cards and building formations {#cards}
-
-Most battlefield positions are built from **Force**, **Bond** and **Name** cards. Playing a card normally uses **one Action** and costs its printed Command. You may play the three layers in any order, subject to the available slot and a card's row restriction.
-
-A Force establishes a formation. A Bond attaches to the Force in its position. A Name contributes identity and classifications. The formation is **Bonded** if it has a Force and Bond; it is **Named** only if Force, Bond and Name are all together. A Force with a Name but no Bond is **not** Named. A Bond on a Force without a Name is an **open Bond**.
-
-If a Bond or Name is played into a position without a Force, it is **prepared** and remains face-up. You may prepare both in the same position. Prepared layers have no Strength and are not formations. Later, a Force played into that position incorporates them; it may become Named at once.
-
-You may not simply overwrite an attached Bond or Name. A card effect must remove, return or exchange the existing component first. Playing a new Force is likewise illegal where another Force is present. Unless card text says otherwise, each card and its components remain on the battlefield between Battles.
-
-**PLAY** text resolves when the particular card is played, including when placed prepared. If it needs a Force or other legal target that does not exist at that moment, that effect does nothing; it does not wait for a later attachment. **BECOMES NAMED** text resolves whenever an actual formation changes from not Named to Named, including after rebuilding it with a newly attached Bond or Name. An existing Named Formation does not trigger again merely because it is moved or a Battle begins.
-
-When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
-
-For example, if Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, resolve the Bond's PLAY effect (its free Maneuver) first; then resolve Mara's BECOMES NAMED effect. A Maneuver or Move can change where Mara finishes before her effect is resolved.
-
-### Row and placement restrictions
-
-A printed row restriction is an absolute occupancy restriction: a Frontline-only Force cannot be played, moved, swapped or otherwise placed in Middle or Rear. All movement and attachment effects obey these limits. The target must also be in an active Front and in a legal position.
-
 ## Your turn {#turn}
 
-At the **beginning of your turn, before drawing**, choose whether to **Pass** or take a **normal turn**. Passing consumes the whole turn, draws no card and uses no Actions. It starts the Battle's closing sequence, explained later.
+At the start of each turn, decide whether to **Pass** or play normally. To Pass, announce it **before drawing**; your turn ends immediately. This starts the Battle's two-turn closing sequence, described under *Passing and ending a Battle*.
 
 On a normal turn, **draw 1 card**, then take **up to 2 Actions**. Each costs one Action unless a card explicitly says it happens without spending an Action:
 
@@ -92,27 +56,62 @@ On a normal turn, **draw 1 card**, then take **up to 2 Actions**. Each costs one
 - **Attack** with an eligible Force that has not used its Attack this Battle.
 - **Cycle**: discard 2 cards from your hand, then draw 1 card, without Command cost.
 
-You may take the same kind of Action twice if legal, subject to per-card and per-Battle limits. You may also stop after zero or one Action: ending an ordinary turn early is **not Pass** and does not initiate the closing sequence. Cycling may be performed repeatedly on different Actions; there is no general Draw or Advance Action.
+You can combine your Actions however you like: play a Force, then a Bond; Attack and then play an Order; or Maneuver and use a card's ACTION ability. Each choice must be legal, and printed use limits still apply. You can also finish your normal turn after zero or one Action. **Pass** is a separate decision made before your draw, not a way to stop after acting. Cycling (discard two, draw one) can be used repeatedly whenever you have the cards and Actions to do it.
 
 A player's hand limit is **10**. If a draw or other effect takes you above 10, discard down to 10 before continuing. When a draw is required and the deck is empty, shuffle that player's discard pile to make a new draw pile. Cards and Maneuvers cannot voluntarily spend Command below 0.
 
-A once-per-Battle ability belongs to the **physical card** that used it. Its allowance remains spent throughout that Battle even if the card returns to hand or is played again. Another physical copy has its own allowance. Reset these allowances only between Battles. An ACTION ability cannot be used if its Force is Depleted, as described below.
+Mark a used **once-per-Battle** ability on its physical card. The marker stays spent for the rest of that Battle, even if the card returns to hand and is played again. Each separate copy has its own allowance, and these allowances reset between Battles. A Depleted Force's formation temporarily loses access to its printed ACTION abilities.
+
+## Playing cards and building formations {#cards}
+
+Most battlefield positions are built from **Force**, **Bond** and **Name** cards. Playing a card normally uses **one Action** and costs its printed Command. You may play the three layers in any order, subject to the available slot and a card's row restriction.
+
+A Force establishes a formation. A Bond attaches to the Force in its position. A Name contributes identity and classifications. The formation is **Bonded** if it has a Force and Bond; it is **Named** only if Force, Bond and Name are all together. A Force with a Name but no Bond is **not** Named. A Bond on a Force without a Name is an **open Bond**.
+
+If a Bond or Name is played into a position without a Force, it is **prepared** and remains face-up. You may prepare both in the same position. Prepared layers have no Strength and are not formations. Later, a Force played into that position incorporates them; it may become Named at once.
+
+Each position holds one of each layer. To change an attached Bond or Name, use a card effect that removes, returns, or exchanges it; this makes attachment-manipulation cards valuable. A Force is played into a position that has no Force. Unless a card says otherwise, components stay on the battlefield between Battles.
+
+**PLAY** effects resolve as you play a card, including a prepared Bond or Name. **BECOMES NAMED** effects happen when a formation gains its final missing layer. This makes completing a formation an event in its own right, and sometimes a rewarding combination with the card that completed it.
+
+For instance, a Force joined with a Bond and Name immediately becomes a Named Formation. Read the new component's PLAY instructions first, then the newly completed formation's BECOMES NAMED instructions. The Reference explains the rarer cases involving preparation, rebuilding and several effects at once.
+
+### Row and placement restrictions
+
+Each Force's printed row icons tell you where it can stand throughout the game. A **Frontline-only** Force stays in the Frontline, including after Moves and swaps. Play, move, and attach cards only into active Fronts and positions where every resulting card is legal.
+
+
+### Strength {#strength}
+
+A Force supplies its printed Strength. A Bond and Name contribute their printed **Strength modifiers** to the same formation. A Hero played as a Force uses its Force Strength; a Hero played as a Name contributes its printed Name modifier instead. Add any active bonuses and penalties, then apply a **minimum of 0 Strength to each individual formation**. Prepared Bonds and Names without a Force contribute no Strength.
+
+At Battle resolution, add the Strength of every formation across all three ranks of one Front. Compare that total to the opponent's total in the same Front. Higher Strength wins; a tie means neither side wins or loses that Front. The winning margin does not matter unless a card says otherwise. There is **no overall winner of a Battle**: each active Front is settled separately.
+
+For example, a Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Shaken (−2), it contributes 3; if it is also flanked (−1), it contributes 2. If penalties reduce that formation below 0, it contributes 0 rather than weakening another friendly formation. A second friendly formation in that Front contributes its own Strength separately.
+
+### Classifications {#classifications}
+
+A classification describes a card's role: **Archer, Rider, Guard, Scout, King**, and so on. When a Name is attached to a Force, the formation combines **all classifications printed on both cards**. A Hero played as a Name contributes its classifications in the same way. A prepared Name without a Force does not supply an independent attacker.
+
+This union matters for effects referring to formations containing a classification and for the four basic Attack types. For example, attaching a Rider Name to a non-Rider Force gives that Force access to a basic Rider Attack. A Force with several Attack classifications **still gets only one Attack per Battle**, choosing which Attack to use. **Guard** also supplies the standard screening rule. Other classifications have no inherent rule unless a card refers to them.
+
+An effect referring to your *Archers*, *Kings*, or *Captains* means friendly formations with that classification from either Force or attached Name, unless it specifies a particular card layer. If a single effect lists several eligible categories, a formation matching more than one receives that effect **only once**. Separate effects from different cards can stack.
 
 ## Maneuver and card movement {#maneuver}
 
-An ordinary **Maneuver** is one Action costing **1 Command**. Only a **Named Formation** can initiate it unless a card explicitly grants an exception. Move it one **orthogonally adjacent** active position: one rank forward or back in the same Front, or one Front left or right in the same rank. A diagonal position is never adjacent.
+A **Named Formation** may initiate an ordinary **Maneuver** for one Action and **1 Command**. Move it one **orthogonally adjacent** active position: one rank forward or back in the same Front, or one Front left or right in the same rank. Cards can extend Maneuver eligibility to some unnamed formations. Diagonal positions are outside the Maneuver's one-step reach.
 
-If the destination is empty of cards, move the whole formation there. If it contains a friendly formation, you may **swap** the complete formations, provided both resulting positions are legal. Only the initiating formation needs to qualify for Maneuver. You may not Maneuver into an inactive Front or violate a Force's row restriction.
+If the destination has no Force, move the whole formation there, taking any compatible prepared cards into the stack. If it contains a friendly formation, you may **swap** the complete formations, provided both resulting positions are legal. Only the initiating formation needs to qualify for Maneuver. You may not Maneuver into an inactive Front or violate a Force's row restriction.
 
-A position containing **only prepared Bonds or Names** also counts as a movement destination if the incoming formation can incorporate every prepared layer without producing two Bonds or two Names. Move the complete existing formation into that position, attach the compatible prepared components, and resolve any BECOMES NAMED effects. If any layer conflicts, that movement is illegal. Prepared cards cannot be displaced by ordinary movement or taken from the opponent's side.
+For movement, a printed **empty position** means a position with no Force. It may contain prepared Bonds or Names, provided they can attach to the incoming formation without producing two Bonds or two Names. A **completely empty position** has no cards at all. Move the complete existing formation into that position, attach the compatible prepared components, and resolve any BECOMES NAMED effects. If any layer conflicts, that movement is illegal. Prepared cards cannot be displaced by ordinary movement or taken from the opponent's side.
 
-A Force with an **Exhaustion token** cannot initiate a Maneuver, unless a card explicitly allows it. It can still be Moved by a card effect or be the non-initiating formation in a swap. A Force can have at most one Exhaustion token. Each formation may initiate at most one Maneuver during the resolution of a single Action or effect; no automatic Maneuver occurs between Battles.
+An **Exhausted** Force contributes to Battle normally but usually stays where it is: it can move through a card's **Move** effect or be the non-initiating partner in a swap, while an explicit card exception can let it initiate a Maneuver. Each Force carries at most one Exhaustion token. Each formation may initiate at most one Maneuver during the resolution of a single Action or effect; no automatic Maneuver occurs between Battles.
 
 **Move** and **swap** printed on cards are not ordinary Maneuvers. Unless a card explicitly says *Maneuver*, Move normally means repositioning the complete formation to an adjacent active position that is empty or contains only compatible prepared layers. It costs no Maneuver Command, needs no Name, and is not prevented by Exhaustion. A printed **swap** exchanges the full contents of the specified positions and their markers, checking legality for both. To move up to two positions, take up to two legal adjacent steps, never jumping over an occupied or inactive space. A card may give a free **Maneuver**, in which case all Maneuver restrictions still apply except those it explicitly waives.
 
 ## Attacking {#attacking}
 
-An **Attack** is one Action, usually with no Command cost. A Force may initiate **one Attack per Battle**, whether or not it is Named; mark its used Attack. A Depleted Force cannot Attack. Attacks do not cause health damage or discard Forces unless a card specifically says so.
+An **Attack** uses one Action and usually costs no Command. Each Force can Attack **once per Battle**, whether or not it is Named; place a used-Attack marker after attacking. Attacks create positional pressure through Exhaustion, Shaken, and Depleted, rather than dealing health damage. A Depleted Force must recover before attacking.
 
 Choose one legal opposing Force, check range, positioning and screening, allow any eligible Reactions or Stratagems, then apply the printed Attack effect. A Force with several Attack classifications chooses **one basic Attack**, not one per classification. A printed **ATTACK** ability changes or extends that Force's normal Attack; it does not grant another Action or another Attack unless explicitly stated.
 
@@ -123,7 +122,7 @@ Choose one legal opposing Force, check range, positioning and screening, allow a
 | **Raider** | Opposing Middle or Rear Force in the same Front, but only if the opposing Frontline there is empty | Deplete it |
 | **Rider** | Opposing **flanked** Frontline Force in an adjacent active Front | Shake it |
 
-An **Archer** cannot normally target a Middle Force: *The Crow Archers* is an explicit exception to its targeting rule, not a second Attack. A friendly **Guard** in Middle screens the Rear Force directly behind it from a **basic Archer Attack**. A Guard that is Shaken or Depleted cannot screen, except where a specific card says otherwise. Screening does not automatically stop other card effects or Attacks.
+An **Archer** normally targets the opposing Rear Force. *The Crow Archers* extend that same basic Attack to an opposing Middle Force when the opposing Frontline is empty, giving the attacker a new target rather than a second Attack. A friendly **Guard** in Middle screens the Rear Force directly behind it from a **basic Archer Attack**. A Guard that is Shaken or Depleted cannot screen, except where a specific card says otherwise. Screening does not automatically stop other card effects or Attacks.
 
 ### Flanking
 
@@ -135,9 +134,9 @@ A Frontline Force is **flanked** if an opposing Frontline Force occupies an adja
 
 A Force may carry at most one marker of each named condition. Markers travel with that Force when its formation moves. A repeated affliction does not stack with itself unless the card explicitly says otherwise.
 
-- **Exhausted:** cannot initiate a Maneuver. It can still contribute Strength, Attack and use abilities. A card may permit Maneuvering while Exhausted.
+- **Exhausted:** the Force holds its position and continues to contribute Strength, Attack, and use abilities. It initiates a Maneuver only when a card explicitly allows it.
 - **Shaken:** the formation has **−2 Strength**, to a minimum of 0 for that formation, and a Guard's basic Archer screening stops working.
-- **Depleted:** cannot Attack or activate an **ACTION** ability printed on its Force, Bond or Name. Its ongoing and triggered abilities still function; it retains its Strength.
+- **Depleted:** the formation retains its Strength and passive or triggered abilities, but its Force cannot Attack or activate **ACTION** abilities until Depleted is removed.
 
 Card effects can remove or prevent conditions. There is no generic recovery Action. Removing Exhaustion never restores a used Attack. All regular temporary afflictions clear at the end of each Battle **before new lost-Front Exhaustion is applied**.
 
@@ -163,9 +162,7 @@ A **Stratagem** is a hidden plan. Playing one costs one Action and its printed C
 
 When the Stratagem's printed trigger occurs, its owner **may** reveal and resolve it or leave it face-down for a later eligible opportunity that Battle. If a card explicitly tells you to reveal an opponent's Stratagem, that is a compulsory inspection/reveal effect, not the opponent choosing to activate its ability. A revealed Stratagem resolves once and is discarded. All unrevealed Stratagems are discarded at Battle end. A used Stratagem does not move to another Front unless a card explicitly moves it.
 
-When both players can reveal eligible Stratagems **at the same event**, each chooses privately whether to reveal, then they reveal simultaneously. Eligibility is checked against the **same board state before either reveal**. Prevention overrides the action it prevents; incompatible simultaneous attempts to move the **same formation** cancel, while independent effects both apply. If necessary, apply each effect's independent portions after cancelling the conflicting movement. No player gains a timing advantage from who Passed.
-
-During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. This deliberate single-window rule keeps the final outcome unambiguous.
+When opposing Stratagems have the same trigger, each player decides privately whether to reveal and both decisions are shown together. The Battle resolution procedure below explains the special single reveal window used when Fronts are compared; the Reference covers conflicting effects.
 
 **Heroes** are Unique cards played **either as a Force or as a Name**. Choose a mode when playing the card and use only that mode's printed Strength and abilities. Each Battle, you may play at most **1 Hero as a Force** and **1 Hero as a Name** from your hand. Heroes already on the battlefield from earlier Battles do not use those allowances. A Hero used as a Name contributes its printed Name modifier and classifications, not its Force Strength.
 
@@ -231,6 +228,20 @@ Draw until you hold **10 cards**; reset printed once-per-Battle allowances; open
 
 The following details settle unusual card interactions. You can learn the game from the previous sections and consult this Reference when a card calls for it.
 
+### Completing and rebuilding formations
+
+**PLAY** text resolves when the particular card is played, including when placed prepared. If it needs a Force or other legal target that does not exist at that moment, that effect does nothing; it does not wait for a later attachment. **BECOMES NAMED** text resolves whenever an actual formation changes from not Named to Named, including after rebuilding it with a newly attached Bond or Name. An existing Named Formation does not trigger again merely because it is moved or a Battle begins.
+
+When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
+
+For example, if Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, resolve the Bond's PLAY effect (its free Maneuver) first; then resolve Mara's BECOMES NAMED effect. A Maneuver or Move can change where Mara finishes before her effect is resolved.
+
+### Simultaneous Stratagems
+
+When both players can reveal eligible Stratagems **at the same event**, each chooses privately whether to reveal, then they reveal simultaneously. Eligibility is checked against the **same board state before either reveal**. Prevention overrides the action it prevents; incompatible simultaneous attempts to move the **same formation** cancel, while independent effects both apply. If necessary, apply each effect's independent portions after cancelling the conflicting movement. No player gains a timing advantage from who Passed.
+
+During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. This deliberate single-window rule keeps the final outcome unambiguous.
+
 ### Timing words
 
 | Printed label | Meaning |
@@ -259,7 +270,7 @@ A **Tax marker** belongs to its marked Front and increases the next matching car
 
 ### Positions and card movement
 
-**Adjacent position** means a shared edge on your side: left/right one active Front in the same rank, or forward/back one rank in the same Front. **Adjacent Front** means the active Front immediately left or right; it does not mean another rank within the same Front. **Directly ahead** is the position one rank nearer your Frontline; **directly behind** is one rank nearer your Rear. No position exists beyond the Frontline or Rear, and an inactive Front is never adjacent for card purposes.
+**Empty position** means no Force is there; compatible prepared Bonds and Names may be present. **Completely empty** means no cards are there. **Adjacent position** means a shared edge on your side: left/right one active Front in the same rank, or forward/back one rank in the same Front. **Adjacent Front** means the active Front immediately left or right; it does not mean another rank within the same Front. **Directly ahead** is the position one rank nearer your Frontline; **directly behind** is one rank nearer your Rear. No position exists beyond the Frontline or Rear, and an inactive Front is never adjacent for card purposes.
 
 Components leave the battlefield only when a card specifically makes them do so:
 
