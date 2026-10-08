@@ -1,34 +1,20 @@
 {
   "icons": [
     {
-      "name": "move.png",
-      "source": "/mnt/data/middeleeuws_gouden_snelheidspictogram.png",
-      "sha256": "66433ea72eb383eca5c135b60a8865261a9749c2f1e5c03ee6f96d6b2dcac85f"
+      "name": "clear.png",
+      "sha256": "c42d0a50b7f14d7da845fbfc55998a615a8d991bf038affeb6f89371d38f52ab"
     },
     {
-      "name": "play.png",
-      "source": "/mnt/data/middeleeuws_kaartplaatsingssymbool.png",
-      "sha256": "fe457e4e09e95361005a9350cc4bc8b1abeb062affd5bbd00a7be05777e9192e"
+      "name": "card.png",
+      "sha256": "0cddfd2049cbbc40ac71d602db93e4e003f92eaafa5fcbe7ed710ed91b263cf6"
     },
     {
-      "name": "ship.png",
-      "source": "/mnt/data/gestileerde_viking_langschipembleem.png",
-      "sha256": "2d20ce662d76982b1390863a7bf7905be7e8bd149fcbaea38ea9b8642cf8c9ad"
+      "name": "lock.png",
+      "sha256": "b4bebb59b91404227971bd8ebf4c2cca57e768b218d8ef8e1efe0a3a8aa052a0"
     },
     {
-      "name": "raider.png",
-      "source": "/mnt/data/gekruiste_fantasiewapens_in_goud_en_marineblauw.png",
-      "sha256": "edf49f6dab6456666fee9a6c736eea8622f70d6d51f3d7d879417579ce735af2"
-    },
-    {
-      "name": "stronghold.png",
-      "source": "/mnt/data/middeleeuws_fort_met_gouden_accenten.png",
-      "sha256": "7846c62cb087cfe75d7dbc8516d3a532aa2a5e2c20f7e7752bf17b382c773714"
-    },
-    {
-      "name": "trigger.png",
-      "source": "/mnt/data/oudgouden_sterburst_embleem.png",
-      "sha256": "4227e52226c003e52f97918462b628f58586d513b3e028f6ed9cc4e507acf201"
+      "name": "enemy.png",
+      "sha256": "ca3e787afebed0ca7545315ecf77f94c18e4d71f28235a9720bb0e94e4ce19e6"
     }
   ],
   "sizes": [
@@ -40,5 +26,6 @@
     128,
     256,
     512
-  ]
+  ],
+  "style": "Style C"
 }
