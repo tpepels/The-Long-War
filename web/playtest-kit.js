@@ -20,7 +20,7 @@ async function preloadArt(ids){
 }
 async function main(){
   const [cardsResponse,decksResponse]=await Promise.all([
-    fetch("data/cards.json",{cache:"no-cache"}),
+    fetch("data/print-cards.json",{cache:"no-cache"}),
     fetch("data/playtest-decks.json",{cache:"no-cache"}),
   ]);
   if(!cardsResponse.ok||!decksResponse.ok)throw new Error("Could not load current playtest data");
