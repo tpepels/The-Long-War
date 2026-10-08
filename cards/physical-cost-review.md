@@ -98,6 +98,7 @@ If any new effect proves too strong, first **raise its Command by 1 or narrow it
 2. **Conditional Battles:** The Seer adjacency Narrative is of limited use in Battle I; this is intended specialization, not a universal early-game card.
 3. **Unmeasured balance:** static costs and seeded opening hands cannot demonstrate win rates, underpriced combos or repeated strategic dominance. The actual win-rate test requires a runtime aligned with the physical rules or controlled tabletop games.
 4. **No new keyword inflation:** Inspired and Empowered already existed in the rules; this pass finally puts them on cards.
+5. **Print geometry:** the existing headless layout test reports missing frame decorations and footer placements across the whole catalogue, including unchanged cards; this is a fixture/renderer compatibility issue and is **not** a reliable pass/fail for this rebalance. Full-size text fitting remains to be visually checked after the fixture is repaired.
 
 ## Complete 131-card printed cost ledger
 
