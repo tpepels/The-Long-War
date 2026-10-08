@@ -37,7 +37,7 @@
 | **The Lantern Scouts** | human · scout | 1 | 2 | CONTINUOUS - While this formation is in the Middle or Rear row, you may look at opposing face-down Stratagems in this Front. |
 | **The River Raiders** | human · raider | 3 | 4 | ACTION - Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand. |
 | **The King's Spears** | human · guard | 2 | 4 | No special rules. |
-| **The Salt-Road Fleet** | ship · raider | 2 | 4 | PLAY - Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty. |
+| **The Salt-Road Fleet** | ship · raider | 2 | 3 | PLAY - Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty. |
 | **The Watchtowers of Eren** | stronghold · scout | 2 | 3 | Legal rows: middle, rear<br>PLACEMENT - This Force may only occupy the Middle or Rear rows.<br>REAR - While this formation is in the Rear row, you may look at opposing face-down Stratagems in any active Front. |
 
 ## Bonds
