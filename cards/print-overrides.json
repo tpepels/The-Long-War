@@ -1,6 +1,6 @@
 {
   "format": "physical-print-overrides-v1",
-  "description": "Only for physical print cards. Do not load into native or webgame engine.",
+  "description": "Physical print only: 16 cohesion sidegrades and 11 reconciled effect texts; not executable engine input.",
   "replacements": [
     {
       "id": "the-damar",
@@ -163,10 +163,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal before Strength is compared in this Front. If your Frontline here is empty, move a friendly Middle formation into it, if legal. It gets +2 Strength this Battle."
+          "text": "Reveal during Battle resolution. If your Frontline here is empty, move one friendly Middle formation here into it, if legal. That formation gets +2 Strength this Battle."
         }
       ],
-      "design_note": "A hidden reinforcement, not a Command refund."
+      "design_note": "Assigned-Front Stratagem phrasing."
     },
     {
       "id": "fresh-orders",
@@ -177,6 +177,116 @@
         }
       ],
       "design_note": "A leadership-gated movement Order."
+    },
+    {
+      "id": "the-ground-was-held",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal during Battle resolution if this Front would tie before any Stratagems are revealed. If you have a Named Formation here and your opponent does not, you win this Front instead."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "no-step-back",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal when an opposing Tactic targets one of your formations in this Front. Ignore that Tactic's effect on that formation."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "the-center-must-hold",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal during Battle resolution if this Front contains one of your Kings or Captains. Up to two other friendly formations here each get +1 Strength this Battle."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "the-flank-was-refused",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal during Battle resolution if this is an outer Front. One of your Archer, Guard, or Stronghold formations here gets +2 Strength this Battle."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "the-trap-closed",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal after one of your Raiders or Skirmishers in this Front puts a temporary negative marker on an opposing formation here. Another friendly Raider or Skirmisher here gets +2 Strength this Battle."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "the-battle-turned-east",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal after one of your Riders moves from or into this Front. That Rider gets +2 Strength this Battle."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "there-was-no-road-back",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal when one of your formations in this Front becomes Named. Draw 2 cards, then discard 1 card."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "every-banner-turned-toward-them",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal during Battle resolution if this Front contains one of your Kings or Captains. Every other friendly Human formation here gets +1 Strength this Battle."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "the-archers-were-ready",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal when an opposing Tactic targets one of your formations in this Front and you have an Archer here. One friendly Archer here gets +2 Strength this Battle."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "the-scouts-had-warned-them",
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal when your opponent sets a Stratagem in this Front containing one of your Scouts or Seers. Look at the opposing Stratagem. Draw 1 card, then discard 1 card."
+        }
+      ],
+      "design_note": "Assigned-Front Stratagem phrasing."
+    },
+    {
+      "id": "the-battle-had-chosen-them",
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "Every friendly Hero formation or Named Formation gets +1 Strength this Battle. A formation that qualifies as both gets this bonus only once."
+        }
+      ],
+      "design_note": "One application per formation, other card effects still stack."
     }
   ],
   "once_per_battle_text_fixes": [
