@@ -152,6 +152,18 @@ A Force can have at most one marker of each of the following afflictions. A repe
 
 Card effects may remove or prevent a specified affliction or any one affliction. There is **no generic recovery Action**. All afflictions clear at the end of the Battle, after Front comparisons and Battle-end effects but before the next Battle. Removing an affliction does not refresh a used Attack.
 
+### Boons and protection
+
+Boons are temporary beneficial markers. Like afflictions, they do not stack with themselves, move with the Force, and all clear at Battle end.
+
+- **Guarded:** Prevent the next affliction that would affect this Force, then remove Guarded. It does not protect against forced movement, attachment removal or Command loss.
+- **Inspired:** Remove Shaken from this Force and prevent it becoming Shaken while Inspired.
+- **Empowered:** The next Attack this Force makes ignores screening. Remove Empowered after that Attack. All other range, flanking and eligibility restrictions still apply.
+
+A Depleted Force cannot Attack even if Empowered. A prevented affliction does not count as inflicted for card effects that refer to an enemy becoming afflicted. There is no generic Action to gain a Boon: cards grant them.
+
+Protection and support are different roles. Middle Guards screen Rear Forces from basic Archer Attacks. Strongholds may protect attachments and prepared cards; Ships may move friendly formations out of danger; Healers remove afflictions; Druids grant and transform Boons; Stewards remove Depletion; and Carriers move components or transfer Boons. These roles grant no universal bonuses unless explicitly stated on a card.
+
 ### Flanking and battlefield edges
 
 A **Frontline Force** is flanked if an opposing Frontline Force occupies an immediately adjacent **active** Front and its controller has no Frontline Force in that neighboring Front. Either side can flank across any pair of adjacent active Fronts, in either direction. Fronts 2 and 3 can flank each other from Battle I.
