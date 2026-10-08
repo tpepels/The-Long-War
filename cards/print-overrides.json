@@ -183,7 +183,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal during Battle resolution if this Front would tie before any Stratagems are revealed. If you have a Named Formation here and your opponent does not, you win this Front instead."
+          "text": "Reveal during Battle resolution if this Front would tie before any Stratagems are revealed. If this Front is still tied after simultaneous effects, and you have a Named Formation here while your opponent does not, you win this Front instead."
         }
       ],
       "design_note": "Assigned-Front Stratagem phrasing."
