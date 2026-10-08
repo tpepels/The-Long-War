@@ -66,7 +66,7 @@ def main() -> None:
     assert CANONICAL.read_bytes() == executable_before, "Modified executable source"
     print(
         f"PASS: {len(after)} printed cards, 28 print replacements, "
-        f "4 printed limits, 23 legacy strip fixes, {live_count} exposed live rules. "
+        f"4 printed limits, 23 legacy strip fixes, {live_count} exposed live rules. "
         "Canonical native/Webgame cards unchanged."
     )
 
