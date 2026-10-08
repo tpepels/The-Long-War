@@ -26,7 +26,7 @@ def main() -> None:
     assert all(before[i]["type"] == after[i]["type"] for i in before), "Card type changed"
     assert len(overrides["replacements"]) == 28, "Unexpected replacement count"
     assert len(overrides["once_per_battle_text_fixes"]) == 4, "Unexpected timing-fix count"
-    assert len(overrides["exposed_only"]) == 25, "Unexpected older edge reminder count"
+    assert len(overrides["exposed_only"]) == 23, "Unexpected older edge reminder count"
 
     changed = set()
     for source in overrides["replacements"]:
@@ -66,7 +66,7 @@ def main() -> None:
     assert CANONICAL.read_bytes() == executable_before, "Modified executable source"
     print(
         f"PASS: {len(after)} printed cards, 28 print replacements, "
-        f"4 printed limits, 25 legacy strip fixes, {live_count} exposed live rules. "
+        f "4 printed limits, 23 legacy strip fixes, {live_count} exposed live rules. "
         "Canonical native/Webgame cards unchanged."
     )
 
