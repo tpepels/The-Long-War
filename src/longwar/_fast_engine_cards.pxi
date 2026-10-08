@@ -3,12 +3,10 @@ cdef uint32_t _v2_class_mask(object values) except *:
     cdef object value
     cdef dict bits = {
         "archer": 1 << 0,
-        "builder": 1 << 1,
-        "captain": 1 << 2,
+            "captain": 1 << 2,
         "guard": 1 << 3,
         "healer": 1 << 4,
-        "heir": 1 << 5,
-        "human": 1 << 6,
+            "human": 1 << 6,
         "king": 1 << 7,
         "raider": 1 << 8,
         "rider": 1 << 9,
@@ -16,11 +14,9 @@ cdef uint32_t _v2_class_mask(object values) except *:
         "seer": 1 << 11,
         "ship": 1 << 12,
         "skirmisher": 1 << 13,
-        "spearman": 1 << 14,
-        "steward": 1 << 15,
+            "steward": 1 << 15,
         "stronghold": 1 << 16,
-        "veteran": 1 << 17,
-    }
+        }
     if values is None:
         return 0
     for value in values:
