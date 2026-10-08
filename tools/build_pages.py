@@ -355,6 +355,12 @@ def main() -> None:
             '<a href="playtest-kit.html">Print decks</a></p></html>',
             encoding="utf-8",
         )
+    # Only publish the selected, print-ready PNG sizes used by card-symbols.js.
+    # Full-resolution icon sources remain in the repository for editing.
+    source_icons = WEB / "art" / "icons" / "sizes" / "128"
+    if not source_icons.is_dir():
+        raise FileNotFoundError(f"Missing PNG icon candidates: {source_icons}")
+    shutil.copytree(source_icons, DIST / "art" / "icons" / "sizes" / "128")
     build_print_art()
 
     playmat = DIST / "playmat.html"
