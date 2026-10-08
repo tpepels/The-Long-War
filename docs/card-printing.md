@@ -16,7 +16,7 @@ treatment; the other families use CSS filters on all four frame rasters so their
 colours can be tuned without recolouring text, symbols or illustrations.
 
 The face combines those raster assets with live per-card artwork, rules, numbers
-and SVG symbols. Formation cards use a **12 mm exposed row** so Strength,
+and SVG symbols. Formation cards use a **10.5 mm exposed row** so Strength,
 classifications, legal-rank restrictions and live reminders remain visible when
 cards are stacked. Tactic, Order, Stratagem and Narrative use a centred event
 header. The footer identifies the card family and, for formation cards, its
@@ -52,7 +52,7 @@ Cards are **68 × 96 mm**. Four across and two down form a **272 × 192 mm** blo
 on A4 landscape, with no gaps between cards. Print at **100% / actual size** with
 browser headers and footers disabled.
 
-`cards.html` prints the complete canonical catalogue.
+`cards.html` prints the full 131-card physical playtest pool (print-only overrides applied).
 `playtest-kit.html` expands copy counts from `cards/playtest-decks.json` and
 renders the same card faces. Every printable page and card footer carries the
 Pages build revision.
@@ -69,3 +69,9 @@ python tools/check_card_layout.py --surface print --require-browser
 The layout checker is diagnostic: it checks physical dimensions, stacking,
 overflow, long titles, dense rules, raster assets and representative print
 pagination. The built Cards and Decks pages are the final visual review surface.
+
+### Physical-playtest-only card revisions
+
+`cards/print-overrides.json` contains the current 16 physical card sidegrades plus four ACTION limit text fixes. `tools/print_cards.py` creates the separate `dist/data/print-cards.json` consumed by both printable Cards and Decks pages. `dist/data/cards.json` and `cards/cards.json` remain unchanged executable input; these printed effects are **not** promises about the webgame. Print-only exports deliberately omit stale executable `design_rules`.
+
+Force/Bond/Name stacks reveal only the top 10.5 mm of each buried card. Thus new PLAY effects resolve immediately and may safely be covered; every new ongoing Force/Bond effect has an explicit exposed-strip reminder. The printed rules text remains the authority. All 25 pre-existing live Force/Bond reminders have updated print-only strip wording to clarify conditions and targets; confirm edge fit in a rendered stack before printing in quantity.

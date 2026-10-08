@@ -6,8 +6,8 @@ const PRINT_VERSION=typeof document==="undefined"||typeof document.querySelector
 const esc=value=>String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(part=>part[0].toUpperCase()+part.slice(1)).join(" ");
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",order:"Order",stratagem:"Stratagem",narrative:"Narrative"};
-const LABEL={play:"PLAY",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL",front:"FRONT",middle:"MIDDLE",rear:"REAR",exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"};
-const LIVE=new Set(["action","reaction","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"]);
+const LABEL={play:"PLAY",attack:"ATTACK",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL",front:"FRONT",middle:"MIDDLE",rear:"REAR",exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"};
+const LIVE=new Set(["action","attack","reaction","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"]);
 const RULE_TERMS=[
   "Named Formation","Bonded Formation","Unbonded Formation","Formation",
   "Force","Bond","Name","Hero","Tactic","Order","Stratagem","Narrative",
@@ -172,7 +172,7 @@ function mechanicReminder(effect){
   return notes.map(item=>item.note).join(" ");
 }
 function effectBlock(effect,options={}){
-  const kind=["bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
+  const kind=["attack","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
   const reminder=mechanicReminder(effect);
   return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text,options)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder)+'</div>':"")+'</section>';
 }
@@ -217,9 +217,9 @@ function cardArticle(card,extra="",options={}){
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
- "force-bond":{title:"Force + Bond",state:"Bonded",ids:["the-crow-archers","watched-the-skies-for"]},
+ "force-bond":{title:"Force + Bond",state:"Bonded",ids:["the-crow-archers","had-been-ordered-forward"]},
  "force-name":{title:"Force + Name",state:"Formation · not Named",ids:["the-red-shields","corin-of-the-high-wall"]},
- named:{title:"Force + Bond + Name",state:"Named · also Bonded",ids:["the-ash-bowmen","watched-the-skies-for","corin-of-the-high-wall"]},
+ named:{title:"Force + Bond + Name",state:"Named · also Bonded",ids:["the-old-guard","blocked-the-road-for","mara"]},
  "hero-force":{title:"Hero as Force",state:"Named · also Bonded",ids:["serai-queen-of-crows","followed","namar"],heroMode:"force"},
  "hero-name":{title:"Hero as Name",state:"Named · also Bonded",ids:["the-house-of-reed","carried-messages-for","alda-keeper-of-the-ford"],heroMode:"name"}
 };

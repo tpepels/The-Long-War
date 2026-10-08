@@ -28,7 +28,7 @@
 :root {
   --card-width: 68mm;
   --card-height: 96mm;
-  --exposed-edge: 12mm;
+  --exposed-edge: 10.5mm;
   --art-height: 25mm;
   --identity-height: 17.2mm;
   --display: "LW Display";
@@ -451,9 +451,9 @@ EXPOSED TOP ROW - TUNING PANEL
   --edge-left-width: 16mm;
   --edge-middle-width: 16mm;
   --edge-special-event-side-width: 10mm; /* symmetric sides keep middle truly centred */
-  --edge-pad-top: 4mm;
+  --edge-pad-top: 2.2mm;
   --edge-pad-right: 7mm;
-  --edge-pad-bottom: 0.95mm;
+  --edge-pad-bottom: 0.7mm;
   --edge-pad-left: 7mm;
   --edge-zone-padding-x: 0.7mm;
   --edge-left-padding-x: 0.2mm;

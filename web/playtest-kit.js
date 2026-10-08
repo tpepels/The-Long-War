@@ -20,7 +20,7 @@ async function preloadArt(ids){
 }
 async function main(){
   const [cardsResponse,decksResponse]=await Promise.all([
-    fetch("data/cards.json",{cache:"no-cache"}),
+    fetch("data/print-cards.json",{cache:"no-cache"}),
     fetch("data/playtest-decks.json",{cache:"no-cache"}),
   ]);
   if(!cardsResponse.ok||!decksResponse.ok)throw new Error("Could not load current playtest data");
@@ -45,29 +45,22 @@ async function main(){
 
   if(reference){
     const rows=[
-      ["MOVE",vocabulary.move],
-      ["MOVE UP TO N",vocabulary.move_multiple],
-      ["SWAP",vocabulary.swap],
-      ["MOVES / MOVED",vocabulary.movement_event],
-      ["MOBILE",vocabulary.mobile],
-      ["TIRELESS",vocabulary.tireless],
-      ["DIRECTLY AHEAD",vocabulary.directly_ahead],
-      ["DIRECTLY BEHIND",vocabulary.directly_behind],
-      ["ROW RESTRICTIONS",vocabulary.row_restriction],
-      ["SUPPORT +N",vocabulary.support],
-      ["SUPPLY",vocabulary.supply],
-      ["OUTMATCHED",vocabulary.outmatched],
-      ["RESERVE +N",vocabulary.reserve],
-      ["PRESS +N",vocabulary.press],
-      ["SUPPLY RAID",vocabulary.supply_raid],
-      ["STEAL COMMAND",vocabulary.steal_command],
-      ["EXHAUSTION",vocabulary.exhaustion],
-      ["EXHAUSTED",timing.exhausted],
-      ["STACKING",vocabulary.stacking],
-      ["COMMAND MODIFIERS",vocabulary.command_modifiers],
-      ["TAX MARKERS",vocabulary.tax_markers],
-      ["-STRENGTH MARKER",vocabulary.strength_marker],
-      ["TEMPORARY NEGATIVE",vocabulary.temporary_negative_marker],
+      ["STACKING","Force below Bond below Name. Buried cards show only their 10.5 mm top strip. PLAY resolves once; ongoing rules remain visible."],
+      ["MANEUVER","One Action and 1 Command: move a Named Formation one orthogonally adjacent active position; swap with another friendly formation if occupied."],
+      ["MOVE","Card effects move a complete formation to an adjacent active empty position; no Maneuver cost or Named requirement. Always obey legal rows."],
+      ["ATTACK","One Action per Force per Battle, no Command by default. Depleted Forces cannot Attack. Attacks do not deal damage."],
+      ["ARCHER ATTACK","Exhaust an opposing Rear Force in the same Front. A Middle Guard screens the Rear unless Shaken or Depleted."],
+      ["SKIRMISHER ATTACK","Shake an opposing Middle Force in the same Front."],
+      ["RAIDER ATTACK","Deplete an opposing Middle or Rear Force in this Front only when its opposing Frontline is empty."],
+      ["RIDER ATTACK","Shake an opposing flanked Frontline Force in an adjacent active Front."],
+      ["FLANKED","A Frontline is flanked by an enemy Frontline in an adjacent active Front that it does not match with its own Frontline there."],
+      ["EXHAUSTED","Cannot initiate Maneuvers; can still Attack or contribute Strength."],
+      ["SHAKEN","Formation contributes 2 less Strength, minimum 0. Disables Guard screening."],
+      ["DEPLETED","Cannot Attack or use its printed ACTION abilities. Disables Guard screening."],
+      ["GUARDED","Prevents the next affliction, then is removed. Does not stop forced movement or attachment loss."],
+      ["INSPIRED","Remove Shaken and prevent Shaken while Inspired."],
+      ["EMPOWERED","The next Attack ignores screening; does not ignore Attack range, eligibility or flanking rules."],
+      ["HIDDEN STRATAGEM","Play face-down. Reveal only when its printed condition occurs; it is one of your Battle's limited Stratagem plays."],
     ].filter(([,value])=>value);
     reference.innerHTML='<h1>Card mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+

@@ -11,3 +11,5 @@
 - `art-sources/` - uncropped illustration originals for future artwork edits.
 
 Canonical per-card PNGs live in `web/art/cards/`. Pages generates optimized WebP derivatives in `dist/art/cards-print/`; it never rewrites the PNGs. Neither the physical game nor print presentation requires runtime parity to be usable.
+
+**Physical-print-only redesigns:** `print-overrides.json` is applied by `tools/print_cards.py` to produce the printable card catalogue and playtest deck sheets without modifying the native/Webgame rule data. PLAY effects may be buried; ongoing Force/Bond abilities must remain readable in the fixed 10.5 mm exposed strip. `cards.json` retains unchanged executable content during this print-only stage.

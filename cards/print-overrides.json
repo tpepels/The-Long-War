@@ -1,0 +1,315 @@
+{
+  "format": "physical-print-overrides-v1",
+  "description": "Only for physical print cards. Do not load into native or webgame engine.",
+  "replacements": [
+    {
+      "id": "the-damar",
+      "strength_value": 3,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "You may move another friendly formation in this Front one row toward its Frontline into an empty legal position."
+        }
+      ],
+      "design_note": "Immediate Frontline reinforcement."
+    },
+    {
+      "id": "the-crow-archers",
+      "effects": [
+        {
+          "timing": "attack",
+          "text": "If the opposing Frontline in this Front is empty, this Force's basic Archer Attack may target an opposing Middle Force.",
+          "exposed": "Archer Attack: Middle if Frontline empty"
+        }
+      ],
+      "design_note": "An expanded target, not a second Attack."
+    },
+    {
+      "id": "the-ilyri",
+      "strength_value": 2,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "You may move this formation one position into an adjacent active empty position, if legal."
+        }
+      ],
+      "design_note": "Deployment tempo for reduced Strength."
+    },
+    {
+      "id": "the-old-guard",
+      "effects": [
+        {
+          "timing": "middle",
+          "text": "While in the Middle row, this Force screens the friendly Rear Force from basic Archer Attacks even while Shaken, but not while Depleted.",
+          "exposed": "Screens Rear even if Shaken; not Depleted"
+        }
+      ],
+      "design_note": "Screening resilience with Depleted counterplay."
+    },
+    {
+      "id": "the-kings-spears",
+      "strength_value": 3,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If played into an empty Middle position, you may swap this formation with the friendly Frontline formation here, if both placements are legal."
+        }
+      ],
+      "design_note": "One-time frontline relief; still obey occupancy restrictions."
+    },
+    {
+      "id": "the-ash-bowmen",
+      "strength_value": 4,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "You may move an opposing Frontline formation in this Front one row toward its Rear if that position is empty and legal."
+        }
+      ],
+      "design_note": "Wolf Skirmishers no longer depend on an Archer."
+    },
+    {
+      "id": "blocked-the-road-for",
+      "strength_value": 0,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While this formation is Bonded, opposing card effects cannot move it.",
+          "exposed": "Enemy card effects cannot move this formation"
+        }
+      ],
+      "design_note": "Exposed Bond movement protection."
+    },
+    {
+      "id": "seized-the-standard-of",
+      "strength_value": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "You may choose an opposing Bonded Formation in this Front. Return its Bond to its owner's hand."
+        }
+      ],
+      "design_note": "Raid an opponent's formation layer."
+    },
+    {
+      "id": "swore-again-to",
+      "strength_value": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If playing this Bond completes a Named Formation, you may immediately Maneuver it once without spending another Action or Command."
+        }
+      ],
+      "design_note": "One-time completion burst."
+    },
+    {
+      "id": "endured-with",
+      "strength_value": 0,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If this position contains a Force, give that Force Guarded."
+        }
+      ],
+      "design_note": "One-use Boon when played."
+    },
+    {
+      "id": "carried-the-oath-of",
+      "strength_value": 0,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While this formation is Bonded, its Name text cannot be suppressed.",
+          "exposed": "Name text cannot be suppressed"
+        }
+      ],
+      "design_note": "Exposed Bond name-text protection."
+    },
+    {
+      "id": "had-been-ordered-forward",
+      "strength_value": 0,
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While this formation is Bonded, it may Maneuver without being Named.",
+          "exposed": "May Maneuver without being Named"
+        }
+      ],
+      "design_note": "Exposed Bond mobility."
+    },
+    {
+      "id": "watched-the-skies-for",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Draw 1 card, then put 1 card from your hand on top of your deck."
+        }
+      ],
+      "design_note": "One-shot card-flow instead of blank +0 Bond."
+    },
+    {
+      "id": "mara",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Look at your opponent's hand. You may then move this formation one position into an adjacent active empty position, if legal."
+        }
+      ],
+      "design_note": "Information followed by positioning."
+    },
+    {
+      "id": "the-lines-held",
+      "command_cost": 2,
+      "effects": [
+        {
+          "timing": "hidden",
+          "text": "Reveal before Strength is compared in this Front. If your Frontline here is empty, move a friendly Middle formation into it, if legal. It gets +2 Strength this Battle."
+        }
+      ],
+      "design_note": "A hidden reinforcement, not a Command refund."
+    },
+    {
+      "id": "fresh-orders",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Kings or Captains. You may move another friendly formation in its Front to an adjacent active empty position, if legal."
+        }
+      ],
+      "design_note": "A leadership-gated movement Order."
+    }
+  ],
+  "once_per_battle_text_fixes": [
+    "the-crows-came-down",
+    "no-road-was-too-long",
+    "no-one-would-be-first-to-leave",
+    "the-king-had-given-the-order"
+  ],
+  "exposed_only": [
+    {
+      "id": "the-white-hands-of-elara",
+      "index": 0,
+      "exposed": "ACTION: remove 1 negative marker directly ahead"
+    },
+    {
+      "id": "the-red-shields",
+      "index": 0,
+      "exposed": "Front: enemy Tactics targeting this +1 Command"
+    },
+    {
+      "id": "the-house-of-reed",
+      "index": 0,
+      "exposed": "ACTION: pay 1; attach prepared Bond/Name ahead"
+    },
+    {
+      "id": "the-grey-riders",
+      "index": 0,
+      "exposed": "Maneuver without being Named"
+    },
+    {
+      "id": "the-grey-riders",
+      "index": 1,
+      "exposed": "Maneuver while Exhausted"
+    },
+    {
+      "id": "the-dust-riders",
+      "index": 0,
+      "exposed": "Bonded: Maneuver without Name"
+    },
+    {
+      "id": "the-black-company",
+      "index": 0,
+      "exposed": "ACTION: pay 1; return Bond/Name from Exhausted enemy here"
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "index": 0,
+      "exposed": "Rear: see enemy hidden Stratagems here/adjacent"
+    },
+    {
+      "id": "the-late-banner",
+      "index": 0,
+      "exposed": "Bonded: Name costs -1 (min 1) here"
+    },
+    {
+      "id": "the-banner-singers",
+      "index": 0,
+      "exposed": "Named Middle: enemy Tactics vs others here cost +1"
+    },
+    {
+      "id": "the-vardai",
+      "index": 0,
+      "exposed": "ACTION: pay 1; move self one adjacent empty position"
+    },
+    {
+      "id": "the-serekh",
+      "index": 0,
+      "exposed": "Front: enemy Tactics vs friend behind cost +1"
+    },
+    {
+      "id": "the-relief-column",
+      "index": 0,
+      "exposed": "Middle: ahead may Maneuver while Exhausted"
+    },
+    {
+      "id": "the-field-train",
+      "index": 0,
+      "exposed": "ACTION: attach prepared Bond/Name directly ahead"
+    },
+    {
+      "id": "the-signal-company",
+      "index": 0,
+      "exposed": "Middle: ahead may Maneuver without Name"
+    },
+    {
+      "id": "followed",
+      "index": 0,
+      "exposed": "Named: Bond contributes +1 more Strength"
+    },
+    {
+      "id": "covered-the-withdrawal-of",
+      "index": 0,
+      "exposed": "Bonded: ahead may Maneuver while Exhausted"
+    },
+    {
+      "id": "held-the-line-for",
+      "index": 0,
+      "exposed": "Bonded: enemy Tactics targeting this cost +1"
+    },
+    {
+      "id": "trusted",
+      "index": 0,
+      "exposed": "Named: this Force may Maneuver while Exhausted"
+    },
+    {
+      "id": "marched-beneath-the-banner-of",
+      "index": 0,
+      "exposed": "Bonded with Captain/King: Bond gives +1 Strength"
+    },
+    {
+      "id": "the-lantern-scouts",
+      "index": 0,
+      "exposed": "Middle/Rear: see enemy hidden Stratagems here"
+    },
+    {
+      "id": "the-river-raiders",
+      "index": 0,
+      "exposed": "ACTION: pay 1; enemy Front empty: raid Middle/Rear Bond/Name"
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "index": 0,
+      "exposed": "Rear: see enemy hidden Stratagems in any active Front"
+    },
+    {
+      "id": "kept-the-gate-for",
+      "index": 0,
+      "exposed": "Bonded: behind may Maneuver while Exhausted"
+    },
+    {
+      "id": "supported-by",
+      "index": 0,
+      "exposed": "Bonded Middle: enemy Tactics vs behind cost +1"
+    }
+  ]
+}
