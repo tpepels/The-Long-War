@@ -205,32 +205,40 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "attack",
-          "text": "When this Force uses its basic Raider Attack against an already Depleted Force, return an attached Bond or Name to its owner's hand instead of applying Depleted.",
-          "scope": "board",
+          "timing": "play",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear formation here. Return one of its attached Bonds or Names to its owner's hand.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "ATTACK - When this Force uses its basic Raider Attack against an already Depleted Force, return an attached Bond or Name to its owner's hand instead of applying Depleted.",
+      "text": "PLAY - If the opposing Front row in this Front is empty, choose an opposing Middle or Rear formation here. Return one of its attached Bonds or Names to its owner's hand.",
       "design_tags": [
         "raids",
         "positional-interaction",
-        "battlefield",
-        "combat-redesign"
+        "battlefield"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "return_component",
+            "target": "opposing_support_open_front"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
-          "label": "ATTACK",
-          "text": "When this Force uses its basic Raider Attack against an already Depleted Force, return an attached Bond or Name to its owner's hand instead of applying Depleted."
+          "label": "PLAY",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear formation here. Return one of its attached Bonds or Names to its owner's hand."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - When this Force uses its basic Raider Attack against an already Depleted Force, return an attached Bond or Name to its owner's hand instead of applying Depleted."
     },
     {
       "id": "the-white-hands-of-elara",
@@ -244,25 +252,19 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "placement",
-          "text": "This Force may only occupy the Middle or Rear rows.",
-          "scope": "board",
-          "memory": []
-        },
-        {
           "timing": "action",
-          "text": "Remove one affliction from the friendly Force directly ahead.",
-          "scope": "board",
-          "memory": []
+          "text": "Remove one temporary negative marker from the friendly formation directly ahead.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "CLEAR AHEAD"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nACTION - Remove one affliction from the friendly Force directly ahead.",
+      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nACTION - Remove one temporary negative marker from the friendly formation directly ahead.",
       "design_tags": [
         "action-engine",
         "healing",
         "positional-support",
-        "protection",
-        "combat-redesign"
+        "protection"
       ],
       "allowed_rows": [
         "middle",
@@ -270,22 +272,32 @@
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "action",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "remove_negative_marker",
+            "target": "directly_ahead",
+            "count": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "constraint",
           "label": "PLACEMENT",
           "text": "This Force may only occupy the Middle or Rear rows."
         },
         {
           "kind": "effect",
           "label": "ACTION",
-          "text": "Remove one affliction from the friendly Force directly ahead."
+          "text": "Remove one temporary negative marker from the friendly formation directly ahead."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nACTION - Remove one affliction from the friendly Force directly ahead."
     },
     {
       "id": "the-red-shields",
@@ -347,32 +359,40 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "attack",
-          "text": "When this Force's basic Archer Attack would Exhaust a Rear Force, you may Shake that Force instead.",
-          "scope": "board",
+          "timing": "play",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "ATTACK - When this Force's basic Archer Attack would Exhaust a Rear Force, you may Shake that Force instead.",
+      "text": "PLAY - If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it.",
       "design_tags": [
         "exposure",
         "archer",
-        "hostile-interaction",
-        "combat-redesign"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "exhaust",
+            "target": "opposing_support_open_front"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
-          "label": "ATTACK",
-          "text": "When this Force's basic Archer Attack would Exhaust a Rear Force, you may Shake that Force instead."
+          "label": "PLAY",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - When this Force's basic Archer Attack would Exhaust a Rear Force, you may Shake that Force instead."
     },
     {
       "id": "the-house-of-reed",
@@ -444,43 +464,61 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "movement",
+          "timing": "mobile",
           "text": "This Force may Maneuver without being Named.",
-          "scope": "board",
-          "memory": []
+          "scope": "self",
+          "memory": [],
+          "exposed": "Maneuver without Name"
         },
         {
-          "timing": "attack",
-          "text": "After this Force Maneuvers, its basic Rider Attack may target a flanked opposing Frontline Force as normal. This does not grant an additional Attack.",
-          "scope": "board",
-          "memory": []
+          "timing": "tireless",
+          "text": "This Force may Maneuver while Exhausted.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "Maneuver while Exhausted"
         }
       ],
-      "text": "MOVEMENT - This Force may Maneuver without being Named.\nATTACK - After this Force Maneuvers, its basic Rider Attack may target a flanked opposing Frontline Force as normal. This does not grant an additional Attack.",
+      "text": "MOVEMENT - This Force may Maneuver without being Named.\nEXHAUSTION - This Force may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
         "movement",
-        "persistent-state",
-        "combat-redesign"
+        "persistent-state"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "mobile",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "maneuver_unnamed",
+            "target": "self"
+          },
+          {
+            "timing": "tireless",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "tireless",
+            "target": "self"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "MOVEMENT",
           "text": "This Force may Maneuver without being Named."
         },
         {
-          "kind": "effect",
-          "label": "ATTACK",
-          "text": "After this Force Maneuvers, its basic Rider Attack may target a flanked opposing Frontline Force as normal. This does not grant an additional Attack."
+          "kind": "continuous",
+          "label": "EXHAUSTION",
+          "text": "This Force may Maneuver while Exhausted."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "MOVEMENT - This Force may Maneuver without being Named.\nATTACK - After this Force Maneuvers, its basic Rider Attack may target a flanked opposing Frontline Force as normal. This does not grant an additional Attack."
     },
     {
       "id": "the-dust-riders",
@@ -542,32 +580,42 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "attack",
-          "text": "When this Force attacks a Shaken opposing Middle Force, you may return one attached Bond to its owner's hand instead of applying Shaken.",
-          "scope": "board",
-          "memory": []
+          "timing": "action",
+          "text": "Pay 1 Command. Choose an opposing Exhausted formation in this Front. Return one of its attached Bonds or Names to its owner's hand.",
+          "scope": "opponent",
+          "memory": [],
+          "exposed": "ACTION · Pay 1: raid Exhausted enemy"
         }
       ],
-      "text": "ATTACK - When this Force attacks a Shaken opposing Middle Force, you may return one attached Bond to its owner's hand instead of applying Shaken.",
+      "text": "ACTION - Pay 1 Command. Choose an opposing Exhausted formation in this Front. Return one of its attached Bonds or Names to its owner's hand.",
       "design_tags": [
         "exhaustion",
         "raids",
-        "hostile-interaction",
-        "combat-redesign"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "action",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "return_component",
+            "target": "opposing_exhausted_same_front",
+            "activation_cost": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
-          "label": "ATTACK",
-          "text": "When this Force attacks a Shaken opposing Middle Force, you may return one attached Bond to its owner's hand instead of applying Shaken."
+          "label": "ACTION",
+          "text": "Pay 1 Command. Choose an opposing Exhausted formation in this Front. Return one of its attached Bonds or Names to its owner's hand."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - When this Force attacks a Shaken opposing Middle Force, you may return one attached Bond to its owner's hand instead of applying Shaken."
     },
     {
       "id": "the-red-duelists",
@@ -581,33 +629,43 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "attack",
-          "text": "After this Force Shakes an opposing Middle Force, its next printed ACTION ability this Battle costs 1 additional Command.",
-          "scope": "board",
-          "memory": []
+          "timing": "continuous",
+          "text": "The opposing formation directly opposite pays 1 additional Command to use an ACTION ability.",
+          "scope": "opponent",
+          "memory": [],
+          "exposed": "OPPOSITE ACTION +1"
         }
       ],
-      "text": "ATTACK - After this Force Shakes an opposing Middle Force, its next printed ACTION ability this Battle costs 1 additional Command.",
+      "text": "CONTINUOUS - The opposing formation directly opposite pays 1 additional Command to use an ACTION ability.",
       "design_tags": [
         "command",
         "disruption",
         "positional-support",
-        "tax",
-        "combat-redesign"
+        "tax"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "continuous",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "action_tax",
+            "target": "opposite",
+            "amount": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "ATTACK",
-          "text": "After this Force Shakes an opposing Middle Force, its next printed ACTION ability this Battle costs 1 additional Command."
+          "kind": "continuous",
+          "label": "CONTINUOUS",
+          "text": "The opposing formation directly opposite pays 1 additional Command to use an ACTION ability."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - After this Force Shakes an opposing Middle Force, its next printed ACTION ability this Battle costs 1 additional Command."
     },
     {
       "id": "the-thornbow-hunters",
@@ -622,32 +680,41 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "attack",
-          "text": "After this Force attacks, look at one opposing face-down Stratagem in its Front or an adjacent active Front.",
-          "scope": "board",
-          "memory": []
+          "timing": "rear",
+          "text": "While this formation is in the Rear row, you may look at opposing face-down Stratagems in this Front or an adjacent Front.",
+          "scope": "opponent",
+          "memory": [],
+          "exposed": "LOOK STRATAGEMS HERE/ADJ"
         }
       ],
-      "text": "ATTACK - After this Force attacks, look at one opposing face-down Stratagem in its Front or an adjacent active Front.",
+      "text": "REAR - While this formation is in the Rear row, you may look at opposing face-down Stratagems in this Front or an adjacent Front.",
       "design_tags": [
         "information",
         "persistent-state",
-        "positional-support",
-        "combat-redesign"
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "rear",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "stratagem_visibility",
+            "area": "same_or_adjacent"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "ATTACK",
-          "text": "After this Force attacks, look at one opposing face-down Stratagem in its Front or an adjacent active Front."
+          "kind": "continuous",
+          "label": "REAR",
+          "text": "While this formation is in the Rear row, you may look at opposing face-down Stratagems in this Front or an adjacent Front."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - After this Force attacks, look at one opposing face-down Stratagem in its Front or an adjacent active Front."
     },
     {
       "id": "the-iron-boars",
@@ -661,34 +728,44 @@
       "strength": 5,
       "effects": [
         {
-          "timing": "attack",
-          "text": "When this Force uses its basic Raider Attack against an already Depleted Force, its controller loses 1 Command and you regain 1 Command (minimum 1 for the opponent during a Battle), instead of applying Depleted.",
-          "scope": "board",
-          "memory": []
+          "timing": "continuous",
+          "text": "Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach.",
+          "scope": "opponent",
+          "memory": [],
+          "exposed": "PREPARED ATTACH +1"
         }
       ],
-      "text": "ATTACK - When this Force uses its basic Raider Attack against an already Depleted Force, its controller loses 1 Command and you regain 1 Command (minimum 1 for the opponent during a Battle), instead of applying Depleted.",
+      "text": "CONTINUOUS - Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach.",
       "design_tags": [
         "command",
         "disruption",
         "persistent-state",
         "prepared-pressure",
-        "tax",
-        "combat-redesign"
+        "tax"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "continuous",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "prepared_attach_tax",
+            "front": "this",
+            "amount": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "ATTACK",
-          "text": "When this Force uses its basic Raider Attack against an already Depleted Force, its controller loses 1 Command and you regain 1 Command (minimum 1 for the opponent during a Battle), instead of applying Depleted."
+          "kind": "continuous",
+          "label": "CONTINUOUS",
+          "text": "Opposing prepared Bonds and prepared Names in this Front cost 1 additional Command to attach."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - When this Force uses its basic Raider Attack against an already Depleted Force, its controller loses 1 Command and you regain 1 Command (minimum 1 for the opponent during a Battle), instead of applying Depleted."
     },
     {
       "id": "the-first-spear",
@@ -704,30 +781,39 @@
       "effects": [
         {
           "timing": "front",
-          "text": "While this Force is in the Frontline, it cannot be targeted by basic Rider Attacks.",
-          "scope": "board",
-          "memory": []
+          "text": "While this formation is in the Front row, flanking cannot Exhaust it.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "FRONT · Ignore flanking"
         }
       ],
-      "text": "FRONT - While this Force is in the Frontline, it cannot be targeted by basic Rider Attacks.",
+      "text": "FRONT - While this formation is in the Front row, flanking cannot Exhaust it.",
       "design_tags": [
         "frontline",
-        "flank-defense",
-        "combat-redesign"
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "front",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "flank_guard",
+            "target": "self"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "FRONT",
-          "text": "While this Force is in the Frontline, it cannot be targeted by basic Rider Attacks."
+          "text": "While this formation is in the Front row, flanking cannot Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "FRONT - While this Force is in the Frontline, it cannot be targeted by basic Rider Attacks."
     },
     {
       "id": "the-old-guard",
@@ -743,31 +829,40 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "While this Force is in Middle, the friendly Rear Force directly behind it cannot be targeted by basic Archer Attacks, even if this Guard is Shaken or Depleted.",
-          "scope": "board",
-          "memory": []
+          "text": "While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "MIDDLE · Guard Front Force from flanking"
         }
       ],
-      "text": "MIDDLE - While this Force is in Middle, the friendly Rear Force directly behind it cannot be targeted by basic Archer Attacks, even if this Guard is Shaken or Depleted.",
+      "text": "MIDDLE - While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
       "design_tags": [
         "frontline",
         "flank-defense",
-        "positional-support",
-        "combat-redesign"
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "middle",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "flank_guard",
+            "target": "directly_ahead"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "MIDDLE",
-          "text": "While this Force is in Middle, the friendly Rear Force directly behind it cannot be targeted by basic Archer Attacks, even if this Guard is Shaken or Depleted."
+          "text": "While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "MIDDLE - While this Force is in Middle, the friendly Rear Force directly behind it cannot be targeted by basic Archer Attacks, even if this Guard is Shaken or Depleted."
     },
     {
       "id": "the-unnamed-host",
@@ -782,31 +877,41 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If an opposing Force in this Front is Depleted, your opponent loses 1 Command and you regain the amount lost (minimum 1 Command for the opponent during a Battle).",
-          "scope": "board",
+          "text": "If an opposing Force in this Front is Exhausted, your opponent loses 1 Command, then you regain the amount lost (to a minimum of 1 Command for them).",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - If an opposing Force in this Front is Depleted, your opponent loses 1 Command and you regain the amount lost (minimum 1 Command for the opponent during a Battle).",
+      "text": "PLAY - If an opposing Force in this Front is Exhausted, your opponent loses 1 Command, then you regain the amount lost (to a minimum of 1 Command for them).",
       "design_tags": [
         "exhaustion",
         "command",
-        "hostile-interaction",
-        "combat-redesign"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "steal_command",
+            "amount": 1,
+            "minimum": 1,
+            "requires_opposing_exhausted_same_front": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "If an opposing Force in this Front is Depleted, your opponent loses 1 Command and you regain the amount lost (minimum 1 Command for the opponent during a Battle)."
+          "text": "If an opposing Force in this Front is Exhausted, your opponent loses 1 Command, then you regain the amount lost (to a minimum of 1 Command for them)."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - If an opposing Force in this Front is Depleted, your opponent loses 1 Command and you regain the amount lost (minimum 1 Command for the opponent during a Battle)."
     },
     {
       "id": "the-late-banner",
@@ -873,32 +978,43 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "while named",
-          "text": "While this formation is Named and in Middle, a friendly Frontline Force directly ahead cannot be Shaken by a basic Rider Attack.",
-          "scope": "board",
-          "memory": []
+          "timing": "while_named",
+          "text": "While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "NAMED · MIDDLE: protect Front from flank"
         }
       ],
-      "text": "WHILE NAMED - While this formation is Named and in Middle, a friendly Frontline Force directly ahead cannot be Shaken by a basic Rider Attack.",
+      "text": "WHILE NAMED - While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
       "design_tags": [
         "named-payoff",
         "positional-support",
-        "flank-defense",
-        "combat-redesign"
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "while_named",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "flank_guard",
+            "target": "directly_ahead",
+            "requires_rank": "middle",
+            "requires_named": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "While this formation is Named and in Middle, a friendly Frontline Force directly ahead cannot be Shaken by a basic Rider Attack."
+          "text": "While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "WHILE NAMED - While this formation is Named and in Middle, a friendly Frontline Force directly ahead cannot be Shaken by a basic Rider Attack."
     },
     {
       "id": "thirty-spears",
@@ -1103,31 +1219,40 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "while named",
-          "text": "While this formation is Named, its Force may Maneuver while Exhausted.",
-          "scope": "board",
-          "memory": []
+          "timing": "exhausted",
+          "text": "This Force may Maneuver while Exhausted, provided it is Named.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "Exhausted · may Maneuver if Named"
         }
       ],
-      "text": "WHILE NAMED - While this formation is Named, its Force may Maneuver while Exhausted.",
+      "text": "EXHAUSTED - This Force may Maneuver while Exhausted, provided it is Named.",
       "design_tags": [
         "exhaustion",
-        "movement",
-        "combat-redesign"
+        "movement"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "exhausted",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "tireless",
+            "target": "self"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "WHILE NAMED",
-          "text": "While this formation is Named, its Force may Maneuver while Exhausted."
+          "kind": "continuous",
+          "label": "EXHAUSTED",
+          "text": "This Force may Maneuver while Exhausted, provided it is Named."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "WHILE NAMED - While this formation is Named, its Force may Maneuver while Exhausted."
     },
     {
       "id": "the-serekh",
@@ -1142,31 +1267,41 @@
       "effects": [
         {
           "timing": "front",
-          "text": "While this formation is in Frontline, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
-          "scope": "board",
-          "memory": []
+          "text": "While this formation is in the Front row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BEHIND TACTICS +1"
         }
       ],
-      "text": "FRONT - While this formation is in Frontline, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+      "text": "FRONT - While this formation is in the Front row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
       "design_tags": [
         "positional-support",
         "protection",
-        "tax",
-        "combat-redesign"
+        "tax"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "front",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "tactic_tax",
+            "target": "directly_behind",
+            "amount": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "FRONT",
-          "text": "While this formation is in Frontline, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command."
+          "text": "While this formation is in the Front row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "FRONT - While this formation is in Frontline, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command."
     },
     {
       "id": "the-relief-column",
@@ -1181,24 +1316,18 @@
       "strength": 2,
       "effects": [
         {
-          "timing": "placement",
-          "text": "This Force may only occupy the Middle row.",
-          "scope": "board",
-          "memory": []
-        },
-        {
-          "timing": "action",
-          "text": "Remove Exhausted from the friendly Force directly ahead.",
-          "scope": "board",
-          "memory": []
+          "timing": "middle",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead may Maneuver while Exhausted.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "MIDDLE · Ahead may Maneuver Exhausted"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle row.\nACTION - Remove Exhausted from the friendly Force directly ahead.",
+      "text": "PLACEMENT - This Force may only occupy the Middle rows.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead may Maneuver while Exhausted.",
       "design_tags": [
         "positional-support",
         "exhaustion",
-        "movement",
-        "combat-redesign"
+        "movement"
       ],
       "allowed_rows": [
         "middle"
@@ -1206,22 +1335,31 @@
       "unique": false,
       "art_id": "the-white-hands-of-elara",
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "middle",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "tireless",
+            "target": "directly_ahead"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "constraint",
           "label": "PLACEMENT",
-          "text": "This Force may only occupy the Middle row."
+          "text": "This Force may only occupy the Middle rows."
         },
         {
-          "kind": "effect",
-          "label": "ACTION",
-          "text": "Remove Exhausted from the friendly Force directly ahead."
+          "kind": "continuous",
+          "label": "MIDDLE",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead may Maneuver while Exhausted."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLACEMENT - This Force may only occupy the Middle row.\nACTION - Remove Exhausted from the friendly Force directly ahead."
     },
     {
       "id": "the-field-train",
@@ -1653,30 +1791,40 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded and in Frontline, it cannot be targeted by basic Rider Attacks.",
-          "scope": "board",
-          "memory": []
+          "text": "While this formation is Bonded, flanking cannot Exhaust its Force.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BONDED · Ignore flanking"
         }
       ],
-      "text": "BONDED - While this formation is Bonded and in Frontline, it cannot be targeted by basic Rider Attacks.",
+      "text": "BONDED - While this formation is Bonded, flanking cannot Exhaust its Force.",
       "design_tags": [
         "formation-building",
-        "flank-defense",
-        "combat-redesign"
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "bonded",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "flank_guard",
+            "target": "self",
+            "requires_bonded": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded and in Frontline, it cannot be targeted by basic Rider Attacks."
+          "text": "While this formation is Bonded, flanking cannot Exhaust its Force."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "BONDED - While this formation is Bonded and in Frontline, it cannot be targeted by basic Rider Attacks."
     },
     {
       "id": "seized-the-standard-of",
@@ -1837,30 +1985,39 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Remove Shaken from this formation.",
-          "scope": "board",
+          "text": "Remove one -Strength marker from this formation.",
+          "scope": "self",
           "memory": []
         }
       ],
-      "text": "PLAY - Remove Shaken from this formation.",
+      "text": "PLAY - Remove one -Strength marker from this formation.",
       "design_tags": [
         "play-effect",
-        "protection",
-        "combat-redesign"
+        "protection"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "remove_strength_marker",
+            "target": "self",
+            "count": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Remove Shaken from this formation."
+          "text": "Remove one -Strength marker from this formation."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Remove Shaken from this formation."
     },
     {
       "id": "rallied-behind",
@@ -1961,32 +2118,42 @@
       "strength_modifier": 1,
       "effects": [
         {
-          "timing": "when named",
-          "text": "When this formation becomes Named, remove Depleted from its Force.",
-          "scope": "board",
-          "memory": []
+          "timing": "while_named",
+          "text": "While this formation is Named, its Force may Maneuver while Exhausted.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "NAMED · Maneuver while Exhausted"
         }
       ],
-      "text": "WHEN NAMED - When this formation becomes Named, remove Depleted from its Force.",
+      "text": "WHILE NAMED - While this formation is Named, its Force may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
         "movement",
-        "named-payoff",
-        "combat-redesign"
+        "named-payoff"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "while_named",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "tireless",
+            "target": "self",
+            "requires_named": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "WHEN NAMED",
-          "text": "When this formation becomes Named, remove Depleted from its Force."
+          "kind": "continuous",
+          "label": "WHILE NAMED",
+          "text": "While this formation is Named, its Force may Maneuver while Exhausted."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "WHEN NAMED - When this formation becomes Named, remove Depleted from its Force."
     },
     {
       "id": "marched-beneath-the-banner-of",
@@ -2885,45 +3052,75 @@
       "unique": true,
       "effects": [
         {
-          "timing": "becomes named",
-          "text": "Shake an opposing Middle Force in this Front.",
-          "scope": "board",
-          "memory": []
+          "timing": "becomes_named",
+          "text": "Choose an opposing formation in this Front. It gets -2 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
         },
         {
-          "timing": "action · 1/battle",
-          "text": "Deplete an opposing Shaken Force in this Front.",
-          "scope": "board",
-          "memory": []
+          "timing": "action",
+          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "used_marker",
+            "suppression_marker"
+          ],
+          "limit": "once_per_battle"
         }
       ],
-      "text": "BECOMES NAMED - Shake an opposing Middle Force in this Front.\nACTION · 1/BATTLE - Deplete an opposing Shaken Force in this Front.",
+      "text": "BECOMES NAMED - Choose an opposing formation in this Front. It gets -2 Strength this Battle.\nACTION · 1/BATTLE - Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
       "design_tags": [
         "action-engine",
         "formation-building",
         "marker-state",
         "named-payoff",
         "strength",
-        "suppression",
-        "combat-redesign"
+        "suppression"
       ],
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "becomes_named",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [
+              "effect_marker"
+            ],
+            "op": "add_strength_marker",
+            "target": "opposing_same_front",
+            "amount": -2,
+            "duration": "battle"
+          },
+          {
+            "timing": "action",
+            "scope": "opponent",
+            "limit": "once_per_battle",
+            "memory": [
+              "used_marker",
+              "suppression_marker"
+            ],
+            "op": "suppress_bond_strength",
+            "target": "opposing_bonded_same_front",
+            "duration": "battle"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "trigger",
           "label": "BECOMES NAMED",
-          "text": "Shake an opposing Middle Force in this Front."
+          "text": "Choose an opposing formation in this Front. It gets -2 Strength this Battle."
         },
         {
           "kind": "effect",
           "label": "ACTION · 1/BATTLE",
-          "text": "Deplete an opposing Shaken Force in this Front."
+          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "BECOMES NAMED - Shake an opposing Middle Force in this Front.\nACTION · 1/BATTLE - Deplete an opposing Shaken Force in this Front."
     },
     {
       "id": "sorin",
@@ -4360,31 +4557,39 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Deplete an opposing Rear Force. If it was already Depleted, its controller loses 1 Command instead (minimum 1 during a Battle).",
-          "scope": "board",
+          "text": "Choose an opposing Force in the Rear row. Exhaust it.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Deplete an opposing Rear Force. If it was already Depleted, its controller loses 1 Command instead (minimum 1 during a Battle).",
+      "text": "PLAY - Choose an opposing Force in the Rear row. Exhaust it.",
       "design_tags": [
         "exhaustion",
         "hostile-interaction",
-        "exposure",
-        "combat-redesign"
+        "exposure"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "exhaust",
+            "target": "opposing_rear"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Deplete an opposing Rear Force. If it was already Depleted, its controller loses 1 Command instead (minimum 1 during a Battle)."
+          "text": "Choose an opposing Force in the Rear row. Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Deplete an opposing Rear Force. If it was already Depleted, its controller loses 1 Command instead (minimum 1 during a Battle)."
     },
     {
       "id": "they-returned-with-names",
@@ -4446,31 +4651,40 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Shake an opposing Force in a Front containing one of your Scouts.",
-          "scope": "board",
+          "text": "Choose an opposing Force in a Front containing one of your Scouts. Exhaust it.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Shake an opposing Force in a Front containing one of your Scouts.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Scouts. Exhaust it.",
       "design_tags": [
         "exhaustion",
         "hostile-interaction",
-        "scouting",
-        "combat-redesign"
+        "scouting"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "exhaust",
+            "target": "opposing_front_with_friendly_class",
+            "required_friendly_class": "scout"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Shake an opposing Force in a Front containing one of your Scouts."
+          "text": "Choose an opposing Force in a Front containing one of your Scouts. Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Shake an opposing Force in a Front containing one of your Scouts."
     },
     {
       "id": "the-muster-was-false",
@@ -4525,30 +4739,41 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Move an opposing Exhausted Force one rank toward its Rear, if the destination is legal and empty.",
-          "scope": "board",
+          "text": "Choose an opposing formation. Move it one row toward its Rear, if that position is empty.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Move an opposing Exhausted Force one rank toward its Rear, if the destination is legal and empty.",
+      "text": "PLAY - Choose an opposing formation. Move it one row toward its Rear, if that position is empty.",
       "design_tags": [
         "hostile-interaction",
-        "movement",
-        "combat-redesign"
+        "movement"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "move",
+            "target": "opposing_any",
+            "steps": 1,
+            "same_front": true,
+            "direction": "rear"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Move an opposing Exhausted Force one rank toward its Rear, if the destination is legal and empty."
+          "text": "Choose an opposing formation. Move it one row toward its Rear, if that position is empty."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Move an opposing Exhausted Force one rank toward its Rear, if the destination is legal and empty."
     },
     {
       "id": "all-banners-forward",
@@ -4714,31 +4939,39 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Return one attached Bond from an opposing Depleted Middle or Rear formation to its owner's hand.",
-          "scope": "board",
+          "text": "Choose an opposing Bonded Formation. Return one of its Bonds or Names to its owner's hand.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Return one attached Bond from an opposing Depleted Middle or Rear formation to its owner's hand.",
+      "text": "PLAY - Choose an opposing Bonded Formation. Return one of its Bonds or Names to its owner's hand.",
       "design_tags": [
         "raids",
         "hostile-interaction",
-        "formation-disruption",
-        "combat-redesign"
+        "formation-disruption"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "return_component",
+            "target": "opposing_bonded_any"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Return one attached Bond from an opposing Depleted Middle or Rear formation to its owner's hand."
+          "text": "Choose an opposing Bonded Formation. Return one of its Bonds or Names to its owner's hand."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Return one attached Bond from an opposing Depleted Middle or Rear formation to its owner's hand."
     },
     {
       "id": "the-line-had-begun-to-move",
@@ -5011,32 +5244,55 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal when an opposing Rider attacks one of your flanked Frontline Forces. Prevent that Attack's effect and Shake the Rider.",
-          "scope": "board",
-          "memory": []
+          "text": "Reveal before Strength is compared in an outer Front. One friendly Archer, Guard, or Stronghold there gets +2 Strength this Battle.",
+          "scope": "self",
+          "memory": [
+            "face_down_source",
+            "effect_marker"
+          ],
+          "reveal": "outer_front_strength_comparison"
         }
       ],
-      "text": "HIDDEN - Reveal when an opposing Rider attacks one of your flanked Frontline Forces. Prevent that Attack's effect and Shake the Rider.",
+      "text": "HIDDEN - Reveal before Strength is compared in an outer Front. One friendly Archer, Guard, or Stronghold there gets +2 Strength this Battle.",
       "design_tags": [
         "classification-synergy",
         "hidden-plan",
         "marker-state",
-        "strength",
-        "combat-redesign"
+        "strength"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "hidden",
+            "scope": "self",
+            "limit": null,
+            "memory": [
+              "face_down_source",
+              "effect_marker"
+            ],
+            "op": "hidden_buff_targets",
+            "reveal": "outer_front_strength_comparison",
+            "outer_front": true,
+            "target_classes": [
+              "archer",
+              "guard",
+              "stronghold"
+            ],
+            "amount": 2,
+            "max_targets": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "trigger",
           "label": "HIDDEN",
-          "text": "Reveal when an opposing Rider attacks one of your flanked Frontline Forces. Prevent that Attack's effect and Shake the Rider."
+          "text": "Reveal before Strength is compared in an outer Front. One friendly Archer, Guard, or Stronghold there gets +2 Strength this Battle."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "HIDDEN - Reveal when an opposing Rider attacks one of your flanked Frontline Forces. Prevent that Attack's effect and Shake the Rider."
     },
     {
       "id": "the-trap-closed",
@@ -5051,32 +5307,58 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal after an opposing Force in a Front containing one of your Raiders becomes Depleted. Move it one rank toward its Rear if legal and empty, then Shake it.",
-          "scope": "board",
-          "memory": []
+          "text": "Reveal after one of your Raiders or Skirmishers places a temporary negative marker on an opposing formation. One other friendly Raider or Skirmisher in that Front gets +2 Strength this Battle.",
+          "scope": "self",
+          "memory": [
+            "face_down_source",
+            "effect_marker"
+          ],
+          "reveal": "raider_or_skirmisher_marks_enemy"
         }
       ],
-      "text": "HIDDEN - Reveal after an opposing Force in a Front containing one of your Raiders becomes Depleted. Move it one rank toward its Rear if legal and empty, then Shake it.",
+      "text": "HIDDEN - Reveal after one of your Raiders or Skirmishers places a temporary negative marker on an opposing formation. One other friendly Raider or Skirmisher in that Front gets +2 Strength this Battle.",
       "design_tags": [
         "classification-synergy",
         "hidden-plan",
         "marker-state",
-        "strength",
-        "combat-redesign"
+        "strength"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "hidden",
+            "scope": "self",
+            "limit": null,
+            "memory": [
+              "face_down_source",
+              "effect_marker"
+            ],
+            "op": "hidden_buff_after_marker",
+            "reveal": "raider_or_skirmisher_marks_enemy",
+            "source_classes": [
+              "raider",
+              "skirmisher"
+            ],
+            "target_classes": [
+              "raider",
+              "skirmisher"
+            ],
+            "amount": 2,
+            "max_targets": 1,
+            "exclude_source": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "trigger",
           "label": "HIDDEN",
-          "text": "Reveal after an opposing Force in a Front containing one of your Raiders becomes Depleted. Move it one rank toward its Rear if legal and empty, then Shake it."
+          "text": "Reveal after one of your Raiders or Skirmishers places a temporary negative marker on an opposing formation. One other friendly Raider or Skirmisher in that Front gets +2 Strength this Battle."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "HIDDEN - Reveal after an opposing Force in a Front containing one of your Raiders becomes Depleted. Move it one rank toward its Rear if legal and empty, then Shake it."
     },
     {
       "id": "the-battle-turned-east",
@@ -5317,32 +5599,48 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "Your Guards and Strongholds cannot become Shaken this Battle.",
-          "scope": "board",
-          "memory": []
+          "text": "Your Guards and Strongholds cannot become Exhausted from flanking this Battle.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Your Guards and Strongholds cannot become Shaken this Battle.",
+      "text": "CONTINUOUS - Your Guards and Strongholds cannot become Exhausted from flanking this Battle.",
       "design_tags": [
         "flank-defense",
         "battlefield",
-        "army-support",
-        "combat-redesign"
+        "army-support"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "continuous",
+            "scope": "self",
+            "limit": null,
+            "memory": [
+              "face_up_source"
+            ],
+            "op": "flank_guard",
+            "target": "friendly_any_class",
+            "classes": [
+              "guard",
+              "stronghold"
+            ]
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "CONTINUOUS",
-          "text": "Your Guards and Strongholds cannot become Shaken this Battle."
+          "text": "Your Guards and Strongholds cannot become Exhausted from flanking this Battle."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "CONTINUOUS - Your Guards and Strongholds cannot become Shaken this Battle."
     },
     {
       "id": "the-crows-came-down",
@@ -5355,33 +5653,47 @@
       "command_cost": 2,
       "effects": [
         {
-          "timing": "action · 1/battle",
-          "text": "Choose an opposing Force in a Front containing one of your Archers. If it is Exhausted, return its Name to its owner's hand; otherwise Exhaust it.",
-          "scope": "board",
-          "memory": []
+          "timing": "action",
+          "text": "Pay 1 Command. Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
+          "scope": "opponent",
+          "memory": [
+            "used_marker"
+          ]
         }
       ],
       "duration": "this_battle",
-      "text": "ACTION · 1/BATTLE - Choose an opposing Force in a Front containing one of your Archers. If it is Exhausted, return its Name to its owner's hand; otherwise Exhaust it.",
+      "text": "ACTION - Pay 1 Command. Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
       "design_tags": [
         "archer",
         "exhaustion",
-        "hostile-interaction",
-        "combat-redesign"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "action",
+            "scope": "opponent",
+            "limit": "once_per_battle",
+            "memory": [
+              "used_marker"
+            ],
+            "op": "exhaust",
+            "target": "opposing_front_with_friendly_class",
+            "required_friendly_class": "archer",
+            "activation_cost": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
-          "label": "ACTION · 1/BATTLE",
-          "text": "Choose an opposing Force in a Front containing one of your Archers. If it is Exhausted, return its Name to its owner's hand; otherwise Exhaust it."
+          "label": "ACTION",
+          "text": "Pay 1 Command. Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ACTION · 1/BATTLE - Choose an opposing Force in a Front containing one of your Archers. If it is Exhausted, return its Name to its owner's hand; otherwise Exhaust it."
     },
     {
       "id": "before-sunset-the-ford-would-be-ours",
@@ -5511,32 +5823,43 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Exchange all your formations and prepared cards in two adjacent active Fronts rank for rank if all destinations are legal. Exhaust the moved Forces.",
-          "scope": "board",
-          "memory": []
+          "text": "Exchange all your cards in two adjacent active Fronts, rank for rank. Prepared cards and Exhaustion move with their positions.",
+          "scope": "self",
+          "memory": [
+            "used_marker"
+          ]
         }
       ],
       "duration": "this_battle",
-      "text": "ACTION - Exchange all your formations and prepared cards in two adjacent active Fronts rank for rank if all destinations are legal. Exhaust the moved Forces.",
+      "text": "ACTION - Exchange all your cards in two adjacent active Fronts, rank for rank. Prepared cards and Exhaustion move with their positions.",
       "design_tags": [
         "geography",
         "magic",
-        "positional-interaction",
-        "combat-redesign"
+        "positional-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "action",
+            "scope": "self",
+            "limit": "once_per_battle",
+            "memory": [
+              "used_marker"
+            ],
+            "op": "swap_fronts"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "ACTION",
-          "text": "Exchange all your formations and prepared cards in two adjacent active Fronts rank for rank if all destinations are legal. Exhaust the moved Forces."
+          "text": "Exchange all your cards in two adjacent active Fronts, rank for rank. Prepared cards and Exhaustion move with their positions."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ACTION - Exchange all your formations and prepared cards in two adjacent active Fronts rank for rank if all destinations are legal. Exhaust the moved Forces."
     },
     {
       "id": "the-battle-had-chosen-them",
@@ -5547,32 +5870,48 @@
       "command_cost": 2,
       "effects": [
         {
-          "timing": "play",
-          "text": "Choose an active Front. Until this Battle ends, whenever a Force moves into that Front, Shake it.",
-          "scope": "board",
-          "memory": []
+          "timing": "continuous",
+          "text": "Your Heroes and Named Formations have +1 Strength this Battle.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
         }
       ],
       "duration": "this_battle",
-      "text": "PLAY - Choose an active Front. Until this Battle ends, whenever a Force moves into that Front, Shake it.",
+      "text": "CONTINUOUS - Your Heroes and Named Formations have +1 Strength this Battle.",
       "design_tags": [
         "army-support",
-        "strength",
-        "combat-redesign"
+        "strength"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "continuous",
+            "scope": "self",
+            "limit": null,
+            "memory": [
+              "face_up_source"
+            ],
+            "op": "status_strength_aura",
+            "statuses": [
+              "hero",
+              "named"
+            ],
+            "amount": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "PLAY",
-          "text": "Choose an active Front. Until this Battle ends, whenever a Force moves into that Front, Shake it."
+          "kind": "continuous",
+          "label": "CONTINUOUS",
+          "text": "Your Heroes and Named Formations have +1 Strength this Battle."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Choose an active Front. Until this Battle ends, whenever a Force moves into that Front, Shake it."
     },
     {
       "id": "no-one-would-be-first-to-leave",
@@ -5682,32 +6021,41 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "attack",
-          "text": "When this Force attacks with its Archer or Skirmisher basic Attack, you may Shake the target instead of applying the normal affliction.",
-          "scope": "board",
+          "timing": "play",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "ATTACK - When this Force attacks with its Archer or Skirmisher basic Attack, you may Shake the target instead of applying the normal affliction.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
       "design_tags": [
         "exhaustion",
         "archer",
-        "hostile-interaction",
-        "combat-redesign"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "exhaust",
+            "target": "opposing_front_with_friendly_class",
+            "required_friendly_class": "archer"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
-          "label": "ATTACK",
-          "text": "When this Force attacks with its Archer or Skirmisher basic Attack, you may Shake the target instead of applying the normal affliction."
+          "label": "PLAY",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - When this Force attacks with its Archer or Skirmisher basic Attack, you may Shake the target instead of applying the normal affliction."
     },
     {
       "id": "the-lantern-scouts",
@@ -5772,32 +6120,42 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "attack",
-          "text": "When this Force Depletes an opposing Rear Force with its basic Raider Attack, that player's Command decreases by 1 (minimum 1 during a Battle).",
-          "scope": "board",
-          "memory": []
+          "timing": "action",
+          "text": "Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand.",
+          "scope": "opponent",
+          "memory": [],
+          "exposed": "ACTION · Pay 1: raid open support"
         }
       ],
-      "text": "ATTACK - When this Force Depletes an opposing Rear Force with its basic Raider Attack, that player's Command decreases by 1 (minimum 1 during a Battle).",
+      "text": "ACTION - Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand.",
       "design_tags": [
         "raids",
         "exposure",
-        "positional-interaction",
-        "combat-redesign"
+        "positional-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "action",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "return_component",
+            "target": "opposing_support_open_front",
+            "activation_cost": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
-          "label": "ATTACK",
-          "text": "When this Force Depletes an opposing Rear Force with its basic Raider Attack, that player's Command decreases by 1 (minimum 1 during a Battle)."
+          "label": "ACTION",
+          "text": "Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "ATTACK - When this Force Depletes an opposing Rear Force with its basic Raider Attack, that player's Command decreases by 1 (minimum 1 during a Battle)."
     },
     {
       "id": "the-kings-spears",
@@ -5812,32 +6170,42 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "front",
-          "text": "While this Force is in Frontline, opposing Rider Attacks targeting friendly Frontline Forces in an adjacent active Front cost 1 Command.",
-          "scope": "board",
-          "memory": []
+          "timing": "while_named",
+          "text": "While this formation is Named, flanking cannot Exhaust it.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "NAMED · Ignore flanking"
         }
       ],
-      "text": "FRONT - While this Force is in Frontline, opposing Rider Attacks targeting friendly Frontline Forces in an adjacent active Front cost 1 Command.",
+      "text": "WHILE NAMED - While this formation is Named, flanking cannot Exhaust it.",
       "design_tags": [
         "named-payoff",
         "frontline",
-        "flank-defense",
-        "combat-redesign"
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "while_named",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "flank_guard",
+            "target": "self",
+            "requires_named": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
-          "label": "FRONT",
-          "text": "While this Force is in Frontline, opposing Rider Attacks targeting friendly Frontline Forces in an adjacent active Front cost 1 Command."
+          "kind": "continuous",
+          "label": "WHILE NAMED",
+          "text": "While this formation is Named, flanking cannot Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "FRONT - While this Force is in Frontline, opposing Rider Attacks targeting friendly Frontline Forces in an adjacent active Front cost 1 Command."
     },
     {
       "id": "the-salt-road-fleet",
@@ -5952,36 +6320,50 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "If this formation contains an Archer, its basic Attack may target a screened Rear Force, but Shakes instead of Exhausting it.",
-          "scope": "board",
-          "memory": []
+          "text": "While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "ARCHER/SCOUT · +1"
         }
       ],
       "references": [
         "archer",
         "scout"
       ],
-      "text": "BONDED - If this formation contains an Archer, its basic Attack may target a screened Rear Force, but Shakes instead of Exhausting it.",
+      "text": "BONDED - While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength.",
       "design_tags": [
         "classification-synergy",
         "formation-building",
         "persistent-state",
-        "strength",
-        "combat-redesign"
+        "strength"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "bonded",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "component_strength",
+            "component": "bond",
+            "amount": 1,
+            "requires_any_class": [
+              "archer",
+              "scout"
+            ]
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "BONDED",
-          "text": "If this formation contains an Archer, its basic Attack may target a screened Rear Force, but Shakes instead of Exhausting it."
+          "text": "While this formation is Bonded, if this formation contains an Archer or Scout, this Bond contributes +1 Strength."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "BONDED - If this formation contains an Archer, its basic Attack may target a screened Rear Force, but Shakes instead of Exhausting it."
     },
     {
       "id": "kept-the-gate-for",
@@ -6043,9 +6425,9 @@
       "strength_modifier": 0,
       "effects": [
         {
-          "timing": "bonded",
-          "text": "Once per Battle, when this formation's Raider attacks a Depleted enemy, regain 1 Command.",
-          "scope": "board",
+          "timing": "play",
+          "text": "If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost.",
+          "scope": "opponent",
           "memory": []
         }
       ],
@@ -6053,26 +6435,40 @@
         "raider",
         "skirmisher"
       ],
-      "text": "BONDED - Once per Battle, when this formation's Raider attacks a Depleted enemy, regain 1 Command.",
+      "text": "PLAY - If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost.",
       "design_tags": [
         "raids",
         "exhaustion",
-        "command",
-        "combat-redesign"
+        "command"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "steal_command",
+            "amount": 1,
+            "minimum": 1,
+            "requires_any_class": [
+              "raider",
+              "skirmisher"
+            ],
+            "requires_opposing_exhausted_same_front": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
-          "label": "BONDED",
-          "text": "Once per Battle, when this formation's Raider attacks a Depleted enemy, regain 1 Command."
+          "label": "PLAY",
+          "text": "If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "BONDED - Once per Battle, when this formation's Raider attacks a Depleted enemy, regain 1 Command."
     },
     {
       "id": "carried-messages-for",
@@ -6137,32 +6533,43 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is in Middle, the friendly Frontline Force directly ahead cannot be Shaken by basic Rider Attacks.",
-          "scope": "board",
-          "memory": []
+          "text": "While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "MIDDLE · Protect Front from flanking"
         }
       ],
-      "text": "BONDED - While this formation is in Middle, the friendly Frontline Force directly ahead cannot be Shaken by basic Rider Attacks.",
+      "text": "BONDED - While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
       "design_tags": [
         "formation-building",
         "flank-defense",
-        "positional-support",
-        "combat-redesign"
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "bonded",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "flank_guard",
+            "target": "directly_ahead",
+            "requires_bonded": true,
+            "requires_rank": "middle"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is in Middle, the friendly Frontline Force directly ahead cannot be Shaken by basic Rider Attacks."
+          "text": "While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
         }
       ],
-      "art_focus_y": "0%"
+      "art_focus_y": "0%",
+      "combat_redesign_proposal": "BONDED - While this formation is in Middle, the friendly Frontline Force directly ahead cannot be Shaken by basic Rider Attacks."
     },
     {
       "id": "supplied-by",
@@ -6223,43 +6630,73 @@
       "unique": true,
       "effects": [
         {
-          "timing": "becomes named",
-          "text": "Exhaust an opposing Rear Force in this Front unless it is screened.",
-          "scope": "board",
-          "memory": []
+          "timing": "becomes_named",
+          "text": "Choose an opposing formation in this Front. It gets -1 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
         },
         {
-          "timing": "reaction · 1/battle",
-          "text": "When a friendly Archer in this Front attacks a Rear Force, it may Shake that Force instead.",
-          "scope": "board",
-          "memory": []
+          "timing": "continuous",
+          "text": "Other friendly Archers in this Front have +1 Strength.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
         }
       ],
-      "text": "BECOMES NAMED - Exhaust an opposing Rear Force in this Front unless it is screened.\nREACTION · 1/BATTLE - When a friendly Archer in this Front attacks a Rear Force, it may Shake that Force instead.",
+      "text": "BECOMES NAMED - Choose an opposing formation in this Front. It gets -1 Strength this Battle.\nCONTINUOUS - Other friendly Archers in this Front have +1 Strength.",
       "design_tags": [
         "marker-state",
         "named-payoff",
-        "strength",
-        "combat-redesign"
+        "strength"
       ],
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "becomes_named",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [
+              "effect_marker"
+            ],
+            "op": "add_strength_marker",
+            "target": "opposing_same_front",
+            "amount": -1,
+            "duration": "battle"
+          },
+          {
+            "timing": "continuous",
+            "scope": "self",
+            "limit": null,
+            "memory": [
+              "face_up_source"
+            ],
+            "op": "local_class_aura",
+            "classes": [
+              "archer"
+            ],
+            "amount": 1,
+            "exclude_self": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "trigger",
           "label": "BECOMES NAMED",
-          "text": "Exhaust an opposing Rear Force in this Front unless it is screened."
+          "text": "Choose an opposing formation in this Front. It gets -1 Strength this Battle."
         },
         {
-          "kind": "effect",
-          "label": "REACTION · 1/BATTLE",
-          "text": "When a friendly Archer in this Front attacks a Rear Force, it may Shake that Force instead."
+          "kind": "continuous",
+          "label": "CONTINUOUS",
+          "text": "Other friendly Archers in this Front have +1 Strength."
         }
       ],
-      "art_focus_y": "0%"
+      "art_focus_y": "0%",
+      "combat_redesign_proposal": "BECOMES NAMED - Exhaust an opposing Rear Force in this Front unless it is screened.\nREACTION · 1/BATTLE - When a friendly Archer in this Front attacks a Rear Force, it may Shake that Force instead."
     },
     {
       "id": "lysa-the-listener",
@@ -6344,43 +6781,61 @@
       "unique": true,
       "effects": [
         {
-          "timing": "becomes named",
-          "text": "Deplete an opposing Middle or Rear Force in this Front.",
-          "scope": "board",
+          "timing": "becomes_named",
+          "text": "Choose an opposing Exhausted formation in this Front. Return one attached Bond or Name to its owner's hand.",
+          "scope": "opponent",
           "memory": []
         },
         {
-          "timing": "action · 1/battle",
-          "text": "Return an attached Bond from an opposing Depleted formation in this Front to its owner's hand.",
-          "scope": "board",
+          "timing": "action",
+          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Deplete an opposing Middle or Rear Force in this Front.\nACTION · 1/BATTLE - Return an attached Bond from an opposing Depleted formation in this Front to its owner's hand.",
+      "text": "BECOMES NAMED - Choose an opposing Exhausted formation in this Front. Return one attached Bond or Name to its owner's hand.\nACTION - Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.",
       "design_tags": [
         "named-payoff",
         "raids",
         "exhaustion",
-        "prepared-cards",
-        "combat-redesign"
+        "prepared-cards"
       ],
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "becomes_named",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "return_component",
+            "target": "opposing_exhausted_same_front"
+          },
+          {
+            "timing": "action",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "prepared_pay_or_return",
+            "target": "opposing_prepared_same_front",
+            "amount": 1,
+            "activation_cost": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "trigger",
           "label": "BECOMES NAMED",
-          "text": "Deplete an opposing Middle or Rear Force in this Front."
+          "text": "Choose an opposing Exhausted formation in this Front. Return one attached Bond or Name to its owner's hand."
         },
         {
           "kind": "effect",
-          "label": "ACTION · 1/BATTLE",
-          "text": "Return an attached Bond from an opposing Depleted formation in this Front to its owner's hand."
+          "label": "ACTION",
+          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "BECOMES NAMED - Deplete an opposing Middle or Rear Force in this Front.\nACTION · 1/BATTLE - Return an attached Bond from an opposing Depleted formation in this Front to its owner's hand."
     },
     {
       "id": "maelin",
@@ -6396,43 +6851,64 @@
       "unique": true,
       "effects": [
         {
-          "timing": "becomes named",
-          "text": "Remove one affliction from a friendly Force in this Front.",
-          "scope": "board",
+          "timing": "becomes_named",
+          "text": "Remove Exhaustion from one friendly formation in this Front.",
+          "scope": "self",
           "memory": []
         },
         {
-          "timing": "reaction · 1/battle",
-          "text": "Prevent Shaken when a friendly Force in this Front would receive it.",
-          "scope": "board",
-          "memory": []
+          "timing": "continuous",
+          "text": "Opposing Tactics that target another friendly formation in this Front cost 1 additional Command.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
         }
       ],
-      "text": "BECOMES NAMED - Remove one affliction from a friendly Force in this Front.\nREACTION · 1/BATTLE - Prevent Shaken when a friendly Force in this Front would receive it.",
+      "text": "BECOMES NAMED - Remove Exhaustion from one friendly formation in this Front.\nCONTINUOUS - Opposing Tactics that target another friendly formation in this Front cost 1 additional Command.",
       "design_tags": [
         "exhaustion",
         "healing",
         "named-payoff",
-        "tax",
-        "combat-redesign"
+        "tax"
       ],
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "becomes_named",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "remove_exhaustion",
+            "target": "friendly_same_front"
+          },
+          {
+            "timing": "continuous",
+            "scope": "self",
+            "limit": null,
+            "memory": [
+              "face_up_source"
+            ],
+            "op": "tactic_tax",
+            "target": "other_friendly_same_front",
+            "amount": 1
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "trigger",
           "label": "BECOMES NAMED",
-          "text": "Remove one affliction from a friendly Force in this Front."
+          "text": "Remove Exhaustion from one friendly formation in this Front."
         },
         {
-          "kind": "effect",
-          "label": "REACTION · 1/BATTLE",
-          "text": "Prevent Shaken when a friendly Force in this Front would receive it."
+          "kind": "continuous",
+          "label": "CONTINUOUS",
+          "text": "Opposing Tactics that target another friendly formation in this Front cost 1 additional Command."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "BECOMES NAMED - Remove one affliction from a friendly Force in this Front.\nREACTION · 1/BATTLE - Prevent Shaken when a friendly Force in this Front would receive it."
     },
     {
       "id": "serai-queen-of-crows",
@@ -6686,31 +7162,40 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Exhaust an opposing Rear Force in a Front containing one of your Archers, unless it is screened.",
-          "scope": "board",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Exhaust an opposing Rear Force in a Front containing one of your Archers, unless it is screened.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
       "design_tags": [
         "archer",
         "exhaustion",
-        "hostile-interaction",
-        "combat-redesign"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "exhaust",
+            "target": "opposing_front_with_friendly_class",
+            "required_friendly_class": "archer"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Exhaust an opposing Rear Force in a Front containing one of your Archers, unless it is screened."
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Exhaust an opposing Rear Force in a Front containing one of your Archers, unless it is screened."
     },
     {
       "id": "the-scouts-found-the-gap",
@@ -6825,31 +7310,45 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Frontline Guard or Spearman in a Front containing your Skirmisher. Move it one rank toward Rear if legal and empty, then Shake it.",
-          "scope": "board",
+          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
+          "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Choose an opposing Frontline Guard or Spearman in a Front containing your Skirmisher. Move it one rank toward Rear if legal and empty, then Shake it.",
+      "text": "PLAY - Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
       "design_tags": [
         "forced-movement",
         "flanking",
-        "hostile-interaction",
-        "combat-redesign"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "opponent",
+            "limit": null,
+            "memory": [],
+            "op": "move",
+            "target": "opposing_class_front_with_friendly_class",
+            "classes": [
+              "guard",
+              "spearman"
+            ],
+            "required_friendly_class": "skirmisher",
+            "direction": "rear"
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing Frontline Guard or Spearman in a Front containing your Skirmisher. Move it one rank toward Rear if legal and empty, then Shake it."
+          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Choose an opposing Frontline Guard or Spearman in a Front containing your Skirmisher. Move it one rank toward Rear if legal and empty, then Shake it."
     },
     {
       "id": "the-archers-were-ready",
@@ -6982,33 +7481,49 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "Your Archers may target opposing Middle Forces instead of Rear Forces with basic Attacks this Battle. Those Attacks Shake instead of Exhaust.",
-          "scope": "board",
-          "memory": []
+          "text": "Your Bonded Archer formations have +1 Strength this Battle.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Your Archers may target opposing Middle Forces instead of Rear Forces with basic Attacks this Battle. Those Attacks Shake instead of Exhaust.",
+      "text": "CONTINUOUS - Your Bonded Archer formations have +1 Strength this Battle.",
       "design_tags": [
         "army-support",
         "classification-synergy",
         "formation-building",
-        "strength",
-        "combat-redesign"
+        "strength"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "continuous",
+            "scope": "self",
+            "limit": null,
+            "memory": [
+              "face_up_source"
+            ],
+            "op": "class_strength_aura",
+            "classes": [
+              "archer"
+            ],
+            "amount": 1,
+            "requires_bonded": true
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "effect",
+          "kind": "continuous",
           "label": "CONTINUOUS",
-          "text": "Your Archers may target opposing Middle Forces instead of Rear Forces with basic Attacks this Battle. Those Attacks Shake instead of Exhaust."
+          "text": "Your Bonded Archer formations have +1 Strength this Battle."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "CONTINUOUS - Your Archers may target opposing Middle Forces instead of Rear Forces with basic Attacks this Battle. Those Attacks Shake instead of Exhaust."
     },
     {
       "id": "they-knew-the-ground",
@@ -7189,32 +7704,44 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove Exhausted.",
-          "scope": "board",
+          "text": "Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion.",
+          "scope": "self",
           "memory": []
         }
       ],
-      "text": "PLAY - Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove Exhausted.",
+      "text": "PLAY - Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion.",
       "design_tags": [
         "classification-synergy",
         "exhaustion",
         "healing",
-        "zero-command",
-        "combat-redesign"
+        "zero-command"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "remove_exhaustion",
+            "target": "friendly_exhausted_front_with_friendly_class",
+            "classes": [
+              "healer",
+              "steward"
+            ]
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove Exhausted."
+          "text": "Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove its Exhaustion."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Choose an Exhausted friendly Force in a Front containing one of your Healers or Stewards. Remove Exhausted."
     },
     {
       "id": "re-form-the-line",
@@ -7277,32 +7804,44 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose one of your Healers. Either remove one affliction from a friendly Force in its Front, or remove Shaken from two friendly Forces in its Front.",
-          "scope": "board",
+          "text": "Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front.",
+          "scope": "self",
           "memory": []
         }
       ],
-      "text": "PLAY - Choose one of your Healers. Either remove one affliction from a friendly Force in its Front, or remove Shaken from two friendly Forces in its Front.",
+      "text": "PLAY - Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front.",
       "design_tags": [
         "classification-synergy",
         "healing",
         "marker-state",
-        "zero-command",
-        "combat-redesign"
+        "zero-command"
       ],
       "unique": false,
       "design_rules": {
-        "effects": [],
-        "modes": {},
-        "implementation_status": "combat-redesign-needs-engine-support"
+        "effects": [
+          {
+            "timing": "play",
+            "scope": "self",
+            "limit": null,
+            "memory": [],
+            "op": "remove_negative_marker",
+            "target": "friendly_front_of_source_class",
+            "count": 1,
+            "source_classes": [
+              "healer"
+            ]
+          }
+        ],
+        "modes": {}
       },
       "rule_blocks": [
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose one of your Healers. Either remove one affliction from a friendly Force in its Front, or remove Shaken from two friendly Forces in its Front."
+          "text": "Choose one of your Healers. Remove one temporary negative marker from a friendly formation in its Front."
         }
-      ]
+      ],
+      "combat_redesign_proposal": "PLAY - Choose one of your Healers. Either remove one affliction from a friendly Force in its Front, or remove Shaken from two friendly Forces in its Front."
     },
     {
       "id": "send-a-runner",
