@@ -61,23 +61,28 @@
     const key=String(iconName).toLowerCase().replaceAll(" ","_");
     return '<svg class="'+className+'" data-icon="'+key+'" viewBox="0 0 24 24" role="img" aria-label="'+title+'" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><title>'+title+'</title>'+body+'</svg>';
   }
-  // Approved PNG candidates from batches 1–3. All other glyphs remain SVG.
-  // Keep the pre-existing CSS class names so hand-tuned card geometry is unchanged.
+  // Every PNG available at the website's icon resolution takes precedence over SVG.
+  // Keep this inventory aligned with web/art/icons/sizes/128/*.png.
+  // The lightweight static check flags newly uploaded icons omitted from this list.
+  // ?icons=svg remains an explicit comparison/debugging override.
   const PNG_ICONS=new Set([
-    "force","bond","name","hero","tactic","order","stratagem","narrative",
-    "human","ship","stronghold","archer","guard","scout","rider",
-    "skirmisher","raider","healer","steward",
-    "seer","king","captain",
-    "action","reaction","bonded","while_named"
+    "action","ally","archer","becomes_named","bond","bonded","builder",
+    "captain","card","clear","continuous","cycle","enemy","eye",
+    "force","front","guard","hand","healer","heir","hero",
+    "hidden","human","king","lock","marker","middle","middle-rear",
+    "move","name","narrative","order","play","prepared","raider",
+    "reaction","rear","rider","scout","seer","shield","ship",
+    "skirmisher","spearman","steward","stratagem","strength","stronghold","suppress",
+    "tactic","target","trigger","veteran","while_named",
   ]);
-  const png=(name,title,cssClass)=>{
+  const png=(name,title,cssClass,iconId=name)=>{
     if(new URLSearchParams(window.location.search).get("icons")==="svg")return "";
     if(!PNG_ICONS.has(name))return "";
     const safeTitle=String(title).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;");
-    return '<img class="'+cssClass+' glyph-png" data-icon="'+name+'" src="art/icons/sizes/128/'+name+'.png" alt="'+safeTitle+'" title="'+safeTitle+'" width="24" height="24" draggable="false">';
+    return '<img class="'+cssClass+' glyph-png" data-icon="'+iconId+'" src="art/icons/sizes/128/'+name+'.png" alt="'+safeTitle+'" title="'+safeTitle+'" width="24" height="24" draggable="false">';
   };
   const symbol=type=>png(type,type,"glyph-type")||svg(silhouette(TYPE[type]||TYPE.force),type,"glyph-type");
-  const strength=()=>svg(UTILITY.strength,"Strength","glyph-strength");
+  const strength=()=>png("strength","Strength","glyph-strength")||svg(UTILITY.strength,"Strength","glyph-strength");
   const timing=name=>png(name,name.replaceAll("_"," "),"glyph-timing")||svg(UTILITY[name]||UTILITY.trigger,name.replaceAll("_"," "),"glyph-timing");
   const utility=name=>png(name,name,"glyph-utility")||svg(UTILITY[name]||UTILITY.marker,name,"glyph-utility");
   function classification(name){const group=GROUP[name]||"role";const frame=group==="kind"?'<circle cx="12" cy="12" r="10.4" fill="none" stroke="currentColor" stroke-width="1"/>':"";return png(name,name,"glyph-class glyph-class-"+group)||svg(frame+(CLASSES[name]?silhouette(CLASSES[name]):UTILITY.marker),name,"glyph-class glyph-class-"+group)}
@@ -88,7 +93,11 @@
     let body="";
     for(let i=0;i<3;i++)body+='<rect x="4" y="'+(4+i*6)+'" width="16" height="3.5" rx=".8"'+(active.has(names[i])?' class="row-active"':'')+'/>';
     const label=values.length>1?values.join(" / ")+" rows":(values[0]||"row")+" row";
-    return svg(body,label,"glyph-row","row");
+    // A single location or the authored Middle/Rear combination has its own PNG.
+    // Other combinations require the live three-bar SVG to represent exact rows.
+    const iconKey=values.length===1?values[0]:
+      (active.size===2&&active.has("middle")&&active.has("rear")?"middle-rear":"");
+    return (iconKey?png(iconKey,label,"glyph-row","row"):"")||svg(body,label,"glyph-row","row");
   }
   function command(value=""){const number=value===""?"":'<text x="12" y="14.5" text-anchor="middle" class="glyph-number">'+value+'</text>';return '<svg class="glyph-command" data-icon="command" viewBox="0 0 24 24" role="img" aria-label="Command '+value+'"><title>Command '+value+'</title><path d="M12 1.5 20 5l2.5 8-5.5 8H7l-5.5-8L4 5Z"/><path d="M4 5l8 8 8-8M12 1.5V13m-10.5 0H12m10.5 0H12M7 21l5-8 5 8"/>'+number+'</svg>'}
   window.CardSymbols={symbol,strength,timing,utility,classification,row,command,group:name=>GROUP[name]||"role"};
