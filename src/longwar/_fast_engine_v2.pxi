@@ -437,6 +437,7 @@ cdef void _v2_apply_immediate_play_effects(
             V2_OP_DISCARD_DRAW,
             V2_OP_MOVE,
             V2_OP_EXHAUST,
+            V2_OP_RETURN_PREPARED,
             V2_OP_RETURN_COMPONENT,
             V2_OP_SWAP_BONDS,
             V2_OP_PREPARED_PAY_OR_RETURN,
@@ -1156,6 +1157,13 @@ cdef uint32_t _v2_target_mask(
         elif target == V2_TARGET_FRIENDLY_ANY:
             if owner_from_slot(slot) == player and state.force[slot] >= 0:
                 mask |= <uint32_t>(1 << slot)
+
+    # Exhaustion never stacks. Do not offer already Exhausted targets for
+    # effects whose only consequence would be a redundant token.
+    if effect.op == V2_OP_EXHAUST:
+        for slot in range(SLOT_COUNT):
+            if (mask & (<uint32_t>1 << slot)) and state.exhausted[slot]:
+                mask &= <uint32_t>(~(<uint32_t>1 << slot))
 
     # A component raid may target only slots that actually have something
     # removable; otherwise a legal card play could silently do nothing.
