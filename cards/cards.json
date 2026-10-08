@@ -66,14 +66,14 @@
       "scope": "opponent"
     },
     "stratagem": {
-      "role": "Hidden plan that protects or amplifies your own troops.",
+      "role": "A hidden reversal or trap, ordinarily protecting your side or changing an enemy move when revealed.",
       "allowed_timings": [
         "hidden"
       ],
       "scope": "self"
     },
     "narrative": {
-      "role": "Face-up support for your own troops, classifications, and formation states.",
+      "role": "Face-up battlefield support, strange geography, exceptional exchanges and one-per-Battle decisions.",
       "allowed_timings": [
         "continuous",
         "action"
@@ -93,19 +93,19 @@
     "human": "Broadest people classification. Human support is common but deliberately modest.",
     "ship": "Long-range support and unusual Front interaction.",
     "stronghold": "Static support, protection, and staying power.",
-    "archer": "Ranged pressure, Strength reduction, and support from a distance.",
-    "guard": "Protection, interception, and resistance to hostile Tactics.",
-    "scout": "Information: hands, hidden Stratagems, and advance knowledge.",
-    "rider": "The main home for the game's deliberately scarce movement effects.",
+    "archer": "Pressure opposing Forces behind open Front rows; punish exposed support.",
+    "guard": "Prevent flanking and defend the line directly ahead or behind.",
+    "scout": "Reveal plans and create openings or precision disruption.",
+    "rider": "Exploit and close gaps by movement before flanking is checked.",
     "skirmisher": "Harassment, temporary suppression, and pressure against already Exhausted enemies.",
-    "raider": "Pressure on prepared cards, Supply lines, Command costs, and the opponent's build-up.",
-    "healer": "Removal of temporary negative state.",
+    "raider": "Attack Exhausted Forces, prepared components, and unsupported Middle/Rear formations.",
+    "healer": "Remove Exhaustion and recover temporary adverse states.",
     "spearman": "Simple, dependable battlefield Strength, especially in the Front.",
     "king": "Command, broad coordination, and high-impact Named payoffs.",
     "captain": "Local formation-building, Bonds, Names, and action efficiency.",
     "veteran": "Reliability, marker removal, and once-per-Battle resilience.",
     "seer": "Deep information and deck/hidden-plan manipulation.",
-    "steward": "Command efficiency, card filtering, and resource management.",
+    "steward": "Organize prepared Bonds and Names and maintain the second line.",
     "builder": "Bonds, prepared cards, and Stronghold-style development.",
     "heir": "Succession and access to King synergies once fully established."
   },
@@ -157,7 +157,7 @@
   },
   "design_limits": {
     "max_hard_row_restricted_forces": 5,
-    "max_movement_cards": 14,
+    "max_movement_cards": 25,
     "force_and_bond_no_triggers": true,
     "tactic_opponent_only": true,
     "stratagem_and_narrative_self_support": true,
@@ -201,43 +201,41 @@
         "ship",
         "raider"
       ],
-      "command_cost": 2,
+      "command_cost": 3,
       "strength": 4,
       "effects": [
         {
-          "timing": "bonded",
-          "text": "While this formation is Bonded and in the Rear row, it has +1 Strength.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "BONDED · REAR +1"
+          "timing": "play",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear formation here. Return one of its attached Bonds or Names to its owner's hand.",
+          "scope": "opponent",
+          "memory": []
         }
       ],
-      "text": "BONDED - While this formation is Bonded and in the Rear row, it has +1 Strength.",
+      "text": "PLAY - If the opposing Front row in this Front is empty, choose an opposing Middle or Rear formation here. Return one of its attached Bonds or Names to its owner's hand.",
       "design_tags": [
-        "formation-building",
-        "persistent-state",
-        "strength"
+        "raids",
+        "positional-interaction",
+        "battlefield"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "bonded",
-            "scope": "self",
+            "timing": "play",
+            "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 1,
-            "requires_rank": "rear"
+            "op": "return_component",
+            "target": "opposing_support_open_front"
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "BONDED",
-          "text": "While this formation is Bonded and in the Rear row, it has +1 Strength."
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear formation here. Return one of its attached Bonds or Names to its owner's hand."
         }
       ]
     },
@@ -359,37 +357,37 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "rear",
-          "text": "While this formation is in the Rear row, SUPPORT +1.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "SUPPORT +1"
+          "timing": "play",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it.",
+          "scope": "opponent",
+          "memory": []
         }
       ],
-      "text": "REAR - While this formation is in the Rear row, SUPPORT +1.",
+      "text": "PLAY - If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it.",
       "design_tags": [
-        "positional-support",
-        "strength"
+        "exposure",
+        "archer",
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "rear",
-            "scope": "self",
+            "timing": "play",
+            "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "support",
-            "amount": 1
+            "op": "exhaust",
+            "target": "opposing_support_open_front"
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "REAR",
-          "text": "While this formation is in the Rear row, SUPPORT +1."
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "If the opposing Front row in this Front is empty, choose an opposing Middle or Rear Force here. Exhaust it."
         }
       ]
     },
@@ -405,17 +403,17 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "rear",
-          "text": "While this formation is in the Rear row, SUPPLY.",
+          "timing": "action",
+          "text": "Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead, if its matching slot is empty.",
           "scope": "self",
           "memory": [],
-          "exposed": "SUPPLY"
+          "exposed": "ACTION · Pay 1: move prepared card ahead"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nREAR - While this formation is in the Rear row, SUPPLY.",
+      "text": "PLACEMENT - This Force may only occupy the Middle or Rear rows.\nACTION - Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead, if its matching slot is empty.",
       "design_tags": [
-        "command",
-        "formation-building",
+        "logistics",
+        "prepared-cards",
         "positional-support"
       ],
       "allowed_rows": [
@@ -426,12 +424,14 @@
       "design_rules": {
         "effects": [
           {
-            "timing": "rear",
+            "timing": "action",
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "supply",
-            "amount": 1
+            "op": "attach_prepared",
+            "target": "prepared_component_same_front",
+            "destination": "directly_ahead",
+            "activation_cost": 1
           }
         ],
         "modes": {}
@@ -443,9 +443,9 @@
           "text": "This Force may only occupy the Middle or Rear rows."
         },
         {
-          "kind": "continuous",
-          "label": "REAR",
-          "text": "While this formation is in the Rear row, SUPPLY."
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead, if its matching slot is empty."
         }
       ]
     },
@@ -530,17 +530,16 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded and in the Front or Middle row, it has +1 Strength.",
+          "text": "While this formation is Bonded, it may Maneuver without a Name.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · FRONT/MIDDLE +1"
+          "exposed": "BONDED · Maneuver without Name"
         }
       ],
-      "text": "BONDED - While this formation is Bonded and in the Front or Middle row, it has +1 Strength.",
+      "text": "BONDED - While this formation is Bonded, it may Maneuver without a Name.",
       "design_tags": [
-        "formation-building",
-        "persistent-state",
-        "strength"
+        "movement",
+        "formation-building"
       ],
       "unique": false,
       "design_rules": {
@@ -550,12 +549,8 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 1,
-            "requires_ranks": [
-              "front",
-              "middle"
-            ]
+            "op": "maneuver_unnamed",
+            "target": "self"
           }
         ],
         "modes": {}
@@ -564,7 +559,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded and in the Front or Middle row, it has +1 Strength."
+          "text": "While this formation is Bonded, it may Maneuver without a Name."
         }
       ]
     },
@@ -577,44 +572,43 @@
         "veteran",
         "skirmisher"
       ],
-      "command_cost": 2,
-      "strength": 5,
+      "command_cost": 3,
+      "strength": 4,
       "effects": [
         {
-          "timing": "exhausted",
-          "text": "While this formation is Exhausted, PRESS +2.",
-          "scope": "self",
+          "timing": "action",
+          "text": "Pay 1 Command. Choose an opposing Exhausted formation in this Front. Return one of its attached Bonds or Names to its owner's hand.",
+          "scope": "opponent",
           "memory": [],
-          "exposed": "PRESS +2"
+          "exposed": "ACTION · Pay 1: raid Exhausted enemy"
         }
       ],
-      "text": "EXHAUSTED - While this formation is Exhausted, PRESS +2.",
+      "text": "ACTION - Pay 1 Command. Choose an opposing Exhausted formation in this Front. Return one of its attached Bonds or Names to its owner's hand.",
       "design_tags": [
         "exhaustion",
-        "hostile-interaction",
-        "persistent-state",
-        "strength"
+        "raids",
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "exhausted",
-            "scope": "self",
+            "timing": "action",
+            "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 2,
-            "requires_opposing_exhausted_same_front": true
+            "op": "return_component",
+            "target": "opposing_exhausted_same_front",
+            "activation_cost": 1
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "EXHAUSTED",
-          "text": "While this formation is Exhausted, PRESS +2."
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Pay 1 Command. Choose an opposing Exhausted formation in this Front. Return one of its attached Bonds or Names to its owner's hand."
         }
       ]
     },
@@ -779,16 +773,16 @@
       "effects": [
         {
           "timing": "front",
-          "text": "While this formation is in the Front row, it has +1 Strength if the position directly behind is occupied by a friendly formation.",
+          "text": "While this formation is in the Front row, flanking cannot Exhaust it.",
           "scope": "self",
           "memory": [],
-          "exposed": "BEHIND +1"
+          "exposed": "FRONT · Ignore flanking"
         }
       ],
-      "text": "FRONT - While this formation is in the Front row, it has +1 Strength if the position directly behind is occupied by a friendly formation.",
+      "text": "FRONT - While this formation is in the Front row, flanking cannot Exhaust it.",
       "design_tags": [
-        "positional-support",
-        "strength"
+        "frontline",
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
@@ -798,9 +792,8 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 1,
-            "requires_friendly": "directly_behind"
+            "op": "flank_guard",
+            "target": "self"
           }
         ],
         "modes": {}
@@ -809,7 +802,7 @@
         {
           "kind": "continuous",
           "label": "FRONT",
-          "text": "While this formation is in the Front row, it has +1 Strength if the position directly behind is occupied by a friendly formation."
+          "text": "While this formation is in the Front row, flanking cannot Exhaust it."
         }
       ]
     },
@@ -827,18 +820,17 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "While this formation is in the Middle row, RESERVE +2.",
+          "text": "While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
           "scope": "self",
           "memory": [],
-          "exposed": "RESERVE +2"
+          "exposed": "MIDDLE · Guard Front Force from flanking"
         }
       ],
-      "text": "MIDDLE - While this formation is in the Middle row, RESERVE +2.",
+      "text": "MIDDLE - While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
       "design_tags": [
-        "outmatched",
-        "positional-support",
-        "reserve",
-        "strength"
+        "frontline",
+        "flank-defense",
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
@@ -848,8 +840,8 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "reserve",
-            "amount": 2
+            "op": "flank_guard",
+            "target": "directly_ahead"
           }
         ],
         "modes": {}
@@ -858,7 +850,7 @@
         {
           "kind": "continuous",
           "label": "MIDDLE",
-          "text": "While this formation is in the Middle row, RESERVE +2."
+          "text": "While this formation is in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
         }
       ]
     },
@@ -875,18 +867,16 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If an opposing formation in this Front provides SUPPLY, STEAL 1 COMMAND.",
+          "text": "If an opposing Force in this Front is Exhausted, your opponent loses 1 Command, then you regain the amount lost (to a minimum of 1 Command for them).",
           "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - If an opposing formation in this Front provides SUPPLY, STEAL 1 COMMAND.",
+      "text": "PLAY - If an opposing Force in this Front is Exhausted, your opponent loses 1 Command, then you regain the amount lost (to a minimum of 1 Command for them).",
       "design_tags": [
+        "exhaustion",
         "command",
-        "hostile-interaction",
-        "play-effect",
-        "raider-pressure",
-        "supply"
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
@@ -899,7 +889,7 @@
             "op": "steal_command",
             "amount": 1,
             "minimum": 1,
-            "requires_opposing_supply_same_front": true
+            "requires_opposing_exhausted_same_front": true
           }
         ],
         "modes": {}
@@ -908,7 +898,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "If an opposing formation in this Front provides SUPPLY, STEAL 1 COMMAND."
+          "text": "If an opposing Force in this Front is Exhausted, your opponent loses 1 Command, then you regain the amount lost (to a minimum of 1 Command for them)."
         }
       ]
     },
@@ -978,17 +968,17 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "While this formation is Named and in the Middle row, SUPPORT +1.",
+          "text": "While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
           "scope": "self",
           "memory": [],
-          "exposed": "MIDDLE · SUPPORT +1"
+          "exposed": "NAMED · MIDDLE: protect Front from flank"
         }
       ],
-      "text": "WHILE NAMED - While this formation is Named and in the Middle row, SUPPORT +1.",
+      "text": "WHILE NAMED - While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
       "design_tags": [
         "named-payoff",
         "positional-support",
-        "strength"
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
@@ -998,9 +988,10 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "support",
-            "amount": 1,
-            "requires_rank": "middle"
+            "op": "flank_guard",
+            "target": "directly_ahead",
+            "requires_rank": "middle",
+            "requires_named": true
           }
         ],
         "modes": {}
@@ -1009,7 +1000,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "While this formation is Named and in the Middle row, SUPPORT +1."
+          "text": "While this formation is Named and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
         }
       ]
     },
@@ -1069,39 +1060,21 @@
       "strength": 3,
       "effects": [
         {
-          "timing": "front",
-          "text": "While this formation is in the Front row, this formation has +1 Strength.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "FRONT +1"
-        },
-        {
           "timing": "action",
-          "text": "Pay 1 Command. MOVE 1.",
+          "text": "Pay 1 Command. Move this formation one position to an adjacent active empty position.",
           "scope": "self",
           "memory": [],
-          "exposed": "PAY 1 · MOVE 1"
+          "exposed": "ACTION · Pay 1: move one position"
         }
       ],
-      "text": "FRONT - While this formation is in the Front row, this formation has +1 Strength.\nACTION - Pay 1 Command. MOVE 1.",
+      "text": "ACTION - Pay 1 Command. Move this formation one position to an adjacent active empty position.",
       "design_tags": [
-        "action-engine",
-        "command",
         "movement",
-        "positional-support",
-        "strength"
+        "positional-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
-          {
-            "timing": "front",
-            "scope": "self",
-            "limit": null,
-            "memory": [],
-            "op": "self_strength",
-            "amount": 1
-          },
           {
             "timing": "action",
             "scope": "self",
@@ -1117,14 +1090,9 @@
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "FRONT",
-          "text": "While this formation is in the Front row, this formation has +1 Strength."
-        },
-        {
           "kind": "effect",
           "label": "ACTION",
-          "text": "Pay 1 Command. MOVE 1."
+          "text": "Pay 1 Command. Move this formation one position to an adjacent active empty position."
         }
       ]
     },
@@ -1240,17 +1208,16 @@
       "effects": [
         {
           "timing": "exhausted",
-          "text": "While this formation is Exhausted, this formation has +2 Strength.",
+          "text": "This Force may Maneuver while Exhausted, provided it is Named.",
           "scope": "self",
           "memory": [],
-          "exposed": "+2"
+          "exposed": "Exhausted · may Maneuver if Named"
         }
       ],
-      "text": "EXHAUSTED - While this formation is Exhausted, this formation has +2 Strength.",
+      "text": "EXHAUSTED - This Force may Maneuver while Exhausted, provided it is Named.",
       "design_tags": [
         "exhaustion",
-        "persistent-state",
-        "strength"
+        "movement"
       ],
       "unique": false,
       "design_rules": {
@@ -1260,8 +1227,8 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 2
+            "op": "tireless",
+            "target": "self"
           }
         ],
         "modes": {}
@@ -1270,7 +1237,7 @@
         {
           "kind": "continuous",
           "label": "EXHAUSTED",
-          "text": "While this formation is Exhausted, this formation has +2 Strength."
+          "text": "This Force may Maneuver while Exhausted, provided it is Named."
         }
       ]
     },
@@ -1336,17 +1303,15 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS.",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "AHEAD TIRELESS"
+          "exposed": "MIDDLE · Ahead may Maneuver Exhausted"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle row.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS.",
+      "text": "PLACEMENT - This Force may only occupy the Middle rows.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead may Maneuver while Exhausted.",
       "design_tags": [
-        "middle-only",
         "positional-support",
-        "reserve",
         "exhaustion",
         "movement"
       ],
@@ -1372,12 +1337,12 @@
         {
           "kind": "constraint",
           "label": "PLACEMENT",
-          "text": "This Force may only occupy the Middle row."
+          "text": "This Force may only occupy the Middle rows."
         },
         {
           "kind": "continuous",
           "label": "MIDDLE",
-          "text": "While this formation is in the Middle row, the friendly Force directly ahead is TIRELESS."
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead may Maneuver while Exhausted."
         }
       ]
     },
@@ -1455,19 +1420,16 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "While this formation is in the Middle row, the friendly Force directly ahead is MOBILE.",
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead may Maneuver without being Named.",
           "scope": "self",
           "memory": [],
-          "exposed": "AHEAD MOBILE"
+          "exposed": "MIDDLE · Ahead Maneuvers Unnamed"
         }
       ],
-      "text": "PLACEMENT - This Force may only occupy the Middle row.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead is MOBILE.",
+      "text": "PLACEMENT - This Force may only occupy the Middle rows.\nMIDDLE - While this formation is in the Middle row, the friendly Force directly ahead may Maneuver without being Named.",
       "design_tags": [
-        "middle-only",
         "positional-support",
-        "reserve",
-        "movement",
-        "command"
+        "movement"
       ],
       "allowed_rows": [
         "middle"
@@ -1491,12 +1453,12 @@
         {
           "kind": "constraint",
           "label": "PLACEMENT",
-          "text": "This Force may only occupy the Middle row."
+          "text": "This Force may only occupy the Middle rows."
         },
         {
           "kind": "continuous",
           "label": "MIDDLE",
-          "text": "While this formation is in the Middle row, the friendly Force directly ahead is MOBILE."
+          "text": "While this formation is in the Middle row, the friendly Force directly ahead may Maneuver without being Named."
         }
       ]
     },
@@ -1715,18 +1677,17 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, the friendly formation directly ahead is TIRELESS.",
+          "text": "While this formation is Bonded, the friendly Force directly ahead may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "AHEAD TIRELESS"
+          "exposed": "BONDED · Ahead Maneuvers Exhausted"
         }
       ],
-      "text": "BONDED - While this formation is Bonded, the friendly formation directly ahead is TIRELESS.",
+      "text": "BONDED - While this formation is Bonded, the friendly Force directly ahead may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
         "movement",
-        "positional-support",
-        "protection"
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
@@ -1737,7 +1698,8 @@
             "limit": null,
             "memory": [],
             "op": "tireless",
-            "target": "directly_ahead"
+            "target": "directly_ahead",
+            "requires_bonded": true
           }
         ],
         "modes": {}
@@ -1746,7 +1708,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, the friendly formation directly ahead is TIRELESS."
+          "text": "While this formation is Bonded, the friendly Force directly ahead may Maneuver while Exhausted."
         }
       ]
     },
@@ -1814,18 +1776,16 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, RESERVE +1.",
+          "text": "While this formation is Bonded, flanking cannot Exhaust its Force.",
           "scope": "self",
           "memory": [],
-          "exposed": "RESERVE +1"
+          "exposed": "BONDED · Ignore flanking"
         }
       ],
-      "text": "BONDED - While this formation is Bonded, RESERVE +1.",
+      "text": "BONDED - While this formation is Bonded, flanking cannot Exhaust its Force.",
       "design_tags": [
         "formation-building",
-        "outmatched",
-        "reserve",
-        "strength"
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
@@ -1835,8 +1795,9 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "reserve",
-            "amount": 1
+            "op": "flank_guard",
+            "target": "self",
+            "requires_bonded": true
           }
         ],
         "modes": {}
@@ -1845,7 +1806,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, RESERVE +1."
+          "text": "While this formation is Bonded, flanking cannot Exhaust its Force."
         }
       ]
     },
@@ -2141,17 +2102,17 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "While this formation is Named, this formation is TIRELESS.",
+          "text": "While this formation is Named, its Force may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "TIRELESS"
+          "exposed": "NAMED · Maneuver while Exhausted"
         }
       ],
-      "text": "WHILE NAMED - While this formation is Named, this formation is TIRELESS.",
+      "text": "WHILE NAMED - While this formation is Named, its Force may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
-        "named-payoff",
-        "persistent-state"
+        "movement",
+        "named-payoff"
       ],
       "unique": false,
       "design_rules": {
@@ -2162,7 +2123,8 @@
             "limit": null,
             "memory": [],
             "op": "tireless",
-            "target": "self"
+            "target": "self",
+            "requires_named": true
           }
         ],
         "modes": {}
@@ -2171,7 +2133,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "While this formation is Named, this formation is TIRELESS."
+          "text": "While this formation is Named, its Force may Maneuver while Exhausted."
         }
       ]
     },
@@ -4576,18 +4538,16 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing formation. It gets -2 Strength this Battle.",
+          "text": "Choose an opposing Force in the Rear row. Exhaust it.",
           "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": []
         }
       ],
-      "text": "PLAY - Choose an opposing formation. It gets -2 Strength this Battle.",
+      "text": "PLAY - Choose an opposing Force in the Rear row. Exhaust it.",
       "design_tags": [
+        "exhaustion",
         "hostile-interaction",
-        "marker-state",
-        "strength"
+        "exposure"
       ],
       "unique": false,
       "design_rules": {
@@ -4596,13 +4556,9 @@
             "timing": "play",
             "scope": "opponent",
             "limit": null,
-            "memory": [
-              "effect_marker"
-            ],
-            "op": "add_strength_marker",
-            "target": "opposing_any",
-            "amount": -2,
-            "duration": "battle"
+            "memory": [],
+            "op": "exhaust",
+            "target": "opposing_rear"
           }
         ],
         "modes": {}
@@ -4611,7 +4567,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing formation. It gets -2 Strength this Battle."
+          "text": "Choose an opposing Force in the Rear row. Exhaust it."
         }
       ]
     },
@@ -4671,20 +4627,20 @@
       "references": [
         "scout"
       ],
-      "command_cost": 0,
+      "command_cost": 2,
       "effects": [
         {
           "timing": "play",
-          "text": "Choose one of your Scouts. Look at one opposing face-down Stratagem in its Front or an adjacent Front.",
+          "text": "Choose an opposing Force in a Front containing one of your Scouts. Exhaust it.",
           "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "PLAY - Choose one of your Scouts. Look at one opposing face-down Stratagem in its Front or an adjacent Front.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Scouts. Exhaust it.",
       "design_tags": [
-        "classification-synergy",
+        "exhaustion",
         "hostile-interaction",
-        "information"
+        "scouting"
       ],
       "unique": false,
       "design_rules": {
@@ -4694,12 +4650,9 @@
             "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "look_stratagem",
-            "area": "source_same_or_adjacent",
-            "source_classes": [
-              "scout"
-            ],
-            "count": 1
+            "op": "exhaust",
+            "target": "opposing_front_with_friendly_class",
+            "required_friendly_class": "scout"
           }
         ],
         "modes": {}
@@ -4708,7 +4661,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose one of your Scouts. Look at one opposing face-down Stratagem in its Front or an adjacent Front."
+          "text": "Choose an opposing Force in a Front containing one of your Scouts. Exhaust it."
         }
       ]
     },
@@ -4964,18 +4917,16 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Rear formation. It gets -3 Strength this Battle.",
+          "text": "Choose an opposing Bonded Formation. Return one of its Bonds or Names to its owner's hand.",
           "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": []
         }
       ],
-      "text": "PLAY - Choose an opposing Rear formation. It gets -3 Strength this Battle.",
+      "text": "PLAY - Choose an opposing Bonded Formation. Return one of its Bonds or Names to its owner's hand.",
       "design_tags": [
+        "raids",
         "hostile-interaction",
-        "marker-state",
-        "strength"
+        "formation-disruption"
       ],
       "unique": false,
       "design_rules": {
@@ -4984,13 +4935,9 @@
             "timing": "play",
             "scope": "opponent",
             "limit": null,
-            "memory": [
-              "effect_marker"
-            ],
-            "op": "add_strength_marker",
-            "target": "opposing_rear",
-            "amount": -3,
-            "duration": "battle"
+            "memory": [],
+            "op": "return_component",
+            "target": "opposing_bonded_any"
           }
         ],
         "modes": {}
@@ -4999,7 +4946,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing Rear formation. It gets -3 Strength this Battle."
+          "text": "Choose an opposing Bonded Formation. Return one of its Bonds or Names to its owner's hand."
         }
       ]
     },
@@ -5623,11 +5570,11 @@
         "guard",
         "stronghold"
       ],
-      "command_cost": 1,
+      "command_cost": 2,
       "effects": [
         {
           "timing": "continuous",
-          "text": "Your Guards and Strongholds have +1 Strength this Battle.",
+          "text": "Your Guards and Strongholds cannot become Exhausted from flanking this Battle.",
           "scope": "self",
           "memory": [
             "face_up_source"
@@ -5635,11 +5582,11 @@
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Your Guards and Strongholds have +1 Strength this Battle.",
+      "text": "CONTINUOUS - Your Guards and Strongholds cannot become Exhausted from flanking this Battle.",
       "design_tags": [
-        "army-support",
-        "classification-synergy",
-        "strength"
+        "flank-defense",
+        "battlefield",
+        "army-support"
       ],
       "unique": false,
       "design_rules": {
@@ -5651,12 +5598,12 @@
             "memory": [
               "face_up_source"
             ],
-            "op": "class_strength_aura",
+            "op": "flank_guard",
+            "target": "friendly_any_class",
             "classes": [
               "guard",
               "stronghold"
-            ],
-            "amount": 1
+            ]
           }
         ],
         "modes": {}
@@ -5665,7 +5612,7 @@
         {
           "kind": "continuous",
           "label": "CONTINUOUS",
-          "text": "Your Guards and Strongholds have +1 Strength this Battle."
+          "text": "Your Guards and Strongholds cannot become Exhausted from flanking this Battle."
         }
       ]
     },
@@ -5677,48 +5624,47 @@
       "references": [
         "archer"
       ],
-      "command_cost": 1,
+      "command_cost": 2,
       "effects": [
         {
-          "timing": "continuous",
-          "text": "Your Archers have +1 Strength this Battle.",
-          "scope": "self",
+          "timing": "action",
+          "text": "Pay 1 Command. Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
+          "scope": "opponent",
           "memory": [
-            "face_up_source"
+            "used_marker"
           ]
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Your Archers have +1 Strength this Battle.",
+      "text": "ACTION - Pay 1 Command. Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
       "design_tags": [
-        "army-support",
-        "classification-synergy",
-        "strength"
+        "archer",
+        "exhaustion",
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "continuous",
-            "scope": "self",
-            "limit": null,
+            "timing": "action",
+            "scope": "opponent",
+            "limit": "once_per_battle",
             "memory": [
-              "face_up_source"
+              "used_marker"
             ],
-            "op": "class_strength_aura",
-            "classes": [
-              "archer"
-            ],
-            "amount": 1
+            "op": "exhaust",
+            "target": "opposing_front_with_friendly_class",
+            "required_friendly_class": "archer",
+            "activation_cost": 1
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "Your Archers have +1 Strength this Battle."
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Pay 1 Command. Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
         }
       ]
     },
@@ -5845,55 +5791,45 @@
       "title": "No Road Was Too Long",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "raider",
-        "skirmisher"
-      ],
-      "command_cost": 1,
+      "references": [],
+      "command_cost": 2,
       "effects": [
         {
-          "timing": "continuous",
-          "text": "Your Raiders and Skirmishers cost 1 less Command to play this Battle, to a minimum of 1.",
+          "timing": "action",
+          "text": "Exchange all your cards in two adjacent active Fronts, rank for rank. Prepared cards and Exhaustion move with their positions.",
           "scope": "self",
           "memory": [
-            "face_up_source"
+            "used_marker"
           ]
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Your Raiders and Skirmishers cost 1 less Command to play this Battle, to a minimum of 1.",
+      "text": "ACTION - Exchange all your cards in two adjacent active Fronts, rank for rank. Prepared cards and Exhaustion move with their positions.",
       "design_tags": [
-        "army-support",
-        "classification-synergy",
-        "command",
-        "command-recovery"
+        "geography",
+        "magic",
+        "positional-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "continuous",
+            "timing": "action",
             "scope": "self",
-            "limit": null,
+            "limit": "once_per_battle",
             "memory": [
-              "face_up_source"
+              "used_marker"
             ],
-            "op": "class_play_discount",
-            "classes": [
-              "raider",
-              "skirmisher"
-            ],
-            "amount": 1,
-            "minimum": 1
+            "op": "swap_fronts"
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "Your Raiders and Skirmishers cost 1 less Command to play this Battle, to a minimum of 1."
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Exchange all your cards in two adjacent active Fronts, rank for rank. Prepared cards and Exhaustion move with their positions."
         }
       ]
     },
@@ -5953,53 +5889,47 @@
       "title": "No One Would Be First to Leave",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "human"
-      ],
+      "references": [],
       "command_cost": 2,
       "effects": [
         {
-          "timing": "continuous",
-          "text": "Your Bonded Human Formations have +1 Strength this Battle.",
+          "timing": "action",
+          "text": "Pay 1 Command. Choose a friendly Force. Remove its Exhaustion.",
           "scope": "self",
           "memory": [
-            "face_up_source"
+            "used_marker"
           ]
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Your Bonded Human Formations have +1 Strength this Battle.",
+      "text": "ACTION - Pay 1 Command. Choose a friendly Force. Remove its Exhaustion.",
       "design_tags": [
-        "army-support",
-        "classification-synergy",
-        "formation-building",
-        "strength"
+        "recovery",
+        "exhaustion",
+        "army-support"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "continuous",
+            "timing": "action",
             "scope": "self",
-            "limit": null,
+            "limit": "once_per_battle",
             "memory": [
-              "face_up_source"
+              "used_marker"
             ],
-            "op": "class_strength_aura",
-            "classes": [
-              "human"
-            ],
-            "amount": 1,
-            "requires_bonded": true
+            "op": "remove_exhaustion",
+            "target": "friendly_any",
+            "activation_cost": 1
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "Your Bonded Human Formations have +1 Strength this Battle."
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Pay 1 Command. Choose a friendly Force. Remove its Exhaustion."
         }
       ]
     },
@@ -6008,60 +5938,45 @@
       "title": "The King Had Given the Order",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "king",
-        "captain"
-      ],
+      "references": [],
       "command_cost": 2,
       "effects": [
         {
-          "timing": "continuous",
-          "text": "Bonds and Names you play into a Front containing one of your Kings or Captains cost 1 less Command, to a minimum of 1.",
+          "timing": "action",
+          "text": "Exchange the Bonds attached to two of your Bonded Formations, in any active Fronts.",
           "scope": "self",
           "memory": [
-            "face_up_source"
+            "used_marker"
           ]
         }
       ],
       "duration": "this_battle",
-      "text": "CONTINUOUS - Bonds and Names you play into a Front containing one of your Kings or Captains cost 1 less Command, to a minimum of 1.",
+      "text": "ACTION - Exchange the Bonds attached to two of your Bonded Formations, in any active Fronts.",
       "design_tags": [
-        "army-support",
-        "classification-synergy",
-        "command",
-        "command-recovery"
+        "oaths",
+        "magic",
+        "formation-building"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "continuous",
+            "timing": "action",
             "scope": "self",
-            "limit": null,
+            "limit": "once_per_battle",
             "memory": [
-              "face_up_source"
+              "used_marker"
             ],
-            "op": "front_presence_discount",
-            "card_types": [
-              "bond",
-              "name",
-              "hero_name"
-            ],
-            "classes": [
-              "king",
-              "captain"
-            ],
-            "amount": 1,
-            "minimum": 1
+            "op": "swap_bonds"
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "Bonds and Names you play into a Front containing one of your Kings or Captains cost 1 less Command, to a minimum of 1."
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Exchange the Bonds attached to two of your Bonded Formations, in any active Fronts."
         }
       ]
     },
@@ -6073,44 +5988,42 @@
         "human",
         "skirmisher"
       ],
-      "command_cost": 2,
-      "strength": 4,
+      "command_cost": 3,
+      "strength": 3,
       "effects": [
         {
-          "timing": "continuous",
-          "text": "PRESS +1.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "PRESS +1"
+          "timing": "play",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
+          "scope": "opponent",
+          "memory": []
         }
       ],
-      "text": "CONTINUOUS - PRESS +1.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
       "design_tags": [
         "exhaustion",
-        "hostile-interaction",
-        "persistent-state",
-        "strength"
+        "archer",
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "continuous",
-            "scope": "self",
+            "timing": "play",
+            "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 1,
-            "requires_opposing_exhausted_same_front": true
+            "op": "exhaust",
+            "target": "opposing_front_with_friendly_class",
+            "required_friendly_class": "archer"
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "PRESS +1."
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
         }
       ]
     },
@@ -6173,44 +6086,43 @@
         "human",
         "raider"
       ],
-      "command_cost": 2,
+      "command_cost": 3,
       "strength": 4,
       "effects": [
         {
-          "timing": "continuous",
-          "text": "PRESS +1.",
-          "scope": "self",
+          "timing": "action",
+          "text": "Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand.",
+          "scope": "opponent",
           "memory": [],
-          "exposed": "PRESS +1"
+          "exposed": "ACTION · Pay 1: raid open support"
         }
       ],
-      "text": "CONTINUOUS - PRESS +1.",
+      "text": "ACTION - Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand.",
       "design_tags": [
-        "exhaustion",
-        "persistent-state",
-        "raider-pressure",
-        "strength"
+        "raids",
+        "exposure",
+        "positional-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "continuous",
-            "scope": "self",
+            "timing": "action",
+            "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 1,
-            "requires_opposing_exhausted_same_front": true
+            "op": "return_component",
+            "target": "opposing_support_open_front",
+            "activation_cost": 1
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "CONTINUOUS",
-          "text": "PRESS +1."
+          "kind": "effect",
+          "label": "ACTION",
+          "text": "Pay 1 Command. If the opposing Front row here is empty, choose an opposing Middle or Rear formation in this Front. Return an attached Bond or Name to its owner's hand."
         }
       ]
     },
@@ -6228,16 +6140,17 @@
       "effects": [
         {
           "timing": "while_named",
-          "text": "While this formation is Named, this formation has +1 Strength.",
+          "text": "While this formation is Named, flanking cannot Exhaust it.",
           "scope": "self",
           "memory": [],
-          "exposed": "NAMED · +1"
+          "exposed": "NAMED · Ignore flanking"
         }
       ],
-      "text": "WHILE NAMED - While this formation is Named, this formation has +1 Strength.",
+      "text": "WHILE NAMED - While this formation is Named, flanking cannot Exhaust it.",
       "design_tags": [
-        "persistent-state",
-        "strength"
+        "named-payoff",
+        "frontline",
+        "flank-defense"
       ],
       "unique": false,
       "design_rules": {
@@ -6247,8 +6160,9 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "self_strength",
-            "amount": 1
+            "op": "flank_guard",
+            "target": "self",
+            "requires_named": true
           }
         ],
         "modes": {}
@@ -6257,7 +6171,7 @@
         {
           "kind": "continuous",
           "label": "WHILE NAMED",
-          "text": "While this formation is Named, this formation has +1 Strength."
+          "text": "While this formation is Named, flanking cannot Exhaust it."
         }
       ]
     },
@@ -6273,40 +6187,37 @@
       "strength": 4,
       "effects": [
         {
-          "timing": "bonded",
-          "text": "While this formation is Bonded, tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
-          "scope": "self",
-          "memory": [],
-          "exposed": "TACTICS HERE MIN 0"
+          "timing": "play",
+          "text": "Return one opposing prepared Bond or Name in this Front to its owner's hand.",
+          "scope": "opponent",
+          "memory": []
         }
       ],
-      "text": "BONDED - While this formation is Bonded, tactics you play targeting this Front cost 1 less Command, to a minimum of 0.",
+      "text": "PLAY - Return one opposing prepared Bond or Name in this Front to its owner's hand.",
       "design_tags": [
-        "command",
-        "command-recovery",
-        "formation-building",
-        "persistent-state"
+        "raids",
+        "prepared-cards",
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "bonded",
-            "scope": "self",
+            "timing": "play",
+            "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "front_tactic_discount",
-            "amount": 1,
-            "minimum": 0
+            "op": "return_prepared",
+            "target": "opposing_prepared_same_front"
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "BONDED",
-          "text": "While this formation is Bonded, tactics you play targeting this Front cost 1 less Command, to a minimum of 0."
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Return one opposing prepared Bond or Name in this Front to its owner's hand."
         }
       ]
     },
@@ -6432,21 +6343,21 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, the friendly formation directly behind is TIRELESS.",
+          "text": "While this formation is Bonded, the friendly Force directly behind may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "BEHIND TIRELESS"
+          "exposed": "BONDED · Behind Maneuvers Exhausted"
         }
       ],
       "references": [
         "guard",
         "stronghold"
       ],
-      "text": "BONDED - While this formation is Bonded, the friendly formation directly behind is TIRELESS.",
+      "text": "BONDED - While this formation is Bonded, the friendly Force directly behind may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
-        "positional-support",
-        "protection"
+        "movement",
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
@@ -6457,7 +6368,8 @@
             "limit": null,
             "memory": [],
             "op": "tireless",
-            "target": "directly_behind"
+            "target": "directly_behind",
+            "requires_bonded": true
           }
         ],
         "modes": {}
@@ -6466,7 +6378,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, the friendly formation directly behind is TIRELESS."
+          "text": "While this formation is Bonded, the friendly Force directly behind may Maneuver while Exhausted."
         }
       ]
     },
@@ -6481,8 +6393,8 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command.",
-          "scope": "self",
+          "text": "If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost.",
+          "scope": "opponent",
           "memory": []
         }
       ],
@@ -6490,28 +6402,28 @@
         "raider",
         "skirmisher"
       ],
-      "text": "PLAY - If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command.",
+      "text": "PLAY - If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost.",
       "design_tags": [
-        "command",
-        "play-effect",
-        "raider-pressure",
-        "supply"
+        "raids",
+        "exhaustion",
+        "command"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
             "timing": "play",
-            "scope": "self",
+            "scope": "opponent",
             "limit": null,
             "memory": [],
-            "op": "gain_command",
+            "op": "steal_command",
             "amount": 1,
+            "minimum": 1,
             "requires_any_class": [
               "raider",
               "skirmisher"
             ],
-            "requires_opposing_supply_same_front": true
+            "requires_opposing_exhausted_same_front": true
           }
         ],
         "modes": {}
@@ -6520,7 +6432,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "If this formation contains a Raider or Skirmisher and an opposing formation in this Front provides SUPPLY, regain 1 Command."
+          "text": "If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost."
         }
       ]
     },
@@ -6587,16 +6499,17 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, SUPPORT +1.",
+          "text": "While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
           "scope": "self",
           "memory": [],
-          "exposed": "SUPPORT +1"
+          "exposed": "MIDDLE · Protect Front from flanking"
         }
       ],
-      "text": "BONDED - While this formation is Bonded, SUPPORT +1.",
+      "text": "BONDED - While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead.",
       "design_tags": [
-        "positional-support",
-        "strength"
+        "formation-building",
+        "flank-defense",
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
@@ -6606,8 +6519,10 @@
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "support",
-            "amount": 1
+            "op": "flank_guard",
+            "target": "directly_ahead",
+            "requires_bonded": true,
+            "requires_rank": "middle"
           }
         ],
         "modes": {}
@@ -6616,7 +6531,7 @@
         {
           "kind": "continuous",
           "label": "BONDED",
-          "text": "While this formation is Bonded, SUPPORT +1."
+          "text": "While this formation is Bonded and in the Middle row, flanking cannot Exhaust the friendly Force directly ahead."
         }
       ],
       "art_focus_y": "0%"
@@ -6631,38 +6546,38 @@
       "strength_modifier": 0,
       "effects": [
         {
-          "timing": "bonded",
-          "text": "While this formation is Bonded, SUPPLY.",
+          "timing": "play",
+          "text": "Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead, if its matching slot is empty.",
           "scope": "self",
-          "memory": [],
-          "exposed": "SUPPLY"
+          "memory": []
         }
       ],
-      "text": "BONDED - While this formation is Bonded, SUPPLY.",
+      "text": "PLAY - Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead, if its matching slot is empty.",
       "design_tags": [
-        "command",
         "formation-building",
-        "positional-support"
+        "prepared-cards",
+        "logistics"
       ],
       "unique": false,
       "design_rules": {
         "effects": [
           {
-            "timing": "bonded",
+            "timing": "play",
             "scope": "self",
             "limit": null,
             "memory": [],
-            "op": "supply",
-            "amount": 1
+            "op": "attach_prepared",
+            "target": "prepared_component_same_front",
+            "destination": "directly_ahead"
           }
         ],
         "modes": {}
       },
       "rule_blocks": [
         {
-          "kind": "continuous",
-          "label": "BONDED",
-          "text": "While this formation is Bonded, SUPPLY."
+          "kind": "effect",
+          "label": "PLAY",
+          "text": "Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead, if its matching slot is empty."
         }
       ]
     },
@@ -6831,28 +6746,23 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command.",
+          "text": "Choose an opposing Exhausted formation in this Front. Return one attached Bond or Name to its owner's hand.",
           "scope": "opponent",
-          "memory": [
-            "front_marker"
-          ]
+          "memory": []
         },
         {
           "timing": "action",
-          "text": "Pay 1 Command. Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.",
           "scope": "opponent",
           "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command.\nACTION - Pay 1 Command. Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "text": "BECOMES NAMED - Choose an opposing Exhausted formation in this Front. Return one attached Bond or Name to its owner's hand.\nACTION - Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.",
       "design_tags": [
-        "action-engine",
-        "command",
-        "formation-building",
-        "marker-state",
         "named-payoff",
-        "prepared-cards",
-        "tax"
+        "raids",
+        "exhaustion",
+        "prepared-cards"
       ],
       "design_rules": {
         "effects": [
@@ -6860,16 +6770,9 @@
             "timing": "becomes_named",
             "scope": "opponent",
             "limit": null,
-            "memory": [
-              "front_marker"
-            ],
-            "op": "tax",
-            "front": "this",
-            "card_types": [
-              "any"
-            ],
-            "amount": 1,
-            "expires": "on_match"
+            "memory": [],
+            "op": "return_component",
+            "target": "opposing_exhausted_same_front"
           },
           {
             "timing": "action",
@@ -6888,12 +6791,12 @@
         {
           "kind": "trigger",
           "label": "BECOMES NAMED",
-          "text": "Place a Tax marker on this Front. The next card your opponent plays here costs 1 additional Command."
+          "text": "Choose an opposing Exhausted formation in this Front. Return one attached Bond or Name to its owner's hand."
         },
         {
           "kind": "effect",
           "label": "ACTION",
-          "text": "Pay 1 Command. Choose one opposing prepared Bond or prepared Name in this Front. Its owner pays 1 Command or returns it to hand."
+          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand."
         }
       ]
     },
@@ -7217,23 +7120,20 @@
       "references": [
         "archer"
       ],
-      "command_cost": 1,
+      "command_cost": 2,
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing formation in a Front containing one of your Archers. It gets -2 Strength this Battle.",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
           "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": []
         }
       ],
-      "text": "PLAY - Choose an opposing formation in a Front containing one of your Archers. It gets -2 Strength this Battle.",
+      "text": "PLAY - Choose an opposing Force in a Front containing one of your Archers. Exhaust it.",
       "design_tags": [
-        "classification-synergy",
-        "hostile-interaction",
-        "marker-state",
-        "strength"
+        "archer",
+        "exhaustion",
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
@@ -7242,14 +7142,10 @@
             "timing": "play",
             "scope": "opponent",
             "limit": null,
-            "memory": [
-              "effect_marker"
-            ],
-            "op": "add_strength_marker",
+            "memory": [],
+            "op": "exhaust",
             "target": "opposing_front_with_friendly_class",
-            "required_friendly_class": "archer",
-            "amount": -2,
-            "duration": "battle"
+            "required_friendly_class": "archer"
           }
         ],
         "modes": {}
@@ -7258,7 +7154,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing formation in a Front containing one of your Archers. It gets -2 Strength this Battle."
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
         }
       ]
     },
@@ -7367,27 +7263,24 @@
       "type": "tactic",
       "classes": [],
       "references": [
-        "skirmisher",
         "guard",
-        "spearman"
+        "spearman",
+        "skirmisher"
       ],
       "command_cost": 1,
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Its formation gets -2 Strength this Battle.",
+          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
           "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "memory": []
         }
       ],
-      "text": "PLAY - Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Its formation gets -2 Strength this Battle.",
+      "text": "PLAY - Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty.",
       "design_tags": [
-        "classification-synergy",
-        "hostile-interaction",
-        "marker-state",
-        "strength"
+        "forced-movement",
+        "flanking",
+        "hostile-interaction"
       ],
       "unique": false,
       "design_rules": {
@@ -7396,18 +7289,15 @@
             "timing": "play",
             "scope": "opponent",
             "limit": null,
-            "memory": [
-              "effect_marker"
-            ],
-            "op": "add_strength_marker",
+            "memory": [],
+            "op": "move",
             "target": "opposing_class_front_with_friendly_class",
             "classes": [
               "guard",
               "spearman"
             ],
             "required_friendly_class": "skirmisher",
-            "amount": -2,
-            "duration": "battle"
+            "direction": "rear"
           }
         ],
         "modes": {}
@@ -7416,7 +7306,7 @@
         {
           "kind": "effect",
           "label": "PLAY",
-          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Its formation gets -2 Strength this Battle."
+          "text": "Choose an opposing Guard or Spearman in a Front containing one of your Skirmishers. Move it one row toward its Rear if the destination is empty."
         }
       ]
     },
