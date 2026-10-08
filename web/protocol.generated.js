@@ -55,7 +55,6 @@ const LW_PROTOCOL_DATA = {
     "HEALER": "healer",
     "SHIP": "ship",
     "SKIRMISHER": "skirmisher",
-    "SPEARMAN": "spearman",
     "STRONGHOLD": "stronghold",
     "SWORDSMAN": "swordsman"
   },
