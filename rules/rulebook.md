@@ -124,6 +124,16 @@ A Force with an **Exhaustion token** cannot initiate a Maneuver. Exhaustion does
 
 During the resolution of a single Action or effect, each formation may initiate at most one Maneuver. There is no automatic Maneuver between Battles.
 
+### Flanking
+
+After each Action is fully resolved, including any choices made because of that Action, check the Front row of every active Front. A Force in the Front row is **flanked** when the opposing player has a Front-row Force in an adjacent active Front and the flanked Force's controller has no Front-row Force in that adjacent Front.
+
+Place one Exhaustion token on each flanked Force. An already Exhausted Force receives no additional token. Flanking does not move a formation, reduce its Strength, discard cards, or cost Command. Some cards protect a Force against Exhaustion from flanking; others can exploit an Exhausted Force.
+
+For example, if your Front-row Force holds the left active Front but you leave the active Front immediately to its right empty while your opponent puts a Front-row Force there, your left-hand Force becomes Exhausted after that Action resolves. Placing your own Force in the gap prevents this flank from that direction. The outer edges of the active battlefield have no extra adjacent Front.
+
+Only **Front-row Forces** can be flanked. Forces in Middle and Rear may still be threatened by card effects that reach behind an open opposing Front row. A card effect that exhausts a Force uses the same one-token limit as flanking or losing a Front. If an Exhausted Force moves, its token moves with it.
+
 ## Cycling cards
 
 Cycling lets you turn unwanted cards into a fresh draw instead of committing them to the battlefield.
@@ -145,7 +155,7 @@ Playing cards and Maneuvering can cost Command, but voluntary spending can never
 
 Command increases and reductions stack. Apply all applicable increases first, then reductions. A reduction cannot take a positive printed card cost below 1 unless an effect explicitly allows a minimum of 0.
 
-Some cards can **STEAL COMMAND** during a Battle. Stolen Command does not immediately cause Collapse; Collapse is checked only during Battle resolution, after lost Fronts have reduced Command and before recovery.
+Some cards make your opponent lose Command and allow you to regain the amount actually lost. Unless a card explicitly says otherwise, this cannot reduce your opponent below 1 Command during a Battle. Such effects do not trigger immediate Collapse: Collapse is checked at Battle resolution after Front losses and before recovery.
 
 Because Command persists between Battles, conserving it is often as important as winning the current Front. Keep both players' totals visible on a track, dial, dice, or the printable Command tracks.
 
@@ -268,27 +278,17 @@ Words such as *Swordsman*, *Archer*, *Human*, *King*, or *Ship* are classificati
 
 The sections below collect precise card vocabulary and edge-case procedures. You do not need to memorize them before your first game; use them when a card or board state calls for them.
 
-### Card shorthand and battlefield states
+### Reading card effects
 
-The exposed strip at the top of a physical card is a quick reminder, never the only source of a rule. Any placement restriction or state condition shown there is also written explicitly in the card's rules text. A filled rank glyph therefore summarizes the legal rows; the body states the same restriction in words. Positional and state effects are written as real conditions ("While...", "If...", or "When...") rather than relying on a bare **REAR**, **NAMED**, **BONDED**, or similar label.
+Cards now describe what happens in ordinary sentences. `PLAY` tells you what happens when you play the card. `ACTION` is an ability you choose to use instead of another Action, paying its stated Command cost. An `ACTION` marked `once per Battle` can be used only once during that Battle. `When this formation becomes Named` happens when a Force, Bond and Name first come together in the same position. `While this formation is Bonded` and `While this formation is Named` describe ongoing conditions, not triggers.
 
-The following words have a fixed meaning when they appear on cards:
+The old shorthand SUPPORT, SUPPLY, RESERVE, PRESS, OUTMATCHED, MOBILE and TIRELESS is no longer necessary for reading the revised cards. Instead, a card states the affected formation, the applicable condition and the consequence. When an ability lets a Force Maneuver without being Named or while Exhausted, every other Maneuver rule still applies.
 
-- **MOVE 1** - move the formation to one orthogonally adjacent active **empty** position: left/right in the same rank or one rank forward/back in the same Front. Never diagonal. Move is a card effect, not a Maneuver: it does not require the formation to be Named, costs no Maneuver Command, and Exhaustion does not stop it.
-- **MOVE UP TO N** - make up to N legal one-position Moves, one at a time. Every intermediate destination must be legal and empty.
-- **SWAP** - exchange the complete contents of the two specified friendly positions. Swap is a card effect, not a Maneuver, and Exhaustion does not stop it.
-- **MOBILE** - this Force may initiate a Maneuver without being Named. All other Maneuver rules still apply.
-- **TIRELESS** - this Force may initiate a Maneuver while Exhausted. The token stays and every other Maneuver rule still applies.
-- **SUPPORT +N** - the friendly formation directly ahead has +N Strength while the supporting effect is active.
-- **SUPPLY** - Bonds played onto the friendly formation directly ahead cost 1 less Command, to a minimum of 0; Names played there cost 1 less, to a minimum of 1.
-- **OUTMATCHED** - an opposing formation in the same rank and Front currently has greater Strength after continuous modifiers. A tie is not Outmatched.
-- **RESERVE +N** - this formation has +N Strength while the friendly formation directly ahead is Outmatched.
-- **PRESS +N** - this formation has +N Strength while at least one opposing Force in this Front is Exhausted.
-- **STEAL N COMMAND** - the opponent loses up to N Command, never below 1, and you regain exactly the amount actually lost. This does not itself cause Collapse during a Battle.
+A card effect that says **move one position** moves the complete formation into one orthogonally adjacent active empty position. Unlike a Maneuver, it does not require a Named Formation, costs no Maneuver Command and is not blocked by Exhaustion. A card effect that says **swap** exchanges the complete contents of the specified friendly positions, including their attached cards and Exhaustion. The printed row restrictions of Forces always apply.
 
-Multiple active **SUPPORT**, **RESERVE**, and **PRESS** bonuses add together. Multiple active **SUPPLY** effects each reduce the relevant cost by 1.
+Some cards **return an attached Bond or Name to its owner's hand**. This leaves the Force in place and may cause its formation to stop being Bonded or Named. Prepared cards have no Force beneath them and may be moved or returned only when a card explicitly permits it. A Force without a Bond cannot become Named, even if it still has a Name.
 
-A formation **provides SUPPLY** only while an active, unsuppressed SUPPLY effect on that formation is live. A Supply raid does not remove SUPPLY unless its card says so.
+Strange Narrative effects may exchange the positions of every friendly card in two adjacent active Fronts, rank for rank, or exchange Bonds between two friendly Bonded Formations. These effects change the actual battlefield arrangement. The usual maximum of one Exhaustion token per Force, rank restrictions, active-Front restriction and card-layer rules remain in force.
 
 ### Markers created by cards
 
