@@ -133,7 +133,7 @@ The following nine existing cards have updated effects in the current canonical 
 | Held the Line for | Bonded protection: opposing Tactics targeting its formation cost 1 more Command |
 | Supported By | Bonded Middle-row protection for the friendly Rear formation directly behind |
 | The Wall Did Not Break | Guards and Strongholds Maneuver for 0 Command this Battle |
-| The Salt-Road Fleet | Transports another friendly formation one row toward Rear on play |
+| The Salt-Road Fleet | Transports another friendly formation toward Rear on play; Strength 4→3 to offset the broader utility |
 | They Knew the Ground | Once-per-Battle top-three card selection, conditional on controlling a Seer |
 | A Volley Before Dawn | Archer-enabled -2 Strength marker this Battle, instead of another Exhaustion |
 | They Lived to Tell It | Once-per-Battle removal of one negative marker from any friendly formation, without a Healer restriction |
