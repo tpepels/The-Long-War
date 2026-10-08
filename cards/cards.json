@@ -109,7 +109,7 @@
     "builder": "Bonds, prepared cards, and Stronghold-style development.",
     "heir": "Succession and access to King synergies once fully established."
   },
-  "classification_rule": "Classifications have no inherent rules. Their identity emerges only because other cards consistently refer to them.",
+  "classification_rule": "Classifications determine the basic Attacks and screening specified in the rulebook. Other effects apply only when their card text or executable mechanics explicitly refers to a classification.",
   "memory_vocabulary": {
     "used_marker": "Marks a 1/BATTLE ability after use.",
     "effect_marker": "Marks a temporary effect on a formation/card.",
@@ -1440,10 +1440,6 @@
           "memory": []
         }
       ],
-      "references": [
-        "rider",
-        "scout"
-      ],
       "text": "PLAY - If this formation contains a Rider or Scout, draw 1 card, then discard 1 card.",
       "design_tags": [
         "card-flow",
@@ -1849,10 +1845,6 @@
           "memory": [],
           "exposed": "CAPTAIN/KING · +1"
         }
-      ],
-      "references": [
-        "captain",
-        "king"
       ],
       "text": "BONDED - While this formation is Bonded, if this formation contains a Captain or King, this Bond contributes +1 additional Strength.",
       "design_tags": [
@@ -2467,7 +2459,7 @@
           "memory": []
         }
       ],
-      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nWHILE NAMED - This formation may Maneuver while Exhausted.",
+      "text": "BECOMES NAMED - Move this formation one row forward or backward.\nWHILE NAMED - While this formation is Named, it may Maneuver while Exhausted.",
       "design_tags": [
         "exhaustion",
         "movement",
@@ -4014,7 +4006,6 @@
       "title": "The Baggage Was Abandoned",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -4058,7 +4049,6 @@
       "title": "They Returned With Names",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -4106,9 +4096,6 @@
       "title": "They Were Gathering There",
       "type": "tactic",
       "classes": [],
-      "references": [
-        "scout"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -4153,7 +4140,6 @@
       "title": "The Muster Was False",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 1,
       "effects": [
         {
@@ -4196,7 +4182,6 @@
       "title": "They Had Gone Too Far",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 1,
       "effects": [
         {
@@ -4242,10 +4227,6 @@
       "title": "All Banners Forward",
       "type": "tactic",
       "classes": [],
-      "references": [
-        "king",
-        "captain"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -4298,7 +4279,6 @@
       "title": "The Line Wheeled",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 1,
       "effects": [
         {
@@ -4348,7 +4328,6 @@
       "title": "They Let Them Through",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 1,
       "effects": [
         {
@@ -4396,7 +4375,6 @@
       "title": "All Reserves Forward",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -4440,7 +4418,6 @@
       "title": "The Line Had Begun to Move",
       "type": "tactic",
       "classes": [],
-      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -4493,7 +4470,6 @@
       "title": "The Ground Was Held",
       "type": "stratagem",
       "classes": [],
-      "references": [],
       "command_cost": 1,
       "effects": [
         {
@@ -4540,7 +4516,6 @@
       "title": "The Lines Held",
       "type": "stratagem",
       "classes": [],
-      "references": [],
       "command_cost": 3,
       "effects": [
         {
@@ -4589,7 +4564,6 @@
       "title": "No Step Back",
       "type": "stratagem",
       "classes": [],
-      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -4637,10 +4611,6 @@
       "title": "The Center Must Hold",
       "type": "stratagem",
       "classes": [],
-      "references": [
-        "king",
-        "captain"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -4697,11 +4667,6 @@
       "title": "The Flank Was Refused",
       "type": "stratagem",
       "classes": [],
-      "references": [
-        "archer",
-        "guard",
-        "stronghold"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -4761,10 +4726,6 @@
       "title": "The Trap Closed",
       "type": "stratagem",
       "classes": [],
-      "references": [
-        "raider",
-        "skirmisher"
-      ],
       "command_cost": 3,
       "effects": [
         {
@@ -4827,9 +4788,6 @@
       "title": "The Battle Turned East",
       "type": "stratagem",
       "classes": [],
-      "references": [
-        "rider"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -4884,7 +4842,6 @@
       "title": "There Was No Road Back",
       "type": "stratagem",
       "classes": [],
-      "references": [],
       "command_cost": 1,
       "effects": [
         {
@@ -4933,12 +4890,6 @@
       "title": "Every Banner Turned Toward Them",
       "type": "stratagem",
       "classes": [],
-      "references": [
-        "king",
-        "captain",
-        "heir",
-        "human"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -4999,9 +4950,6 @@
       "title": "The Long March",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "rider"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -5053,10 +5001,6 @@
       "title": "The Wall Did Not Break",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "guard",
-        "stronghold"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -5109,9 +5053,6 @@
       "title": "The Crows Came Down",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "archer"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -5162,10 +5103,6 @@
       "title": "Before Sunset, the Ford Would Be Ours",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "scout",
-        "ship"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -5221,10 +5158,6 @@
       "title": "They Lived to Tell It",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "veteran",
-        "healer"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -5280,7 +5213,6 @@
       "title": "No Road Was Too Long",
       "type": "narrative",
       "classes": [],
-      "references": [],
       "command_cost": 4,
       "effects": [
         {
@@ -5328,7 +5260,6 @@
       "title": "The Battle Had Chosen Them",
       "type": "narrative",
       "classes": [],
-      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -5380,7 +5311,6 @@
       "title": "No One Would Be First to Leave",
       "type": "narrative",
       "classes": [],
-      "references": [],
       "command_cost": 2,
       "effects": [
         {
@@ -5429,7 +5359,6 @@
       "title": "The King Had Given the Order",
       "type": "narrative",
       "classes": [],
-      "references": [],
       "command_cost": 3,
       "effects": [
         {
@@ -5828,10 +5757,6 @@
           "memory": []
         }
       ],
-      "references": [
-        "raider",
-        "skirmisher"
-      ],
       "text": "PLAY - If this formation has a Raider or Skirmisher and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount lost.",
       "design_tags": [
         "raids",
@@ -5882,10 +5807,6 @@
           "scope": "self",
           "memory": []
         }
-      ],
-      "references": [
-        "captain",
-        "scout"
       ],
       "text": "PLAY - If this formation contains a Captain or Scout, draw 1 card, then discard 1 card.",
       "design_tags": [
@@ -6532,9 +6453,6 @@
       "title": "A Volley Before Dawn",
       "type": "tactic",
       "classes": [],
-      "references": [
-        "archer"
-      ],
       "command_cost": 2,
       "effects": [
         {
@@ -6579,9 +6497,6 @@
       "title": "The Scouts Found the Gap",
       "type": "tactic",
       "classes": [],
-      "references": [
-        "scout"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -6629,9 +6544,6 @@
       "title": "The Stores Were Taken",
       "type": "tactic",
       "classes": [],
-      "references": [
-        "raider"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -6678,11 +6590,6 @@
       "title": "The Line Was Baited",
       "type": "tactic",
       "classes": [],
-      "references": [
-        "guard",
-        "spearman",
-        "skirmisher"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -6732,9 +6639,6 @@
       "title": "The Archers Were Ready",
       "type": "stratagem",
       "classes": [],
-      "references": [
-        "archer"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -6793,10 +6697,6 @@
       "title": "The Scouts Had Warned Them",
       "type": "stratagem",
       "classes": [],
-      "references": [
-        "scout",
-        "seer"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -6851,9 +6751,6 @@
       "title": "Every Bow Was Strung",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "archer"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -6907,10 +6804,6 @@
       "title": "They Knew the Ground",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "scout",
-        "seer"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -6966,10 +6859,6 @@
       "title": "The Raiders Came Home Loaded",
       "type": "narrative",
       "classes": [],
-      "references": [
-        "raider",
-        "skirmisher"
-      ],
       "command_cost": 1,
       "effects": [
         {
@@ -7023,10 +6912,6 @@
       "title": "Fresh Orders",
       "type": "order",
       "classes": [],
-      "references": [
-        "captain",
-        "king"
-      ],
       "command_cost": 0,
       "effects": [
         {
@@ -7073,10 +6958,6 @@
       "title": "Catch Your Breath",
       "type": "order",
       "classes": [],
-      "references": [
-        "healer",
-        "steward"
-      ],
       "command_cost": 0,
       "effects": [
         {
@@ -7125,9 +7006,6 @@
       "title": "Re-form the Line",
       "type": "order",
       "classes": [],
-      "references": [
-        "captain"
-      ],
       "command_cost": 0,
       "effects": [
         {
@@ -7174,9 +7052,6 @@
       "title": "Bind the Wound",
       "type": "order",
       "classes": [],
-      "references": [
-        "healer"
-      ],
       "command_cost": 0,
       "effects": [
         {
@@ -7225,9 +7100,6 @@
       "title": "Send a Runner",
       "type": "order",
       "classes": [],
-      "references": [
-        "scout"
-      ],
       "command_cost": 0,
       "effects": [
         {
@@ -7276,10 +7148,6 @@
       "title": "Take Stock",
       "type": "order",
       "classes": [],
-      "references": [
-        "steward",
-        "stronghold"
-      ],
       "command_cost": 1,
       "effects": [
         {
