@@ -1,5 +1,6 @@
 {
   "status": "candidates_only",
+  "batch": 3,
   "source": "newly generated PNG icons",
   "icon_count": 10,
   "sizes_px": [
@@ -12,176 +13,175 @@
     256,
     512
   ],
+  "inventory_status": {
+    "batch_1": "generated",
+    "batch_2": "generated",
+    "batch_3": "generated",
+    "batch_4": "pending",
+    "batch_5": "pending",
+    "batch_6": "pending",
+    "batch_7": "pending"
+  },
   "icons": [
     {
-      "name": "force",
-      "original_image": "middeleeuws_schildembleem_in_zwart.png",
-      "path": "web/art/icons/force.png",
+      "name": "human",
+      "path": "web/art/icons/human.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/force.png",
-        "web/art/icons/sizes/24/force.png",
-        "web/art/icons/sizes/32/force.png",
-        "web/art/icons/sizes/48/force.png",
-        "web/art/icons/sizes/64/force.png",
-        "web/art/icons/sizes/128/force.png",
-        "web/art/icons/sizes/256/force.png",
-        "web/art/icons/sizes/512/force.png"
+        "web/art/icons/sizes/16/human.png",
+        "web/art/icons/sizes/24/human.png",
+        "web/art/icons/sizes/32/human.png",
+        "web/art/icons/sizes/48/human.png",
+        "web/art/icons/sizes/64/human.png",
+        "web/art/icons/sizes/128/human.png",
+        "web/art/icons/sizes/256/human.png",
+        "web/art/icons/sizes/512/human.png"
       ],
-      "sha256": "7b200b60aa3f027fbe40355c337ac5bcdc3376dfb8c36ed0635690614ebe13e4"
+      "sha256": "25f83ccdf2ab426c1bcedcb2e01e556159e51ebf013bac5d7af119a25aae5dae"
     },
     {
-      "name": "bond",
-      "original_image": "ornamentaal_ketenembleem_in_zwart.png",
-      "path": "web/art/icons/bond.png",
+      "name": "steward",
+      "path": "web/art/icons/steward.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/bond.png",
-        "web/art/icons/sizes/24/bond.png",
-        "web/art/icons/sizes/32/bond.png",
-        "web/art/icons/sizes/48/bond.png",
-        "web/art/icons/sizes/64/bond.png",
-        "web/art/icons/sizes/128/bond.png",
-        "web/art/icons/sizes/256/bond.png",
-        "web/art/icons/sizes/512/bond.png"
+        "web/art/icons/sizes/16/steward.png",
+        "web/art/icons/sizes/24/steward.png",
+        "web/art/icons/sizes/32/steward.png",
+        "web/art/icons/sizes/48/steward.png",
+        "web/art/icons/sizes/64/steward.png",
+        "web/art/icons/sizes/128/steward.png",
+        "web/art/icons/sizes/256/steward.png",
+        "web/art/icons/sizes/512/steward.png"
       ],
-      "sha256": "d2906ef577f30a6466b2721a3bd2b7726bc06cf1beb40abc3d19f1a6099105e4"
+      "sha256": "6621171415788c838d4e477b8b6cc9dd1e7460f52f9889ea4d4d628abd6cb637"
     },
     {
-      "name": "name",
-      "original_image": "ornate_heraldische_banierembleem.png",
-      "path": "web/art/icons/name.png",
+      "name": "builder",
+      "path": "web/art/icons/builder.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/name.png",
-        "web/art/icons/sizes/24/name.png",
-        "web/art/icons/sizes/32/name.png",
-        "web/art/icons/sizes/48/name.png",
-        "web/art/icons/sizes/64/name.png",
-        "web/art/icons/sizes/128/name.png",
-        "web/art/icons/sizes/256/name.png",
-        "web/art/icons/sizes/512/name.png"
+        "web/art/icons/sizes/16/builder.png",
+        "web/art/icons/sizes/24/builder.png",
+        "web/art/icons/sizes/32/builder.png",
+        "web/art/icons/sizes/48/builder.png",
+        "web/art/icons/sizes/64/builder.png",
+        "web/art/icons/sizes/128/builder.png",
+        "web/art/icons/sizes/256/builder.png",
+        "web/art/icons/sizes/512/builder.png"
       ],
-      "sha256": "49f8b83d9fd05b4e8188426bac36d4c868c370d027d9b77031eadb115604ba97"
+      "sha256": "97cafd90f8909ed3d78872dd23263158d40fe05787418c775546240d74397ed8"
     },
     {
-      "name": "action",
-      "original_image": "ornamentele_voorwaartse_pijl_embleem.png",
-      "path": "web/art/icons/action.png",
+      "name": "seer",
+      "path": "web/art/icons/seer.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/action.png",
-        "web/art/icons/sizes/24/action.png",
-        "web/art/icons/sizes/32/action.png",
-        "web/art/icons/sizes/48/action.png",
-        "web/art/icons/sizes/64/action.png",
-        "web/art/icons/sizes/128/action.png",
-        "web/art/icons/sizes/256/action.png",
-        "web/art/icons/sizes/512/action.png"
+        "web/art/icons/sizes/16/seer.png",
+        "web/art/icons/sizes/24/seer.png",
+        "web/art/icons/sizes/32/seer.png",
+        "web/art/icons/sizes/48/seer.png",
+        "web/art/icons/sizes/64/seer.png",
+        "web/art/icons/sizes/128/seer.png",
+        "web/art/icons/sizes/256/seer.png",
+        "web/art/icons/sizes/512/seer.png"
       ],
-      "sha256": "15e4f218f9523cdcc4c2823d30392ac778e3cb0e8e3fc575e13dbbbc40f1188c"
+      "sha256": "0aec56ef5a704874a810b530db4c59f12f30b91ae0ec17f7f709d7d5156309fc"
     },
     {
-      "name": "reaction",
-      "original_image": "ornamentele_zwarte_cirkelpijl_crest.png",
-      "path": "web/art/icons/reaction.png",
+      "name": "king",
+      "path": "web/art/icons/king.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/reaction.png",
-        "web/art/icons/sizes/24/reaction.png",
-        "web/art/icons/sizes/32/reaction.png",
-        "web/art/icons/sizes/48/reaction.png",
-        "web/art/icons/sizes/64/reaction.png",
-        "web/art/icons/sizes/128/reaction.png",
-        "web/art/icons/sizes/256/reaction.png",
-        "web/art/icons/sizes/512/reaction.png"
+        "web/art/icons/sizes/16/king.png",
+        "web/art/icons/sizes/24/king.png",
+        "web/art/icons/sizes/32/king.png",
+        "web/art/icons/sizes/48/king.png",
+        "web/art/icons/sizes/64/king.png",
+        "web/art/icons/sizes/128/king.png",
+        "web/art/icons/sizes/256/king.png",
+        "web/art/icons/sizes/512/king.png"
       ],
-      "sha256": "a21f0d3c32cde606d037591e378253a8990eb83c52afd959578c53553b711650"
+      "sha256": "4e22f0a296a845e58ee518cd08dc7749dbca5d1a742f8fd3f2c0df0c19430257"
     },
     {
-      "name": "archer",
-      "original_image": "ornate_fantasiebogen_emblem.png",
-      "path": "web/art/icons/archer.png",
+      "name": "captain",
+      "path": "web/art/icons/captain.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/archer.png",
-        "web/art/icons/sizes/24/archer.png",
-        "web/art/icons/sizes/32/archer.png",
-        "web/art/icons/sizes/48/archer.png",
-        "web/art/icons/sizes/64/archer.png",
-        "web/art/icons/sizes/128/archer.png",
-        "web/art/icons/sizes/256/archer.png",
-        "web/art/icons/sizes/512/archer.png"
+        "web/art/icons/sizes/16/captain.png",
+        "web/art/icons/sizes/24/captain.png",
+        "web/art/icons/sizes/32/captain.png",
+        "web/art/icons/sizes/48/captain.png",
+        "web/art/icons/sizes/64/captain.png",
+        "web/art/icons/sizes/128/captain.png",
+        "web/art/icons/sizes/256/captain.png",
+        "web/art/icons/sizes/512/captain.png"
       ],
-      "sha256": "933532e87a6e844a6acbd57b6b539bd763266ac36596c085a7fa03161febe00a"
+      "sha256": "7d3171c71e06056a0b290df7b0f7a82ba92e88e843726f346546a0e7372863c3"
     },
     {
-      "name": "guard",
-      "original_image": "symmetrisch_middeleeuws_schildembleem.png",
-      "path": "web/art/icons/guard.png",
+      "name": "veteran",
+      "path": "web/art/icons/veteran.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/guard.png",
-        "web/art/icons/sizes/24/guard.png",
-        "web/art/icons/sizes/32/guard.png",
-        "web/art/icons/sizes/48/guard.png",
-        "web/art/icons/sizes/64/guard.png",
-        "web/art/icons/sizes/128/guard.png",
-        "web/art/icons/sizes/256/guard.png",
-        "web/art/icons/sizes/512/guard.png"
+        "web/art/icons/sizes/16/veteran.png",
+        "web/art/icons/sizes/24/veteran.png",
+        "web/art/icons/sizes/32/veteran.png",
+        "web/art/icons/sizes/48/veteran.png",
+        "web/art/icons/sizes/64/veteran.png",
+        "web/art/icons/sizes/128/veteran.png",
+        "web/art/icons/sizes/256/veteran.png",
+        "web/art/icons/sizes/512/veteran.png"
       ],
-      "sha256": "e55c2a30ae497ffb9558b542c10742a51e94af224e49e3ac10f09c15c995efec"
+      "sha256": "0e98462125a06838f819a9cf8f4fd9e7596330adb4793e435e97f766c0eae034"
     },
     {
-      "name": "rider",
-      "original_image": "heraldische_paardenkop_met_speer.png",
-      "path": "web/art/icons/rider.png",
+      "name": "heir",
+      "path": "web/art/icons/heir.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/rider.png",
-        "web/art/icons/sizes/24/rider.png",
-        "web/art/icons/sizes/32/rider.png",
-        "web/art/icons/sizes/48/rider.png",
-        "web/art/icons/sizes/64/rider.png",
-        "web/art/icons/sizes/128/rider.png",
-        "web/art/icons/sizes/256/rider.png",
-        "web/art/icons/sizes/512/rider.png"
+        "web/art/icons/sizes/16/heir.png",
+        "web/art/icons/sizes/24/heir.png",
+        "web/art/icons/sizes/32/heir.png",
+        "web/art/icons/sizes/48/heir.png",
+        "web/art/icons/sizes/64/heir.png",
+        "web/art/icons/sizes/128/heir.png",
+        "web/art/icons/sizes/256/heir.png",
+        "web/art/icons/sizes/512/heir.png"
       ],
-      "sha256": "3f3d1c7802d20d3abbcd8e5ab7cc938c1118b89435ecffe3b16377baa0264fe0"
+      "sha256": "355ac854f26483b0784658cbf754fc9a2a1f65838fbed0815ff18c09800d8ebf"
     },
     {
-      "name": "skirmisher",
-      "original_image": "symmetrisch_gekruiste_fantasiezwaarden.png",
-      "path": "web/art/icons/skirmisher.png",
+      "name": "bonded",
+      "path": "web/art/icons/bonded.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/skirmisher.png",
-        "web/art/icons/sizes/24/skirmisher.png",
-        "web/art/icons/sizes/32/skirmisher.png",
-        "web/art/icons/sizes/48/skirmisher.png",
-        "web/art/icons/sizes/64/skirmisher.png",
-        "web/art/icons/sizes/128/skirmisher.png",
-        "web/art/icons/sizes/256/skirmisher.png",
-        "web/art/icons/sizes/512/skirmisher.png"
+        "web/art/icons/sizes/16/bonded.png",
+        "web/art/icons/sizes/24/bonded.png",
+        "web/art/icons/sizes/32/bonded.png",
+        "web/art/icons/sizes/48/bonded.png",
+        "web/art/icons/sizes/64/bonded.png",
+        "web/art/icons/sizes/128/bonded.png",
+        "web/art/icons/sizes/256/bonded.png",
+        "web/art/icons/sizes/512/bonded.png"
       ],
-      "sha256": "812d8bc49ef6c1a7dda9e79320347e21d25492b6a0d9a8c5b09c5fdbaa5c110f"
+      "sha256": "c8bd6d794eff3384b96d346897fac42addb3e2f6c5f4e5fa50dd2ef4c6b99056"
     },
     {
-      "name": "raider",
-      "original_image": "vlammenembleem_met_gekruiste_sabels.png",
-      "path": "web/art/icons/raider.png",
+      "name": "while_named",
+      "path": "web/art/icons/while_named.png",
       "pixels": 1254,
       "sizes": [
-        "web/art/icons/sizes/16/raider.png",
-        "web/art/icons/sizes/24/raider.png",
-        "web/art/icons/sizes/32/raider.png",
-        "web/art/icons/sizes/48/raider.png",
-        "web/art/icons/sizes/64/raider.png",
-        "web/art/icons/sizes/128/raider.png",
-        "web/art/icons/sizes/256/raider.png",
-        "web/art/icons/sizes/512/raider.png"
+        "web/art/icons/sizes/16/while_named.png",
+        "web/art/icons/sizes/24/while_named.png",
+        "web/art/icons/sizes/32/while_named.png",
+        "web/art/icons/sizes/48/while_named.png",
+        "web/art/icons/sizes/64/while_named.png",
+        "web/art/icons/sizes/128/while_named.png",
+        "web/art/icons/sizes/256/while_named.png",
+        "web/art/icons/sizes/512/while_named.png"
       ],
-      "sha256": "18b1e9f07ca0633ae8cb9c96b51f0d3e9e9cdc30f6e5e005d71f3beddaf16782"
+      "sha256": "fed3761d9b1c41b78633e42a24157f1672e18d1dd2d5e130f373495f8cc98042"
     }
   ]
 }
