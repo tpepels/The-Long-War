@@ -1,27 +1,19 @@
-# The Long War — Style C PNG icons (batch 1)
+# The Long War — rank highlight icons
 
-These are transparent PNG replacement candidates in the approved Style C direction.
-They do not change the current SVG implementation automatically.
+These four transparent PNGs use the same base trapezoid motif with different highlighted ranks.
 
-## Included files
-
-- becomes_named.png
-- continuous.png
+Included icons:
 - front.png
 - middle.png
 - middle-rear.png
-- move.png
-- hidden.png
 - rear.png
-- rider.png
-- skirmisher.png
 
-Each icon is included as:
+Each file includes:
 - original 1254×1254 RGBA PNG
-- resized transparent PNGs at 16, 24, 32, 48, 64, 128, 256, and 512 px
+- size variants at 16, 24, 32, 48, 64, 128, 256, and 512 px
 
-## Notes
-
-- Style: manuscript-stamp / deep navy-charcoal with antique gold accents
-- Intended to fit The Long War card style better than the earlier gothic monochrome sets
-- `front`, `middle`, and `middle-rear` are included as generated candidates and should be visually reviewed in-context before adoption
+Mapping:
+- front = top rank highlighted
+- middle = middle rank highlighted
+- middle-rear = middle and rear highlighted
+- rear = rear rank highlighted
