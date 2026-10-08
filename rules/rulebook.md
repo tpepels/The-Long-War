@@ -25,7 +25,7 @@ Each player begins with **20 Command**. Command is both the resource you spend o
 
 During a Battle, players alternate turns. On a normal turn you draw a card, then take up to two Actions. A Battle does not end just because somebody chooses to stop acting early. It begins to close only when a player has no legal Action and must **Pass**. After that, each player gets one final turn and the active Fronts are resolved.
 
-Winning a Front does not clear the battlefield. Formations remain where they are, Forces on lost Fronts become exhausted, and lost Fronts cost Command. If neither side collapses, the next Battle begins on the battlefield the players have already created.
+Winning a Front does not clear the battlefield. Formations remain where they are, while lost Fronts cost Command. Afflictions suffered during the Battle clear before the next Battle. If neither side collapses, the next Battle begins on the battlefield the players have already created.
 
 ## The battlefield
 
@@ -49,7 +49,7 @@ There is no single winner of a Battle as a whole. Each active Front is settled s
 
 For a two-player print-and-play game, each player needs a deck. The published playtest decks contain 48 cards each, while custom decks follow the construction rules at the end of this book.
 
-You will also need a visible way to track **Command from 0 to 20**, **Exhaustion tokens**, a small supply of **Tax**, **-Strength**, suppression, and used/once-per-Battle markers, and **4 Front markers** to show which parts of the battlefield are active. The printed **Reference** sheet and optional marker sheet are designed to cover these needs.
+You will also need a visible way to track **Command from 0 to 20**, **Exhaustion tokens**, a small supply of **Exhausted**, **Shaken**, **Depleted**, **Tax**, suppression, and used/once-per-Battle markers, and **4 Front markers** to show which parts of the battlefield are active. The printed **Reference** sheet and optional marker sheet are designed to cover these needs.
 
 You do not need a dedicated playmat. Arrange four Front columns between the players, with a Frontline, Middle/Support, and Rear position on each side of every Front.
 
@@ -78,6 +78,7 @@ Take **up to 2 Actions**. Each of the following uses one Action:
 
 - **Play a card.**
 - **Maneuver** a Named Formation.
+- **Attack** with an eligible Force that has not attacked this Battle.
 - **Cycle your hand:** discard 2 cards from your hand, then draw 1 card.
 
 You may take the same kind of Action twice if it is legal. You may end your turn after zero, one, or two Actions. Ending early is often useful when you want to conserve Command or avoid committing another card. Ending your turn voluntarily is **not Pass** and does not start or extend the Battle's closing sequence.
@@ -86,7 +87,7 @@ That distinction matters. On an ordinary turn, if no legal Action remains after 
 
 Playing a card or Maneuvering may also cost Command. You cannot voluntarily spend more Command than you have, and voluntary spending cannot take you below 0 Command. A cost reduction cannot reduce a card below 1 Command unless the card explicitly says it can cost 0.
 
-There is no generic Draw Action, attack Action, or Advance Action. Your choices come from playing cards, Maneuvering, and cycling.
+There is no generic Draw Action or Advance Action. Your choices come from playing cards, Maneuvering, and cycling.
 
 ## Playing cards {#cards}
 
@@ -124,15 +125,38 @@ A Force with an **Exhaustion token** cannot initiate a Maneuver. Exhaustion does
 
 During the resolution of a single Action or effect, each formation may initiate at most one Maneuver. There is no automatic Maneuver between Battles.
 
-### Flanking
+### Attacking
 
-After each Action is fully resolved, including any choices made because of that Action, check the Front row of every active Front. A Force in the Front row is **flanked** when the opposing player has a Front-row Force in an adjacent active Front and the flanked Force's controller has no Front-row Force in that adjacent Front.
+As one Action, choose one of your Forces with a basic Attack or an Attack granted by card text. It may Attack **once per Battle**, whether or not it is Named. An Attack costs no Command unless its text says otherwise. Mark the Force as having attacked; recovering afflictions does not restore its Attack allowance. A Depleted Force cannot initiate an Attack.
 
-Place one Exhaustion token on each flanked Force. An already Exhausted Force receives no additional token. Flanking does not move a formation, reduce its Strength, discard cards, or cost Command. Some cards protect a Force against Exhaustion from flanking; others can exploit an Exhausted Force.
+Declare a legal opposing Force as the target, resolve reactions and applicable protection, then apply the Attack's effect. Attacks do not deal health damage or destroy Forces by default. An Attack cannot choose a prepared Bond or Name without explicit permission. An effect cannot bypass printed row restrictions. A Force with several combat classifications chooses one basic Attack, never one Attack per classification. An Attack granted by a card replaces or modifies the basic Attack only when its text says so.
 
-For example, if your Front-row Force holds the left active Front but you leave the active Front immediately to its right empty while your opponent puts a Front-row Force there, your left-hand Force becomes Exhausted after that Action resolves. Placing your own Force in the gap prevents this flank from that direction. The outer edges of the active battlefield have no extra adjacent Front.
+The following classifications have basic Attacks; other classifications have none unless a card grants one:
 
-Only **Front-row Forces** can be flanked. Forces in Middle and Rear may still be threatened by card effects that reach behind an open opposing Front row. A card effect that exhausts a Force uses the same one-token limit as flanking or losing a Front. If an Exhausted Force moves, its token moves with it.
+| Attacker | Legal target | Effect |
+|---|---|---|
+| Archer | Opposing Rear Force in the same Front | Exhaust it |
+| Skirmisher | Opposing Middle Force in the same Front | Shake it |
+| Raider | Opposing Middle or Rear Force in the same Front, only if the opposing Frontline there is empty | Deplete it |
+| Rider | Opposing flanked Frontline Force in an adjacent active Front | Shake it |
+
+A Guard in the Middle rank **screens** the friendly Rear Force directly behind it from basic Archer Attacks. A Shaken or Depleted Guard cannot screen. Screening applies only to the basic Archer Attack, unless a card says otherwise.
+
+### Afflictions and recovery
+
+A Force can have at most one marker of each of the following afflictions. A repeated application of an affliction it already has has no further effect unless the card explicitly says otherwise. Markers move with the complete formation.
+
+- **Exhausted** — the Force cannot initiate a Maneuver. It can still Attack, contribute Strength and use abilities.
+- **Shaken** — the formation contributes 2 less Strength when its Front is settled, to a minimum of zero for that formation. It can still Maneuver, Attack and use abilities.
+- **Depleted** — the formation cannot initiate an Attack or activate an ACTION ability printed on its Force, Bond or Name. Passive and triggered effects still work; Strength is unchanged.
+
+Card effects may remove or prevent a specified affliction or any one affliction. There is **no generic recovery Action**. All afflictions clear at the end of the Battle, after Front comparisons and Battle-end effects but before the next Battle. Removing an affliction does not refresh a used Attack.
+
+### Flanking and battlefield edges
+
+A **Frontline Force** is flanked if an opposing Frontline Force occupies an immediately adjacent **active** Front and its controller has no Frontline Force in that neighboring Front. Either side can flank across any pair of adjacent active Fronts, in either direction. Fronts 2 and 3 can flank each other from Battle I.
+
+An inactive Front does not count, and the outside edge of the active battlefield is a **safe battlefield edge**: an absent neighboring Front never creates a flank by itself. Flanking is evaluated when an Attack or card needs it, not after every Action. It does **not** automatically cause Exhaustion, Shaken, damage or other penalties. Cards and Rider Attacks can exploit a flanked Force.
 
 ## Cycling cards
 
@@ -177,7 +201,7 @@ If the war continues after the Battle is resolved, the player who **did not Pass
 
 ## Resolving a Battle {#scoring}
 
-After the two closing turns are complete, resolve the Battle in the following order. This sequence matters because lost Fronts can exhaust Forces and reduce Command before anyone recovers.
+After the two closing turns are complete, resolve the Battle in the following order. This sequence matters because Shaken affects Strength comparison and lost Fronts reduce Command before anyone recovers.
 
 ### 1. Resolve effects before comparison
 
@@ -189,11 +213,9 @@ For every active Front, total the Strength that counts there. Higher Strength wi
 
 Record which Fronts each player lost.
 
-### 3. Exhaust Forces in lost Fronts
+### 3. Record lost Fronts
 
-For every Front you lost, place an **Exhaustion token** on each of your Forces in that Front, in every rank. A Force can have at most one Exhaustion token, so a Force that is already exhausted simply remains exhausted.
-
-Exhaustion persists between Battles and moves with the Force. If the Force leaves the battlefield, its Exhaustion token leaves with it. A tied Front exhausts neither player.
+Record the result of each Front for Battle-end abilities and subsequent Command losses. Losing a Front does not itself afflict, move, retreat or discard its Forces.
 
 ### 4. Resolve Battle-end effects
 
@@ -221,7 +243,7 @@ If the war continues, recover Command. The base recovery sequence is **12, 9, 6,
 
 Fronts lost do not reduce this recovery amount, and Command cannot rise above 20.
 
-Then:
+Clear all Exhausted, Shaken and Depleted markers and all used-Attack markers. No affliction persists between Battles. Then:
 
 1. draw until you have 10 cards;
 2. reset allowances that apply once per Battle;
