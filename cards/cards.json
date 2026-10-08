@@ -7472,7 +7472,9 @@
     "rear": "A state effect active while the formation is in the Rear row.",
     "exhausted": "A state effect active while this Force has an Exhaustion token.",
     "tireless": "A persistent Force ability that ignores only the Exhaustion restriction on initiating a Maneuver; every other Maneuver requirement still applies and Exhaustion remains.",
-    "mobile": "A persistent Force ability allowing it to initiate a Maneuver without being Named; other Maneuver requirements still apply."
+    "mobile": "A persistent Force ability allowing it to initiate a Maneuver without being Named; other Maneuver requirements still apply.",
+    "exhaustion": "Exhausted prevents initiating Maneuvers, does not stack, and clears at the end of each Battle.",
+    "flanking": "Flanking is a positional vulnerability, not an automatic Exhaustion trigger."
   },
   "position_vocabulary": {
     "directly_ahead": "The adjacent position in the same Front one rank toward the Front row. A Front-row formation has no position directly ahead.",
@@ -7497,6 +7499,10 @@
     "mobile": "MOBILE means this Force may initiate a Maneuver without being Named. It ignores only the Named requirement: Command cost, adjacency, legal destination, row restrictions, and Exhaustion still apply.",
     "press": "PRESS +N means this formation has +N Strength while at least one opposing Force in this Front is Exhausted. Multiple active PRESS bonuses add together.",
     "supply_raid": "A formation provides SUPPLY only while an active, unsuppressed SUPPLY effect on that formation is live. Cards that raid Supply state their own payoff; raiding does not remove SUPPLY unless a card says so.",
-    "steal_command": "STEAL N COMMAND means your opponent loses up to N Command, but not below 1; you regain exactly the amount actually lost. Stealing Command does not itself cause Collapse during a Battle."
+    "steal_command": "STEAL N COMMAND means your opponent loses up to N Command, but not below 1; you regain exactly the amount actually lost. Stealing Command does not itself cause Collapse during a Battle.",
+    "flanking": "A Frontline Force is flanked if an enemy Frontline Force occupies an adjacent active Front and its controller has no Frontline Force there; outside battlefield edges and inactive Fronts do not create flanks. Flanking causes no affliction by itself.",
+    "screening": "A Middle Guard screens the friendly Rear Force directly behind against basic Archer Attacks unless the Guard is Shaken or Depleted.",
+    "attack": "An Action by an eligible Force, at most once per Battle and without Command cost by default. A Depleted Force cannot Attack. Multi-class Forces choose one basic Attack.",
+    "afflictions": "Exhausted prevents initiating Maneuvers; Shaken reduces Front Strength by 2 (minimum 0); Depleted prevents Attacks and printed formation ACTION abilities. All markers clear at Battle end."
   }
 }
