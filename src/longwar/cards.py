@@ -311,7 +311,6 @@ def compile_card_mechanics(card: dict[str, Any]) -> dict[str, Any]:
     _validate_design_rules(card)
     design = copy.deepcopy(card[CardField.DESIGN_RULES])
     design["_class_mask"] = class_mask(card.get(CardField.CLASSES, []))
-    design["_reference_mask"] = class_mask(card.get(CardField.REFERENCES, []))
     design["_capabilities"] = ()
     design["_capability_bits"] = 0
     return design
@@ -396,10 +395,14 @@ def validate_card_data(data: dict[str, Any]) -> None:
         if len(card["classes"]) != len(set(card["classes"])):
             raise ValueError(f"{card_id}: duplicate classes")
         class_mask(card["classes"])
-        references = card.get(CardField.REFERENCES, [])
-        if not isinstance(references, list):
-            raise ValueError(f"{card_id}: references must be a list")
-        class_mask(references)
+        # A former non-executable "references" list duplicated effect classes
+        # and went stale when cards were rewritten. Conditions now belong only
+        # in design_rules; printed labels come from the effect text.
+        if "references" in card:
+            raise ValueError(
+                f"{card_id}: obsolete references metadata; "
+                "write class conditions in design_rules"
+            )
 
         if not isinstance(card["text"], str):
             raise ValueError(f"{card_id}: text must be a string")

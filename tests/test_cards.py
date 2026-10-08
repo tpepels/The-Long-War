@@ -44,7 +44,7 @@ def test_all_current_cards_compile_their_mechanics() -> None:
     for card in data["cards"]:
         compiled = compile_card_mechanics(card)
         assert isinstance(compiled["_class_mask"], int)
-        assert isinstance(compiled["_reference_mask"], int)
+        assert "_reference_mask" not in compiled
         assert isinstance(compiled["effects"], list)
         assert isinstance(compiled["modes"], dict)
 
@@ -90,3 +90,11 @@ def test_new_card_can_reuse_existing_mechanics_without_catalogue_edits() -> None
     data["cards"].append(clone)
 
     validate_card_data(data)
+
+
+def test_obsolete_reference_metadata_is_rejected() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    data["cards"][0]["references"] = ["guard"]
+
+    with pytest.raises(ValueError, match="obsolete references metadata"):
+        validate_card_data(data)
