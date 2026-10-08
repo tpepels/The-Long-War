@@ -852,7 +852,8 @@
       "design_tags": [
         "named-payoff",
         "positional-support",
-        "flank-defense"
+        "tax",
+        "protection"
       ],
       "unique": false,
       "design_rules": {
@@ -1548,7 +1549,8 @@
       "text": "BONDED - While this formation is Bonded, opposing Tactics targeting it cost 1 additional Command.",
       "design_tags": [
         "formation-building",
-        "flank-defense"
+        "tax",
+        "protection"
       ],
       "unique": false,
       "design_rules": {
@@ -5000,9 +5002,10 @@
       "duration": "this_battle",
       "text": "CONTINUOUS - Your Guards and Strongholds pay 0 Command to Maneuver this Battle.",
       "design_tags": [
-        "flank-defense",
         "battlefield",
-        "army-support"
+        "army-support",
+        "movement",
+        "positional-support"
       ],
       "unique": false,
       "design_rules": {
@@ -5160,7 +5163,6 @@
       "design_tags": [
         "action-engine",
         "army-support",
-        "classification-synergy",
         "marker-state",
         "protection"
       ],
@@ -5572,9 +5574,9 @@
       ],
       "text": "PLAY - Choose another friendly formation in this Front. Move it one row toward its Rear if that position is empty.",
       "design_tags": [
-        "raids",
-        "prepared-cards",
-        "hostile-interaction"
+        "movement",
+        "positional-support",
+        "play-effect"
       ],
       "unique": false,
       "design_rules": {
@@ -5842,8 +5844,9 @@
       "text": "BONDED - While this formation is Bonded and in the Middle row, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
       "design_tags": [
         "formation-building",
-        "flank-defense",
-        "positional-support"
+        "positional-support",
+        "tax",
+        "protection"
       ],
       "unique": false,
       "design_rules": {
@@ -6448,8 +6451,9 @@
       "text": "PLAY - Choose an opposing Force in a Front containing one of your Archers. It gets -2 Strength this Battle.",
       "design_tags": [
         "archer",
-        "exhaustion",
-        "hostile-interaction"
+        "strength",
+        "hostile-interaction",
+        "marker-state"
       ],
       "unique": false,
       "design_rules": {
@@ -6590,7 +6594,9 @@
       "design_tags": [
         "forced-movement",
         "flanking",
-        "hostile-interaction"
+        "hostile-interaction",
+        "zero-command",
+        "positional-interaction"
       ],
       "unique": false,
       "design_rules": {
@@ -6805,6 +6811,7 @@
         "action-engine",
         "army-support",
         "classification-synergy",
+        "card-flow",
         "information",
         "marker-state"
       ],
