@@ -217,9 +217,9 @@ function cardArticle(card,extra="",options={}){
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
- "force-bond":{title:"Force + Bond",state:"Bonded",ids:["the-crow-archers","watched-the-skies-for"]},
+ "force-bond":{title:"Force + Bond",state:"Bonded",ids:["the-crow-archers","had-been-ordered-forward"]},
  "force-name":{title:"Force + Name",state:"Formation · not Named",ids:["the-red-shields","corin-of-the-high-wall"]},
- named:{title:"Force + Bond + Name",state:"Named · also Bonded",ids:["the-ash-bowmen","watched-the-skies-for","corin-of-the-high-wall"]},
+ named:{title:"Force + Bond + Name",state:"Named · also Bonded",ids:["the-old-guard","blocked-the-road-for","mara"]},
  "hero-force":{title:"Hero as Force",state:"Named · also Bonded",ids:["serai-queen-of-crows","followed","namar"],heroMode:"force"},
  "hero-name":{title:"Hero as Name",state:"Named · also Bonded",ids:["the-house-of-reed","carried-messages-for","alda-keeper-of-the-ford"],heroMode:"name"}
 };
