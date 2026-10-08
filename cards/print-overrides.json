@@ -525,11 +525,6 @@
       "exposed": "ACTION: pay 1; return Bond/Name from Exhausted enemy here"
     },
     {
-      "id": "the-thornbow-hunters",
-      "index": 0,
-      "exposed": "Rear: see enemy hidden Stratagems here/adjacent"
-    },
-    {
       "id": "the-late-banner",
       "index": 0,
       "exposed": "Bonded: Name costs -1 (min 1) here"
@@ -590,19 +585,9 @@
       "exposed": "Bonded with Captain/King: Bond gives +1 Strength"
     },
     {
-      "id": "the-lantern-scouts",
-      "index": 0,
-      "exposed": "Middle/Rear: see enemy hidden Stratagems here"
-    },
-    {
       "id": "the-river-raiders",
       "index": 0,
       "exposed": "ACTION: pay 1; enemy Front empty: raid Middle/Rear Bond/Name"
-    },
-    {
-      "id": "the-watchtowers-of-eren",
-      "index": 0,
-      "exposed": "Rear: see enemy hidden Stratagems in any active Front"
     },
     {
       "id": "kept-the-gate-for",
