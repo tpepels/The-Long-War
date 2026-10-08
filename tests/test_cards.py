@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from longwar.cards import (
+    CARD_CLASS_BITS,
     compile_card_mechanics,
     load_card_file,
     validate_card_data,
@@ -30,6 +31,12 @@ def test_canonical_card_pool_has_unique_ids_and_supported_types() -> None:
         "narrative",
         "stratagem",
     }
+
+
+def test_supported_classes_match_canonical_card_vocabulary() -> None:
+    data = load_card_file(ROOT / "cards" / "cards.json")
+    assert set(CARD_CLASS_BITS) == set(data["classification_vocabulary"])
+    assert all(set(card["classes"]) <= set(CARD_CLASS_BITS) for card in data["cards"])
 
 
 def test_card_catalogue_has_one_executable_mechanics_schema() -> None:

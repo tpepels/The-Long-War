@@ -227,7 +227,6 @@ class ActionKeyToken(StrEnum):
 
 class ForceRole(StrEnum):
     SWORDSMAN = "swordsman"
-    SPEARMAN = "spearman"
     ARCHER = "archer"
     HEALER = "healer"
     SHIP = "ship"
