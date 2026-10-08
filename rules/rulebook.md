@@ -103,9 +103,9 @@ An effect referring to your *Archers*, *Kings*, or *Captains* means friendly for
 
 A **Named Formation** may initiate an ordinary **Maneuver** for one Action and **1 Command**. Move it one **orthogonally adjacent** active position: one rank forward or back in the same Front, or one Front left or right in the same rank. Cards can extend Maneuver eligibility to some unnamed formations. Diagonal positions are outside the Maneuver's one-step reach.
 
-If the destination is empty of cards, move the whole formation there. If it contains a friendly formation, you may **swap** the complete formations, provided both resulting positions are legal. Only the initiating formation needs to qualify for Maneuver. You may not Maneuver into an inactive Front or violate a Force's row restriction.
+If the destination has no Force, move the whole formation there, taking any compatible prepared cards into the stack. If it contains a friendly formation, you may **swap** the complete formations, provided both resulting positions are legal. Only the initiating formation needs to qualify for Maneuver. You may not Maneuver into an inactive Front or violate a Force's row restriction.
 
-A position containing **only prepared Bonds or Names** also counts as a movement destination if the incoming formation can incorporate every prepared layer without producing two Bonds or two Names. Move the complete existing formation into that position, attach the compatible prepared components, and resolve any BECOMES NAMED effects. If any layer conflicts, that movement is illegal. Prepared cards cannot be displaced by ordinary movement or taken from the opponent's side.
+For movement, a printed **empty position** means a position with no Force. It may contain prepared Bonds or Names, provided they can attach to the incoming formation without producing two Bonds or two Names. A **completely empty position** has no cards at all. Move the complete existing formation into that position, attach the compatible prepared components, and resolve any BECOMES NAMED effects. If any layer conflicts, that movement is illegal. Prepared cards cannot be displaced by ordinary movement or taken from the opponent's side.
 
 An **Exhausted** Force contributes to Battle normally but usually stays where it is: it can move through a card's **Move** effect or be the non-initiating partner in a swap, while an explicit card exception can let it initiate a Maneuver. Each Force carries at most one Exhaustion token. Each formation may initiate at most one Maneuver during the resolution of a single Action or effect; no automatic Maneuver occurs between Battles.
 
@@ -260,7 +260,7 @@ A **Tax marker** belongs to its marked Front and increases the next matching car
 
 ### Positions and card movement
 
-**Adjacent position** means a shared edge on your side: left/right one active Front in the same rank, or forward/back one rank in the same Front. **Adjacent Front** means the active Front immediately left or right; it does not mean another rank within the same Front. **Directly ahead** is the position one rank nearer your Frontline; **directly behind** is one rank nearer your Rear. No position exists beyond the Frontline or Rear, and an inactive Front is never adjacent for card purposes.
+**Empty position** means no Force is there; compatible prepared Bonds and Names may be present. **Completely empty** means no cards are there. **Adjacent position** means a shared edge on your side: left/right one active Front in the same rank, or forward/back one rank in the same Front. **Adjacent Front** means the active Front immediately left or right; it does not mean another rank within the same Front. **Directly ahead** is the position one rank nearer your Frontline; **directly behind** is one rank nearer your Rear. No position exists beyond the Frontline or Rear, and an inactive Front is never adjacent for card purposes.
 
 Components leave the battlefield only when a card specifically makes them do so:
 
