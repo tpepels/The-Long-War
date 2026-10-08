@@ -42,6 +42,322 @@ cdef void _fe_suppress_with_interception(
     else:
         state.resolution_suppressed_mask |= <uint32_t>(1 << target)
 
+cdef inline void _v2_remove_one_negative_marker(
+    FastState state,
+    int slot,
+) noexcept:
+    if slot < 0:
+        return
+    if state.negative_three_markers[slot] > 0:
+        state.negative_three_markers[slot] -= 1
+    elif state.negative_two_markers[slot] > 0:
+        state.negative_two_markers[slot] -= 1
+    elif state.negative_one_markers[slot] > 0:
+        state.negative_one_markers[slot] -= 1
+    elif state.temporary[slot] < 0:
+        state.temporary[slot] += 1
+
+
+cdef inline void _v2_add_strength_marker(
+    FastState state,
+    int slot,
+    int amount,
+) noexcept:
+    if slot < 0 or amount == 0:
+        return
+    if amount == -1:
+        state.negative_one_markers[slot] += 1
+    elif amount == -2:
+        state.negative_two_markers[slot] += 1
+    elif amount == -3:
+        state.negative_three_markers[slot] += 1
+    else:
+        state.temporary[slot] += amount
+
+
+cdef void _v2_apply_resolved_effect(
+    FastEngine self,
+    FastState state,
+    int player,
+    int source_card,
+    int origin,
+    V2EffectSpec* effect,
+    uint64_t action,
+) except *:
+    cdef int kind = action_kind(action)
+    cdef int selected_card = action_card(action)
+    cdef int source = action_pos(action)
+    cdef int dest = action_dest(action)
+    cdef int target = dest
+    cdef uint32_t extra = action_extra(action)
+    cdef int option = (
+        <int>((extra >> V2_PLAY_COMPONENT_SHIFT) & V2_PLAY_COMPONENT_MASK)
+        if kind == TYPE_TACTIC or kind == TYPE_ORDER
+        else <int>(extra >> V2_EFFECT_OPTION_SHIFT)
+    )
+    cdef int slot, i, before_mask, owner, component
+    cdef int move_dest, move_owner, move_rank
+    cdef uint32_t class_bit
+
+    if target < 0 and effect.target == V2_TARGET_SELF:
+        target = origin
+
+    if effect.op == V2_OP_GAIN_COMMAND:
+        _fe_gain_command_fast(
+            self, state, player, effect.amount, source_card,
+            COMMAND_DETAIL_CARD_EFFECT,
+        )
+    elif effect.op == V2_OP_DRAW:
+        _fe_queue_battle_draws(
+            self, state, player, effect.draw_count
+        )
+    elif effect.op == V2_OP_LOOK_HAND:
+        _v2_look_at_opponent_hand(self, state, player, effect)
+    elif effect.op == V2_OP_LOOK_STRATAGEM:
+        _v2_look_at_opponent_stratagem(state, player)
+    elif effect.op == V2_OP_MOVE:
+        if effect.flags & V2_FLAG_DIRECTION_REAR and target >= 0:
+            move_rank = rank_from_slot(target)
+            if move_rank < RANK_REAR:
+                move_owner = owner_from_slot(target)
+                move_dest = slot_index(
+                    move_owner,
+                    front_from_slot(target),
+                    move_rank + 1,
+                )
+                if _fe_card_move_destination_legal(
+                    self, state, player, target, move_dest
+                ):
+                    _fe_move_slot(self, state, target, move_dest)
+                    _fe_resolve_force_move_triggers(
+                        self, state, move_owner, target, move_dest
+                    )
+                    _fe_resolve_force_pair_narratives(
+                        self, state, move_owner
+                    )
+        elif effect.target == V2_TARGET_SELF and source >= 0 and dest >= 0:
+            _fe_move_slot(self, state, source, dest)
+            _fe_resolve_force_move_triggers(self, state, player, source, dest)
+            _fe_resolve_force_pair_narratives(self, state, player)
+    elif effect.op == V2_OP_SWAP:
+        if source >= 0 and dest >= 0:
+            _fe_swap_slots(self, state, source, dest)
+            _fe_resolve_force_pair_narratives(self, state, player)
+    elif effect.op == V2_OP_ADD_STRENGTH_MARKER:
+        _v2_add_strength_marker(state, target, effect.amount)
+    elif effect.op in (
+        V2_OP_REMOVE_NEGATIVE_MARKER,
+        V2_OP_REMOVE_STRENGTH_MARKER,
+    ):
+        if effect.flags & V2_FLAG_ALL:
+            state.negative_one_markers[target] = 0
+            state.negative_two_markers[target] = 0
+            state.negative_three_markers[target] = 0
+            if state.temporary[target] < 0:
+                state.temporary[target] = 0
+        else:
+            _v2_remove_one_negative_marker(state, target)
+    elif effect.op == V2_OP_REMOVE_EXHAUSTION:
+        if target >= 0:
+            state.exhausted[target] = 0
+    elif effect.op == V2_OP_EXHAUST:
+        if target >= 0 and state.force[target] >= 0:
+            state.exhausted[target] = 1
+    elif effect.op == V2_OP_RETURN_COMPONENT:
+        if target >= 0:
+            owner = owner_from_slot(target)
+            if option == V2_OPTION_BOND:
+                component = state.bond[target]
+                if component >= 0:
+                    state.bond[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
+            elif option == V2_OPTION_NAME:
+                component = state.name[target]
+                if component >= 0:
+                    state.name[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
+    elif effect.op == V2_OP_SWAP_FRONTS:
+        if source >= 0 and dest >= 0:
+            for i in range(RANK_COUNT):
+                _fe_swap_slots(
+                    self, state,
+                    slot_index(player, front_from_slot(source), i),
+                    slot_index(player, front_from_slot(dest), i),
+                )
+            _fe_resolve_force_pair_narratives(self, state, player)
+    elif effect.op == V2_OP_SWAP_BONDS:
+        if source >= 0 and dest >= 0 and state.bond[source] >= 0 and state.bond[dest] >= 0:
+            component = state.bond[source]
+            state.bond[source] = state.bond[dest]
+            state.bond[dest] = component
+    elif effect.op == V2_OP_SUPPRESS_BOND_STRENGTH:
+        if target >= 0:
+            state.suppression_mask[target] |= SUPPRESS_BOND_STRENGTH
+    elif effect.op == V2_OP_SUPPRESS_BOND:
+        if target >= 0:
+            state.suppression_mask[target] |= (
+                SUPPRESS_BOND_STRENGTH | SUPPRESS_BOND_TEXT
+            )
+    elif effect.op == V2_OP_SUPPRESS_NAME:
+        if (
+            target >= 0
+            and not _v2_name_suppression_immune(self, state, target)
+        ):
+            state.suppression_mask[target] |= SUPPRESS_NAME_TEXT
+    elif effect.op == V2_OP_SUPPRESS_ACTION:
+        if target >= 0:
+            state.suppression_mask[target] |= (
+                SUPPRESS_ACTION_TURN
+                if effect.duration == V2_DURATION_TURN
+                else SUPPRESS_ACTION_BATTLE
+            )
+    elif effect.op == V2_OP_SUPPRESS_LIMITED:
+        if target >= 0:
+            state.suppression_mask[target] |= SUPPRESS_LIMITED_BATTLE
+    elif effect.op == V2_OP_SUPPRESS_COMPONENT:
+        if target >= 0:
+            if option == V2_OPTION_BOND:
+                state.suppression_mask[target] |= SUPPRESS_BOND_TEXT
+            elif (
+                option == V2_OPTION_NAME
+                and not _v2_name_suppression_immune(
+                    self, state, target
+                )
+            ):
+                state.suppression_mask[target] |= SUPPRESS_NAME_TEXT
+    elif effect.op == V2_OP_TAX:
+        _v2_add_tax_marker(
+            self, state, player, origin, effect, action
+        )
+    elif effect.op == V2_OP_NEXT_SLOT_DISCOUNT:
+        if target >= 0:
+            if state.discount_len >= MAX_SLOT_DISCOUNTS:
+                raise RuntimeError("V2 slot-discount capacity exceeded")
+            i = state.discount_len
+            state.discount_owner[i] = player
+            state.discount_target_player[i] = player
+            state.discount_slot[i] = target
+            state.discount_amount[i] = effect.amount
+            state.discount_minimum[i] = effect.minimum
+            state.discount_card_type_mask[i] = (
+                effect.card_type_mask if effect.card_type_mask else 255
+            )
+            state.discount_expires_turn[i] = (
+                state.turn_number + 1
+                if effect.duration == V2_DURATION_TURN
+                else -1
+            )
+            state.discount_len += 1
+    elif effect.op == V2_OP_RETURN_PREPARED:
+        if target >= 0:
+            owner = owner_from_slot(target)
+            if option == V2_OPTION_BOND:
+                component = state.bond[target]
+                if component >= 0:
+                    state.bond[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
+            elif option == V2_OPTION_NAME:
+                component = state.name[target]
+                if component >= 0:
+                    state.name[target] = -1
+                    _fe_return_to_hand(self, state, owner, component)
+    elif effect.op == V2_OP_PREPARED_PAY_OR_RETURN:
+        if target >= 0:
+            owner = owner_from_slot(target)
+            _fe_enqueue_effect(
+                self,
+                state,
+                EFFECT_V2_CHOICE,
+                owner,
+                -1,
+                target,
+                option,
+                <uint32_t>effect.amount,
+                0,
+                0,
+                source_card,
+            )
+    elif effect.op == V2_OP_RECOVER:
+        if (
+            selected_card >= 0
+            and _fe_remove_from_discard(
+                self, state, player, selected_card
+            )
+        ):
+            _fe_return_to_hand(self, state, player, selected_card)
+    elif effect.op == V2_OP_DISCARD_DRAW:
+        if selected_card >= 0 and state.hand[player][selected_card] > 0:
+            _fe_take_from_hand(
+                self, state, player, selected_card,
+                HIDDEN_KNOWN_SINGLE_CARD,
+            )
+            _fe_append_discard(self, state, player, selected_card, True)
+            _fe_queue_battle_draws(
+                self, state, player, effect.draw_count
+            )
+    elif effect.op == V2_OP_ATTACH_PREPARED:
+        if selected_card >= 0 and source >= 0 and dest >= 0:
+            before_mask = _fe_complete_mask(self, state, player)
+            if state.bond[source] == selected_card and state.bond[dest] < 0:
+                state.bond[source] = -1
+                state.bond[dest] = selected_card
+            elif state.name[source] == selected_card and state.name[dest] < 0:
+                state.name[source] = -1
+                state.name[dest] = selected_card
+            _fe_resolve_new_completions_fast(
+                self, state, player, before_mask
+            )
+    elif effect.op == V2_OP_PLAY_BOND_FROM_HAND:
+        if (
+            selected_card >= 0
+            and target >= 0
+            and state.hand[player][selected_card] > 0
+            and state.bond[target] < 0
+        ):
+            before_mask = _fe_complete_mask(self, state, player)
+            _fe_take_from_hand(self, state, player, selected_card, 0)
+            state.bond[target] = selected_card
+            _v2_apply_immediate_play_effects(
+                self, state, player, selected_card,
+                V2_MODE_DEFAULT, target,
+            )
+            _fe_resolve_new_completions_fast(
+                self, state, player, before_mask
+            )
+    elif effect.op == V2_OP_SET_STRATAGEM_FROM_HAND:
+        if (
+            selected_card >= 0
+            and state.hand[player][selected_card] > 0
+            and state.stratagem[player] < 0
+        ):
+            _fe_take_from_hand(self, state, player, selected_card, 0)
+            state.stratagem[player] = selected_card
+            state.stratagem_revealed[player] = 0
+            state.stratagem_front_mask[player] = (
+                <uint8_t>(1 << front_from_slot(origin))
+                if origin >= 0 else 0
+            )
+            state.stratagem_used[player] += 1
+    elif effect.op == V2_OP_CHOOSE_STRENGTH_TARGETS:
+        if source >= 0:
+            state.temporary[source] += effect.amount
+        if dest >= 0 and dest != source:
+            state.temporary[dest] += effect.amount
+    elif effect.op == V2_OP_CHOOSE_CLASS_STRENGTH:
+        if origin >= 0 and option > 0:
+            class_bit = <uint32_t>1 << (option - 1)
+            for slot in range(
+                player * POSITIONS_PER_PLAYER,
+                player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER,
+            ):
+                if (
+                    state.force[slot] >= 0
+                    and front_from_slot(slot) == front_from_slot(origin)
+                    and (_v2_slot_class_mask(self, state, slot) & class_bit)
+                ):
+                    state.temporary[slot] += effect.amount
+
+
 cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t action) except *:
     cdef int kind = state.pending_kind[0]
     cdef int player = state.pending_player[0]
@@ -51,12 +367,43 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     cdef int trigger_source = state.pending_source[0]
     cdef int command_source = state.pending_command_source[0]
     cdef int aux = state.pending_aux[0]
+    cdef uint32_t pending_amount = state.pending_source_mask[0]
+    cdef int v2_option = <int>(action_extra(action) >> V2_EFFECT_OPTION_SHIFT)
+    cdef int returned_card
     cdef bint skip = card < 0 and source < 0 and dest < 0
     cdef bint was_empty
     cdef int before_mask, moved
+    cdef V2EffectSpec* v2_effect = NULL
 
+    if kind == EFFECT_V2_TARGET:
+        v2_effect = _v2_pending_effect(self, state)
     _fe_pop_pending_effect(self, state)
 
+    if kind == EFFECT_V2_CHOICE:
+        if v2_option == V2_OPTION_PAY:
+            if state.command[player] < <int>pending_amount:
+                raise ValueError("Cannot pay prepared-card disruption cost")
+            _fe_spend_command_fast(
+                self, state, player, <int>pending_amount
+            )
+        elif v2_option == V2_OPTION_RETURN:
+            if trigger_source >= 0:
+                if aux == V2_OPTION_BOND:
+                    returned_card = state.bond[trigger_source]
+                    if returned_card >= 0:
+                        state.bond[trigger_source] = -1
+                        _fe_return_to_hand(
+                            self, state, player, returned_card
+                        )
+                elif aux == V2_OPTION_NAME:
+                    returned_card = state.name[trigger_source]
+                    if returned_card >= 0:
+                        state.name[trigger_source] = -1
+                        _fe_return_to_hand(
+                            self, state, player, returned_card
+                        )
+        else:
+            raise ValueError("Invalid V2 pay-or-return choice")
     if kind == EFFECT_FREE_MANEUVER:
         if not skip:
             was_empty = state.force[dest] < 0
@@ -149,6 +496,17 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
                 state.name[dest] = moved
                 _fe_resolve_new_completions_fast(self, state, player, before_mask)
         _fe_finish_pending_drive_off(self, state, player, trigger_source)
+    elif kind == EFFECT_V2_TARGET and v2_effect != NULL:
+        if not skip:
+            _v2_apply_resolved_effect(
+                self,
+                state,
+                player,
+                command_source,
+                trigger_source,
+                v2_effect,
+                action,
+            )
 
     _fe_resume_pending_flow(self, state)
 
@@ -422,6 +780,73 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     cost = _fe_command_cost_fast(self, state, action)
     _fe_spend_command_fast(self, state, actor, cost)
+    _v2_consume_cost_markers(self, state, actor, action)
+
+    if kind == TYPE_ABILITY:
+        choice = <int>extra
+        if choice & V2_ABILITY_NARRATIVE_FLAG:
+            choice &= ~V2_ABILITY_NARRATIVE_FLAG
+            source = -1
+            local = actor * NARRATIVE_SLOTS_PER_PLAYER + pos
+            if local >= 0 and local < NARRATIVE_COUNT:
+                state.narrative_used[local] = 1
+        else:
+            source = pos
+        front = _v2_pending_mode(choice)
+        target = _v2_pending_effect_index(choice)
+        if (
+            front < V2_MODE_DEFAULT
+            or front > V2_MODE_NAME
+            or target < 0
+            or target >= self.v2_effect_count[card][front]
+        ):
+            raise ValueError("Invalid V2 ability effect index")
+        if source >= 0 and self.v2_effects[card][front][target].once_per_battle:
+            if front == V2_MODE_FORCE or state.force[source] == card:
+                state.force_ability_used[source] = 1
+            elif front == V2_MODE_NAME or state.name[source] == card:
+                state.name_ability_used[source] = 1
+        _v2_enqueue_effect(
+            self, state, actor, card, front, target, source
+        )
+        _fe_resume_pending_flow(self, state)
+        return
+
+    if kind == TYPE_TACTIC or kind == TYPE_ORDER:
+        _fe_take_from_hand(self, state, actor, card, 0)
+        if self.v2_effect_count[card][V2_MODE_DEFAULT] > 0:
+            v2_effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
+            if v2_effect.op == V2_OP_DISCARD_DRAW:
+                _v2_enqueue_effect(
+                    self, state, actor, card, V2_MODE_DEFAULT, 0, pos
+                )
+            elif v2_effect.op in (
+                V2_OP_ADD_STRENGTH_MARKER,
+                V2_OP_DRAW,
+                V2_OP_LOOK_HAND,
+                V2_OP_LOOK_STRATAGEM,
+                V2_OP_MOVE,
+                V2_OP_EXHAUST,
+                V2_OP_RETURN_COMPONENT,
+                V2_OP_PREPARED_PAY_OR_RETURN,
+                V2_OP_TAX,
+                V2_OP_REMOVE_EXHAUSTION,
+                V2_OP_REMOVE_NEGATIVE_MARKER,
+                V2_OP_RETURN_PREPARED,
+                V2_OP_SUPPRESS_ACTION,
+                V2_OP_SUPPRESS_BOND,
+                V2_OP_SUPPRESS_BOND_STRENGTH,
+                V2_OP_SUPPRESS_LIMITED,
+                V2_OP_SUPPRESS_NAME,
+                V2_OP_SWAP,
+            ):
+                _v2_apply_resolved_effect(
+                    self, state, actor, card, pos, v2_effect, action
+                )
+        _fe_append_discard(self, state, actor, card, True)
+        _fe_consume_operation_constraints(self, state, actor, action)
+        _fe_resume_pending_flow(self, state)
+        return
 
     if kind == TYPE_CYCLE:
         second_card = <int>extra - 1

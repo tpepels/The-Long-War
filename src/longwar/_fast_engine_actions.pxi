@@ -533,7 +533,39 @@ cdef int _fe_legal_pending_effect_actions(
         v2_effect = _v2_pending_effect(self, state)
         source = state.pending_source[0]
 
-        if (
+        if v2_effect.op == V2_OP_SWAP_FRONTS:
+            # The complete friendly contents of two adjacent active Fronts
+            # exchange ranks. All cards, prepared cards and Exhaustion move.
+            for front in range(FRONT_COUNT - 1):
+                if (
+                    front_is_active(state.battle, front)
+                    and front_is_active(state.battle, front + 1)
+                ):
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT, -1,
+                            slot_index(player, front, RANK_FRONT),
+                            slot_index(player, front + 1, RANK_FRONT),
+                            player, kind,
+                        ),
+                    )
+        elif v2_effect.op == V2_OP_SWAP_BONDS:
+            for source2 in range(
+                player * POSITIONS_PER_PLAYER,
+                (player + 1) * POSITIONS_PER_PLAYER,
+            ):
+                if state.force[source2] < 0 or state.bond[source2] < 0:
+                    continue
+                for dest in range(source2 + 1, (player + 1) * POSITIONS_PER_PLAYER):
+                    if state.force[dest] >= 0 and state.bond[dest] >= 0:
+                        n = _append_action(
+                            actions, n,
+                            encode_action(
+                                TYPE_EFFECT, -1, source2, dest, player, kind,
+                            ),
+                        )
+        elif (
             v2_effect.op == V2_OP_MOVE
             and v2_effect.target == V2_TARGET_SELF
         ):
@@ -821,6 +853,7 @@ cdef int _fe_legal_pending_effect_actions(
 
         elif v2_effect.op in (
             V2_OP_RETURN_PREPARED,
+            V2_OP_RETURN_COMPONENT,
             V2_OP_PREPARED_PAY_OR_RETURN,
             V2_OP_SUPPRESS_COMPONENT,
         ):
@@ -1323,6 +1356,7 @@ cdef int _fe_legal_actions_into(
                         )
             elif v2_effect.op in (
                 V2_OP_RETURN_PREPARED,
+                V2_OP_RETURN_COMPONENT,
                 V2_OP_PREPARED_PAY_OR_RETURN,
             ):
                 target_mask = _v2_target_mask(

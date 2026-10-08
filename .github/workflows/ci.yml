@@ -55,6 +55,12 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -e '.[dev]'
+      - name: Rebuild native runtime for diagnostics
+        continue-on-error: true
+        run: make native-build WORKERS=2
+      - name: Focused positional regression diagnostics
+        continue-on-error: true
+        run: python -m pytest -q --tb=short tests/test_positional_overhaul.py
       - name: Generated-file diagnostics
         continue-on-error: true
         run: |

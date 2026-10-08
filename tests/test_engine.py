@@ -483,6 +483,46 @@ def test_lost_front_exhausts_every_force_there_and_blocks_maneuver() -> None:
     )
 
 
+def test_flanking_exhausts_front_row_forces_after_an_action() -> None:
+    engine, state = setup_state()
+    left = pos(1, Rank.FRONT)
+    right = pos(2, Rank.FRONT)
+
+    state.slot(0, left).force = "the-fifty-men"
+    state.slot(1, right).force = "the-fifty-men"
+    state.players[0].hand = ["followed"]
+    state.players[0].command = 20
+    state.players[1].hand = []
+    state.active_player = 0
+
+    engine.apply(state, PlayBond("followed", pos(3, Rank.REAR)))
+
+    # Each isolated Front-row Force sits beside an enemy line with a hole on
+    # its own side, so both sides are flanked.
+    assert state.slot(0, left).exhausted is True
+    assert state.slot(1, right).exhausted is True
+
+
+def test_a_continuous_front_line_prevents_flanking_from_that_side() -> None:
+    engine, state = setup_state()
+    left = pos(1, Rank.FRONT)
+    right = pos(2, Rank.FRONT)
+
+    state.slot(0, left).force = "the-fifty-men"
+    state.slot(0, right).force = "thirty-spears"
+    state.slot(1, right).force = "the-fifty-men"
+    state.players[0].hand = ["followed"]
+    state.players[0].command = 20
+    state.players[1].hand = []
+    state.active_player = 0
+
+    engine.apply(state, PlayBond("followed", pos(3, Rank.REAR)))
+
+    assert state.slot(0, left).exhausted is False
+    assert state.slot(0, right).exhausted is False
+    assert state.slot(1, right).exhausted is True
+
+
 def test_exhaustion_round_trips_and_blocks_horizontal_and_vertical_maneuver() -> None:
     engine, state = setup_state()
     source = pos(1, Rank.MIDDLE)

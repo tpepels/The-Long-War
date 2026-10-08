@@ -106,6 +106,11 @@ V2_EFFECT_OPS = frozenset({
     "stratagem_visibility",
     "status_strength_aura",
     "steal_command",
+    "exhaust",
+    "flank_guard",
+    "return_component",
+    "swap_fronts",
+    "swap_bonds",
     "supply",
     "support",
     "suppress_action",
@@ -180,6 +185,9 @@ V2_TARGETS = frozenset({
     "friendly_exhausted_front_with_friendly_class",
     "friendly_pair_same_front_with_class",
     "friendly_front_of_source_class",
+    "opposing_exhausted_same_front",
+    "opposing_support_open_front",
+    "friendly_any",
 })
 
 

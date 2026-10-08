@@ -47,6 +47,8 @@ DEF PRE_RESOLUTION_CONTRIBUTION_END = PRE_RESOLUTION_RETREAT_END + SLOT_COUNT
 DEF PRE_RESOLUTION_SUPPRESSION_END = PRE_RESOLUTION_CONTRIBUTION_END + SLOT_COUNT
 DEF PRE_RESOLUTION_SACRIFICE_END = PRE_RESOLUTION_SUPPRESSION_END + SLOT_COUNT
 
+# Card identities use signed 8-bit fields in the native state. Keep at most
+# 128 identities; increasing this requires changing those representations.
 DEF MAX_CARDS = 128
 # A legal deck may contain four copies of every non-Unique card. Size native
 # card zones for the full wire-format card pool rather than imposing a hidden
@@ -442,6 +444,7 @@ cdef int COMMAND_DETAIL_STRATAGEM_MANEUVER = 12
 cdef int COMMAND_DETAIL_FRONT_LOSS_PROTECTED_FRONT = 13
 cdef int COMMAND_DETAIL_FRONT_LOSS_STRATAGEM = 14
 cdef int COMMAND_DETAIL_CARD_EFFECT = 15
+cdef int COMMAND_DETAIL_SUPPLY_DISCOUNT = 16
 
 # V2 component suppression bits.
 cdef uint16_t SUPPRESS_BOND_STRENGTH = 1
@@ -554,6 +557,12 @@ cdef int V2_OP_TRIGGER_DRAW_DISCARD = 76
 cdef int V2_OP_TRIGGER_GAIN_COMMAND = 77
 cdef int V2_OP_TRIGGER_LOOK_STRATAGEM = 78
 cdef int V2_OP_STEAL_COMMAND = 79
+cdef int V2_OP_EXHAUST = 80
+cdef int V2_OP_FLANK_GUARD = 81
+cdef int V2_OP_RETURN_COMPONENT = 82
+cdef int V2_OP_SWAP_FRONTS = 83
+cdef int V2_OP_REVIVE_FORCE = 84
+cdef int V2_OP_SWAP_BONDS = 85
 
 # Generic V2 selector/condition codes.
 cdef int V2_TARGET_NONE = 0
@@ -591,6 +600,9 @@ cdef int V2_TARGET_FRIENDLY_EXHAUSTED_FRONT_WITH_FRIENDLY_CLASS = 31
 cdef int V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS = 32
 cdef int V2_TARGET_FRIENDLY_FRONT_OF_SOURCE_CLASS = 33
 cdef int V2_TARGET_SELF_OR_DIRECTLY_BEHIND = 34
+cdef int V2_TARGET_OPPOSING_EXHAUSTED_SAME_FRONT = 35
+cdef int V2_TARGET_OPPOSING_SUPPORT_OPEN_FRONT = 36
+cdef int V2_TARGET_FRIENDLY_ANY = 37
 
 cdef int V2_AREA_NONE = 0
 cdef int V2_AREA_ANY_ACTIVE = 1

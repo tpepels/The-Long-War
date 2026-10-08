@@ -155,6 +155,9 @@ def markdown_to_typst(source: str, version: str) -> str:
         rows = table_rows
         if len(rows) >= 2 and all(re.fullmatch(r":?-{3,}:?", cell.strip()) for cell in rows[1]):
             rows = [rows[0], *rows[2:]]
+        width = len(rows[0])
+        if any(len(row) != width for row in rows):
+            raise ValueError("Rulebook Markdown table has inconsistent column counts")
         cells: list[str] = []
         for row_index, row in enumerate(rows):
             for cell in row:
@@ -162,8 +165,9 @@ def markdown_to_typst(source: str, version: str) -> str:
                 if row_index == 0:
                     rendered = f'#text(weight: "bold")[{rendered}]'
                 cells.append(f"[{rendered}]")
+        column_widths = "(0.95fr, 1.65fr)" if width == 2 else f"({', '.join(['1fr'] * width)},)"
         out.append(
-            '#table(columns: (0.95fr, 1.65fr), inset: 4pt, '
+            f"#table(columns: {column_widths}, inset: 4pt, "
             'stroke: 0.35pt + rgb("#aaaaaa"), ' + ", ".join(cells) + ")"
         )
         out.append("")

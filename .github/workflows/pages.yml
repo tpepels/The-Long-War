@@ -48,7 +48,9 @@ jobs:
       - run: python -m compileall -q src tools
       - name: Check authored browser assets
         run: python tools/check_web_static.py
-      - name: Build Pages from committed Balance Lab evidence
+      - name: Build inspection Pages (native webgame deferred)
+        env:
+          TLW_PAGES_INSPECTION_ONLY: '1'
         run: python tools/build_pages.py
       - name: Check built browser asset references
         run: python tools/check_web_static.py --dist dist

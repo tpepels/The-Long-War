@@ -331,13 +331,30 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
 
 def main() -> None:
     card_data = load_card_file(CARDS)
-    runtime = ensure_browser_runtime()
+    inspection_only = os.environ.get("TLW_PAGES_INSPECTION_ONLY") == "1"
+    runtime = None if inspection_only else ensure_browser_runtime()
     if DIST.exists():
         shutil.rmtree(DIST)
     # Canonical PNGs are authoring inputs. Generate only optimized derivatives
     # for Pages; never copy the originals into disposable deployment output.
     shutil.copytree(WEB, DIST, ignore=shutil.ignore_patterns("art", "site-nav.template.html"))
-    shutil.copytree(runtime, DIST / "runtime")
+    if runtime is not None:
+        shutil.copytree(runtime, DIST / "runtime")
+    else:
+        # The webgame needs the native WASM runtime, which is not yet compatible
+        # with the evolving physical card pool. Publish inspectable pages anyway.
+        (DIST / "play.html").write_text(
+            '<!doctype html><html lang="en"><meta charset="utf-8">'
+            '<title>Webgame unavailable during card playtest</title>'
+            '<style>body{font:1.15rem/1.6 system-ui;max-width:45rem;margin:4rem auto;padding:1rem}</style>'
+            '<h1>Webgame temporarily unavailable</h1>'
+            '<p>The physical cards, decks, rules and print references remain available '
+            'for inspection while the game engine is updated.</p>'
+            '<p><a href="cards.html">Inspect cards</a> · '
+            '<a href="rulebook.html">Read rules</a> · '
+            '<a href="playtest-kit.html">Print decks</a></p></html>',
+            encoding="utf-8",
+        )
     build_print_art()
 
     playmat = DIST / "playmat.html"

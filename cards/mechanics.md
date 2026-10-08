@@ -1,111 +1,215 @@
 # Mechanics and card grammar
 
-> Canonical card definitions live only in `cards/cards.json`. This directory contains design notes, playtest lists, and physical-card documentation.
+> Canonical card definitions live only in `cards/cards.json`. This file defines the design grammar the card pool should follow.
+
+## Design direction
+
+The battlefield should create the interesting decisions. Card text should mostly move, expose, protect, exhaust, recover, steal, attach, exchange, redirect or otherwise change the board rather than repeatedly adding small numerical bonuses.
+
+Use as little special vocabulary as possible. A player should normally be able to understand a card from ordinary language plus the core game terms.
+
+The old shorthand mechanics **SUPPORT**, **SUPPLY**, **OUTMATCHED**, **RESERVE**, **PRESS**, **STEAL COMMAND**, **MOBILE** and **TIRELESS** are retired as player-facing keywords. Their useful ideas may still exist, but cards must say what actually happens.
+
+Examples:
+
+- not “SUPPORT +1”, but “The friendly formation directly ahead has +1 Strength.”
+- not “TIRELESS”, but “This Force may Maneuver while Exhausted.”
+- not “MOBILE”, but “This Force may Maneuver while Unnamed.”
+- not “STEAL 1 COMMAND”, but “Your opponent loses 1 Command, then you regain 1 Command.”
+- not “SUPPLY”, but an explicit logistical action such as moving a prepared Bond or Name forward.
+
+Strength modifiers remain useful as simple glue, but they are not the primary identity of an archetype.
 
 ## Formation states
 
-- **Formation** - Force present.
-- **Unbonded Formation** - Force present, Bond absent.
-- **Bonded Formation** - Force + Bond. It may also have a Name.
-- **Named Formation** - Force + Bond + Name. Every Named Formation is also Bonded.
+- **Formation** - a position containing a Force.
+- **Unbonded Formation** - a Formation without a Bond.
+- **Bonded Formation** - Force + Bond. It may also contain a Name.
+- **Named Formation** - Force + Bond + Name.
 - Force + Name without a Bond is not Named.
 - **Prepared Bond / Prepared Name** - that card is in a position with no Force.
+- **Exhausted Force** - a Force with an Exhaustion token.
 
-**BONDED** is a state. It remains active while Force + Bond are present.
+“Bonded” and “Named” are ordinary game states, not ability keywords. Card text should use normal conditional language such as “While this formation is Named...” or “When this formation becomes Named...”.
 
-**WHILE NAMED** is a state. It remains active while Force + Bond + Name are present.
-
-**BECOMES NAMED** is an event. Resolve it when a Formation transitions from not Named to Named.
-
-## Position and support vocabulary
+## Battlefield position
 
 The three ranks in a Front are **Front**, **Middle**, and **Rear**.
 
-- **directly ahead** - the adjacent position in the same Front one rank toward Front. A Front-row Formation has no position directly ahead.
-- **directly behind** - the adjacent position in the same Front one rank toward Rear. A Rear-row Formation has no position directly behind.
-- **MOVE 1 / move one position** - move the Formation to one orthogonally adjacent active position: one Front left/right in the same rank, or one rank forward/back in the same Front. Never diagonal. The destination must be empty unless the card explicitly says to swap. Move is a card effect, not a Maneuver: it does not require the Formation to be Named, costs no Maneuver Command, and Exhaustion does not stop it.
-- **Move up to N positions** - make up to N legal one-position Moves, one at a time. Every intermediate destination must be legal and empty.
-- **SWAP** - exchange the complete contents of the two specified friendly positions. Both positions must contain a Formation unless the card says otherwise. Swap is a card effect, not a Maneuver: it costs no Maneuver Command and Exhaustion does not stop it.
-- **moves / moved** - a Formation counts as moving whenever it changes battlefield position by Maneuver, Move, or Swap, regardless of which player or effect caused the relocation. This is the event used by cards that react after a Formation moves.
-- **SUPPORT +N** - the friendly Formation directly ahead has +N Strength while the support effect is active.
-- **SUPPLY** - Bonds played onto the friendly Formation directly ahead cost 1 less Command, to a minimum of 0; Names played onto it cost 1 less Command, to a minimum of 1.
-- **OUTMATCHED** - an opposing Formation occupies the same rank in the same Front and has greater current Strength after continuous Strength modifiers are applied. A tie is not OUTMATCHED. This is only a local card condition; it does not decide the Front.
-- **RESERVE +N** - this Formation has +N Strength while the friendly Formation directly ahead is OUTMATCHED.
-- **PRESS +N** - this Formation has +N Strength while at least one opposing Force in this Front is Exhausted.
-- **SUPPLY RAID** - a card may check whether an opposing Formation in its Front currently provides SUPPLY; the raid's payoff is printed on that card and does not remove SUPPLY unless stated.
-- **STEAL N COMMAND** - the opponent loses up to N Command, never below 1, and you regain exactly the amount lost. It does not itself cause Collapse during the Battle.
-- **MOBILE** - this Force may initiate a Maneuver without being Named. It still pays the Maneuver Command cost and obeys adjacency, row, destination, and Exhaustion restrictions.
-- **TIRELESS** - this Force may initiate a Maneuver while Exhausted. TIRELESS ignores only the Exhaustion restriction: the Formation must still satisfy every other Maneuver requirement, including being Named unless another effect says otherwise, paying any Command cost, using an adjacent legal destination, and obeying movement restrictions. It keeps its Exhaustion token, so other cards may still care that it is Exhausted. TIRELESS is boolean: multiple sources do not grant any additional benefit.
-- **EXHAUSTION** - after a Front is lost, every Force that player has in that Front receives one Exhaustion token, to a maximum of one. Exhaustion persists between Battles, moves with the Force, and normally prevents that Force from initiating a Maneuver. If the Force leaves the battlefield, its Exhaustion token leaves with it. Tied Fronts exhaust neither player.
-- **EXHAUSTED** as a timing label is a continuous state active while that Force has an Exhaustion token.
-- **FRONT / MIDDLE / REAR** as a timing label is a continuous positional state. The text is active only while that Formation occupies that rank.
-- Multiple active **SUPPORT +N**, **RESERVE +N**, and **PRESS +N** effects add together. Multiple active **SUPPLY** effects each reduce the cost by 1.
-- **Command modifiers** stack. Add all applicable increases, then apply all applicable reductions. If at least one applicable reduction explicitly says "minimum 0", the final reduced cost may reach 0; otherwise reductions cannot take a positive printed cost below 1 unless a card explicitly says otherwise.
-- Each **Tax marker** is separate. If the next card played satisfies more than one Tax marker, all matching increases apply and all matching "next card" markers are consumed. A marker with an expiry such as "before your next turn" expires when its own text says it does.
-- A **-Strength marker** is a temporary negative marker recording a Battle-long Strength penalty created by card text such as "gets -2 Strength this Battle".
-- A **temporary negative marker** is any adverse marker on a Formation created by a card effect with a finite duration, including -Strength, text-suppression, or ability-lock markers. It does **not** include Exhaustion or a Tax marker on a Front. When a card removes a temporary negative marker, remove one such adverse marker and end that marker's effect.
+- **directly ahead** - the adjacent position in the same Front one rank toward Front.
+- **directly behind** - the adjacent position in the same Front one rank toward Rear.
+- **adjacent position** - one active Front left/right in the same rank, or one rank forward/back in the same Front. Never diagonal.
+- **move one position** - move the complete Formation to one orthogonally adjacent legal empty position. This is a card effect, not a Maneuver, so it costs no Maneuver Command and does not require the Formation to be Named.
+- **swap** - exchange the complete contents of two specified friendly positions. This is a card effect, not a Maneuver.
+- A Formation counts as having **moved** whenever its battlefield position changes through Maneuver, a card move, or a swap.
 
-Positional and Exhaustion text should normally be one short line. The rank, token, and relationship should carry the idea; Forces should not become paragraphs that need rereading every time Strength is counted.
+Cards should normally say these things as sentences rather than as uppercase shorthand.
 
-A Force with an allowed-row restriction may list more than one legal rank. This is a **hard occupancy restriction**, not only a deployment restriction: the Force may be played only in those ranks and may not Maneuver, Move, or Swap into a forbidden rank. In particular, former Rear-only support Forces may occupy **Middle or Rear**; their **REAR** text simply does nothing in Middle.
+## Attacks and afflictions
 
-**Middle-only Forces** are deliberately second-line specialists rather than ordinary Strength bodies with a restriction attached. Their effects should make the Middle row behave like a reserve/support layer: keeping the Force directly ahead operational, feeding prepared components forward, intercepting interaction, repositioning, recovery, or other non-Strength support. The current Middle-only trio is the baseline for this identity: The Relief Column grants TIRELESS forward, The Field Train feeds prepared Bonds/Names to the line ahead, and The Signal Company grants MOBILE forward so an Unnamed front-line Force can reposition.
+Attacking is an Action: once per Force per Battle, no Command by default, legal without a Name. Depleted Forces cannot Attack. Attacks have no automatic health damage and a used Attack is not refreshed by recovery. Multi-class Forces choose one Attack.
+
+| Classification | Basic Attack |
+|---|---|
+| Archer | Exhaust opposing Rear Force in same Front |
+| Skirmisher | Shake opposing Middle Force in same Front |
+| Raider | Deplete opposing Middle/Rear Force in same Front, if the opposing Frontline is empty |
+| Rider | Shake flanked opposing Frontline Force in adjacent active Front |
+
+Guards in Middle screen the Rear Force directly behind against basic Archer Attacks, unless the Guard is Shaken or Depleted.
+
+There are exactly three core afflictions: **Exhausted** prevents initiating Maneuvers; **Shaken** reduces formation Strength by 2 at Front resolution (minimum zero); **Depleted** prevents Attacks and printed ACTION abilities on the formation. Duplicate markers do not stack. All three clear at Battle end; recovery is card-specific, with no generic Recover Action.
+
+## Boons and protection
+
+Boons are temporary beneficial markers. Like afflictions, they do not stack with themselves, move with the Force, and all clear at Battle end.
+
+- **Guarded:** Prevent the next affliction that would affect this Force, then remove Guarded. It does not protect against forced movement, attachment removal or Command loss.
+- **Inspired:** Remove Shaken from this Force and prevent it becoming Shaken while Inspired.
+- **Empowered:** The next Attack this Force makes ignores screening. Remove Empowered after that Attack. All other range, flanking and eligibility restrictions still apply.
+
+A Depleted Force cannot Attack even if Empowered. A prevented affliction does not count as inflicted for card effects that refer to an enemy becoming afflicted. There is no generic Action to gain a Boon: cards grant them.
+
+Protection and support are different roles. Middle Guards screen Rear Forces from basic Archer Attacks. Strongholds may protect attachments and prepared cards; Ships may move friendly formations out of danger; Healers remove afflictions; Druids grant and transform Boons; Stewards remove Depletion; and Carriers move components or transfer Boons. These roles grant no universal bonuses unless explicitly stated on a card.
+
+## Flanking
+
+A Frontline Force is flanked if an enemy Frontline Force occupies an immediately adjacent active Front and its controller has no Frontline Force in that neighboring Front. This applies in **both directions** between any active adjacent Fronts. Inactive Fronts and the outside edges of the active battlefield never create a flank. A flank is only a tactical condition; it **does not automatically apply an affliction**. Rider Attacks and specific card effects exploit it.
+
+## Open lines and support positions
+
+Do not create another keyword for “exposed”, “breakthrough”, “supply line”, or similar ideas unless repeated play proves that one is necessary.
+
+Cards should instead use explicit board conditions:
+
+- “if there is no friendly Force directly ahead...”
+- “if the opposing Front row is empty...”
+- “choose an opposing Exhausted Force...”
+- “choose a prepared Bond or Name in this Front...”
+- “when the friendly Formation directly ahead moves or leaves play...”
+
+This makes Front, Middle and Rear matter without forcing players to memorize another glossary.
+
+Middle-only Forces are second-line specialists. Their purpose is not extra Strength. They should do things such as:
+
+- relieve or replace the line ahead;
+- move prepared components forward;
+- let the Force ahead reposition;
+- intercept Tactics;
+- remove afflictions;
+- react when the Front row opens.
+
+Rear specialists should feel safer and more logistical, but should become vulnerable once the line in front of them opens.
+
+## Row restrictions
+
+A printed row restriction is a **hard occupancy restriction**, not merely a deployment restriction.
+
+A restricted Force may be played only in its legal rows and may not Maneuver, move or swap into a forbidden row. The top-row rank glyph is only a reminder; the same restriction must appear in the rules text.
 
 ## No-lifting rule
 
-A Named Formation must be fully playable without lifting, sliding or fanning any card.
+A Named Formation must remain playable without lifting, sliding or fanning cards.
 
 Force is bottom, Bond middle, Name top. Force and Bond each leave a 10.5 mm top edge exposed.
 
-A buried rule may exist only if it was a PLAY effect that has finished, or its complete live meaning is printed in the exposed edge.
+A buried rule may exist only if:
 
-## Timing and real decisions
+- it resolves when the card is played and then no longer matters; or
+- its complete live meaning is also visible in the exposed strip.
+
+## Conditions and timing
+
+Conditions must read as conditions. Do not use a bare label such as “REAR”, “BONDED” or “NAMED” as if the label itself were the rule.
+
+Prefer:
+
+- “While this formation is in the Rear row...”
+- “If the opposing Front row is empty...”
+- “When this formation becomes Named...”
+- “When an opposing Tactic targets...”
+
+The timing label helps scanning, but the sentence must remain self-contained.
 
 **Once per Battle is a limit, not a timing window.**
 
-A card never says merely `1/BATTLE - do something`. A limited ability still says what kind of decision it is:
+A limited ability still needs a real decision:
 
-- **ACTION · 1/BATTLE** - spend one of the turn's Actions; the limit prevents repetition.
-- **REACTION · 1/BATTLE** - when the stated event occurs, decide whether to spend the limited response.
-- **TRIGGER · once per Battle** - only on a visible Name/Hero, and only where choosing which trigger to spend or limiting repetition matters.
+- **ACTION · once per Battle** - spend an Action to use it.
+- **REACTION · once per Battle** - decide whether to use it when the stated event occurs.
+- **TRIGGER · once per Battle** - use only where limiting the visible trigger creates a meaningful choice.
 
-A limited-use wrapper must change a real decision. An automatic `1/BATTLE - +1 Strength`, automatic free Command gain, or automatic free card filtering is not an ability; write it as a stat/state or give it an Action, reaction window, or cost.
+Avoid invisible “first X each Battle” bookkeeping when a visible state or explicit Action can create the same identity.
 
-Avoid invisible "the first X each Battle/turn" bookkeeping when the same identity can be expressed as a visible continuous rule.
+## Mechanical roles
 
-The exposed top row is a **summary, never the only source of a rule**. Anything communicated there must also be stated in the card body. In particular, a legal-rank glyph must be backed by explicit placement text such as "This Force may only occupy the Middle or Rear rows."
+Classifications should create recognizable play patterns.
 
-State and positional conditions are written as real conditions in prose. Do not rely on a bare label such as **REAR**, **FRONT**, **BONDED**, **EXHAUSTED**, or **WHILE NAMED** to carry meaning by itself. Write "While this formation is in the Rear row...", "While this formation is Bonded...", "If...", or "When..." as appropriate. The timing label and exposed reminder exist for scanning; the sentence remains self-contained.
+- **Rider** - creates or closes flanks through movement.
+- **Guard** - intercepts interaction, holds gaps, protects the line behind.
+- **Spearman** - anchors the Front row and punishes direct pressure.
+- **Raider** - attacks exhausted troops, prepared cards and support positions.
+- **Skirmisher** - forces movement, opens holes and exploits unstable lines.
+- **Archer** - reaches formations behind an open Front row and pressures support positions.
+- **Scout** - reveals plans, finds openings and enables precise movement.
+- **Healer** - removes Exhaustion and other attrition.
+- **Steward / Builder** - moves components, prepares reserves and creates battlefield infrastructure.
+- **Captain / King / Heir** - coordinates movement, replacement and timing.
+- **Seer** - bends hidden information, timing, adjacency or other assumptions.
+- **Ship / Stronghold / Veteran** - retain distinct identities through card text rather than intrinsic glossary rules.
+
+Classifications themselves still have no automatic rules.
 
 ## Card-type grammar
 
-**Force** - base Strength and one simple battlefield identity. Prefer no rule, PLAY, a short positional/state rule, or a repeatable ACTION whose complete instruction fits in the exposed edge. Regular Forces do not use once-per-Battle abilities.
+**Force** - the battlefield body. Prefer one clear positional identity. A regular Force may move, protect, exploit Exhaustion, support the line or create pressure; avoid stacking several unrelated clauses on one Force.
 
-**Bond** - compact middle-layer support. Use PLAY for one-shot choices and BONDED / WHILE NAMED / positional state text for live effects. Bonds do not carry ACTION or REACTION abilities while buried.
+**Bond** - the relationship beneath a Name. PLAY effects may be more dramatic because they resolve before being buried. Live Bond text must fit the exposed strip and should usually change the relationship of the formation to the position ahead/behind rather than add generic Strength.
 
-**Name** - visible top card. BECOMES NAMED, ACTION, REACTION, TRIGGER, CONTINUOUS or WHILE NAMED.
+**Name** - visible personality and repeatable decision layer. Names are a good home for Actions, Reactions, movement, transfers, targeted disruption and odd exceptions.
 
-**Hero** - Force mode follows Force grammar; Name mode follows Name grammar.
+**Hero** - the highest-complexity formation card. Force mode should remain readable when buried; Name mode may carry the stranger ability.
 
-**Tactic** - immediate hostile interaction. Every Tactic affects the opponent.
+**Tactic** - immediate hostile interaction. Tactics should change the opponent's position, resources, components, Exhaustion or options. Avoid using “gets -2 Strength” as the default hostile effect.
 
-**Order** - immediate self-support instruction. Playing it spends one Action exactly like any other card play; resolve it, then discard it. A 0-Command Order must require a class, board state, position, or other real eligibility condition.
+**Order** - immediate friendly reorganization or recovery. Orders should feel like issuing an instruction: move, swap, relieve, attach, recover, redeploy.
 
-**Stratagem** - hidden support for your own side.
+**Stratagem** - hidden reversal or trap. A Stratagem should create a memorable consequence when revealed, not merely a small Strength surprise.
 
-**Narrative** - face-up support for your own troops, classifications or formation states. A Narrative may have a visible ACTION ability when spending an Action is the point of the choice.
+**Narrative** - the main home for “magic”. Narratives may temporarily bend the rules of the battlefield: geography, adjacency, ownership of Bonds/Names, what counts as a legal movement, which Fronts matter, or how a particular event resolves. Strange effects are welcome when their duration and consequences remain explicit.
 
-There are deliberately no RESOLUTION effects in the pool.
+## Strange effects and “magic”
 
-## Classifications
+The setting's magic should feel like history, omen and battlefield reality becoming unreliable rather than generic spell damage.
 
-Classifications have no intrinsic rules.
+Good examples:
 
-- **Kind** - Human, Ship, Stronghold.
-- **Role** - Archer, Guard, Scout, Rider, Skirmisher, Raider, Healer, Spearman, Steward, Builder, Seer.
-- **Rank** - King, Captain, Veteran, Heir.
+- two Fronts exchange their complete positions;
+- a Name moves from one Bonded Formation to another;
+- two Bonds exchange formations;
+- the outer active Fronts count as adjacent for a Battle;
+- a discarded Force returns Exhausted in an empty Rear position;
+- a Formation is moved because “the road was elsewhere”;
+- a Tactic is redirected to a different legal target;
+- a Front's support positions become reachable because its Front row is empty.
 
-The pool, not the glossary, gives those labels personality.
+These effects should usually replace bland arithmetic cards rather than expand the pool indefinitely.
+
+## Balance guardrails
+
+The overhaul should create more consequences without turning the game into unchecked snowballing.
+
+- **Flanking itself causes no affliction.** It creates a vulnerability for Rider Attacks and card effects, without automatically losing Command or discarding cards.
+- Returning an attached Bond or Name to hand normally costs a card/Action and requires a positional or Exhaustion condition.
+- Forced movement is usually one position. Moving multiple positions belongs on a Hero, Narrative, or expensive/conditional effect.
+- Repeated disruption should usually cost an Action and/or Command.
+- A card that changes adjacency, swaps whole Fronts, revives a Force or otherwise bends a core rule should normally last only for the current Battle or resolve once.
+- Permanent denial of an opponent's card text is avoided.
+- Broad Strength bonuses should be rare and modest.
+- Command theft remains capped by the normal rule that mid-Battle effects cannot cause immediate Collapse.
+- Avoid automatic trigger chains that can recursively move or exhaust the battlefield without a player decision.
+
+The target is not maximum complexity. The target is **consequential decisions with readable cards**.
 
 ## Typography
 
@@ -116,7 +220,8 @@ Exactly three font families:
 
 Each effect starts on a new line. Timing is visually distinct. Prose sits directly on parchment rather than inside a textbox.
 
-
 ## Zero-Command cards
 
-A printed Command cost of **0** removes only the Command payment. Playing the card still consumes an Action and the card itself still leaves the player's hand. Zero-Command Orders are never unrestricted: each requires a class, position, board state, or other real eligibility condition. Their value budget still includes spending half a normal two-Action turn.
+A printed Command cost of **0** removes only the Command payment. Playing the card still consumes an Action and the card leaves the player's hand.
+
+A 0-Command Order must require a class, position, board state or other real eligibility condition. Its value budget still includes spending half a normal two-Action turn.
