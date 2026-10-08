@@ -82,4 +82,4 @@ The printed [rulebook](../rules/rulebook.md), [quick reference](../web/playmat.h
 
 ### Cost/diversity verification
 
-Use `python tools/check_physical_cost_balance.py` for 15 static tabletop decision checks and [the complete 131-card cost ledger](../cards/physical-cost-review.md). A GitHub Actions advisory build checks the card export, generated Pages, PDF, and optional browser text fit. The build is not a full simulation of the print rules.
+Use `python tools/check_physical_cost_balance.py` for 15 static tabletop decision checks and [the complete 131-card cost ledger](../cards/physical-cost-review.md). A GitHub Actions advisory build checks the card export, generated Pages, PDF, and rulebook PDF. Full-size browser/card geometry still needs a repaired layout fixture or local print inspection. The build is not a full simulation of the print rules.
