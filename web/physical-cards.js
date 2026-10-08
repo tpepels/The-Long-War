@@ -98,16 +98,17 @@ function liveMarkup(effect){
 function placementRows(card){
   return Array.isArray(card.allowed_rows)?card.allowed_rows:(card.placement?[card.placement]:[]);
 }
+const placementName=row=>row==="front"?"Frontline":titleCase(row);
 function placementMarkup(card){
   const rows=placementRows(card);
   if(!rows.length)return"";
-  const label=rows.map(titleCase).join(" / ")+" only";
+  const label=rows.map(placementName).join(" / ")+" only";
   return '<span class="edge-placement" title="'+esc(label)+'">'+rowGlyph(rows)+'</span>';
 }
 function placementRuleText(card){
   const rows=placementRows(card);
   if(!rows.length)return"";
-  const labels=rows.map(titleCase);
+  const labels=rows.map(placementName);
   const joined=labels.length===1?labels[0]:labels.slice(0,-1).join(", ")+" or "+labels.at(-1);
   return "This Force may only occupy the "+joined+" row"+(labels.length>1?"s":"")+".";
 }
