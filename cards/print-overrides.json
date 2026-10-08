@@ -52,7 +52,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If played into an empty Middle position, you may swap this formation with the friendly Frontline formation in this Front, if both placements are legal."
+          "text": "If played into an empty Middle position, you may swap this formation with the friendly Frontline formation here, if both placements are legal."
         }
       ],
       "design_note": "One-time frontline relief; still obey occupancy restrictions."
@@ -163,7 +163,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal before Strength is compared in this Front, if your Frontline here is empty and a friendly Middle formation can legally move into it. Move that formation into your Frontline. It gets +2 Strength this Battle."
+          "text": "Reveal before Strength is compared in this Front. If your Frontline here is empty, move a friendly Middle formation into it, if legal. It gets +2 Strength this Battle."
         }
       ],
       "design_note": "A hidden reinforcement, not a Command refund."
@@ -173,7 +173,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose one of your Kings or Captains. You may move another friendly formation in its Front one position into an adjacent active empty position, if legal."
+          "text": "Choose one of your Kings or Captains. You may move another friendly formation in its Front to an adjacent active empty position, if legal."
         }
       ],
       "design_note": "A leadership-gated movement Order."
@@ -234,7 +234,7 @@
     {
       "id": "the-banner-singers",
       "index": 0,
-      "exposed": "Named in Middle: enemy Tactics vs other friends here +1"
+      "exposed": "Named Middle: enemy Tactics vs others here cost +1"
     },
     {
       "id": "the-vardai",
@@ -244,7 +244,7 @@
     {
       "id": "the-serekh",
       "index": 0,
-      "exposed": "Front: enemy Tactics vs friendly directly behind +1"
+      "exposed": "Front: enemy Tactics vs friend behind cost +1"
     },
     {
       "id": "the-relief-column",
@@ -294,7 +294,7 @@
     {
       "id": "the-river-raiders",
       "index": 0,
-      "exposed": "ACTION: pay 1; enemy Front empty: raid support Bond/Name here"
+      "exposed": "ACTION: pay 1; enemy Front empty: raid Middle/Rear Bond/Name"
     },
     {
       "id": "the-watchtowers-of-eren",
@@ -309,7 +309,7 @@
     {
       "id": "supported-by",
       "index": 0,
-      "exposed": "Bonded in Middle: enemy Tactics vs directly behind +1"
+      "exposed": "Bonded Middle: enemy Tactics vs behind cost +1"
     }
   ]
 }
