@@ -39,12 +39,12 @@ and the card illustration itself remain unfiltered.
   The footer identity row itself lives inside the footer band and is vertically
   aligned with the Command seal, leaving the body space available to rules text.
   Every card begins that row with its family symbol and written family name, then
-  a centred dot before any formation classifications. Event cards (Tactic, Order,
-  Stratagem and Narrative) do not repeat reference metadata as an "Involves" footer;
-  any referenced class is already named in the rule text and is shown there with
-  its class symbol at text size.
+  a centred dot before any classifications the card itself has. No card family
+  prints reference metadata as an "Involves" footer. Referenced classes belong
+  in the rule text when relevant; event-card rule text also shows their symbols
+  inline at text size.
 - The footer reserves **15 mm** for the ID, revision, family identity,
-  classifications/references, Unique label when applicable, and a **12.5 mm**
+  authored classifications, Unique label when applicable, and a **12.5 mm**
   raster Command seal.
 - A4 landscape sheets hold **4 × 2 cards**: exactly **272 × 192 mm**, without gaps.
 
