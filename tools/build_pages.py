@@ -43,6 +43,8 @@ PRINTABLE_PAGES = {
     "playmat.html",
     "tokens.html",
 }
+# These files belong only to the native-runtime Webgame, not inspection Pages.
+WEBGAME_RUNTIME_SCRIPTS = ("play.js", "browser-engine.mjs", "remote-peer.mjs")
 PRINT_ART_MAX_PX = 960
 PRINT_ART_QUALITY = 86
 CARD_FRAME_MAX_PX = {
@@ -329,6 +331,19 @@ def render_rule_tokens(source: str, rules: GameRules) -> str:
     return rendered
 
 
+def copy_web_sources(*, inspection_only: bool) -> None:
+    """Copy public site assets, excluding orphaned Webgame scripts in inspection builds.
+
+    Source web/ still includes the complete Webgame for future engine work.
+    Without its page and runtime, its scripts must not appear in dist/: static
+    integrity checks correctly flag their absent DOM targets and dependencies.
+    """
+    ignored = ["art", "site-nav.template.html"]
+    if inspection_only:
+        ignored.extend(WEBGAME_RUNTIME_SCRIPTS)
+    shutil.copytree(WEB, DIST, ignore=shutil.ignore_patterns(*ignored))
+
+
 def main() -> None:
     card_data = load_card_file(CARDS)
     inspection_only = os.environ.get("TLW_PAGES_INSPECTION_ONLY") == "1"
@@ -337,7 +352,7 @@ def main() -> None:
         shutil.rmtree(DIST)
     # Canonical PNGs are authoring inputs. Generate only optimized derivatives
     # for Pages; never copy the originals into disposable deployment output.
-    shutil.copytree(WEB, DIST, ignore=shutil.ignore_patterns("art", "site-nav.template.html"))
+    copy_web_sources(inspection_only=inspection_only)
     if runtime is not None:
         shutil.copytree(runtime, DIST / "runtime")
     else:
