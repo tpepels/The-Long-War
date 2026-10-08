@@ -120,11 +120,19 @@ def _png_icon_errors(root: Path) -> list[str]:
     names = PNG_ICON_NAME_RE.findall(match.group(1))
     if len(names) != len(set(names)):
         return ["card-symbols.js declares duplicate PNG icon names"]
-    return [
+    icon_dir = root / "art" / "icons" / "sizes" / "128"
+    available = {path.stem for path in icon_dir.glob("*.png")}
+    enabled = set(names)
+    errors = [
         f"{_display_path(script, root)}: missing PNG icon asset for {name}"
-        for name in names
-        if not (root / "art" / "icons" / "sizes" / "128" / (name + ".png")).is_file()
+        for name in sorted(enabled - available)
     ]
+    # Newly generated or uploaded PNGs should never silently remain SVG-only.
+    errors.extend(
+        f"{_display_path(script, root)}: available PNG icon not enabled: {name}"
+        for name in sorted(available - enabled)
+    )
+    return errors
 
 
 def _source_reference_errors(root: Path) -> list[str]:
