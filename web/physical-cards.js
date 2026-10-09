@@ -118,7 +118,6 @@ function liveMarkup(effect){
       (limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'</span>';
   }
   const reminder=exposedText(effect);
-  const timing=LABEL[effect.timing]||effect.timing;
   const redundant=effect.timing==="continuous"||reminder.toUpperCase().startsWith(timing);
   return '<span class="edge-mechanic" data-timing="'+esc(effect.timing)+'" data-reminder-has-timing="'+redundant+'" aria-label="'+esc(timing+(limited?" once per Battle":"")+": "+effect.text)+'"><span class="edge-timing-word">'+esc(timing)+'</span>'+(limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'<span class="edge-live-text">'+esc(reminder)+'</span></span>';
 }
