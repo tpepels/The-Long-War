@@ -189,12 +189,7 @@ cdef int ordered_actions_into(
         return 0
 
     for i in range(n):
-        scores[i] = evaluator.action_order_score_fast(
-            state,
-            actor,
-            actions[i],
-            order_scratch,
-        )
+        scores[i] = _sg_order_score(evaluator, state, actor, actions[i], order_scratch)
 
     # Beam membership is determined only by the heuristic policy. A
     # transposition-table preferred move may improve traversal order, but it
@@ -290,7 +285,7 @@ cdef double native_alphabeta(
         depth <= 0
         and not _sg_forced_substep(state)
     ):
-        return evaluator.strategic_evaluate_fast(state, root_player)
+        return _sg_strategic_value(evaluator, state, root_player)
 
     key = _sg_state_hash(engine, state)
     if table is not None and table.probe(
@@ -318,7 +313,7 @@ cdef double native_alphabeta(
         order_scratch,
     )
     if n <= 0:
-        return evaluator.strategic_evaluate_fast(state, root_player)
+        return _sg_strategic_value(evaluator, state, root_player)
 
     maximizing = actor == root_player
     value = -1.0e300 if maximizing else 1.0e300
