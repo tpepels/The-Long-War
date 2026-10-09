@@ -121,7 +121,7 @@ def run() -> None:
         text = effects(card)[0]["text"]
         assert len(text) <= 160
         assert all(part in text for part in parts), (cid, text)
-        assert row if cid in rows else False
+        assert rows[cid]["review"] == "new_opening_card"
     assert cards["had-been-ordered-forward"]["strength_modifier"] == 0
     assert cards["every-bow-was-strung"]["command_cost"] == 1
     assert cards["the-scouts-had-warned-them"]["command_cost"] == 1
