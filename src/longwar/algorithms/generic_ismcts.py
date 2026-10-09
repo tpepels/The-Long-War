@@ -86,6 +86,20 @@ class GenericISMCTS(Generic[StateT, ActionT]):
         root_legal = list(game.legal_actions(root_states[0]))
         if not root_legal:
             raise ValueError("nonterminal root has no legal actions")
+        root_actions = {game.action_id(action) for action in root_legal}
+        if len(root_actions) != len(root_legal):
+            raise ValueError("duplicate root action identifiers")
+        # A legal decision cannot depend on information the actor cannot see.
+        # Reject bad game adapters before joining incompatible belief samples
+        # in one information-set node.
+        for sample in root_states[1:]:
+            available = list(game.legal_actions(sample))
+            keys = {game.action_id(action) for action in available}
+            if keys != root_actions or len(keys) != len(available):
+                raise ValueError(
+                    "belief samples sharing an information set must agree "
+                    "on legal root actions"
+                )
         root_key = (player, root_info)
 
         for index in range(iterations):
