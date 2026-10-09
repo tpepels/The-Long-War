@@ -59,9 +59,15 @@
     },
     {
       "id": "every-bow-was-strung",
-      "opportunity": "Two or more Bonded Archer formations already threaten opposing Rear units and a 1C Narrative would multiply their Strength.",
-      "comparison": "Compare the passive Archer total with a 1C Narrative enabling a Move or hidden-plan decision for those same Archers.",
-      "failure_signal": "If permanent deployment plus this cheap Strength multiplier dominates counterattacks, reconsider the bonus or prerequisites."
+      "opportunity": "One Bonded Archer can declare an Opening Strike against an opposing Middle Force while an ordinary Archer Strike against Rear would be screened or less relevant.",
+      "comparison": "Compare paying 1C and a Narrative PLAY Action for one Middle-target Opening Strike with relying on The Crow Archers when the opposing Frontline is empty.",
+      "failure_signal": "If middle-target Strikes are seldom legal or the existing Crow Archers provide the same answer reliably, the Narrative adds little tactical value."
+    },
+    {
+      "id": "had-been-ordered-forward",
+      "opportunity": "A Bonded formation has a legal opening Maneuver and a second adjacent empty legal position that creates a flank or changes which Front it defends.",
+      "comparison": "Compare one free two-position Opening Maneuver against the regular one-position Opening Maneuver and the hidden Rider-specific Battle Turned East extension.",
+      "failure_signal": "If another Move only repositions without changing an Attack, flank or final Front result, this 1C zero-Strength Bond may be too narrow."
     },
     {
       "id": "iria",
@@ -359,9 +365,9 @@
     },
     {
       "id": "the-scouts-had-warned-them",
-      "opportunity": "Both players contest a Front with Scout/Seer and opponent sets a hidden Stratagem there.",
-      "comparison": "Compare 1C + hidden-plan ACTION for Guarded versus a standalone Guarded Bond.",
-      "failure_signal": "If Guarded is too late or never prevents an affliction, lower priority or redesign."
+      "opportunity": "A friendly Scout or Seer occupies the Stratagem's Front when both commanders reveal Opening Orders and one own Maneuver starts there with two possible destinations.",
+      "comparison": "Compare this 1C pre-set hidden redirection after seeing enemy orders with an unmodified opening Maneuver, No Step Back and The Battle Turned East.",
+      "failure_signal": "If redirection never changes an enemy Strike's legality, a flank or a decisive Front, it is a costly and redundant layer of intrigue."
     },
     {
       "id": "the-serekh",
