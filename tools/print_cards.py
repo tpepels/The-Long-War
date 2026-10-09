@@ -88,6 +88,31 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         card.pop("design_rules", None)
         card.pop("combat_redesign_proposal", None)
 
+    # Hero Force/Name faces are stored in separate mode effect arrays.
+    # Support presentation-only wording corrections without replacing either
+    # mode or mutating the native/Webgame canonical card definitions.
+    hero_fixes = overrides.get("hero_mode_wording", [])
+    hero_targets = set()
+    for fix in hero_fixes:
+        card_id = fix["id"]
+        mode = fix["mode"]
+        index = fix["index"]
+        key = (card_id, mode, index)
+        if key in hero_targets or card_id not in by_id or by_id[card_id]["type"] != "hero":
+            raise ValueError("Invalid or duplicate Hero wording override: " + str(key))
+        hero_targets.add(key)
+        if mode not in ("force", "name"):
+            raise ValueError("Unknown Hero mode in print override: " + str(key))
+        effects = by_id[card_id]["modes"][mode]["effects"]
+        if type(index) is not int or not 0 <= index < len(effects):
+            raise ValueError("Invalid Hero effect index: " + str(key))
+        if effects[index]["text"] != fix["old_text"] or not fix.get("text"):
+            raise ValueError("Hero wording override stale or empty: " + str(key))
+        effects[index]["text"] = fix["text"]
+        by_id[card_id]["print_revision"] = "hero-wording"
+        by_id[card_id].pop("design_rules", None)
+        by_id[card_id].pop("combat_redesign_proposal", None)
+
     limit_ids = overrides.get("once_per_battle_text_fixes", [])
     if len(set(limit_ids)) != len(limit_ids):
         raise ValueError("Duplicate print timing fix")
@@ -166,6 +191,7 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
     printed["status"] = "physical-print-only"
     printed["print_only"] = True
     printed["print_override_count"] = len(seen)
+    printed["print_hero_wording_count"] = len(hero_targets)
     printed["print_timing_fix_count"] = len(limit_ids)
     printed["print_cost_adjustment_count"] = len(cost_seen)
     return printed

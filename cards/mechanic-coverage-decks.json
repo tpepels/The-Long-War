@@ -368,6 +368,104 @@
           "copies": 2
         }
       ]
+    },
+    {
+      "id": "raw-strength-control",
+      "title": "Raw Strength Control",
+      "focus": "A deliberately simple-Force comparison: all 16 Force cards have no printed special ability. Evaluate whether efficient persistent Strength already beats elaborate combinations.",
+      "setup": "Use only Thirty Spears, Fifty Men, Hundred Shields and Aradai as Forces (four copies each). Other card types remain legal and supply simple Bonds, Names and counterplay. Do not treat this as proof that non-Force combos cannot win; compare mirrored draws against each core combo deck.",
+      "observations": [
+        "At equal spent Command and Actions, calculate each Front's persistent Strength before temporary bonuses.",
+        "Record whether plain Force cards are drawn and playable more often than multi-card combo pieces and whether 12 positions become saturated.",
+        "Compare winning Fronts, Command at each recovery, 1/2/3-card setup cost and how frequently opponent Tactics or Attacks reverse the result.",
+        "The Aradai has the basic Raider classification/Attack despite no printed special text; record whether its basic Attack contributes. Force pool is otherwise pure printed Strength."
+      ],
+      "cards": [
+        {
+          "id": "the-fifty-men",
+          "copies": 4
+        },
+        {
+          "id": "thirty-spears",
+          "copies": 4
+        },
+        {
+          "id": "a-hundred-shields",
+          "copies": 4
+        },
+        {
+          "id": "the-aradai",
+          "copies": 4
+        },
+        {
+          "id": "followed",
+          "copies": 4
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 4
+        },
+        {
+          "id": "marched-with",
+          "copies": 4
+        },
+        {
+          "id": "edrin",
+          "copies": 1
+        },
+        {
+          "id": "meren",
+          "copies": 1
+        },
+        {
+          "id": "sorin",
+          "copies": 1
+        },
+        {
+          "id": "eira",
+          "copies": 1
+        },
+        {
+          "id": "asha-the-shield-bearer",
+          "copies": 1
+        },
+        {
+          "id": "torren",
+          "copies": 1
+        },
+        {
+          "id": "teren",
+          "copies": 1
+        },
+        {
+          "id": "iria",
+          "copies": 1
+        },
+        {
+          "id": "the-line-wheeled",
+          "copies": 2
+        },
+        {
+          "id": "all-reserves-forward",
+          "copies": 2
+        },
+        {
+          "id": "they-let-them-through",
+          "copies": 2
+        },
+        {
+          "id": "no-step-back",
+          "copies": 2
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 2
+        },
+        {
+          "id": "the-battle-had-chosen-them",
+          "copies": 2
+        }
+      ]
     }
   ]
 }

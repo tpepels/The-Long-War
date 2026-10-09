@@ -257,3 +257,55 @@ same layouts with Battle I, II, III and a saturated late board. Record
 Stratagems discarded unrevealed, number of legal Riders' flanked targets,
 Seer-supported Named formations, and successful Front exchanges.
 
+## Card-language, raw Strength and snowball review
+
+This section documents **future tabletop comparisons**. It does not change
+the canonical physical rules or claim that any match was played.
+
+### Similar printed effects must read alike
+
+Put The Red Shields, The Serekh, Supported By, Alda and The Banner Singers
+side by side. Each Tactic surcharge should clearly identify *whose* Tactic
+is affected and *which* friendly target is protected; do not apply a
+self-protection ability to adjacent formations automatically. Compare
+The River Raiders and Seven Black Ships for the same open-Frontline
+attachment return instruction at different timings. Compare The
+Field Train and The House of Reed for legal prepared-card transfer and
+the Named completion reward.
+
+Inspect both Hero modes on physical cards; the print-only Hero text must
+not change the native/Webgame data.
+
+### Simple Forces against Named formation investment
+
+Set two active Fronts with room. Player A has Thirty Spears (3S, 1C),
+Fifty Men (5S, 2C) and Hundred Shields (6S, 3C). Player B has Fifty
+Men with Followed and a Name (8S after Named completion, 4C total).
+Record number of *card-play Actions*, total Command, occupied ranks and
+Strength at the moment of each Battle resolution. In a late saturated
+board, compare replacing one plain Force with a Bond+Name improvement
+to an existing Force.
+
+Repeat using [Raw Strength Control](mechanic-coverage-decks.md#raw-strength-control)
+against each core deck with mirrored hand/deal order. The simple deck
+does not automatically win: track conditions, attached-card disruption,
+Guards, targeted Stratagems, and how often cards become unplayable.
+
+### Two lost-Front Exhaustion procedures (experiment only)
+
+Under **current physical rules**, lose a Front containing three
+unprotected friendly Forces. All three become Exhausted after old
+afflictions clear. Next Battle, that Front starts with a combined
+−3 Strength from Exhaustion.
+
+Separately, under **proposed Variant A**, after the same loss the losing
+player chooses only **one unguarded Force** there to become Exhausted,
+or a Guarded Force if no unguarded one is available. Next Battle that
+Front loses at most −1 Strength from this new marker. Apply exactly the
+same −1 Command penalty, Collapse timing, draw and recover schedule
+in both trials.
+
+**Record:** whether either version makes a repeated Front loss almost
+inevitable by Battle II/III, and how often recovery/healing changes that
+result. Do not mix the variant into normal logged games until a rule
+change is accepted.

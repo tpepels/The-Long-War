@@ -1,239 +1,358 @@
-# Four Strength-first physical combo decks
+# Physical combo playtest decks
 
-**Phase 5:** these curated **48-card physical-only playtest decks** prioritize repeatable formation, defence and combat combinations over nominal archetypes such as movement or scouting. Every main deck has **at most 14 one-copy titles** instead of the previous 32–36. Each deck also has three documented combinations with several interchangeable enablers and payoffs.
+**Six 48-card decks:** four repeatable core combinations and two supplementary archetype-coverage/combo exercises. All are **physical-print only**; the native/Webgame uses different rules. Together with the [four diagnostic decks](mechanic-coverage-decks.md), they represent **all 131 printed card identities**.
 
-These are deliberately **not** native/Webgame decks. The catalogue is `cards/cards.json` with `cards/print-overrides.json` applied. Printed Command totals and Force Strength below include those overrides. The [three mechanic-coverage decks](mechanic-coverage-decks.md) are separate diagnostic exercises, not an additional set of recommended main decks.
-
-The combination availability percentages measure drawing **at least one of the listed enablers and one listed payoff** in the first 10 or 20 cards seen from 48, ignoring mulligans. They are **not** rates of legal formation completion, activation, winning a Front, or actual games.
+The supplemental decks deliberately include more singletons to test uncommon cards. Do not confuse those with the four core decks, whose repeatable enablers are tuned for consistency. The enabler/payoff probabilities below describe **seeing at least one card from each specified group** after 10 or 20 draws from 48, not whether the combination can be legally played or win a Front.
 
 ## Banner & Blood
 
-**Game plan.** Reliable leadership and permanent Strength: Captain/King formations amplify Bonded stacks and convert close Fronts through repeatable hidden plans.
+Reliable leadership and permanent Strength: Captain/King formations amplify Bonded stacks and convert close Fronts through repeatable hidden plans.
 
-**Test question.** With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?
+**Test question:** With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?
 
-**Composition:** 48 cards, 16 Forces, 12 one-copy titles. **Printed cost total:** 80 Command. **Base Force Strength total:** 64.
+48 cards · 16 Forces · 27 titles · 12 one-copy titles · 80 total printed Command · 64 sum printed Force Strength (not a Front total)
 
-### Signature combinations
+### Combinations to test
 
 - Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them give several independent leadership payoffs.
 - Followed x3 and The Battle Had Chosen Them x2 reward any of six different Names; the large Fifty Men, Hundred Shields and First Spear remain useful even before Named completion.
 - Stood Fast With x2 guards a critical Frontline from flanking and protects the Rider weakness; First Spear x3 can place Guarded on Middle support.
 - The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed final swings.
 
-### Combination availability (not legality)
+### Card availability, not playable-combo probability
 
-| Package | Enabler copies | Payoff copies | First 10 cards | First 20 cards |
+| Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
 | Leadership Strength spike | 9 | 7 | 74.1% | 98.0% |
 | Named persistent Strength | 8 | 5 | 60.5% | 93.5% |
 | Bond exchange and defended ranks | 9 | 4 | 55.2% | 89.1% |
 
-### Full list
+### Cards
 
-| Copies | Printed title | Type |
+| Copies | Card | Type |
 |---:|---|---|
-| 3 | The Late Banner | Force |
-| 3 | The First Spear | Force |
-| 3 | The Red Shields | Force |
-| 2 | A Hundred Shields | Force |
-| 3 | The Fifty Men | Force |
-| 2 | The Banner Singers | Force |
-| 3 | Marched Beneath the Banner of | Bond |
-| 3 | Followed | Bond |
-| 2 | Stood Fast With | Bond |
-| 1 | Guarded | Bond |
-| 1 | Namar | Name |
-| 1 | Arel | Name |
-| 1 | Oren | Name |
-| 1 | Teren | Name |
-| 1 | Meren | Name |
-| 1 | Edrin | Name |
-| 1 | Avaros, the Bronze King | Hero |
-| 1 | Doros, the Last Spear | Hero |
-| 1 | Alda, Keeper of the Ford | Hero |
-| 2 | All Reserves Forward | Tactic |
-| 2 | The Line Wheeled | Tactic |
-| 2 | The Center Must Hold | Stratagem |
-| 2 | Every Banner Turned Toward Them | Stratagem |
-| 2 | The Battle Had Chosen Them | Narrative |
-| 2 | The King Had Given the Order | Narrative |
-| 1 | Re-form the Line | Order |
-| 1 | Fresh Orders | Order |
+| 3 | The Late Banner | force |
+| 3 | The First Spear | force |
+| 3 | The Red Shields | force |
+| 2 | A Hundred Shields | force |
+| 3 | The Fifty Men | force |
+| 2 | The Banner Singers | force |
+| 3 | Marched Beneath the Banner of | bond |
+| 3 | Followed | bond |
+| 2 | Stood Fast With | bond |
+| 1 | Guarded | bond |
+| 1 | Namar | name |
+| 1 | Arel | name |
+| 1 | Oren | name |
+| 1 | Teren | name |
+| 1 | Meren | name |
+| 1 | Edrin | name |
+| 1 | Avaros, the Bronze King | hero |
+| 1 | Doros, the Last Spear | hero |
+| 1 | Alda, Keeper of the Ford | hero |
+| 2 | All Reserves Forward | tactic |
+| 2 | The Line Wheeled | tactic |
+| 2 | The Center Must Hold | stratagem |
+| 2 | Every Banner Turned Toward Them | stratagem |
+| 2 | The Battle Had Chosen Them | narrative |
+| 2 | The King Had Given the Order | narrative |
+| 1 | Re-form the Line | order |
+| 1 | Fresh Orders | order |
 
 ## Crown of Crows
 
-**Game plan.** Archer pressure reinforced by real Guard screening and repeatable conditional defence. Aim for Strength and protected Rear support, not reactive card inspection.
+Archer pressure reinforced by real Guard screening and repeatable conditional defence. Aim for Strength and protected Rear support, not reactive card inspection.
 
-**Test question.** Do repeated Archer/Guard packages win Fronts often enough to justify lower raw starting Strength and the limited Rear positions?
+**Test question:** Do repeated Archer/Guard packages win Fronts often enough to justify lower raw starting Strength and the limited Rear positions?
 
-**Composition:** 48 cards, 16 Forces, 10 one-copy titles. **Printed cost total:** 78 Command. **Base Force Strength total:** 50.
+48 cards · 16 Forces · 27 titles · 10 one-copy titles · 78 total printed Command · 50 sum printed Force Strength (not a Front total)
 
-### Signature combinations
+### Combinations to test
 
 - Three Crow Archers and two Thornbow Hunters offer five primary Archer Forces, while Corin and Serai add Archer classifications; Every Bow Was Strung x2 converts completed Bonds into predictable Strength.
 - Three Old Guards and two First Spears screen and protect Rear, while The Wall Did Not Break x2 supplies Guarded on PLAY and a Middle-to-Rear +1 Strength defence.
 - The Archers Were Ready x2 creates more likely counterattack opportunities; No Step Back x2 now protects against hostile Tactics or Attack afflictions.
 - The Baggage Was Abandoned x2 and A Volley Before Dawn x2 can directly weaken contested opposing ranks instead of requiring hidden information to be relevant.
 
-### Combination availability (not legality)
+### Card availability, not playable-combo probability
 
-| Package | Enabler copies | Payoff copies | First 10 cards | First 20 cards |
+| Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
 | Bonded Archer battery | 7 | 4 | 50.2% | 88.0% |
 | Screen and protect Rear | 7 | 5 | 57.4% | 92.7% |
 | Hidden anti-attack defence | 7 | 4 | 50.2% | 88.0% |
 
-### Full list
+### Cards
 
-| Copies | Printed title | Type |
+| Copies | Card | Type |
 |---:|---|---|
-| 3 | The Crow Archers | Force |
-| 2 | The Thornbow Hunters | Force |
-| 3 | The Old Guard | Force |
-| 2 | The First Spear | Force |
-| 2 | The Red Shields | Force |
-| 2 | The White Hands of Elara | Force |
-| 2 | The House of Reed | Force |
-| 3 | Followed | Bond |
-| 3 | Guarded | Bond |
-| 2 | Endured With | Bond |
-| 1 | Stood Fast With | Bond |
-| 1 | Corin of the High Wall | Name |
-| 1 | Asha, the Shield-Bearer | Name |
-| 1 | Maelin | Name |
-| 1 | Eira | Name |
-| 1 | Oren | Name |
-| 1 | Tala | Name |
-| 1 | Serai, Queen of Crows | Hero |
-| 1 | Alda, Keeper of the Ford | Hero |
-| 1 | Veyra, Keeper of Oaths | Hero |
-| 2 | A Volley Before Dawn | Tactic |
-| 2 | The Baggage Was Abandoned | Tactic |
-| 2 | The Archers Were Ready | Stratagem |
-| 2 | No Step Back | Stratagem |
-| 2 | Every Bow Was Strung | Narrative |
-| 2 | The Wall Did Not Break | Narrative |
-| 2 | Catch Your Breath | Order |
+| 3 | The Crow Archers | force |
+| 2 | The Thornbow Hunters | force |
+| 3 | The Old Guard | force |
+| 2 | The First Spear | force |
+| 2 | The Red Shields | force |
+| 2 | The White Hands of Elara | force |
+| 2 | The House of Reed | force |
+| 3 | Followed | bond |
+| 3 | Guarded | bond |
+| 2 | Endured With | bond |
+| 1 | Stood Fast With | bond |
+| 1 | Corin of the High Wall | name |
+| 1 | Asha, the Shield-Bearer | name |
+| 1 | Maelin | name |
+| 1 | Eira | name |
+| 1 | Oren | name |
+| 1 | Tala | name |
+| 1 | Serai, Queen of Crows | hero |
+| 1 | Alda, Keeper of the Ford | hero |
+| 1 | Veyra, Keeper of Oaths | hero |
+| 2 | A Volley Before Dawn | tactic |
+| 2 | The Baggage Was Abandoned | tactic |
+| 2 | The Archers Were Ready | stratagem |
+| 2 | No Step Back | stratagem |
+| 2 | Every Bow Was Strung | narrative |
+| 2 | The Wall Did Not Break | narrative |
+| 2 | Catch Your Breath | order |
 
 ## Oathforge
 
-**Game plan.** Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed, Field Train and Swore Again To to add protection or temporary Strength to persistent Named stacks.
+Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed, Field Train and Swore Again To to add protection or temporary Strength to persistent Named stacks.
 
-**Test question.** Can repeated support Forces and prepared Bonds assemble multiple Named Formations without consuming more Actions than a direct Force deployment?
+**Test question:** Can repeated support Forces and prepared Bonds assemble multiple Named Formations without consuming more Actions than a direct Force deployment?
 
-**Composition:** 48 cards, 16 Forces, 11 one-copy titles. **Printed cost total:** 81 Command. **Base Force Strength total:** 53.
+48 cards · 16 Forces · 27 titles · 11 one-copy titles · 81 total printed Command · 53 sum printed Force Strength (not a Front total)
 
-### Signature combinations
+### Combinations to test
 
 - House of Reed x3 and Field Train x3 repeatedly make prepared cards worth playing; Field Train gives +2 temporary Strength when a Name completes a formation and House of Reed gives Guarded on completion.
 - Three Swore Again To, two Stayed Behind For and two Supplied By support different preparation routes; direct Swore completion gives +2 Strength while early preparation instead filters a card.
 - Late Banner x3, Oren, Torren and Tovan reduce the cost of Named building; seven interchangeable Unique Names make completion more likely despite individual singletons.
 - The Battle Had Chosen Them x2 rewards all those Named stacks. There Was No Road Back x2 is a hidden completion follow-up, and the King's Order x2 can reassign existing Bonds.
 
-### Combination availability (not legality)
+### Card availability, not playable-combo probability
 
-| Package | Enabler copies | Payoff copies | First 10 cards | First 20 cards |
+| Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
 | Prepared completion machine | 10 | 5 | 64.9% | 94.1% |
 | Cheap Name/Bond assembly | 6 | 7 | 63.2% | 95.3% |
 | Secret Named completion | 9 | 4 | 55.2% | 89.1% |
 
-### Full list
+### Cards
 
-| Copies | Printed title | Type |
+| Copies | Card | Type |
 |---:|---|---|
-| 3 | The House of Reed | Force |
-| 3 | The Field Train | Force |
-| 3 | The Late Banner | Force |
-| 2 | The King's Spears | Force |
-| 3 | The Fifty Men | Force |
-| 2 | The Red Shields | Force |
-| 3 | Swore Again To | Bond |
-| 2 | Stayed Behind For | Bond |
-| 2 | Followed | Bond |
-| 2 | Supplied By | Bond |
-| 1 | Namar | Name |
-| 1 | Oren | Name |
-| 1 | Torren | Name |
-| 1 | Sorin | Name |
-| 1 | Eira | Name |
-| 1 | Teren | Name |
-| 1 | Meren | Name |
-| 1 | Tovan, the Quartermaster | Hero |
-| 1 | Nara, Builder of Walls | Hero |
-| 1 | Avaros, the Bronze King | Hero |
-| 2 | All Reserves Forward | Tactic |
-| 2 | The Line Wheeled | Tactic |
-| 2 | There Was No Road Back | Stratagem |
-| 1 | The Center Must Hold | Stratagem |
-| 2 | The Battle Had Chosen Them | Narrative |
-| 2 | The King Had Given the Order | Narrative |
-| 2 | Take Stock | Order |
+| 3 | The House of Reed | force |
+| 3 | The Field Train | force |
+| 3 | The Late Banner | force |
+| 2 | The King's Spears | force |
+| 3 | The Fifty Men | force |
+| 2 | The Red Shields | force |
+| 3 | Swore Again To | bond |
+| 2 | Stayed Behind For | bond |
+| 2 | Followed | bond |
+| 2 | Supplied By | bond |
+| 1 | Namar | name |
+| 1 | Oren | name |
+| 1 | Torren | name |
+| 1 | Sorin | name |
+| 1 | Eira | name |
+| 1 | Teren | name |
+| 1 | Meren | name |
+| 1 | Tovan, the Quartermaster | hero |
+| 1 | Nara, Builder of Walls | hero |
+| 1 | Avaros, the Bronze King | hero |
+| 2 | All Reserves Forward | tactic |
+| 2 | The Line Wheeled | tactic |
+| 2 | There Was No Road Back | stratagem |
+| 1 | The Center Must Hold | stratagem |
+| 2 | The Battle Had Chosen Them | narrative |
+| 2 | The King Had Given the Order | narrative |
+| 2 | Take Stock | order |
 
 ## Blood & Spoils
 
-**Game plan.** Exhaust or Deplete opposing Forces, then convert their negative conditions into Command theft and lost Bonds while retaining strong frontline bodies.
+Exhaust or Deplete opposing Forces, then convert their negative conditions into Command theft and lost Bonds while retaining strong frontline bodies.
 
-**Test question.** Can repeated Raiders and Shaken/Depleted enablers generate more sustainable Command and effective Strength than direct King/Captain stacking?
+**Test question:** Can repeated Raiders and Shaken/Depleted enablers generate more sustainable Command and effective Strength than direct King/Captain stacking?
 
-**Composition:** 48 cards, 17 Forces, 14 one-copy titles. **Printed cost total:** 91 Command. **Base Force Strength total:** 67.
+48 cards · 17 Forces · 29 titles · 14 one-copy titles · 91 total printed Command · 67 sum printed Force Strength (not a Front total)
 
-### Signature combinations
+### Combinations to test
 
 - Iron Boars x3 and Red Duelists x3 give tangible initial penalties; The Stores Were Taken x2 and Trap Closed x2 follow up with layer loss or Command taxation.
 - Two Baggage Was Abandoned and two Crows Came Down create repeatable −1 Exhaustion; three Unnamed Hosts and three Shared the Spoils With convert this into Command transfer.
 - Black Company x2 and River Raiders x2 punish opponent attachment investment. Two Seized the Standard Of Bonds can remove a Bond even without waiting for an enemy condition.
 - The Line Was Baited now gives Depleted only on a legal forced retreat by your Skirmisher. Raider bodies and Rovan remain useful when no affliction combo appears.
 
-### Combination availability (not legality)
+### Card availability, not playable-combo probability
 
-| Package | Enabler copies | Payoff copies | First 10 cards | First 20 cards |
+| Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
 | Exhaustion-to-Command transfer | 6 | 6 | 58.9% | 93.9% |
 | Breakthrough-to-attachment raid | 7 | 6 | 63.2% | 95.3% |
 | Reusable raid pressure | 6 | 4 | 46.8% | 86.6% |
 
-### Full list
+### Cards
 
-| Copies | Printed title | Type |
+| Copies | Card | Type |
 |---:|---|---|
-| 3 | The Iron Boars | Force |
-| 3 | The Salt-Road Reavers | Force |
-| 3 | The Red Duelists | Force |
-| 2 | The Black Pursuers | Force |
-| 2 | The River Raiders | Force |
-| 2 | The Crow Archers | Force |
-| 2 | The Aradai | Force |
-| 3 | Shared the Spoils With | Bond |
-| 2 | Seized the Standard of | Bond |
-| 2 | Followed | Bond |
-| 2 | Guarded | Bond |
-| 1 | Brannoc | Name |
-| 1 | Tala | Name |
-| 1 | Iven | Name |
-| 1 | Corin of the High Wall | Name |
-| 1 | Asha, the Shield-Bearer | Name |
-| 1 | Oren | Name |
-| 1 | Rovan, the Gatebreaker | Hero |
-| 1 | Serai, Queen of Crows | Hero |
-| 1 | Doros, the Last Spear | Hero |
-| 2 | The Baggage Was Abandoned | Tactic |
-| 2 | The Stores Were Taken | Tactic |
-| 1 | The Line Was Baited | Tactic |
-| 2 | The Trap Closed | Stratagem |
-| 1 | The Archers Were Ready | Stratagem |
-| 2 | The Crows Came Down | Narrative |
-| 1 | The Raiders Came Home Loaded | Narrative |
-| 1 | Re-form the Line | Order |
-| 1 | Fresh Orders | Order |
+| 3 | The Iron Boars | force |
+| 3 | The Salt-Road Reavers | force |
+| 3 | The Red Duelists | force |
+| 2 | The Black Pursuers | force |
+| 2 | The River Raiders | force |
+| 2 | The Crow Archers | force |
+| 2 | The Aradai | force |
+| 3 | Shared the Spoils With | bond |
+| 2 | Seized the Standard of | bond |
+| 2 | Followed | bond |
+| 2 | Guarded | bond |
+| 1 | Brannoc | name |
+| 1 | Tala | name |
+| 1 | Iven | name |
+| 1 | Corin of the High Wall | name |
+| 1 | Asha, the Shield-Bearer | name |
+| 1 | Oren | name |
+| 1 | Rovan, the Gatebreaker | hero |
+| 1 | Serai, Queen of Crows | hero |
+| 1 | Doros, the Last Spear | hero |
+| 2 | The Baggage Was Abandoned | tactic |
+| 2 | The Stores Were Taken | tactic |
+| 1 | The Line Was Baited | tactic |
+| 2 | The Trap Closed | stratagem |
+| 1 | The Archers Were Ready | stratagem |
+| 2 | The Crows Came Down | narrative |
+| 1 | The Raiders Came Home Loaded | narrative |
+| 1 | Re-form the Line | order |
+| 1 | Fresh Orders | order |
 
-## What counts as evidence
+## The Last Watch — supplementary
 
-Track **legal opportunities**, not merely a pair of cards being drawn. Record which cards could be deployed in the available ranks, whether both combo pieces were useful, and how many points of **actual Front-result improvement** they produced.
+Exhaustion recovery, interlocking Guard defence and resilient Named formations turn previously defeated Forces back into winning Fronts.
 
-In matched physical games, compare mirrored starting players and randomized opening deals. Record unused Stratagems discarded at Battle end, unplayable Forces after board saturation, Command at each Battle boundary, successful Named completion, condition prevention, and whether an unusual event changed a Front winner.
+**Test question:** Can layered Guards and Healers recover the −1 Strength of old Exhaustion efficiently enough to hold a Front without depending on a single Hero?
 
-Specifically revisit the **Phase 2 snowball risk** (lost Front Exhaustion −1), **−3 Exhausted/Shaken spikes**, the advantage of **House of Reed** after completing multiple formations, and **No Road Was Too Long** full-Front swaps. Results from the native/Webgame engine do not yet apply to these printable rules.
+48 cards · 17 Forces · 35 titles · 25 one-copy titles · 69 total printed Command · 47 sum printed Force Strength (not a Front total)
 
-The deterministic check `python tools/check_physical_combo_decks.py` reports the exact no-mulligan enabler/payoff availability; `python tools/physical_playtest_metrics.py <observed-log.jsonl>` can summarize observations after games. Neither constitutes a physical-rules simulation.
+### Combinations to test
+
+- Relief Column and White Hands heal or enable a recovery line; They Lived to Tell It, No One Would Be First to Leave, Bind the Wound and Catch Your Breath provide alternative ways to lift conditions.
+- Middle Old Guard, Serekh and First Spear protect Rear formations, while Supported By, Held the Line For, Blocked the Road For and Guarded each protect a different weakness.
+- Covered the Withdrawal Of, Kept the Gate For and Trusted allow Exhausted formations to Maneuver when necessary, but recovery and actual Strength must remain the primary payoff.
+- Rallied Behind helps recover Command after falling behind; No Step Back and The Ground Was Held can change the result of a narrow defensive Battle.
+
+### Card availability, not playable-combo probability
+
+| Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
+|---|---:|---:|---:|---:|
+| Recover and re-form | 8 | 4 | 53.0% | 88.7% |
+| Frontline screen and back-rank shelter | 6 | 5 | 53.5% | 91.3% |
+| Hold under pressure | 9 | 5 | 63.0% | 93.9% |
+
+### Cards
+
+| Copies | Card | Type |
+|---:|---|---|
+| 2 | The Serekh | force |
+| 3 | The Relief Column | force |
+| 3 | Thirty Spears | force |
+| 2 | The Damar | force |
+| 3 | The White Hands of Elara | force |
+| 2 | The Old Guard | force |
+| 2 | The First Spear | force |
+| 2 | Covered the Withdrawal of | bond |
+| 1 | Blocked the Road for | bond |
+| 1 | Held the Line for | bond |
+| 1 | Rallied Behind | bond |
+| 1 | Trusted | bond |
+| 1 | Kept the Gate For | bond |
+| 2 | Supported By | bond |
+| 1 | Carried the Oath of | bond |
+| 1 | Guarded | bond |
+| 1 | Maelin | name |
+| 1 | Asha, the Shield-Bearer | name |
+| 1 | Meren | name |
+| 1 | Edrin | name |
+| 1 | Sorin | name |
+| 1 | Eira | name |
+| 1 | Alda, Keeper of the Ford | hero |
+| 1 | Veyra, Keeper of Oaths | hero |
+| 1 | Nara, Builder of Walls | hero |
+| 1 | All Banners Forward | tactic |
+| 1 | They Returned With Names | tactic |
+| 1 | The Line Wheeled | tactic |
+| 2 | No Step Back | stratagem |
+| 1 | The Ground Was Held | stratagem |
+| 1 | They Lived to Tell It | narrative |
+| 1 | No One Would Be First to Leave | narrative |
+| 1 | The Wall Did Not Break | narrative |
+| 1 | Bind the Wound | order |
+| 1 | Catch Your Breath | order |
+
+## Broken Oaths — supplementary
+
+Scout-led feints and Raider breaches drive opposing formations out of position, then remove attachments and convert Exhaustion into Command pressure.
+
+**Test question:** Can a Scout/Skirmisher/Raider setup create meaningful Strength denial and attached-layer theft, or does plain Force Strength still win?
+
+48 cards · 18 Forces · 32 titles · 18 one-copy titles · 82 total printed Command · 57 sum printed Force Strength (not a Front total)
+
+### Combinations to test
+
+- Seven Black Ships, River Raiders and Seized the Standard Of can remove attached layers after the opposing Frontline opens; The Muster Was False offers another Bond-punishment line with a Scout or Seer.
+- Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.
+- Lantern Scouts and Lysa support They Were Gathering There, The Scouts Had Warned Them and Before Sunset for actual Strength or Guarded counterplay, not merely looking at cards.
+- Bloodied Raider/Skirmisher pressure makes Shared the Spoils With and The Trap Closed useful; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
+
+### Card availability, not playable-combo probability
+
+| Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
+|---|---:|---:|---:|---:|
+| Breach then steal attachments | 8 | 5 | 60.5% | 93.5% |
+| Scout-enabled disruption | 9 | 4 | 55.2% | 89.1% |
+| Scouting becomes an advantage | 5 | 4 | 42.5% | 84.1% |
+
+### Cards
+
+| Copies | Card | Type |
+|---:|---|---|
+| 2 | Seven Black Ships | force |
+| 2 | The Ilyri | force |
+| 2 | The Wolf Skirmishers | force |
+| 2 | The Salt-Road Fleet | force |
+| 3 | The River Raiders | force |
+| 3 | The Red Duelists | force |
+| 2 | The Lantern Scouts | force |
+| 2 | The Aradai | force |
+| 2 | Had Been Ordered Forward | bond |
+| 1 | Bought Time For | bond |
+| 2 | Seized the Standard of | bond |
+| 2 | Shared the Spoils With | bond |
+| 2 | Kept Pace With | bond |
+| 1 | Brannoc | name |
+| 1 | Tala | name |
+| 1 | Mara | name |
+| 1 | Lysa the Listener | name |
+| 1 | Sorin | name |
+| 1 | Iven | name |
+| 1 | Rovan, the Gatebreaker | hero |
+| 1 | Kael, the Roadless | hero |
+| 1 | Yara, the Chronicler | hero |
+| 2 | They Were Gathering There | tactic |
+| 1 | The Line Had Begun to Move | tactic |
+| 1 | The Muster Was False | tactic |
+| 1 | They Had Gone Too Far | tactic |
+| 2 | The Trap Closed | stratagem |
+| 1 | The Scouts Had Warned Them | stratagem |
+| 1 | The Raiders Came Home Loaded | narrative |
+| 1 | Before Sunset, the Ford Would Be Ours | narrative |
+| 1 | Send a Runner | order |
+| 1 | Fresh Orders | order |
+
+## How to interpret the decks
+
+The **core four** build around distinct *interactions*: leadership/Bond multiplication, Archer screens and counterattacks, prepared Named-completion rewards, and Exhaustion-to-Command/attachment theft. These are more concrete than abstract play-styles, but some named “combos” merely pair efficient bodies with bonuses; record those separately from genuinely contingent sequences.
+
+**The Last Watch** and **Broken Oaths** test recovery/defensive Bonds and bluff/raid tools that were absent from every previous list. Their higher singleton rates are intentional **coverage**, not proof of competitive consistency. For the simplest alternative, compare the [Raw Strength Control](mechanic-coverage-decks.md#raw-strength-control) in mirrored games: it uses 16 ability-free Force cards and may have better immediate Strength-per-Action than intricate formation setups.
+
+**Actual validation:** track card playability, Commands/Actions invested, Named completions, legal target rates, unused hidden Stratagems, and Fronts whose winner changes because of an effect. If the combo decks consistently lose to the simple Force control, improve the combo decisions rather than simply inflate card text.

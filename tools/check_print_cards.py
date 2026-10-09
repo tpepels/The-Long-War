@@ -53,6 +53,16 @@ def main() -> None:
         for effect, block in zip(card["effects"], card["rule_blocks"]):
             if effect.get("limit") == "once_per_battle":
                 assert "1/BATTLE" in block["label"], card_id
+    # Hero copy fixes must not alter either playable mode or the canonical
+    # engine card. Only an explicit effect text in the printable copy changes.
+    for fix in overrides.get("hero_mode_wording", []):
+        cid, mode, index = fix["id"], fix["mode"], fix["index"]
+        assert before[cid]["type"] == "hero"
+        assert before[cid]["modes"][mode]["effects"][index]["text"] == fix["old_text"]
+        assert after[cid]["modes"][mode]["effects"][index]["text"] == fix["text"]
+        assert len(after[cid]["modes"][mode]["effects"]) == len(
+            before[cid]["modes"][mode]["effects"])
+
     for card_id in overrides["once_per_battle_text_fixes"]:
         changed.add(card_id)
         assert after[card_id]["text"].startswith("ACTION · 1/BATTLE"), card_id

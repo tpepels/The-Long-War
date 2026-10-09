@@ -3,6 +3,25 @@
 > **Scope:** all **131** identities in `cards/cards.json` assembled with the **physical print** overlay `cards/print-overrides.json`. No changes to the native/Webgame engine. The old-cost column compares with the immediately preceding **print-only** pool, not the old unmodified executable card text. **These are tabletop design judgments, not measured win rates.**
 
 
+## Card coverage and raw-Strength comparison (9 October 2026, latest)
+
+All **131 physical card identities** now appear in at least one deck among
+**six playable 48-card lists and four diagnostic lists**. The original
+four combo decks remain unchanged; **The Last Watch** and **Broken Oaths**
+provide deliberately less consistent but coherent access to 25 previously
+unrepresented identities. The fourth diagnostic list is a [Raw Strength
+Control](mechanic-coverage-decks.md#raw-strength-control): sixteen plain
+Forces, 68 total printed Force Strength for 32 total Force Command, before
+attachment bonuses and board restrictions.
+
+The current report on [simple Strength, combo decisions, and snowball
+variants](strength-combos-snowball-review.md) makes **no win-rate claim**.
+The proposed rule limiting lost-Front Exhaustion to one Force per losing
+Front has **not** been applied to current cards or the rulebook. Printed
+costs and Strength for the original core four below are retained as
+historical phase snapshots; the supplementary lists and current lists
+are recorded in [playtest-decks.md](playtest-decks.md).
+
 ## Phases 4–5: meaningful surprises and reliable combos (9 October 2026)
 
 **Phase 4** changes **14** printed card identities, keeping the 131-card

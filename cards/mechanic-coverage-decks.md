@@ -1,22 +1,22 @@
-# Mechanic coverage decks — physical playtest lab
+# Physical diagnostic decks
 
-These **three diagnostic 48-card lists** exist to test underrepresented mechanics. They are separate from the four main Strength-first combo decks, which should **not** be diluted to include every rare classification or unusual card.
-
-The labs are reproducible scripted situations, **not proven competitive decks**. Use the current [physical rulebook](../rules/rulebook.md), cards with [print overrides](print-overrides.json), and the [mechanical scenario checklist](physical-rule-playtest-scenarios.md). No native/Webgame results establish balance here.
+These **four 48-card lists** are for controlled comparison and underrepresented mechanic testing, not the primary competitive decks. Use current [physical rules](../rules/rulebook.md), the print-only card overrides, and [tabletop test scenarios](physical-rule-playtest-scenarios.md). They do not imply measured win rates.
 
 ## Rider & Flank Lab
 
 **Focus:** Rider Attacks, exposed Frontline, and whether +1 Strength and forced placement reward worthwhile positioning.
 
-**Set up:** Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's +1 Strength payoff to repeated Maneuvers.
+**Setup:** Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's +1 Strength payoff to repeated Maneuvers.
 
-**Check after games:**
+**Composition:** 48 cards, 72 Command across all cards, 54 sum printed Force Strength (not the Front total).
+
+**What to record**
 
 - Rider Attack can only start in Frontline/Middle and needs an opposing flanked Frontline target
 - New Rider Stratagem changes an actual Front result versus one more Force
 - 0-Command Maneuver does not eclipse the raw Strength plan
 
-| Copies | Card | Role |
+| Copies | Card | Type |
 |---:|---|---|
 | 3 | The Grey Riders | force |
 | 3 | The Dust Riders | force |
@@ -50,16 +50,18 @@ The labs are reproducible scripted situations, **not proven competitive decks**.
 
 **Focus:** Seer and Scout classification support, hidden-plan responses, and meaningful counterplay after viewing a plan.
 
-**Set up:** Use Scouts or Seers to trigger a hostile Stratagem, compare Guarded versus +2 temporary Strength responses, and test Ground Was Held from both tied and down-by-one provisional totals.
+**Setup:** Use Scouts or Seers to trigger a hostile Stratagem, compare Guarded versus +2 temporary Strength responses, and test Ground Was Held from both tied and down-by-one provisional totals.
 
-**Check after games:**
+**Composition:** 48 cards, 66 Command across all cards, 51 sum printed Force Strength (not the Front total).
+
+**What to record**
 
 - At least one Scout and one Seer can be deployed and completed
 - Scouts Had Warned Them prevents an actual targeted affliction
 - Before Sunset has a same/adjacent Front trigger and changes Strength
 - Ground Was Held reveals only from an eligible pre-reveal total
 
-| Copies | Card | Role |
+| Copies | Card | Type |
 |---:|---|---|
 | 3 | The Lantern Scouts | force |
 | 3 | The Watchtowers of Eren | force |
@@ -93,16 +95,18 @@ The labs are reproducible scripted situations, **not proven competitive decks**.
 
 **Focus:** Prepared layers, Bond/Name exchanges, sudden Front shifts and one-time PLAY effects.
 
-**Set up:** Build a Named stack in adjacent Fronts with support Forces. Play No Road Was Too Long to exchange columns legally, then verify Named Strength and all token transfer details.
+**Setup:** Build a Named stack in adjacent Fronts with support Forces. Play No Road Was Too Long to exchange columns legally, then verify Named Strength and all token transfer details.
 
-**Check after games:**
+**Composition:** 48 cards, 83 Command across all cards, 51 sum printed Force Strength (not the Front total).
+
+**What to record**
 
 - Two prepared layers can attach without replaying PLAY or exceeding slot capacity
 - A swapped Front retains each card's matching row and marker ownership
 - No Road Was Too Long costs 3 Command and only one Action
 - Line Held reveal requires an empty friendly Frontline
 
-| Copies | Card | Role |
+| Copies | Card | Type |
 |---:|---|---|
 | 3 | The House of Reed | force |
 | 3 | The Field Train | force |
@@ -132,10 +136,48 @@ The labs are reproducible scripted situations, **not proven competitive decks**.
 | 2 | The King Had Given the Order | narrative |
 | 2 | Take Stock | order |
 
-## Structured observations
+## Raw Strength Control
 
-In each lab record the trigger count, how often the effect was still legal, the Command/Action investment, total Strength changed, and whether the Front was won **because of** that effect. Record unused hidden Stratagems and Narrow Frontline/Middle/Rear placement restrictions.
+**Focus:** A deliberately simple-Force comparison: all 16 Force cards have no printed special ability. Evaluate whether efficient persistent Strength already beats elaborate combinations.
 
-Test unusual effects against **multiple active Front configurations**: Battle I two central Fronts, Battle II three, Battle III four, and later-Battle saturated boards. Have both players exchange seats for the same card layout. Do not infer fun or balance from a legal scenario alone.
+**Setup:** Use only Thirty Spears, Fifty Men, Hundred Shields and Aradai as Forces (four copies each). Other card types remain legal and supply simple Bonds, Names and counterplay. Do not treat this as proof that non-Force combos cannot win; compare mirrored draws against each core combo deck.
 
-These lists live in [mechanic-coverage-decks.json](mechanic-coverage-decks.json) for automated composition checks. They are not added to the standard four-deck printable selector.
+**Composition:** 48 cards, 71 Command across all cards, 68 sum printed Force Strength (not the Front total).
+
+**What to record**
+
+- At equal spent Command and Actions, calculate each Front's persistent Strength before temporary bonuses.
+- Record whether plain Force cards are drawn and playable more often than multi-card combo pieces and whether 12 positions become saturated.
+- Compare winning Fronts, Command at each recovery, 1/2/3-card setup cost and how frequently opponent Tactics or Attacks reverse the result.
+- The Aradai has the basic Raider classification/Attack despite no printed special text; record whether its basic Attack contributes. Force pool is otherwise pure printed Strength.
+
+| Copies | Card | Type |
+|---:|---|---|
+| 4 | The Fifty Men | force |
+| 4 | Thirty Spears | force |
+| 4 | A Hundred Shields | force |
+| 4 | The Aradai | force |
+| 4 | Followed | bond |
+| 4 | Stood Fast With | bond |
+| 4 | Marched With | bond |
+| 1 | Edrin | name |
+| 1 | Meren | name |
+| 1 | Sorin | name |
+| 1 | Eira | name |
+| 1 | Asha, the Shield-Bearer | name |
+| 1 | Torren | name |
+| 1 | Teren | name |
+| 1 | Iria | name |
+| 2 | The Line Wheeled | tactic |
+| 2 | All Reserves Forward | tactic |
+| 2 | They Let Them Through | tactic |
+| 2 | No Step Back | stratagem |
+| 2 | The Ground Was Held | stratagem |
+| 2 | The Battle Had Chosen Them | narrative |
+
+## Fair comparison procedure
+
+1. Compare each diagnostic deck against each core combination deck with mirrored opening draws and starting order. Record per-Battle Front totals, Actions spent, Command trajectory and Force-slot saturation.
+2. Separate **printed Force Strength**, persistent Bonds/Names, temporary Battle bonuses, and denial through Shaken/Depleted/Exhausted. A strong body can be efficient without proving an automatic win.
+3. The **Raw Strength Control** deliberately uses only four ability-free Force identities: Thirty Spears (3 Strength / 1 Command), Fifty Men (5 / 2), Hundred Shields (6 / 3), and Aradai (3 / 2). The Aradai still has its Raider classification and corresponding basic Attack; its text has no separate printed ability.
+4. Never substitute the native/Webgame outcomes for the print-only rules. There is currently no completed physical-compatible automated win-rate study.
