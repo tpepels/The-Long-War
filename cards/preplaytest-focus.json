@@ -65,15 +65,15 @@
     },
     {
       "id": "the-black-company",
-      "opportunity": "An opposing Exhausted Named formation contains a worthwhile attachment and Black Pursuers has 1C available.",
-      "comparison": "Compare its separate 1C ACTION with a normal Skirmisher Attack or hostile Tactic.",
-      "failure_signal": "If attachment removal does not change the Front or future Battle despite setup, flag."
+      "opportunity": "An opposing Shaken Named formation holds a valuable Bond or Name and The Black Pursuers can spend one Action and 1 Command to return it.",
+      "comparison": "Compare its 1 Command ACTION after an Archer/Skirmisher Shake with another Attack, or using a hostile Tactic instead.",
+      "failure_signal": "If a legal attached target rarely remains Shaken or the bounce has no tactical payoff, the extra Action is unattractive."
     },
     {
       "id": "the-river-raiders",
-      "opportunity": "A Rear opposing Bond/Name is exposed behind an empty opposing Frontline; this Force can act for 1C.",
-      "comparison": "Compare 4C Force plus 1C ACTION to Seven Black Ships immediate PLAY return.",
-      "failure_signal": "If the extra ACTION never creates repeat value, it is outcompeted by the Ship."
+      "opportunity": "A River Raider occupies Frontline, outmatches an opposing Frontline after a Shake, and can use its 1C ACTION against an attached Middle or Rear Force.",
+      "comparison": "Compare 4C River Raider plus 1C/action for attachment pressure with Seven Black Ships immediate PLAY attachment return using the same basic Raider legal-target check.",
+      "failure_signal": "If extra repeat opportunities never occur before this Raider uses its Attack, Seven Black Ships dominates its sabotage role."
     },
     {
       "id": "before-sunset-the-ford-would-be-ours",
@@ -119,9 +119,9 @@
     },
     {
       "id": "the-grey-riders",
-      "opportunity": "An Unnamed or Exhausted Rider can shift across adjacent active Fronts to create or close a flank.",
-      "comparison": "Compare one Command Maneuver with an equivalent Named Rider or newly played Force.",
-      "failure_signal": "If there is never space and no score/attack effect, reconsider the mobility premium."
+      "opportunity": "An Unnamed or Exhausted Grey Rider Maneuvers across an active Front boundary, causing an opposing Frontline to become flanked and eligible for its basic Rider Attack.",
+      "comparison": "Compare Grey Riders' single paid Maneuver plus unused Rider Attack with an ordinary Named Rider's two separate Actions and permanent Strength deployment.",
+      "failure_signal": "If new legal Rider targets rarely appear, the expensive combined tempo does not earn its 4C printed price."
     },
     {
       "id": "the-dust-riders",
@@ -131,9 +131,9 @@
     },
     {
       "id": "the-vardai",
-      "opportunity": "A Force in a congested Front needs a non-Maneuver Move even though it is Unnamed.",
-      "comparison": "Compare paying 1C plus an ACTION with normal Maneuver when Named and regular deployment.",
-      "failure_signal": "If Action and Command outweigh position improvement, measure as weak."
+      "opportunity": "A Vardai can legally Move an adjacent empty position and then make a newly positioned basic Rider Attack; its once-per-Battle ACTION is unused.",
+      "comparison": "Compare its 1C once-per-Battle Move plus unused Rider Attack within one Action against a Named Rider Maneuver followed by a second Attack Action.",
+      "failure_signal": "If the resulting target is almost never legal, its once-per-Battle move remains an expensive Action-only reposition."
     },
     {
       "id": "marched-with",
