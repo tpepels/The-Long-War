@@ -272,27 +272,49 @@ def markdown_to_typst(source: str, version: str) -> str:
         width = len(rows[0])
         if any(len(row) != width for row in rows):
             raise ValueError("Rulebook Markdown table has inconsistent column counts")
-        # Convert wide tables to a compact sequence of labelled reference
-        # entries in the text column. All original cell content is preserved,
-        # and each entry can independently move to the next column.
         headings = rows[0]
-        for row_index, row in enumerate(rows[1:], 1):
-            colour = "#f1eadd" if row_index % 2 else "#e9eeec"
+        if width == 2:
+            # A true compact table is far denser and easier to scan than
+            # repeating "MEANING:" or "RESULT:" inside every shaded card.
+            cells = []
+            for index, row in enumerate(rows):
+                for cell in row:
+                    if index == 0:
+                        cells.append(
+                            '[#text(size: 7.3pt, weight: "bold", fill: rgb("#293c47"))['
+                            + _string(cell.strip().upper()) + ']]'
+                        )
+                    else:
+                        cells.append('[#text(size: 8.6pt)[' + _inline(cell) + ']]')
             out.append(
-                '#block(fill: rgb("' + colour
-                + '"), inset: (x: 8pt, y: 7pt), width: 100%,'
-                ' stroke: (left: 2pt + rgb("#af9167")), breakable: false)['
+                '#table(columns: (0.86fr, 1.65fr),'
+                ' inset: (x: 4pt, y: 3pt),'
+                ' stroke: .35pt + rgb("#c7bba7"),'
+                ' fill: (x,y) => if y == 0 {rgb("#e5e8e5")}'
+                ' else if calc.odd(y) {rgb("#faf7ef")}'
+                ' else {rgb("#f1ebe0")},'
+                + ', '.join(cells) + ')'
             )
-            out.append(_inline(row[0]))
-            for cell_name, cell_text in zip(headings[1:], row[1:]):
+        else:
+            # Three-column Attack reference stays readable as compact stacked
+            # entries in the narrow print column; every source cell is kept.
+            for row_index, row in enumerate(rows[1:], 1):
+                colour = "#f1eadd" if row_index % 2 else "#e9eeec"
                 out.append(
-                    '#v(2pt)'
-                    '#text(size: 7.2pt, weight: "bold", fill: rgb("#53636a"))['
-                    + _string(cell_name.strip().upper()) + ':] '
-                    + _inline(cell_text)
+                    '#block(fill: rgb("' + colour
+                    + '"), inset: (x: 7pt, y: 4pt), width: 100%,'
+                    ' stroke: (left: 2pt + rgb("#af9167")), breakable: false)['
                 )
-            out.append("]")
-            out.append("#v(4pt)")
+                out.append(_inline(row[0]))
+                for cell_name, cell_text in zip(headings[1:], row[1:]):
+                    out.append(
+                        '#v(1pt)'
+                        '#text(size: 7pt, weight: "bold", fill: rgb("#53636a"))['
+                        + _string(cell_name.strip().upper()) + ':] '
+                        + _inline(cell_text)
+                    )
+                out.append("]")
+                out.append("#v(2pt)")
         out.append("")
         table_rows = []
         in_table = False
