@@ -1218,16 +1218,11 @@ EXPOSED TOP ROW - TUNING PANEL
   font: var(--card-effect-text-font-size)/var(--card-effect-text-line-height)
     var(--card-rule-font-family);
 }
-.effect-text .rule-term,
-.placement-rule-text .rule-term {
+/* Inline pictograms highlight rare rule outcomes, not every glossary word.
+   Keep the impact symbol with its word, whether loaded from PNG or SVG. */
+.effect-text .rule-term {
   font-weight: 700;
 }
-.effect-text .rule-referent,
-.placement-rule-text .rule-referent {
-  font-style: normal;
-}
-/* Keep the icon and its glossary term together on one text line.
- * Neither the PNG asset nor the SVG fallback should force a new rule line. */
 .inline-rule-ref {
   display: inline-flex;
   align-items: baseline;
@@ -1245,12 +1240,6 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: 0 0 auto;
   align-self: center;
   vertical-align: middle;
-}
-.inline-rule-ref.inline-class-ref svg,
-.inline-rule-ref.inline-class-ref img.glyph-png {
-  width: var(--icon-inline-class-size);
-  height: var(--icon-inline-class-size);
-  min-width: var(--icon-inline-class-size);
 }
 .inline-rule-ref > span {
   display: inline;
