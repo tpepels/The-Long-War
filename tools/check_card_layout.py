@@ -396,6 +396,28 @@ for (const card of articles) {
     sameAnchor(card, "command-anchor", [bounds.right - rect(cost).right, bounds.bottom - rect(cost).bottom]);
     rasterDecoration(card, cost, null, "command-seal");
     if (cost.querySelector("svg")) fail(card, "vector-command-seal");
+    if (card.classList.contains("card-hero")) {
+      const modePrices = [...cost.querySelectorAll(".hero-cost-part")];
+      if (modePrices.length !== 2) fail(card, "missing-hero-mode-prices");
+      else {
+        // The octagonal seal is not a full rectangular printable area.
+        // Require both numerical prices AND their family symbols to stay
+        // at least one CSS pixel inside the outer square.
+        for (const price of modePrices) {
+          if (!inside(rect(cost), rect(price), -1)) fail(card, "hero-price-escapes-seal");
+          const icon = price.querySelector("img,svg"), num = price.querySelector("b");
+          if (!icon || !num || !visible(icon) || !visible(num))
+            fail(card, "hero-price-part-incomplete");
+          else if (!inside(rect(cost), rect(icon), -1) ||
+                   !inside(rect(cost), textInk(num), -1))
+            fail(card, "hero-price-ink-escapes-seal");
+        }
+        const a = rect(modePrices[0]), b = rect(modePrices[1]);
+        if (Math.min(a.right,b.right)>Math.max(a.left,b.left)+1 &&
+            Math.min(a.bottom,b.bottom)>Math.max(a.top,b.top)+1)
+          fail(card, "hero-price-mode-overlap");
+      }
+    }
   }
   if (footer && cost && (!footer.contains(cost) || rect(cost).bottom > rect(footer).bottom + 1 || rect(cost).bottom < rect(footer).top))
     fail(card, "cost-not-anchored-to-footer");
