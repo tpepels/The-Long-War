@@ -286,6 +286,12 @@
       "failure_signal": "If target has no usable ACTION and no Name, record whether another Tactic was clearly better."
     },
     {
+      "id": "thirty-spears",
+      "opportunity": "During Battle I, a friendly formation already occupies Frontline; play Thirty Spears into Middle to grant that formation +1 temporary Strength.",
+      "comparison": "Compare Thirty Spears at full 3C and its small +1 supporting PLAY with 3C Aradai's Frontline entry penalty and 4C Fifty Men body.",
+      "failure_signal": "If the support point never changes a Front or makes the 3C vanilla-style body worse than other 3C choices, revisit its role."
+    },
+    {
       "id": "tovan-the-quartermaster",
       "opportunity": "Tovan is attached as a Name early enough to discount multiple later Bonds and Names.",
       "comparison": "Count actual Command saved and extra Actions vs 4C Name cost, and compare playing as 3C Force.",
