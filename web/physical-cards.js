@@ -113,7 +113,7 @@ function liveMarkup(effect){
   // The exposed strip is a visual index to the card's rules. Do not repeat
   // outcomes, costs or a miniature version of the effect here.
   if(effect.edge_cue){
-    return '<span class="edge-mechanic edge-cue" data-timing="'+esc(effect.timing)+'" title="'+esc(effect.text)+'" aria-label="'+esc("Check rule on "+effect.edge_cue.toLowerCase()+": "+effect.text)+'">'+
+    return '<span class="edge-mechanic edge-cue" data-timing="'+esc(effect.timing)+'" title="'+esc(effect.text)+'" aria-label="'+esc("Check rule on "+effect.edge_cue.toLowerCase()+(limited?" (once per Battle)":"")+": "+effect.text)+'">'+
       '<span class="edge-cue-text">CHECK · '+esc(effect.edge_cue)+'</span>'+
       (limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'</span>';
   }
