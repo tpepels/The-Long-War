@@ -286,6 +286,13 @@ def run() -> None:
          and "guard" not in cards["the-fifty-men"]["classes"]
          and "guard" in cards["the-red-shields"]["classes"],
          "Conditional one-Battle Strength compensates odd tariff rounding without long-term screening")
+    case("P1: Thirty Spears now uses full strict tariff",
+         cost("thirty-spears") == 3
+         and cards["thirty-spears"]["strength"] == 3
+         and has("thirty-spears", "another friendly formation",
+                 "+1 Strength this Battle"),
+         "Odd Strength gets a small on-card compensation, never a sub-floor price")
+
     case("P1: Damar pays premium for immediate attack tempo",
          cost("the-damar") == 4
          and cards["the-damar"]["strength"] == 3
