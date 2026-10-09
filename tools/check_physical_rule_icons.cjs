@@ -97,11 +97,11 @@ assert.match(css,/\.inline-rule-ref\s*\{[^}]*white-space:\s*nowrap/s);
 assert.match(css,/\.card-hero \.effect-head\s*\{[^}]*display:\s*inline;/s);
 // Card-family colour filters apply to PNG glyphs as well as frame assets,
 // without tinting the entire card (and therefore the card illustration).
-const pngFilter = css.match(/\\.physical-card img\\.glyph-png\\s*\\{([^}]+)\\}/s)?.[1]||"";
+const pngFilter = css.match(/\.physical-card img\.glyph-png\s*\{([^}]+)\}/s)?.[1]||"";
 for (const value of ["sepia","saturate","grayscale","hue","brightness","contrast"])
-  assert.match(pngFilter,new RegExp("--card-shell-"+value+"\\\\b"),
+  assert.match(pngFilter,new RegExp("--card-shell-"+value+"\\b"),
     "PNG glyphs must inherit the "+value+" card-family filter control");
-assert.doesNotMatch(css,/\\.physical-card\\s*\\{[^}]*filter:/s,
+assert.doesNotMatch(css,/\.physical-card\s*\{[^}]*filter:/s,
   "Filtering the entire card would tint the illustration and text");
 
 // Every Hero fraction dimension / location is editable from one :root block.
@@ -119,7 +119,7 @@ for (const key of controls) {
   assert.ok(css.includes(variable+":"),"Missing Hero cost editor control "+variable);
   assert.ok(css.includes("var("+variable+")"),"Hero cost control is unused: "+variable);
 }
-assert.match(css,/\\.hero-cost-symbol svg,[\\s\\S]*?\\.hero-cost-symbol img\\.glyph-png/s);
+assert.match(css,/\.hero-cost-symbol svg,[\s\S]*?\.hero-cost-symbol img\.glyph-png/s);
 const js=fs.readFileSync(path.join(root,"web/physical-cards.js"),"utf8");
 assert.match(js,/hero-price-outside-seal/);
 assert.match(js,/hero-price-overlap/);
