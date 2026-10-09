@@ -1,6 +1,46 @@
-# Physical card cost and choice audit — 8 October 2026
+# Physical card cost and choice audit — 8–9 October 2026
 
 > **Scope:** all **131** identities in `cards/cards.json` assembled with the **physical print** overlay `cards/print-overrides.json`. No changes to the native/Webgame engine. The old-cost column compares with the immediately preceding **print-only** pool, not the old unmodified executable card text. **These are tabletop design judgments, not measured win rates.**
+
+
+## 9 October decision pass (supersedes earlier effect descriptions below)
+
+**Scope:** 12 physical-card effect revisions, a physical-only Rider Attack rank
+restriction, and a single controlled way to free a persistent position.
+The pool remains **131 identities**. This pass **does not change printed Command
+costs**, four deck lists, or native/Webgame rules, so the cost ledger and
+aggregate deck cost totals below remain the same. The 8 October rationale is
+retained as historical context where effects have since changed.
+
+| Card | Revised decision and balancing guard |
+| --- | --- |
+| Every Banner Turned Toward Them | 2C now projects up to three +1 Human bonuses across its Front and one adjacent active Front; no longer a strictly worse 1C Center Must Hold |
+| The Battle Turned East | 1C reveals after Rider movement, permits one further adjacent Move and grants +1 temporary Strength; positional cost if it moves Rear |
+| The Archers Were Ready | 1C triggers a legal free basic Archer counterattack after an opposing Attack; consumes that Archer's once-per-Battle Attack allowance |
+| The Crows Came Down | 2C Exhausts one opposing Force immediately on PLAY; later 1/BATTLE ACTION can Shake an opposing Exhausted Force in an Archer-held Front |
+| No One Would Be First to Leave | 2C removes one Force's Exhaustion on PLAY; later 1/BATTLE ACTION moves up to two different friendly formations by one legal step |
+| The Stores Were Taken | 1C now pressures an opposing prepared layer or an attached Bond on a Depleted Force in a Raider-held Front |
+| The Field Train | 2C one-shot transport of prepared Bond/Name from own or adjacent active Front to directly-ahead formation; House of Reed retains repeatable local ACTION |
+| They Knew the Ground | 1C immediately Moves one formation; Seer still bends outermost active Front adjacency without changing flanks or Attacks |
+| Re-form the Line | 0C Order now chooses an adjacent friendly swap or discards a friendly Force with its layers in a Captain-held Front to regain 2C and release the slot |
+| Before Sunset, the Ford Would Be Ours | 1C Narrative now reacts once/Battle to a newly set nearby Stratagem: look, then optionally Move a formation in its assigned Front |
+| The Raiders Came Home Loaded | 1C immediate draw-then-discard on PLAY; retains qualifying Tactic discounts and subsequent Raider/Skirmisher movement |
+| There Was No Road Back | 1C hidden Named-completion reward now chooses a two-step legal Move or returns an opposing attached Bond in the assigned Front |
+
+The physical rulebook now requires basic **Rider** Attacks to originate from
+Frontline or Middle, not Rear. This applies to a Rider-classified formation
+regardless of whether Rider originates on the Force or Name; it does not narrow
+other card effects. Explicit **Force discard** from Re-form the Line removes
+attached Bond/Name and their markers, opening a persistent position. It does
+not create generic Retreat.
+
+**Verification:** `tools/check_physical_cost_balance.py` now contains **27
+paper-state contracts** covering the earlier 15 cases plus the 12 new
+decisions. They remain syntax/rules assertions rather than observed gameplay.
+`tools/physical_playtest_metrics.py` accepts event logs and reports per-card
+playability, utility, triggers, actions, occupancy and deck outcomes. Use the
+[playtest evidence guide](physical-playtest-evidence.md); no true win-rate claims
+are made without logged games or a rules-compatible simulation.
 
 ## Cost model: Command alone is not the price
 
@@ -51,10 +91,10 @@ Costs are deliberately **not** uniformly lowered. Most revised effects keep thei
 | The Red Duelists | Shake enemy Frontline on arrival | Frontline-only; no enemy Frontline means no surprise |
 | The Crow Archers | Empowered bypasses Guard screening on next Attack | Still only one Attack per Battle; next Attack consumes Boon |
 | Guarded / Endured With | Choose Guarded vs Inspired protection | Both Bonds now +0 Strength; prepared Bond PLAY cannot wait for a Force |
-| No One Would Be First to Leave | Remove Exhaustion **and Move** an eligible formation | Two Actions; 2C; one use per Battle |
+| No One Would Be First to Leave | Immediately remove Exhaustion; later move up to two formations | 2C; second Action only if its optional mobility is used |
 | They Lived to Tell It | Remove a temporary negative marker and give Inspired | Requires an Action each time after the 1C Narrative is played |
-| The Crows Came Down | Exhaust up to two opposing Forces in a single Archer-held Front | Two Actions; 2C; one use per Battle; setup in Archer Front |
-| They Knew the Ground | Seer bends outermost-Front adjacency for friendly movement | Requires Seer and Battle II+ for truly novel reach; flanking unchanged |
+| The Crows Came Down | Exhaust one on PLAY, then optionally Shake one exhausted enemy | 2C; Archer requirement; second Action and once-per-Battle limit |
+| They Knew the Ground | Immediate Move, plus Seer bends outermost-Front adjacency | Seer required for geography effect; flanking and Attack targets unchanged |
 | The Raiders Came Home Loaded | Discount qualifying Tactics, then shift a Raider/Skirmisher | 1C+Action to set up, class and target-Front gate |
 | The Long March | Riders Maneuver unnamed and pay 0C | 2C Narrative plus one Action; other movement constraints still apply |
 | The Wall Did Not Break | Exhausted Guards/Strongholds can Maneuver at 0C | 2C Narrative; the Named requirement remains |
@@ -79,7 +119,7 @@ For each of the four unchanged **48-card** sample decks, draw **10-card hands** 
 
 ## Paper-state usefulness tests
 
-The complementary executable check `python tools/check_physical_cost_balance.py` verifies **15 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
+The complementary executable check `python tools/check_physical_cost_balance.py` verifies **27 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
 
 Suggested hands-on measurements for actual sessions:
 
@@ -95,7 +135,7 @@ If any new effect proves too strong, first **raise its Command by 1 or narrow it
 ## Remaining deliberate risks
 
 1. **Board saturation:** no generic Retreat; narrow Frontline placement is strategically meaningful but can increase dead Force draws once all positions are occupied.
-2. **Conditional Battles:** The Seer adjacency Narrative is of limited use in Battle I; this is intended specialization, not a universal early-game card.
+2. **Conditional Battles:** The Seer adjacency Narrative is most unusual after Battle I, but now has an immediate Move on PLAY so its first-Battle usefulness is not entirely Seer-dependent.
 3. **Unmeasured balance:** static costs and seeded opening hands cannot demonstrate win rates, underpriced combos or repeated strategic dominance. The actual win-rate test requires a runtime aligned with the physical rules or controlled tabletop games.
 4. **No new keyword inflation:** Inspired and Empowered already existed in the rules; this pass finally puts them on cards.
 5. **Print geometry:** the existing headless layout test reports missing frame decorations and footer placements across the whole catalogue, including unchanged cards; this is a fixture/renderer compatibility issue and is **not** a reliable pass/fail for this rebalance. Full-size text fitting remains to be visually checked after the fixture is repaired.
@@ -133,7 +173,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | The Damar | 2 | 2 | Retained |
 | The Serekh | 2 | 2 | Retained |
 | The Relief Column | 2 | 2 | Retained |
-| The Field Train | 2 | 2 | Retained |
+| The Field Train | 2 | 2 | Effect rebalanced |
 | The Signal Company | 2 | 2 | Retained |
 | The Wolf Skirmishers | 3 | 3 | Retained |
 | The Lantern Scouts | 1 | 1 | Effect rebalanced |
@@ -228,7 +268,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | The Line Had Begun to Move | 2 | 1 | Cost adjusted |
 | A Volley Before Dawn | 2 | 2 | Retained |
 | The Scouts Found the Gap | 1 | 1 | Retained |
-| The Stores Were Taken | 1 | 1 | Retained |
+| The Stores Were Taken | 1 | 1 | Effect rebalanced |
 | The Line Was Baited | 0 | 0 | Retained |
 
 ### Stratagems
@@ -241,10 +281,10 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | The Center Must Hold | 2 | 1 | Effect rebalanced |
 | The Flank Was Refused | 1 | 1 | Retained |
 | The Trap Closed | 3 | 2 | Effect rebalanced |
-| The Battle Turned East | 1 | 1 | Retained |
-| There Was No Road Back | 1 | 1 | Retained |
-| Every Banner Turned Toward Them | 2 | 2 | Retained |
-| The Archers Were Ready | 1 | 1 | Retained |
+| The Battle Turned East | 1 | 1 | Effect rebalanced |
+| There Was No Road Back | 1 | 1 | Effect rebalanced |
+| Every Banner Turned Toward Them | 2 | 2 | Effect rebalanced |
+| The Archers Were Ready | 1 | 1 | Effect rebalanced |
 | The Scouts Had Warned Them | 1 | 1 | Retained |
 
 ### Narratives
@@ -254,7 +294,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | The Long March | 2 | 2 | Effect rebalanced |
 | The Wall Did Not Break | 2 | 2 | Effect rebalanced |
 | The Crows Came Down | 2 | 2 | Effect rebalanced |
-| Before Sunset, the Ford Would Be Ours | 1 | 1 | Retained |
+| Before Sunset, the Ford Would Be Ours | 1 | 1 | Effect rebalanced |
 | They Lived to Tell It | 1 | 1 | Effect rebalanced |
 | No Road Was Too Long | 4 | 3 | Cost adjusted |
 | The Battle Had Chosen Them | 2 | 2 | Retained |
@@ -270,7 +310,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | --- | ---: | ---: | --- |
 | Fresh Orders | 0 | 0 | Retained |
 | Catch Your Breath | 0 | 0 | Retained |
-| Re-form the Line | 0 | 0 | Retained |
+| Re-form the Line | 0 | 0 | Effect rebalanced |
 | Bind the Wound | 0 | 0 | Retained |
 | Send a Runner | 0 | 0 | Retained |
 | Take Stock | 1 | 1 | Retained |
