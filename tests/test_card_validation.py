@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from longwar.cards import load_card_file, validate_card_data
-from longwar.game import Front, GameEngine, PlayForce, Position, Rank
+from longwar.game import Front, GameEngine, PlayForce, PlayName, Position, Rank
 from longwar.testing import GameScenario
 from longwar.game.engine import InvalidDeck
 from longwar.rules import GameRules
@@ -159,3 +159,34 @@ def test_paper_narrative_capacity_matches_native_storage() -> None:
     assert GameRules.standard().ongoing_narrative_limit == 4
     with pytest.raises(ValueError, match="native Narrative capacity"):
         GameRules.standard().with_overrides(ongoing_narrative_limit=5)
+
+
+def test_hero_force_and_name_modes_have_separate_native_command_costs(data) -> None:
+    card = next(c for c in data["cards"] if c["type"] == "hero")
+    card["hero_force_command_cost"] = 5
+    card["hero_name_command_cost"] = 2
+    engine = GameEngine(data)
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    state = engine.new_game(
+        deck, deck, seed=134, first_player=0, opening_bonus=False
+    )
+    GameScenario(state).battle(3).hand(0, card["id"]).command(0, 10)
+    position = Position(Front.FIRST, Rank.FRONT)
+    force = PlayForce(card["id"], position)
+    name = PlayName(card["id"], position)
+
+    assert force in engine.legal_actions(state)
+    assert name in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, force) == 5
+    assert engine.command_cost_for_action(state, name) == 2
+    engine.apply(state, name)
+    assert state.players[0].command == 8
+
+
+def test_invalid_hero_mode_cost_is_rejected(data) -> None:
+    hero = next(c for c in data["cards"] if c["type"] == "hero")
+    hero["hero_name_command_cost"] = -1
+    with pytest.raises(ValueError, match="hero_name_command_cost"):
+        validate_card_data(data)
