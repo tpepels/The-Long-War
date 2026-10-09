@@ -14,7 +14,7 @@ const LIVE=new Set(["action","attack","reaction","bonded","while_named","continu
 const RULE_TERMS=[
   "Named Formation","Bonded Formation","Unbonded Formation","Formation",
   "Exhaustion token","temporary negative marker","Tax marker",
-  "prepared Bond","prepared Name","Frontline","Middle row","Rear row","Front row",
+  "prepared Bond","prepared Name","Frontline","Middle row","Rear row","Front row","Middle","Rear",
   "Force","Bond","Name","Hero","Tactic","Order","Stratagem","Narrative",
   "Command","Strength","Attack","Action","Reaction","Battle","Front",
   "Maneuver","Move","Pass","Exhausted","Exhaustion","Shaken","Depleted",
@@ -42,7 +42,7 @@ const RULE_GLYPH_KIND={
   "tactic":"tactic","order":"order","stratagem":"stratagem","narrative":"narrative",
   "command":"command","strength":"strength","attack":"target","action":"action","reaction":"reaction",
   "battle":"trigger","front":"target","frontline":"front","middle row":"middle",
-  "rear row":"rear","front row":"front","maneuver":"move","move":"move","pass":"trigger",
+  "rear row":"rear","front row":"front","middle":"middle","rear":"rear","maneuver":"move","move":"move","pass":"trigger",
   "exhausted":"marker","exhaustion":"marker","exhaustion token":"marker",
   "shaken":"marker","depleted":"marker","guarded":"shield","inspired":"shield",
   "empowered":"target","tax marker":"marker","temporary negative marker":"marker",
