@@ -84,8 +84,8 @@ class GenericAlphaBetaSearch(Generic[StateT, ActionT]):
 
         for action in actions:
             if level < len(scratch):
-                child = scratch[level]
-                self.game.copy_state(state, child)
+                child = self.game.copy_state(state, scratch[level])
+                scratch[level] = child
             else:
                 child = self.game.copy_state(state, None)
                 scratch.append(child)
