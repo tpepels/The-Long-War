@@ -101,10 +101,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If playing this Bond completes a Named Formation, you may immediately Maneuver it once without spending another Action or Command."
+          "text": "If playing this Bond completes a Named Formation, give that formation +2 Strength this Battle. Otherwise, draw 1 card, then discard 1 card."
         }
       ],
-      "design_note": "One-time completion burst."
+      "design_note": "Phase 3: Strong completion burst replaces free Maneuver, while preparing the Bond still provides card selection; no replay on later attachment."
     },
     {
       "id": "endured-with",
@@ -112,10 +112,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If this position contains a Force, give that Force Inspired."
+          "text": "Choose a friendly Force in this Front, if any. Give it Inspired."
         }
       ],
-      "design_note": "Inspired-Bond sidegrade to Guarded; Shaken immunity differs from first-affliction prevention."
+      "design_note": "Phase 3: A prepared Endured With still protects an existing friendly Force in its Front, rather than wasting its PLAY effect."
     },
     {
       "id": "carried-the-oath-of",
@@ -443,10 +443,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If this position contains a Force, give that Force Guarded."
+          "text": "Choose a friendly Force in this Front, if any. Give it Guarded."
         }
       ],
-      "design_note": "Name now matches effect; trades +1 bond Strength for protective Guarded Boon."
+      "design_note": "Phase 3: Guarded can protect a friendly Force elsewhere in its Front when played prepared; cannot target an inactive Front."
     },
     {
       "id": "the-watchtowers-of-eren",
@@ -523,10 +523,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a prepared Bond or Name here or in an adjacent active Front. Attach it to the friendly formation directly ahead of this Force, if legal and the slot is empty."
+          "text": "Attach a prepared Bond or Name here or in an adjacent active Front to the friendly formation directly ahead, if legal. If it becomes Named, give it +2 Strength this Battle."
         }
       ],
-      "design_note": "Cross-Front one-time logistics separate from House of Reed repeatable ACTION."
+      "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
     },
     {
       "id": "re-form-the-line",
@@ -591,6 +591,72 @@
         }
       ],
       "design_note": "One Action and 2 Command for an immediate formation exchange and up to two temporary Strength; no repeatable two-Action setup."
+    },
+    {
+      "id": "the-house-of-reed",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Attach a prepared Bond or Name in this Front to the friendly formation directly ahead, if legal."
+        },
+        {
+          "timing": "action",
+          "text": "Attach up to two prepared Bonds or Names to friendly formations in this Front, one at a time. Each formation made Named this way gains Guarded.",
+          "limit": "once_per_battle",
+          "exposed": "ACTION · 1/B: attach up to 2 prepared; newly Named Guarded"
+        }
+      ],
+      "design_note": "Phase 3: a useful on-play attachment plus one major once-per-Battle two-layer commitment and Guarded completion reward."
+    },
+    {
+      "id": "stayed-behind-for",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose a prepared Name in this Front. Attach it to a friendly Force here with an empty Name slot, if legal."
+        }
+      ],
+      "design_note": "Phase 3: Play effect works when Stayed Behind For is itself prepared or attached to any Force; no future PLAY reactivation."
+    },
+    {
+      "id": "kept-pace-with",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If you control a Rider or Scout formation in this Front, draw 1 card, then discard 1 card."
+        }
+      ],
+      "design_note": "Phase 3: Prepared Kept Pace With can still filter if a Rider or Scout already exists in its Front."
+    },
+    {
+      "id": "carried-messages-for",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If you control a Captain or Scout formation in this Front, draw 1 card, then discard 1 card."
+        }
+      ],
+      "design_note": "Phase 3: Card-flow Bond works when prepared near an existing Captain or Scout, not only when immediately attached."
+    },
+    {
+      "id": "shared-the-spoils-with",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If you control a Raider or Skirmisher formation here and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount actually lost."
+        }
+      ],
+      "design_note": "Phase 3: Prepared layer can exploit an Exhausted enemy via a separate friendly Raider/Skirmisher; supports Phase 2 Exhaustion payoff without added damage."
+    },
+    {
+      "id": "marched-with",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose a friendly formation in this Front, if any. It gets +1 Strength this Battle."
+        }
+      ],
+      "design_note": "Phase 3: Simple temporary Strength tempo for a Bond played attached or prepared, replacing low-payoff gratuitous movement."
     }
   ],
   "once_per_battle_text_fixes": [
@@ -606,11 +672,6 @@
       "id": "the-red-shields",
       "index": 0,
       "exposed": "Front: enemy Tactics targeting this +1 Command"
-    },
-    {
-      "id": "the-house-of-reed",
-      "index": 0,
-      "exposed": "ACTION: pay 1; attach prepared Bond/Name ahead"
     },
     {
       "id": "the-dust-riders",

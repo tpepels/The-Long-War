@@ -308,6 +308,112 @@ def run() -> None:
          and not used_once("the-king-had-given-the-order"),
          "Bond exchange uses the play Action and boosts only Named formations")
 
+    # Phase 2: compare explicit tabletop marker arithmetic, not simulated games.
+    # A formation has 5 base Strength. Exhausted/Depleted are each -1,
+    # Shaken -2, and one flank penalty is -1; floor to 0.
+    def marker_strength(base: int, *, exhausted: bool = False,
+                        depleted: bool = False, shaken: bool = False,
+                        flanked: bool = False) -> int:
+        return max(0, base - int(exhausted) - int(depleted)
+                   - 2 * int(shaken) - int(flanked))
+
+    case("P2: Exhausted now changes the Front comparison",
+         marker_strength(5, exhausted=True) == 4
+         and "**−1 Strength**" in rulebook
+         and "- **Exhausted:**" in rulebook,
+         "Lost Front or Archer Exhaustion must cost 1 actual Strength")
+
+    case("P2: Depleted changes Strength and entire formation ACTION access",
+         marker_strength(5, depleted=True) == 4
+         and "**no printed ACTION ability on that formation**" in rulebook
+         and "attached Bond or attached Name" in rulebook,
+         "Depleted is a formation-wide lock, including Name and Hero ACTION")
+
+    case("P2: penalties stack with Shaken and flanking, floor at zero",
+         marker_strength(5, exhausted=True, depleted=True) == 3
+         and marker_strength(5, exhausted=True, depleted=True,
+                             shaken=True, flanked=True) == 0
+         and marker_strength(1, exhausted=True, depleted=True) == 0
+         and "duplicate markers of the same condition do not stack" in rulebook,
+         "No negative front contribution; independent afflictions compound")
+
+    case("P2: weakened defeated Fronts persist exactly one subsequent Battle",
+         "Place one new Exhaustion token" in rulebook
+         and "persists throughout the next Battle" in rulebook
+         and "−1 Strength" in rulebook
+         and "Guarded prevents one incoming affliction at a time" in rulebook,
+         "Keep defeat penalties and prevention timing readable")
+
+    # Phase 3: preparing a layer should be able to contribute immediately
+    # without replaying old PLAY effects on eventual attachment.
+    case("P3: House of Reed can turn prepared layers into real defence",
+         cost("the-house-of-reed") == 2
+         and len(cards["the-house-of-reed"]["effects"]) == 2
+         and any(e["timing"] == "play" and "directly ahead" in e["text"]
+                 for e in cards["the-house-of-reed"]["effects"])
+         and any(e["timing"] == "action" and "up to two" in e["text"]
+                 and "Named" in e["text"] and "Guarded" in e["text"]
+                 and e.get("limit") == "once_per_battle"
+                 for e in cards["the-house-of-reed"]["effects"]),
+         "One-shot attachment and a guarded two-layer once-per-Battle Action")
+
+    case("P3: Field Train rewards legal cross-Front completion",
+         row("the-field-train") == ["middle"]
+         and cost("the-field-train") == 2
+         and has("the-field-train", "adjacent active Front",
+                 "directly ahead", "becomes Named",
+                 "+2 Strength this Battle")
+         and cards["the-field-train"]["effects"][0]["timing"] == "play",
+         "Cross-Front delivery yields +2 only when completing Named")
+
+    case("P3: Swore Again To works prepared but rewards immediate completion",
+         cost("swore-again-to") == 1
+         and cards["swore-again-to"]["strength_modifier"] == 0
+         and has("swore-again-to", "playing this Bond completes",
+                 "+2 Strength this Battle", "Otherwise",
+                 "draw 1 card", "discard 1 card")
+         and "cannot replay the Bond's earlier PLAY effect" in rulebook,
+         "Prepared filtering replaces dead-on-preparation Maneuver ability")
+
+    case("P3: prepared protection can choose an existing nearby Force",
+         cost("guarded") == cost("endured-with") == 1
+         and has("guarded", "friendly Force in this Front", "Give it Guarded")
+         and has("endured-with", "friendly Force in this Front",
+                 "Give it Inspired"),
+         "Protection Bonds do not require a Force in their own position")
+
+    case("P3: prepared Name transfer no longer requires a local Force",
+         has("stayed-behind-for", "prepared Name", "this Front",
+             "friendly Force", "empty Name slot", "if legal")
+         and cards["stayed-behind-for"]["effects"][0]["timing"] == "play",
+         "One PLAY effect supports attaching another prepared Name")
+
+    case("P3: card flow works with nearby enabling classes",
+         has("kept-pace-with", "control a Rider or Scout", "this Front",
+             "draw 1 card", "discard 1 card")
+         and has("carried-messages-for", "control a Captain or Scout",
+                 "this Front", "draw 1 card", "discard 1 card"),
+         "These conditional Bonds function even when played prepared")
+
+    case("P3: exhausted Raiders convert into Command without own attachment",
+         has("shared-the-spoils-with", "control a Raider or Skirmisher",
+             "opposing Force", "Exhausted", "1 Command",
+             "amount actually lost"),
+         "Exhaustion now matters both for Strength and targeted Command transfer")
+
+    case("P3: simple tempo Bond boosts Strength when prepared",
+         cost("marched-with") == 1
+         and cards["marched-with"]["strength_modifier"] == 1
+         and has("marched-with", "friendly formation in this Front",
+                 "+1 Strength this Battle"),
+         "A Bond provides immediate defensive tempo without free Maneuvers")
+
+    case("P3: prepared layers remain face-up without replaying PLAY",
+         "Prepared layers have no Strength and are not formations" in rulebook
+         and "does **not** replay its earlier PLAY effect" in rulebook
+         and "Resolve the attachments **one at a time**" in rulebook,
+         "No global repeatable PLAY trigger or infinite attachment loop")
+
     # All four example decks are 48 cards, and neither their published content
     # nor the executable source were mutated by the print-only revisions.
     print(f"PASS: {len(checks)} paper-state card-cost and decision contracts, "

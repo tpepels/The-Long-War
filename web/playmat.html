@@ -60,7 +60,7 @@
           <ol>
             <li><b>Before drawing:</b> choose to Pass (no draw, no Actions), or take a normal turn.</li><li><b>Normal turn:</b> draw {{TURN_DRAW_COUNT}}. Discard down to {{HAND_LIMIT}} if needed; reshuffle discard if the deck empties.</li>
             <li><b>Act:</b> take up to {{ACTIONS_PER_TURN}} Actions: play a card, use an ACTION ability, Maneuver, Attack, or Cycle (discard 2, draw 1). Ending early is not Pass.</li>
-            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one adjacent active position - left/right or one rank forward/back, never diagonal - or swap with a friendly formation. Exhausted Forces cannot Maneuver.</li>
+            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one adjacent active position - left/right or one rank forward/back, never diagonal - or swap with a friendly formation. Exhausted Forces have −1 Strength and normally cannot Maneuver.</li>
             <li><b>Pass:</b> voluntary, before drawing. Opponent takes one full closing turn (draw + up to 2 Actions), then the passer takes one; resolve the Battle.</li>
           </ol>
         </section>
@@ -81,7 +81,7 @@
 
         <section>
           <span>CARD TEXT</span>
-          <p><b>Stack:</b> Force + Bond + Name; modifiers add to Force Strength, minimum 0 per formation. Attached Name classifications combine with the Force, including basic Attacks (one Attack per Force per Battle). Compatible prepared layers attach when a formation moves into them. <b>Flanked Frontline:</b> −1 Strength while flanked, no marker. <b>PLAY</b> resolves on play; <b>BECOMES NAMED</b> triggers on genuine completion. MOVE and SWAP are not Maneuvers.</p>
+          <p><b>Stack:</b> Force + Bond + Name; modifiers add to Force Strength, minimum 0 per formation. Attached Name classifications combine with the Force, including basic Attacks (one Attack per Force per Battle). Compatible prepared layers attach when a formation moves into them. <b>Exhausted:</b> −1 Strength. <b>Depleted:</b> −1 Strength and cannot Attack or use ACTION on any layer. <b>Shaken:</b> −2 Strength. Penalties stack. <b>Flanked Frontline:</b> −1 Strength while flanked, no marker. <b>PLAY</b> resolves on play (also when prepared, never replayed on attachment); <b>BECOMES NAMED</b> triggers on genuine completion. MOVE and SWAP are not Maneuvers.</p>
         </section>
 
         <section class="rv-score">

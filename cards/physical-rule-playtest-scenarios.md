@@ -12,11 +12,11 @@ During Battle I, leave both players with several playable cards. At the **start 
 
 ## 2. Front loss causes one future Battle of Exhaustion
 
-After comparing Fronts, Player A loses Front 2 with three Forces across its Frontline, Middle and Rear. The Middle Force has **Guarded**; the others do not. Deduct 1 Command for the lost Front and check Collapse. Guarded protects the Middle Force from the new loss-based Exhaustion; consume Guarded. Clear all old conditions and then give the Frontline and Rear Forces one Exhaustion token each. These start the next Battle Exhausted and cannot initiate ordinary Maneuvers. They still have Strength and may Attack. A recovery card can remove their tokens.
+After comparing Fronts, Player A loses Front 2 with three Forces across its Frontline, Middle and Rear. The Middle Force has **Guarded**; the others do not. Deduct 1 Command for the lost Front and check Collapse. Guarded protects the Middle Force from the new loss-based Exhaustion; consume Guarded. Clear all old conditions and then give the Frontline and Rear Forces one Exhaustion token each. These start the next Battle Exhausted, with **−1 Strength each**, and cannot initiate ordinary Maneuvers. They may still Attack unless also Depleted. A recovery card can remove their tokens.
 
 At the following Battle end, those old tokens clear. If A loses Front 2 again, the defeated, unprotected Forces receive fresh Exhaustion tokens for the Battle after that.
 
-**Watch for:** two Battles of Exhaustion from one loss (wrong); Guarded clearing before it protects (wrong); immobilized armies without enough recovery options (balance risk).
+**Watch for:** two Battles of Exhaustion from one loss (wrong); Guarded clearing before it protects (wrong); repeated defeats causing a runaway −1 Strength disadvantage (balance risk).
 
 ## 3. Flanking influences Strength without adding a marker
 
@@ -81,3 +81,88 @@ Print one Force+Bond+Name stack and one Hero+Bond+Name stack at **actual size**,
 ## Evaluation record
 
 For each scenario record: **Rules lookup needed?**, **unanticipated outcome?**, **meaningful decision?**, **opponent counterplay?**, **too much marking?**. Do not conclude the system is balanced from a static audit; revise problematic *effects* rather than simply adding more cards. Keep the 131 identities fixed until actual physical games justify a change.
+
+## Phases 2–3: condition and preparation regression scenarios
+
+These are **manual test instructions**, not logged playtest results.
+
+### Exhaustion now changes a real Front outcome
+
+At the start of Battle II, A has a 3-Strength Force, +1 Bond and +1 Name in
+Front 2. It lost this Front in Battle I and carries Exhaustion. It now has
+**4 Strength instead of 5** and may still Attack. If B contributes exactly 5
+Strength here, B wins unless A removes Exhaustion or plays another Strength
+source. If the Force also receives Depleted, its strength becomes **3** and
+it cannot Attack or use Oren's ACTION if Oren is its attached Name. Remove
+Depleted and the same Oren ACTION becomes available again, provided it has
+not been used already that Battle.
+
+**Check:** the two independent −1 penalties and source-layer ACTION lock are
+tracked, and previously used ACTION allowances do not reset.
+
+### Conditions stack but cannot make another formation weaker
+
+Use a 5-Strength Force at a flanked Frontline position. Apply Exhausted
+(−1), Depleted (−1), and Shaken (−2). The flank contributes another −1:
+the formation has **0 Strength**, not −1. A friendly 4-Strength Force in that
+Front still contributes all 4 Strength. Reapplying Exhausted leaves the
+first Force at 0 rather than subtracting another point. Give it Guarded
+before applying a card that Exhausts and then Shakes: Guarded prevents the
+first Exhaustion and is spent, so Shaken can still apply.
+
+**Watch for:** extra token stacking, subtracting below 0 or Guarded blocking
+the entire two-step Tactic rather than one affliction.
+
+### Preparing a defensive Bond should be useful immediately
+
+A has a Force in the Frontline and an empty Rear position in the same Front.
+A plays **Guarded** into the Rear, without a Force there, and chooses the
+Frontline Force for Guarded. The prepared Bond still contributes no Strength.
+When a Force later enters that Rear position, the Bond attaches but its
+PLAY ability does **not** fire again. Repeat with **Endured With** and Inspired.
+
+**Check:** the existing Force is protected immediately, the prepared Bond
+remains visible, and attachment does not duplicate the Boon.
+
+### House of Reed can finish two prepared layers in one ACTION
+
+A controls **The House of Reed** in Middle. A already has three prepared
+layers in its Front, and friendly Forces with available Bond or Name slots,
+including one in Frontline directly ahead. When House of Reed is played, its PLAY may attach one prepared
+layer directly ahead. On a subsequent turn, its **once-per-Battle ACTION**
+may attach up to two remaining prepared layers, one at a time, to legal
+friendly formations in that Front. If a particular attachment genuinely
+completes Named, resolve its BECOMES NAMED triggers and then give that
+Force Guarded. The second layer is not automatically another Named event.
+Returning the House of Reed and playing the same physical card again does
+not refresh its already spent once-per-Battle ACTION.
+
+**Check:** each individual attachment is legal, no second Command is
+charged for prepared components, no old PLAY effects replay and no
+unearned Guarded is granted.
+
+### Field Train and Swore Again To are different completion rewards
+
+With **The Field Train** in Middle, arrange a friendly Force directly ahead
+that has a Bond but no Name. Prepare a Name in an adjacent active Front.
+Playing Field Train attaches that Name across the Front boundary. The
+resulting Named Formation gets **+2 Strength this Battle**, after its
+BECOMES NAMED effect. Next, directly play **Swore Again To** as the missing
+Bond on a Force that already has a Name: it gets another temporary +2
+Strength from the Bond's own PLAY effect. But if Swore Again To is prepared
+first, it only draws 1/discards 1 immediately and does not award that
+PLAY-based +2 when it eventually joins a formation.
+
+**Check:** the adjacent Front is active, all placements are legal and no
+PLAY effect runs twice.
+
+### Measure comeback viability, not merely legality
+
+In separate matched trials, give A a lost Front with three surviving Forces
+and B an otherwise identical winning Front. Begin Battle II and measure
+how often A can recover through a new Force, healing, a Boon, attacking,
+or Named completion before the next resolution. Run the same scenario
+with **Guarded** on one of A's Forces. The goal is to establish whether
+lost-Front Exhaustion's −1 per Force compounds too severely. Record
+actual Front results and Command totals; do not infer balance from these
+written scenarios alone.

@@ -8,14 +8,14 @@ Before drawing, either **Pass** (a complete turn with no draw and no Actions) or
 
 ## Formation Strength and classifications
 
-Force Strength + printed Bond modifier + printed Name modifier (including Hero-as-Name) + applicable effects, minimum **0 per formation**. Add all formations across a Front. Attachments contribute no Strength without a Force. An attached Name contributes all its classifications to the Force; multiple Attack types still allow **one Attack per Force per Battle**. Separate card effects stack; one effect is applied only once per formation.
+Force Strength + printed Bond modifier + printed Name modifier (including Hero-as-Name) + applicable effects, then subtract **1 for Exhausted**, **1 for Depleted**, **2 for Shaken**, and **1 if flanked**. Apply a minimum of **0 per formation**. Separate conditions stack; duplicate markers of one type do not. Add all formations across a Front. Attachments contribute no Strength without a Force. An attached Name contributes all its classifications to the Force; multiple Attack types still allow **one Attack per Force per Battle**. Separate card effects stack; one effect is applied only once per formation.
 
 | Classification | Basic Attack target | Result |
 | --- | --- | --- |
 | Archer | Opposing Rear Force in same Front | Exhaust |
 | Skirmisher | Opposing Middle Force in same Front | Shake |
 | Raider | Opposing Middle or Rear Force if opposing Frontline empty | Deplete |
-| Rider | Opposing flanked Frontline Force in adjacent active Front | Shake |
+| Rider (attacking from Frontline or Middle) | Opposing flanked Frontline Force in adjacent active Front | Shake |
 
 A Middle Guard screens the Rear from a basic Archer Attack unless Shaken or Depleted, except when a card grants explicit screening while Shaken.
 
@@ -25,9 +25,9 @@ A Frontline Force is flanked when its opponent has a Frontline Force in an adjac
 
 | Marker | Meaning |
 | --- | --- |
-| Exhausted | Cannot initiate Maneuvers. May still Attack, use abilities and add Strength. |
+| Exhausted | **−1 Strength**; cannot initiate ordinary Maneuvers. Can still Attack unless also Depleted. |
 | Shaken | −2 Strength to this formation and loses basic Guard screening. |
-| Depleted | Cannot Attack or activate ACTION abilities; loses basic Guard screening. |
+| Depleted | **−1 Strength**; cannot Attack or use ACTION on Force, Bond or Name in its formation; loses basic Guard screening. |
 | Guarded | Prevent next affliction, including defeat Exhaustion, then remove. |
 | Inspired | Remove and prevent Shaken while present. |
 | Empowered | Next Attack ignores screening, but not range or flanking rules. |
@@ -42,6 +42,6 @@ A Frontline Force is flanked when its opponent has a Frontline Force in an adjac
 
 ## Card-timing reminders
 
-PLAY resolves when played (also when prepared), not later. BECOMES NAMED can retrigger upon rebuilding after a genuine loss of Named status. Attached Force/Name classifications combine. ACTION takes a turn Action. ATTACK modifies an existing Attack. Move into compatible prepared cards to attach them; don't overwrite an occupied Bond/Name layer. Printed once-per-Battle use stays spent even if a card is returned and replayed. Narratives stay face-up until Battle end (max **4**). A set Stratagem is publicly assigned to an active Front and optionally revealed when eligible.
+PLAY resolves when played (also when prepared), not when the prepared card later attaches. Bonds with a legal other-formation target can resolve PLAY even when prepared. House of Reed may attach two prepared layers one at a time with one ACTION, and completion rewards follow BECOMES NAMED triggers. BECOMES NAMED can retrigger upon rebuilding after a genuine loss of Named status. Attached Force/Name classifications combine. ACTION takes a turn Action. ATTACK modifies an existing Attack. Move into compatible prepared cards to attach them; don't overwrite an occupied Bond/Name layer. Printed once-per-Battle use stays spent even if a card is returned and replayed. Narratives stay face-up until Battle end (max **4**). A set Stratagem is publicly assigned to an active Front and optionally revealed when eligible.
 
 A condition tracker alongside a formation should not obscure buried live reminders on the exposed 10.5 mm edges.

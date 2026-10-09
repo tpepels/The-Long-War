@@ -35,12 +35,69 @@ attached Bond/Name and their markers, opening a persistent position. It does
 not create generic Retreat.
 
 **Verification:** `tools/check_physical_cost_balance.py` contained **27
-paper-state contracts** before Phase 1 covering the earlier 15 cases plus the 12 new
+paper-state contracts** before the earlier revisions and now contains **45** covering the earlier 15 cases plus the 12 new
 decisions. They remain syntax/rules assertions rather than observed gameplay.
 `tools/physical_playtest_metrics.py` accepts event logs and reports per-card
 playability, utility, triggers, actions, occupancy and deck outcomes. Use the
 [playtest evidence guide](physical-playtest-evidence.md); no true win-rate claims
 are made without logged games or a rules-compatible simulation.
+
+## Phases 2–3: condition pressure and formation payoffs (9 October 2026)
+
+The printed physical rules now treat **Exhausted as −1 Strength and a
+Maneuver restriction** and **Depleted as −1 Strength plus no Attack/ACTION
+abilities throughout the formation** (including attached Names and Hero modes).
+Shaken remains −2 Strength and disables normal Guard screening. Independent
+conditions stack and cannot reduce a formation below 0 Strength.
+
+These changes make Archer Exhaustion, Raider Depletion, Guarded prevention,
+Healer recovery and lost-Front scars directly relevant to a Front result. They
+also introduce **snowball risk**: losing a Front now weakens its surviving
+defenders by 1 Strength per Force next Battle, on top of the lost Command.
+Guarded prevention, recovery cards and continuing to Attack are the main
+counterplay. The recover-before-cleanup timing is unchanged.
+
+**Phase 3 replaces weak prepared-card effects on ten cards**:
+
+| Card | Effect and counterplay |
+| --- | --- |
+| The House of Reed | PLAY attaches one prepared Bond/Name ahead; ACTION once/Battle attaches up to two prepared layers within the Front. Each newly Named formation gains Guarded after completion effects |
+| The Field Train | Keeps one prepared-layer transfer from own or adjacent Front to the formation directly ahead; +2 temporary Strength if this completes Named |
+| Swore Again To | Playing it as the final Named layer grants +2 temporary Strength; otherwise PLAY draws 1, discards 1, including when prepared |
+| Guarded / Endured With | PLAY can give Guarded/Inspired to any legal friendly Force in the same Front, even if the Bond itself is prepared |
+| Stayed Behind For | PLAY sends a prepared Name to a legal friendly Force in its Front, whether the Bond is prepared or attached |
+| Kept Pace With / Carried Messages For | Card filtering triggers from an existing Rider/Scout or Captain/Scout elsewhere in the same Front, also when the Bond is prepared |
+| Shared the Spoils With | A separate friendly Raider/Skirmisher can exploit an Exhausted opposing Force here to transfer Command, even if the Bond was prepared |
+| Marched With | PLAY gives +1 temporary Strength to a friendly formation in its Front instead of a narrow Move |
+
+**No universal replay rule:** prepared Bond/Name PLAY resolves immediately,
+not again when attaching. Each attachment completes Named at most once per
+real transition. All ten Phase 3 revisions use existing PLAY, ACTION,
+BONDED, Named, Guarded and Strength concepts; they introduce no new keyword.
+The base native/Webgame data remains unchanged.
+
+**New tabletop tests to prioritise:**
+1. A 5-Strength formation with Exhausted + Depleted loses 2 Strength; with
+   Shaken and a flank it contributes 0. A single Guarded Boon blocks only
+   the *first* incoming affliction when a card applies two.
+2. *The Baggage Was Abandoned* now gives Rear Force Exhausted (−1) plus
+   Shaken (−2) from one 2-Command card. *The Crows Came Down* also can
+   stack those penalties across two Actions. These **−3 Strength**
+   swings are intentionally flagged for possible over-efficiency.
+3. Compare a lost Front with three exhausted defenders against a protected
+   Front with three defenders, repeating across Battles II–IV. Record
+   comeback rates rather than assuming Phase 2 is balanced.
+4. Test House of Reed's double attachment, Field Train's +2 completion,
+   and Swore Again To's prepared-versus-direct branches, including Oren
+   and other Name-completion chains.
+5. Compare the unchanged four decks and 34-card compressed variants.
+   No win-rate conclusions are asserted without real tabletop logs
+   or a physical-rules-compatible engine.
+
+**Verification scope:** `tools/check_physical_cost_balance.py` now has
+**45 static paper-state contracts** (32 before these phases). Website,
+reference text, card overlays and playmat were updated together.
+These tests establish timing/wording consistency, not measured play quality.
 
 ## Phase 1: ineffective-card repairs (9 October 2026)
 
@@ -149,7 +206,7 @@ rates are **unmeasured**. See [actual lists and signature combinations](playtest
 
 ## Paper-state usefulness tests
 
-The complementary executable check `python tools/check_physical_cost_balance.py` verifies **32 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
+The complementary executable check `python tools/check_physical_cost_balance.py` verifies **45 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
 
 Suggested hands-on measurements for actual sessions:
 
