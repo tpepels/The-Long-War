@@ -10,15 +10,16 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Focus:** Rider Attacks, exposed Frontline, and whether +1 Strength and forced placement reward worthwhile positioning.
 
-**Setup:** Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's +1 Strength payoff to repeated Maneuvers.
+**Setup:** Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's two-Rider secret opening redeployment with two ordinary Maneuver orders.
 
 **Composition:** 48 cards, 93–97 Command across all cards (Hero mode-dependent), 54 sum printed Force Strength (not the Front total).
 
 **What to record**
 
 - Rider Attack can only start in Frontline/Middle and needs an opposing flanked Frontline target
-- New Rider Stratagem changes an actual Front result versus one more Force
-- 0-Command Maneuver does not eclipse the raw Strength plan
+- Only one Stratagem can be set per player each Battle, even when Teren saves its Action
+- Every Force may Maneuver while Unnamed; Dust Riders instead save their first Bonded Maneuver's Command
+- The Long March may move two different Riders with one secret Opening Maneuver
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -61,7 +62,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 **What to record**
 
 - At least one Scout and one Seer can be deployed and completed
-- Scouts Had Warned Them protects a threatened position, while Iria and Kael-as-Name can Move after inspecting a hidden plan
+- Iria can retarget a declared Opening Strike after reveal; Kael-as-Name can still Move after inspecting a hidden plan
 - Before Sunset has a same/adjacent Front trigger and changes Strength
 - Ground Was Held reveals only from an eligible pre-reveal total
 
