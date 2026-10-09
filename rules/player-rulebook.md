@@ -39,6 +39,19 @@ A playmat is optional. Lay out four Fronts with three rows on each player's side
 
 Hands, decks and face-down Stratagem identities are hidden. Command, card counts, battlefield, discard piles and a Stratagem's assigned Front are public.
 
+## Opening Orders {#opening-orders}
+
+At the start of each Battle, both players secretly write **two orders**, numbered 1 and 2. You may choose the same order twice:
+
+- **Maneuver:** Maneuver one friendly formation one legal step, even if Unnamed. No Action or Command cost. An Exhausted Force still cannot initiate.
+- **Commit:** Pay **1 Command** to give **+2 Strength** to one active Front containing one of your Forces this Battle. This adds to the **Front total**, not an individual Force; it counts only while you have a Force there.
+- **Strike:** Make one legal **basic Attack** with a chosen Force against a chosen target. It uses that Force's normal once-per-Battle Attack.
+- **Hold:** Do nothing.
+
+**Reveal all four orders together.** Pay for valid Commit orders first. Then resolve Maneuvers, followed by Strikes, in numbered order. Opposing orders at the same step happen simultaneously. Check legal positions and targets after earlier steps; an impossible order does nothing. Two Commits may reinforce the same Front. All Opening Orders are **free Actions**; only Commit spends Command.
+
+**Battle I:** Issue Opening Orders **after each player has taken their first turn**, so there can be Forces to command. If someone has already Passed, skip Opening Orders. From Battle II onward, issue them before the first turn.
+
 ## Your turn {#turn}
 
 Before drawing, choose whether to **Pass** (see *Passing*). Otherwise:
@@ -178,11 +191,11 @@ Check unrevealed Stratagem eligibility against the **initial** board and provisi
 
 ### 2. Settle Fronts
 
-For each active Front, add the final Strength of each side's formations. Higher Strength wins. A tie defeats neither player. Record Fronts lost; **formations stay on the field**.
+For each active Front, add each player's formation Strength and any **Commit** bonus. Higher Strength wins. A tie defeats neither player. Record each lost Front and its **Strength difference**; formations stay on the field.
 
 ### 3. Lose Command
 
-Resolve Battle-end card effects, then lose **1 Command per lost Front**, unless prevented by card text. This loss can take Command to 0 or below.
+Resolve Battle-end card effects, then for **each lost Front lose Command equal to the difference in Strength** (for example, 8 against 5 loses **3 Command**), unless prevented by card text. Add losses across Fronts; a tie costs nothing. Loss can take Command to 0 or below.
 
 ### 4. Check Collapse
 
