@@ -13,7 +13,7 @@ real player-identifiable data. The following are **schema examples, not match re
 {"kind":"opportunity","game_id":"sample-01","player":"A","battle":2,"turn":3,"card_id":"the-crows-came-down","playable":true,"useful":false}
 {"kind":"play","card_id":"the-crows-came-down","effect_triggered":true,"command_spent":2,"actions_spent":1,"formations_moved":0,"markers_changed":1,"fronts_flipped":0}
 {"kind":"turn","battle":4,"active_positions":12,"occupied_positions":12,"stranded_forces":1}
-{"kind":"result","game_id":"sample-01","deck_a":"Maneuver & Relief","deck_b":"Hold & Counter","winner":"A"}
+{"kind":"result","game_id":"sample-01","deck_a":"Banner & Blood","deck_b":"Crown of Crows","winner":"A"}
 ```
 
 - **opportunity:** one record per card title, player and normal turn when the

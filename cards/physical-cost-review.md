@@ -7,9 +7,9 @@
 
 **Scope:** 12 physical-card effect revisions, a physical-only Rider Attack rank
 restriction, and a single controlled way to free a persistent position.
-The pool remains **131 identities**. This pass **does not change printed Command
-costs**, four deck lists, or native/Webgame rules, so the cost ledger and
-aggregate deck cost totals below remain the same. The 8 October rationale is
+The pool remains **131 identities**. This pass **did not change printed Command
+costs** or native/Webgame rules. The old four decks were subsequently replaced
+by four combo-driven decks; their **new aggregate costs appear below**. The 8 October rationale is
 retained as historical context where effects have since changed.
 
 | Card | Revised decision and balancing guard |
@@ -104,18 +104,25 @@ Costs are deliberately **not** uniformly lowered. Most revised effects keep thei
 
 **Core safeguards:** The 131 identities, Hero modes, existing formation/attachment combinations, one-Front assigned hidden Stratagems, voluntary Pass, and the physical-only/native split all remain. The three new Frontline-only restrictions make good Force placement a deliberate opportunity cost.
 
-## Play-like hand and cost-pressure checks
+## Current combo-deck composition and cost checks (9 October)
 
-For each of the four unchanged **48-card** sample decks, draw **10-card hands** from a deterministic, shuffled-deck proxy. These are opening-hand *availability* figures only: they do not pretend to simulate legal Actions, opponent decisions, Front results, or victory.
+The four previous mechanic-themed decks were replaced with combos that
+compete primarily through permanent Strength, formation completion and
+protection, or attack-linked Strength/Command pressure.
 
-| Deck | Sum of printed Command before → after | Hands without a Force or Hero | Hands without a Bond | Mean cards costing ≤1C |
+| Deck | 48 cards | Force count | Printed Force Strength | Sum of all printed Command costs |
 | --- | ---: | ---: | ---: | ---: |
-| Maneuver & Relief | 72 → **71** | 0.3% | 13.1% | 5.64 |
-| Build & Chain | 85 → **80** | 0.3% | 13.1% | 4.60 |
-| Pressure & Intelligence | 86 → **82** | 0.3% | 13.1% | 4.58 |
-| Hold & Counter | 79 → **77** | 0.3% | 13.1% | 4.39 |
+| Banner & Blood | 48 | 16 | 58 | 78 |
+| Crown of Crows | 48 | 16 | 55 | 78 |
+| Oathforge | 48 | 16 | 51 | 79 |
+| Blood & Spoils | 48 | 17 | 65 | 91 |
 
-**Interpretation:** The aggregate cost reductions are modest and the deck composition is unchanged. A 10-card hand usually offers multiple low-Command cards, but affordable does **not** mean playable: cards can be blocked by occupied positions, missing setup, or unsupported abilities. The late-Battle floor of +1 Command makes those spatial and attachment constraints especially important.
+**Interpretation:** the values above are sums over all cards in a deck, not
+expenditure or expected winning Strength in a game. Blood & Spoils deliberately
+uses expensive high-Strength Raiders and must earn that extra Command through
+affliction, attachment raids and resource transfers. Oathforge gives up some
+unattached Force Strength to build larger Named stacks. Their relative win
+rates are **unmeasured**. See [actual lists and signature combinations](playtest-decks.md).
 
 ## Paper-state usefulness tests
 

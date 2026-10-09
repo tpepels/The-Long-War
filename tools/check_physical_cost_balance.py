@@ -123,7 +123,7 @@ def run() -> None:
     # A prepared opponent's Bond is vulnerable only after pressure connects.
     case("B3: ambush damages a formation rather than adding Strength",
          cost("the-trap-closed") == 2
-         and has("the-trap-closed", "Raider", "temporary negative marker",
+         and has("the-trap-closed", "Raider", "negative marker",
                  "Bond or Name", "hand"),
          "Hidden plan requires a preceding tactical move and attached target")
 
@@ -132,7 +132,7 @@ def run() -> None:
     case("B3: delayed Strength must be cheaper than a fresh Force",
          cost("the-center-must-hold") == 1
          and cost("the-lines-held") == 1
-         and has("the-center-must-hold", "Kings or Captains", "two other")
+         and has("the-center-must-hold", "King or Captain", "two other")
          and has("the-lines-held", "Frontline", "Middle", "+2 Strength"),
          "Conditional temporary gains should not cost as much as permanent 2C bodies")
 
@@ -190,9 +190,8 @@ def run() -> None:
 
     case("B2: Archer counterattack costs normal Attack allowance",
          cost("the-archers-were-ready") == 1
-         and has("the-archers-were-ready", "completes an Attack",
-                 "basic Archer Attack", "without spending an Action",
-                 "Mark its Attack used")
+         and has("the-archers-were-ready", "opposing Force Attacks",
+                 "basic Archer Attack", "for free", "Mark its Attack used")
          and "does not undo the earlier Attack" in rulebook,
          "Counterattack obeys range, screening, Attack allowance, timing")
 
@@ -256,7 +255,7 @@ def run() -> None:
     case("B2: completion plan offers two tactical payoffs",
          cost("there-was-no-road-back") == 1
          and has("there-was-no-road-back", "becomes Named",
-                 "two legal adjacent", "opposing attached Bond"),
+                 "two adjacent legal", "opposing attached Bond"),
          "Completion plan offers reposition or attachment disruption")
 
     # All four example decks are 48 cards, and neither their published content
