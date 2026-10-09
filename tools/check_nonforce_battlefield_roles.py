@@ -88,6 +88,11 @@ def run() -> None:
         assert "Move" in content(catalogue[cid]), cid
     assert has(catalogue, "watched-the-skies-for",
                "Stratagem", "Draw 1 card")
+    assert has(catalogue, "rallied-behind",
+               "If you have less Command than your opponent",
+               "regain 1 Command and Move")
+    assert has(catalogue, "carried-messages-for",
+               "With a friendly Scout or Captain here", "Move", "Stratagem")
     assert has(catalogue, "iria", "Stratagem", "Move")
     assert has(catalogue, "lysa-the-listener", "opponent's hand", "Guarded")
     assert has(catalogue, "elian", "Pay 1 Command", "unused basic Attack",
