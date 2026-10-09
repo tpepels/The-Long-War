@@ -8,28 +8,32 @@ const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(par
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",order:"Order",stratagem:"Stratagem",narrative:"Narrative"};
 const LABEL={play:"PLAY",attack:"ATTACK",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL",front:"FRONT",middle:"MIDDLE",rear:"REAR",exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"};
 const LIVE=new Set(["action","attack","reaction","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"]);
-// Icon policy for the *rules prose*, not the exposed edge, footer, cost,
-// placement or effect-timing labels. Those structural areas already carry
-// their own symbols. Keep normal card types, classifications, ranks, verbs,
-// and references as uninterrupted prose.
+// Card rules are ordinary prose. Inline pictograms only help the reader
+// identify OTHER cards by their card family or named classification.
+// Structural icons live in the exposed edge, classifications and Command
+// seal, not in rule prose or timing/role headings.
 //
-// Within one effect, show at most TWO icons, one per visual category:
-//  - condition/boon mentions (marker or shield),
-//  - an explicitly quantified Strength change,
-//  - an explicitly quantified Command amount.
-// The text is authoritative even without the pictogram. No glossary-wide
-// word replacement: icons indicate important effects, not every game noun.
-const MAX_RULE_ICONS=2;
-const INLINE_IMPACT_RE=/\b(Exhausted|Exhaustion|Shaken|Depleted|Guarded|Inspired|Empowered|Strength|Command)\b/gi;
-const RULE_IMPACT_KIND={
-  exhausted:"condition",exhaustion:"condition",shaken:"condition",depleted:"condition",
-  guarded:"boon",inspired:"boon",empowered:"boon",
-  strength:"strength",command:"command"
-};
-function inlineImpactGlyph(kind){
-  const markup=kind==="strength"?H()?.strength():
-    kind==="command"?H()?.command():
-    kind==="boon"?utilityGlyph("shield"):utilityGlyph("marker");
+// One icon per distinct referent, at most two per effect. Outcomes (Strength,
+// Command, markers, Shaken, Guarded), actions, locations and card timings are
+// written as words, without emoji/rebus-style icon repetition.
+const INLINE_CARD_TYPES=["Force","Bond","Name","Hero","Tactic","Order","Stratagem","Narrative"];
+const INLINE_CLASSES=[
+  "Human","Ship","Stronghold","Archer","Guard","Scout","Rider",
+  "Skirmisher","Raider","Healer","Steward","Seer","King","Captain",
+  "Builder","Veteran","Heir","Spearman"
+];
+const MAX_REFERENT_ICONS=2;
+const REFERENTS=new Map();
+for(const term of INLINE_CARD_TYPES){
+  REFERENTS.set(term.toLowerCase(),{symbol:term.toLowerCase(),kind:"type"});
+  REFERENTS.set((term+"s").toLowerCase(),{symbol:term.toLowerCase(),kind:"type"});
+}
+for(const term of INLINE_CLASSES){
+  REFERENTS.set(term.toLowerCase(),{symbol:term.toLowerCase(),kind:"class"});
+  REFERENTS.set((term+"s").toLowerCase(),{symbol:term.toLowerCase(),kind:"class"});
+}
+const REFERENT_RE=new RegExp("\\b("+[...REFERENTS.keys()].sort((a,b)=>b.length-a.length).join("|")+")\\b","gi");
+function accessibleInlineGlyph(markup){
   return String(markup||"")
     .replace(/<title>.*?<\/title>/g,"")
     .replace(/\srole="img"/g,"")
@@ -37,31 +41,25 @@ function inlineImpactGlyph(kind){
     .replace(/\s(?:alt|title)="[^"]*"/g,"")
     .replace(/<(svg|img)\b/,'<$1 aria-hidden="true" focusable="false"');
 }
-function quantifiedResource(source,index,term){
-  // The pictogram belongs to the number being gained, paid or modified,
-  // never to a generic mention of Command or Strength in the prose.
-  const before=source.slice(Math.max(0,index-35),index);
-  const after=source.slice(index+term.length,index+term.length+18);
-  return /(?:[+\-−]\s*\d+|\b\d+)\s*(?:additional\s+)?$/i.test(before) ||
-    /^\s+(?:by|to)\s+[+\-−]?\d+\b/i.test(after);
-}
 function formatRuleText(value,{icons=true}={}){
   const source=String(value??"");
   if(!icons)return esc(source);
-  let html="",cursor=0;
-  const used=new Set();
-  for(const match of source.matchAll(INLINE_IMPACT_RE)){
-    const index=match.index??0,token=match[0],kind=RULE_IMPACT_KIND[token.toLowerCase()];
-    if(!kind||used.has(kind)||used.size>=MAX_RULE_ICONS)continue;
-    if((kind==="strength"||kind==="command")&&!quantifiedResource(source,index,token))continue;
-    html+=esc(source.slice(cursor,index));
-    const glyph=inlineImpactGlyph(kind);
-    html+='<span class="inline-rule-ref inline-impact-ref" title="'+esc(token)+'">'+glyph+
+  let result="",cursor=0,used=new Set();
+  for(const match of source.matchAll(REFERENT_RE)){
+    const index=match.index??0,token=match[0];
+    const info=REFERENTS.get(token.toLowerCase());
+    if(!info||used.size>=MAX_REFERENT_ICONS||used.has(info.symbol))continue;
+    // "This Force" and "this Name" describe the current layer, not a
+    // separate card being referenced by an effect.
+    if(/\b(?:this|its|that)\s*$/i.test(source.slice(Math.max(0,index-14),index)))continue;
+    const markup=info.kind==="type"?typeGlyph(info.symbol):classGlyph(info.symbol);
+    result+=esc(source.slice(cursor,index));
+    result+='<span class="inline-rule-ref inline-card-ref" title="'+esc(token)+'">'+accessibleInlineGlyph(markup)+
       '<span class="rule-term">'+esc(token)+'</span></span>';
-    used.add(kind);
+    used.add(info.symbol);
     cursor=index+token.length;
   }
-  return html+esc(source.slice(cursor));
+  return result+esc(source.slice(cursor));
 }
 const H=()=>window.CardSymbols;
 const signed=value=>(Number(value)>=0?"+":"")+String(value??0);
@@ -125,7 +123,7 @@ function placementRuleText(card){
 function placementRuleBlock(card){
   const rows=placementRows(card),text=placementRuleText(card);
   if(!text)return"";
-  return '<section class="placement-rule"><div class="effect-head"><span class="placement-rule-icon" aria-hidden="true">'+rowGlyph(rows)+'</span><span class="placement-rule-label">PLACEMENT</span></div><div class="placement-rule-text">'+formatRuleText(text)+'</div></section>';
+  return '<section class="placement-rule"><div class="effect-head"><span class="placement-rule-label">PLACEMENT</span></div><div class="placement-rule-text">'+formatRuleText(text,{icons:false})+'</div></section>';
 }
 function stackEdge(card){
   const reminders=liveEffects(card);
@@ -185,12 +183,12 @@ function mechanicReminder(effect){
 function effectBlock(effect,options={}){
   const kind=["attack","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
   const reminder=mechanicReminder(effect);
-  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder,{icons:false})+'</div>':"")+'</section>';
+  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder,{icons:false})+'</div>':"")+'</section>';
 }
 function heroModeHeading(mode){
   // Mode identity belongs in the rules section; prices live only in the
   // diagonal Force/Name Command seal in the footer.
-  return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
+  return '<h4 class="mode-heading"><span class="mode-heading-core"><span>'+esc(titleCase(mode))+'</span></span></h4>';
 }
 function rules(card){
   const placement=placementRuleBlock(card);
