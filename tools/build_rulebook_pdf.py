@@ -277,6 +277,11 @@ def markdown_to_typst(source: str, version: str) -> str:
         # and each entry can independently move to the next column.
         headings = rows[0]
         for row_index, row in enumerate(rows[1:], 1):
+            # Balance the final Reference page manually. Typst cannot balance
+            # the last two columns automatically, and without this break the
+            # final reference cards occupy only the left-hand column.
+            if headings[0].strip().lower() == "event" and row_index == 5:
+                out.append("#colbreak()")
             colour = "#f1eadd" if row_index % 2 else "#e9eeec"
             out.append(
                 '#block(fill: rgb("' + colour
