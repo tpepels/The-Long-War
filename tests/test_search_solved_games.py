@@ -258,3 +258,13 @@ def test_generic_mccfr_solves_kuhn_poker_through_searchgame_adapter():
     assert len(nodes) == 12
     assert value == pytest.approx(KNOWN_P0_VALUE, abs=0.04)
     assert nash_exp < 0.08
+
+@pytest.mark.parametrize("stones", range(1, 10))
+def test_alpha_beta_solves_when_root_is_not_to_play(stones):
+    game = TakeAwayGame()
+    result = GenericAlphaBetaSearch(game, candidate_width=2).search(
+        TakeAway(stones, actor=1), root_player=0, depth=stones,
+        alpha=-inf, beta=inf, budget=SearchBudget(10000),
+        transposition={}, scratch=[],
+    )
+    assert result == (1.0 if stones % 3 == 0 else -1.0)
