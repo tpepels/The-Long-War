@@ -1445,5 +1445,5 @@
       "cue": "FRONTLINE"
     }
   ],
-  "edge_cue_policy": "Print layout only: upper-right text reminds players when to consult the card body; never summarises rules, outcomes, costs or Strength. Text is CHECK + short trigger. Do not insert timing/condition icon glyphs."
+  "edge_cue_policy": "Print layout only: the upper-right area shows a short timing or condition cue, never CHECK repeated for every entry. No costs, outcomes, bonuses, mini-rules, or timing icons."
 }
