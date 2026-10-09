@@ -158,7 +158,7 @@ Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed
 | 1 | Namar | name |
 | 1 | Oren | name |
 | 1 | Torren | name |
-| 1 | Sorin | name |
+| 1 | Iria | name |
 | 1 | Eira | name |
 | 1 | Teren | name |
 | 1 | Meren | name |
@@ -202,7 +202,8 @@ Shake, Deplete and displace opposing Forces, then exploit weakened defenders wit
 |---:|---|---|
 | 3 | The Iron Boars | force |
 | 3 | The Salt-Road Reavers | force |
-| 3 | The Red Duelists | force |
+| 1 | The Red Duelists | force |
+| 2 | The Dust Riders | force |
 | 2 | The Black Pursuers | force |
 | 2 | The River Raiders | force |
 | 2 | The Crow Archers | force |
@@ -299,12 +300,12 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 
 **Test question:** Can a Scout/Skirmisher/Raider setup create meaningful Strength denial and attached-layer theft, or does plain Force Strength still win?
 
-48 cards · 18 Forces · 32 titles · 18 one-copy titles · 103–107 total printed Command (Hero mode-dependent) · 57 sum printed Force Strength (not a Front total)
+48 cards · 18 Forces · current composition and Command costs are authoritative in [playtest-decks.json](playtest-decks.json).
 
 ### Combinations to test
 
 - Seven Black Ships and River Raiders can remove attached layers after winning the Raider Strength check, even against an occupied enemy Frontline; Seized the Standard Of and The Muster Was False provide alternative attachment pressure.
-- Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.
+- Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables a two-step secret Opening Maneuver.
 - Lantern Scouts and Lysa use enemy information to choose Guarded protection; Kael and scouting effects can also reposition formations instead of only looking at cards.
 - Shaken Raider/Skirmisher pressure enables Shared the Spoils With to Move a formation, and The Trap Closed to remove an attachment; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
 
@@ -349,7 +350,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 | 2 | The Trap Closed | stratagem |
 | 1 | The Scouts Had Warned Them | stratagem |
 | 1 | The Raiders Came Home Loaded | narrative |
-| 1 | Before Sunset, the Ford Would Be Ours | narrative |
+| 1 | The Long March | narrative |
 | 1 | Send a Runner | order |
 | 1 | Fresh Orders | order |
 
@@ -382,9 +383,13 @@ the number of copies drawn together.
 
 This deck composition is unchanged, but card **roles** evolved: the
 1C **Rallied Behind** also Moves a formation when Command is behind;
-**The Center Must Hold** may reposition a formation at resolution;
+**The Center Must Hold** can swap formations across neighboring Fronts at resolution;
 **The Raiders Came Home Loaded** immediately Moves up to two
 Raiders/Skirmishers rather than recurring Tactic discounts. **Lysa**
 now combines hand information and Guarded; **Kael-as-Name** inspects
 hidden plans and Moves. The percentages above still measure card
 co-draw only, not how often these tactical opportunities exist.
+
+## New two-Opening-Order coverage
+
+**Broken Oaths** now retains Had Been Ordered Forward, adds two Bonded-capable Dust Riders and The Long March, and exchanges Sorin for Iria. Three existing cards now test a longer secret Maneuver, two different Riders moving under one order, and changing a declared Strike target after reveal. This is the same **48-card deck**; it is not a new card identity pool. The current **one Stratagem total per player per Battle** is a limit on use, not deck copies.
