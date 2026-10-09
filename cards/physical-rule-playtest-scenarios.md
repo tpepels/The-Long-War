@@ -433,3 +433,51 @@ and Action menu.
 **Watch for:** losing-side affordability after Battle I; whether the
 substantial Damar double action earns its +1 premium, and whether any
 low-cost Bond/Tactic now strictly dominates an expensive Force Action.
+
+## Role-led support cards: combat, movement and intrigue without new phases
+
+The following are **ordinary card effects**. Resolve each in its
+PLAY/ACTION/HIDDEN window; none modifies the universal Action menu.
+
+1. **Elian** becomes Named on a Raider in Middle. After a legal
+   1C ACTION Move to Frontline, the Raider may use its **unused** basic
+   Attack if the Incursion Strength check succeeds. It is one Action,
+   not two Attacks. Try the same with a used Attack: no second Attack.
+2. **Neris** in Force mode may Move and make an unused basic Rider
+   Attack on its 1/BATTLE ACTION. Check the opposite side's flanking
+   at the new position. Compare the Hero's Command and Action value
+   with a 3C Vardai and a plain Named Rider Maneuver.
+3. **Rovan** enters Frontline facing a weaker Frontline defender.
+   Shaken applies; optionally push the defender back **only if**
+   its row restrictions and destination permit. Repeat with an
+   equal-Strength defender: no breakthrough. Do not destroy cards.
+4. **Kept Pace With / Carried Messages For**: a friendly Rider or
+   Scout can Move on Bond PLAY; a Scout/Captain can peek at an
+   opposing face-down Stratagem in its Front before making a local
+   Move. Track whether information changes the positional choice.
+5. **Iria / Lysa / Kael-as-Name**: complete a Named Formation.
+   Iria and Kael may combine peeking with an immediate Move;
+   Lysa inspects the opponent's hand and protects a Force with
+   Guarded. No general information-triggered free Actions arise.
+6. **The Lines Held / The Center Must Hold / The Flank Was Refused**:
+   set a valid face-down plan. At the one normal resolution window,
+   legally Move the selected formation. Apply the printed +2
+   temporary Strength to the specified formation. Compare the
+   provisional and final results in both affected Fronts, and
+   cancel conflicting simultaneous movement as usual.
+7. **They Returned With Names**: Shake an opposing Named Force
+   and suppress that Name's text for this Battle; attachments
+   remain in place and regain normal text at Battle cleanup.
+   Compare this 2C Action with a cheaper single-purpose Tactic.
+8. **The Raiders Came Home Loaded**: Move at most **two**
+   Raider/Skirmisher formations on PLAY. No persistent Tactic
+   discount or repeated Move triggers remain. Record whether
+   either Move enables a later Attack before resolution.
+9. **They Knew the Ground / Serai / Send a Runner**: a Seer
+   protects a moved ally; Serai may spend 1C and one ACTION to
+   reposition an Archer; Send a Runner Moves a Rear Scout and
+   draws a card. None causes a free basic Attack by itself.
+
+These tests must record the **actual change of Attack legality,
+flanking, Front winner or informed defensive response**, not
+only whether an effect's printed text could execute.
