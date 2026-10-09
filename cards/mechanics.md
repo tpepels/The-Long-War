@@ -253,3 +253,30 @@ restriction. **Every Battle, including Battle I**, issues orders
 are revealed and Fronts are settled. Ties cost no Command; a lost Front
 costs Command **equal to its total Strength deficit**. All printed
 card effects remain as written.
+
+## Opening Order versus Stratagem timing
+
+**The Scouts Had Warned Them** can reveal just after all four Opening
+Orders are shown, changing only the destination of an already planned
+Maneuver starting in its assigned Front (Scout/Seer required). Other
+Stratagems trigger when their printed conditions occur:
+
+- **The Battle Turned East** can react after an Opening Maneuver by a
+  Rider, moving that Rider again as part of the same hidden plan.
+- **No Step Back** can prevent an affliction caused by an Opening
+  Strike; **The Archers Were Ready** may counterattack afterward
+  using an unused ordinary Attack; **The Trap Closed** can react to
+  Raider/Skirmisher negative markers from a Strike.
+- **There Was No Road Back** may trigger if an opening Move completes
+  a Named Formation through compatible prepared layers.
+- **The Ground Was Held**, **The Lines Held**, **The Center Must
+  Hold**, **The Flank Was Refused** and **Every Banner Turned Toward
+  Them** do **not** react at the opening reveal. They use the one
+  Front-resolution window after Opening Orders. Their eligibility
+  checks the **post-Opening-Order** provisional board.
+
+Reactions at the same event remain simultaneous. A legal opposing
+Strike declared in the same numbered step cannot be undone by
+later Depletion or movement from its simultaneous counterpart.
+The one Attack per Force per Battle applies to Opening Strikes and
+card-triggered counterattacks alike.
