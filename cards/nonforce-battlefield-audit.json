@@ -119,7 +119,7 @@
       "role": "maneuver",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 123
+      "effect_length_max": 131
     },
     {
       "id": "bought-time-for",
@@ -677,7 +677,7 @@
       "role": "intrigue",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 150
+      "effect_length_max": 151
     },
     {
       "id": "supported-by",
@@ -821,7 +821,7 @@
       "role": "maneuver",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 116
+      "effect_length_max": 121
     },
     {
       "id": "the-raiders-came-home-loaded",
