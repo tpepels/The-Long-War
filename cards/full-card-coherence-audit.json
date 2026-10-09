@@ -16,13 +16,21 @@
       "id": "the-fifty-men",
       "type": "force",
       "title": "The Fifty Men",
-      "price": 3,
+      "price": 4,
       "role": "line",
       "purpose": "Massed Human line gains temporary Strength when deployed behind another Human in its Front.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 75,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "rider-flank-lab",
+        "seer-hidden-lab",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ],
+      "printed_strength": 5
     },
     {
       "id": "seven-black-ships",
@@ -34,7 +42,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 143,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 4
     },
     {
       "id": "the-white-hands-of-elara",
@@ -46,7 +57,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 80,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-red-shields",
@@ -58,7 +73,14 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 88,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "oathforge",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 4
     },
     {
       "id": "the-crow-archers",
@@ -70,7 +92,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "opening_strike_target",
       "printed_effect_max_chars": 119,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-house-of-reed",
@@ -82,7 +108,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 153,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-grey-riders",
@@ -94,8 +125,11 @@
       "review": "watch",
       "order_interaction": "opening_maneuver_trigger",
       "printed_effect_max_chars": 137,
-      "in_test_decks": [],
-      "watch_reason": "Opening Maneuver can trigger the printed unused Rider Attack for free; a later Strike with that Force must fail."
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "watch_reason": "Opening Maneuver can trigger the printed unused Rider Attack for free; a later Strike with that Force must fail.",
+      "printed_strength": 3
     },
     {
       "id": "the-dust-riders",
@@ -107,7 +141,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "ordinary_turn_maneuver",
       "printed_effect_max_chars": 63,
-      "in_test_decks": []
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-black-company",
@@ -119,7 +156,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 96,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
+      "printed_strength": 4
     },
     {
       "id": "the-red-duelists",
@@ -131,7 +171,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 64,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths",
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-thornbow-hunters",
@@ -143,7 +188,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 78,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "seer-hidden-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-iron-boars",
@@ -155,7 +204,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 98,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
+      "printed_strength": 5
     },
     {
       "id": "the-first-spear",
@@ -167,7 +219,13 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 107,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "the-last-watch",
+        "rider-flank-lab"
+      ],
+      "printed_strength": 4
     },
     {
       "id": "the-old-guard",
@@ -179,7 +237,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 128,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch",
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-unnamed-host",
@@ -191,7 +254,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 54,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
+      "printed_strength": 5
     },
     {
       "id": "the-late-banner",
@@ -203,7 +269,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 104,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-banner-singers",
@@ -215,7 +286,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 117,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "thirty-spears",
@@ -227,7 +301,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 78,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch",
+        "raw-strength-control"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "a-hundred-shields",
@@ -238,8 +316,12 @@
       "purpose": "Provide a durable line and basic Guard screening.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": null,
-      "in_test_decks": []
+      "printed_effect_max_chars": 0,
+      "in_test_decks": [
+        "banner-and-blood",
+        "raw-strength-control"
+      ],
+      "printed_strength": 6
     },
     {
       "id": "the-vardai",
@@ -251,7 +333,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "ordinary_turn_paid_attack",
       "printed_effect_max_chars": 140,
-      "in_test_decks": []
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-aradai",
@@ -263,19 +348,27 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 96,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths",
+        "raw-strength-control"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-ilyri",
       "type": "force",
       "title": "The Ilyri",
-      "price": 4,
+      "price": 3,
       "role": "skirmisher",
       "purpose": "Swap occupied ranks to protect and reposition defenders.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 162,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 2
     },
     {
       "id": "the-damar",
@@ -287,7 +380,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "on_play_attack_unlock",
       "printed_effect_max_chars": 157,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-serekh",
@@ -299,7 +395,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 112,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-relief-column",
@@ -311,7 +410,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 117,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-field-train",
@@ -323,7 +425,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 186,
-      "in_test_decks": []
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 2
     },
     {
       "id": "the-signal-company",
@@ -335,7 +441,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 181,
-      "in_test_decks": []
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ],
+      "printed_strength": 2
     },
     {
       "id": "followed",
@@ -347,7 +456,15 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 76,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "oathforge",
+        "blood-and-spoils",
+        "rider-flank-lab",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "guarded",
@@ -359,7 +476,13 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 63,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "blood-and-spoils",
+        "the-last-watch",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "stood-fast-with",
@@ -371,7 +494,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 131,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "rider-flank-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "marched-with",
@@ -383,7 +511,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 83,
-      "in_test_decks": []
+      "in_test_decks": [
+        "rider-flank-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "kept-pace-with",
@@ -395,7 +526,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 93,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "covered-the-withdrawal-of",
@@ -407,7 +542,9 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 95,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "the-last-watch"
+      ],
       "watch_reason": "Only useful when an Exhausted Force directly ahead could otherwise make a Maneuver."
     },
     {
@@ -420,7 +557,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 69,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "held-the-line-for",
@@ -432,7 +571,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 88,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "seized-the-standard-of",
@@ -444,7 +585,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 95,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
       "watch_reason": "Returning a persistent Bond for 1C may outvalue the opposing Action and attachment."
     },
     {
@@ -457,7 +601,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 107,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
       "watch_reason": "Prepared-Name attachment requires a staging decision that may be uncommon."
     },
     {
@@ -470,7 +617,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 139,
-      "in_test_decks": []
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ]
     },
     {
       "id": "endured-with",
@@ -482,7 +632,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 64,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows"
+      ]
     },
     {
       "id": "rallied-behind",
@@ -494,7 +646,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 131,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "bought-time-for",
@@ -506,7 +660,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 58,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths"
+      ]
     },
     {
       "id": "trusted",
@@ -518,7 +674,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 70,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "marched-beneath-the-banner-of",
@@ -530,7 +688,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 123,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood"
+      ]
     },
     {
       "id": "carried-the-oath-of",
@@ -542,7 +702,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 67,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "had-been-ordered-forward",
@@ -554,7 +716,9 @@
       "review": "new_opening_card",
       "order_interaction": "opening_maneuver_modifier",
       "printed_effect_max_chars": 109,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths"
+      ]
     },
     {
       "id": "namar",
@@ -566,7 +730,11 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 150,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab"
+      ],
       "watch_reason": "A 4C Name needs substantial post-completion Action savings to justify its cost."
     },
     {
@@ -579,7 +747,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 138,
-      "in_test_decks": []
+      "in_test_decks": [
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "oren",
@@ -591,7 +762,14 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 183,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "oathforge",
+        "blood-and-spoils",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ]
     },
     {
       "id": "elian",
@@ -603,7 +781,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 128,
-      "in_test_decks": []
+      "in_test_decks": [
+        "rider-flank-lab"
+      ]
     },
     {
       "id": "teren",
@@ -615,7 +795,13 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 99,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "rider-flank-lab",
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "mara",
@@ -627,7 +813,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 125,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "asha-the-shield-bearer",
@@ -639,7 +829,13 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 130,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils",
+        "the-last-watch",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "edrin",
@@ -651,7 +847,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 90,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "the-last-watch",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "sela",
@@ -663,7 +863,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 63,
-      "in_test_decks": []
+      "in_test_decks": [
+        "rider-flank-lab"
+      ]
     },
     {
       "id": "meren",
@@ -675,7 +877,13 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 52,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "the-last-watch",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "tala",
@@ -687,7 +895,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 96,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
     },
     {
       "id": "sorin",
@@ -699,7 +911,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 65,
-      "in_test_decks": []
+      "in_test_decks": [
+        "oathforge",
+        "the-last-watch",
+        "broken-oaths",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "iven",
@@ -711,7 +928,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 52,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
     },
     {
       "id": "arel",
@@ -723,7 +943,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 117,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "rider-flank-lab"
+      ]
     },
     {
       "id": "torren",
@@ -735,7 +958,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 124,
-      "in_test_decks": []
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "eira",
@@ -747,7 +974,13 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 59,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "crown-of-crows",
+        "oathforge",
+        "the-last-watch",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ],
       "watch_reason": "Drawing two depends on an already established separate Named Human."
     },
     {
@@ -760,7 +993,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 144,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "rider-flank-lab"
+      ]
     },
     {
       "id": "kael-the-roadless",
@@ -772,7 +1009,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 104,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "rovan-the-gatebreaker",
@@ -784,7 +1025,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 154,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
     },
     {
       "id": "alda-keeper-of-the-ford",
@@ -796,7 +1040,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 136,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "the-last-watch",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "tovan-the-quartermaster",
@@ -808,7 +1057,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 109,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
       "watch_reason": "Recurring Bond/Name discounts could accelerate formation growth disproportionately."
     },
     {
@@ -821,7 +1073,11 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 80,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "oathforge",
+        "the-last-watch",
+        "front-exchange-lab"
+      ],
       "watch_reason": "Prepared-layer payoff may be hard to set up compared with simply attaching cards directly."
     },
     {
@@ -834,7 +1090,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 119,
-      "in_test_decks": []
+      "in_test_decks": [
+        "rider-flank-lab"
+      ]
     },
     {
       "id": "veyra-keeper-of-oaths",
@@ -846,7 +1104,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 77,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
     },
     {
       "id": "yara-the-chronicler",
@@ -858,7 +1119,11 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 99,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ],
       "watch_reason": "Narrative recovery from discard requires an appropriate card and further actions."
     },
     {
@@ -871,7 +1136,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 63,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ]
     },
     {
       "id": "they-returned-with-names",
@@ -883,7 +1151,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 95,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "they-were-gathering-there",
@@ -895,7 +1165,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 111,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths"
+      ]
     },
     {
       "id": "the-muster-was-false",
@@ -907,7 +1179,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 171,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ]
     },
     {
       "id": "they-had-gone-too-far",
@@ -919,7 +1195,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 168,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab"
+      ],
       "watch_reason": "Similar rearward displacement to The Line Was Baited: different class gate, failure reward and cost."
     },
     {
@@ -932,7 +1211,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 176,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "the-line-wheeled",
@@ -944,7 +1225,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 115,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "the-last-watch",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "they-let-them-through",
@@ -956,7 +1242,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 134,
-      "in_test_decks": []
+      "in_test_decks": [
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "all-reserves-forward",
@@ -968,7 +1257,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 90,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "the-line-had-begun-to-move",
@@ -980,7 +1274,9 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 106,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "broken-oaths"
+      ],
       "watch_reason": "Tax marker is avoidable and may not force a response; measure activations."
     },
     {
@@ -993,7 +1289,11 @@
       "review": "watch",
       "order_interaction": "front_resolution",
       "printed_effect_max_chars": 178,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "the-last-watch",
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ],
       "watch_reason": "The tie/down-by-one hidden resolution is mechanically dense; consider simplification after tests."
     },
     {
@@ -1006,7 +1306,9 @@
       "review": "watch",
       "order_interaction": "front_resolution",
       "printed_effect_max_chars": 130,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "front-exchange-lab"
+      ],
       "watch_reason": "One of three partially similar late Move/+2 hidden plans; resolution move can swing multiple Front totals."
     },
     {
@@ -1019,7 +1321,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "attack_or_tactic_prevention",
       "printed_effect_max_chars": 171,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch",
+        "raw-strength-control"
+      ]
     },
     {
       "id": "the-center-must-hold",
@@ -1031,7 +1337,10 @@
       "review": "watch",
       "order_interaction": "front_resolution",
       "printed_effect_max_chars": 159,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge"
+      ],
       "watch_reason": "Leader-gated version of late Move/+2, partially overlapping with Lines Held."
     },
     {
@@ -1044,7 +1353,9 @@
       "review": "watch",
       "order_interaction": "front_resolution",
       "printed_effect_max_chars": 153,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
       "watch_reason": "Outer-Front class-gated version of late Move/+2, partially overlapping with Lines Held."
     },
     {
@@ -1057,7 +1368,10 @@
       "review": "watch",
       "order_interaction": "negative_marker_reaction",
       "printed_effect_max_chars": 151,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
       "watch_reason": "Attachment removal during Opening Strike can magnify uncapped Strength-margin Command loss."
     },
     {
@@ -1070,7 +1384,9 @@
       "review": "watch",
       "order_interaction": "move_reaction",
       "printed_effect_max_chars": 142,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
       "watch_reason": "An extra Rider Move during Opening Orders may stack with Had Been Ordered Forward; one Stratagem reveal, no repeated chain."
     },
     {
@@ -1083,7 +1399,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "named_completion",
       "printed_effect_max_chars": 157,
-      "in_test_decks": []
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ]
     },
     {
       "id": "every-banner-turned-toward-them",
@@ -1095,7 +1414,9 @@
       "review": "watch",
       "order_interaction": "front_resolution",
       "printed_effect_max_chars": 167,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "banner-and-blood"
+      ],
       "watch_reason": "Cross-Front temporary Strength can amplify full-margin defeat at resolution."
     },
     {
@@ -1108,7 +1429,9 @@
       "review": "watch",
       "order_interaction": "ordinary_turn_maneuver",
       "printed_effect_max_chars": 95,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
       "watch_reason": "Global free Rider Maneuvers can overshadow class-specific movement cards."
     },
     {
@@ -1121,7 +1444,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 124,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
     },
     {
       "id": "the-crows-came-down",
@@ -1133,7 +1459,9 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 85,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
       "watch_reason": "PLAY Exhaustion plus later Action to Shake asks for multiple steps; measure payoffs."
     },
     {
@@ -1146,7 +1474,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "during_turn_set_reaction",
       "printed_effect_max_chars": 188,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "they-lived-to-tell-it",
@@ -1158,7 +1489,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 107,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "no-road-was-too-long",
@@ -1170,7 +1503,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 180,
-      "in_test_decks": []
+      "in_test_decks": [
+        "front-exchange-lab"
+      ]
     },
     {
       "id": "the-battle-had-chosen-them",
@@ -1182,7 +1517,11 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 110,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "raw-strength-control"
+      ],
       "watch_reason": "Wide Hero/Named Strength aura is powerful but static; preserve only if it anchors a clear archetype."
     },
     {
@@ -1195,7 +1534,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 91,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "the-king-had-given-the-order",
@@ -1207,7 +1548,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 148,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab"
+      ]
     },
     {
       "id": "the-ash-bowmen",
@@ -1219,7 +1564,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 99,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 4
     },
     {
       "id": "the-lantern-scouts",
@@ -1231,7 +1579,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "during_turn_set_reaction",
       "printed_effect_max_chars": 166,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-river-raiders",
@@ -1243,7 +1595,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 158,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
+      "printed_strength": 4
     },
     {
       "id": "the-kings-spears",
@@ -1255,7 +1611,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 142,
-      "in_test_decks": []
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-salt-road-fleet",
@@ -1267,7 +1627,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 86,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "the-watchtowers-of-eren",
@@ -1279,7 +1642,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "on_play_intelligence",
       "printed_effect_max_chars": 106,
-      "in_test_decks": []
+      "in_test_decks": [
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
     },
     {
       "id": "watched-the-skies-for",
@@ -1291,7 +1658,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 118,
-      "in_test_decks": []
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "kept-the-gate-for",
@@ -1303,7 +1672,9 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 96,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "the-last-watch"
+      ],
       "watch_reason": "Rare backwards Exhaustion-Maneuver permission; check frequency before replacing."
     },
     {
@@ -1316,7 +1687,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 117,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
     },
     {
       "id": "carried-messages-for",
@@ -1328,7 +1702,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 156,
-      "in_test_decks": []
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "supported-by",
@@ -1340,7 +1716,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 134,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "supplied-by",
@@ -1352,7 +1730,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 96,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
       "watch_reason": "Prepared-layer movement is conditional; compare with directly playing the layer."
     },
     {
@@ -1365,7 +1746,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 76,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "lysa-the-listener",
@@ -1377,7 +1762,11 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 84,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "brannoc",
@@ -1389,7 +1778,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 119,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
       "watch_reason": "Attachment removal can create long-term value; monitor loss-side recovery."
     },
     {
@@ -1402,7 +1794,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 96,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
     },
     {
       "id": "serai-queen-of-crows",
@@ -1414,7 +1809,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 95,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ]
     },
     {
       "id": "doros-the-last-spear",
@@ -1426,7 +1824,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 69,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "blood-and-spoils"
+      ]
     },
     {
       "id": "a-volley-before-dawn",
@@ -1438,7 +1839,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 75,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows"
+      ]
     },
     {
       "id": "the-scouts-found-the-gap",
@@ -1450,7 +1853,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "during_turn_inspection",
       "printed_effect_max_chars": 175,
-      "in_test_decks": []
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "the-stores-were-taken",
@@ -1462,7 +1867,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 179,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils"
+      ]
     },
     {
       "id": "the-line-was-baited",
@@ -1474,7 +1881,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 163,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "blood-and-spoils",
+        "rider-flank-lab"
+      ],
       "watch_reason": "Similar rearward displacement to They Had Gone Too Far: cheap but needs Skirmisher and succeeds to Deplete."
     },
     {
@@ -1487,7 +1897,10 @@
       "review": "watch",
       "order_interaction": "after_attack_reaction",
       "printed_effect_max_chars": 153,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ],
       "watch_reason": "A triggered Archer counterattack may spend an Attack that was already assigned to a later Opening Strike."
     },
     {
@@ -1500,7 +1913,10 @@
       "review": "new_opening_card",
       "order_interaction": "opening_reveal",
       "printed_effect_max_chars": 146,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "every-bow-was-strung",
@@ -1512,7 +1928,9 @@
       "review": "new_opening_card",
       "order_interaction": "opening_strike_target",
       "printed_effect_max_chars": 120,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows"
+      ]
     },
     {
       "id": "they-knew-the-ground",
@@ -1524,7 +1942,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 121,
-      "in_test_decks": []
+      "in_test_decks": [
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "the-raiders-came-home-loaded",
@@ -1536,7 +1957,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 89,
-      "in_test_decks": []
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
     },
     {
       "id": "fresh-orders",
@@ -1548,7 +1972,12 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 180,
-      "in_test_decks": []
+      "in_test_decks": [
+        "banner-and-blood",
+        "blood-and-spoils",
+        "broken-oaths",
+        "rider-flank-lab"
+      ]
     },
     {
       "id": "catch-your-breath",
@@ -1560,7 +1989,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 112,
-      "in_test_decks": []
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
     },
     {
       "id": "re-form-the-line",
@@ -1572,7 +2004,10 @@
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 171,
-      "in_test_decks": [],
+      "in_test_decks": [
+        "banner-and-blood",
+        "blood-and-spoils"
+      ],
       "watch_reason": "Discarding an entire persistent Force may be too costly except during Command emergencies."
     },
     {
@@ -1585,7 +2020,9 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 104,
-      "in_test_decks": []
+      "in_test_decks": [
+        "the-last-watch"
+      ]
     },
     {
       "id": "send-a-runner",
@@ -1597,7 +2034,10 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 81,
-      "in_test_decks": []
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ]
     },
     {
       "id": "take-stock",
@@ -1609,7 +2049,31 @@
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 143,
-      "in_test_decks": []
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ]
     }
-  ]
+  ],
+  "all_test_decks": [
+    "banner-and-blood",
+    "crown-of-crows",
+    "oathforge",
+    "blood-and-spoils",
+    "the-last-watch",
+    "broken-oaths",
+    "rider-flank-lab",
+    "seer-hidden-lab",
+    "front-exchange-lab",
+    "raw-strength-control"
+  ],
+  "coverage": {
+    "printed_identities": 131,
+    "force_identities": 33,
+    "nonforce_identities": 98,
+    "stratagem_identities": 11,
+    "distinct_effect_texts": 131,
+    "test_deck_identities_covered": 131,
+    "test_deck_count": 10
+  }
 }
