@@ -15,9 +15,9 @@
 | 5 | 4 | 5 |
 | 6 | 4 | 5 |
 
-For odd-Strength Forces, rounding up leaves some scope for a **minor, conditional** ability without another full Command. More substantial recurring or immediate abilities have a +1 premium; worthwhile abilities on even-Strength Forces generally have a +1 premium. The Guard classification's built-in Rear screening also counts for A Hundred Shields (6 Strength, 5 Command). Its price therefore remains distinguishable from The Fifty Men (5 Strength, 4 Command), avoiding a same-cost superior plain body. All 33 decisions are explained in [force-pricing.json](force-pricing.json).
+For odd-Strength Forces, rounding up leaves some scope for a **minor, conditional** ability without another full Command. Exception: plain, ability-free Thirty Spears uses that unused half-point as a **1-Command discount** (2C rather than 3C), preserving a cheap basic Force and avoiding same-price domination by 3-Strength Raiders. More substantial recurring or immediate abilities have a +1 premium; worthwhile abilities on even-Strength Forces generally have a +1 premium. The Guard classification's built-in Rear screening also counts for A Hundred Shields (6 Strength, 5 Command). Its price therefore remains distinguishable from The Fifty Men (5 Strength, 4 Command), avoiding a same-cost superior plain body. All 33 decisions are explained in [force-pricing.json](force-pricing.json).
 
-**Magnitude:** across one copy of each of the 33 Force identities, total printed Command rises **70 → 117** (+47), without changing the 98 non-Force identities. Every Force's price changes; this is an intentionally strong **price-only intervention**.
+**Magnitude:** across one copy of each of the 33 Force identities, total printed Command rises **70 → 116** (+46), without changing the 98 non-Force identities. Every Force's price changes; this is an intentionally strong **price-only intervention**.
 
 | Physical 48-card deck | Previous sum of all card costs | New sum | Change |
 | --- | ---: | ---: | ---: |
@@ -25,9 +25,9 @@ For odd-Strength Forces, rounding up leaves some scope for a **minor, conditiona
 | Crown of Crows | 78 | 107 | +29 |
 | Oathforge | 81 | 105 | +24 |
 | Blood & Spoils | 91 | 119 | +28 |
-| The Last Watch | 69 | 94 | +25 |
+| The Last Watch | 69 | 91 | +22 |
 | Broken Oaths | 82 | 105 | +23 |
-| Raw Strength Control | 71 | 99 | +28 |
+| Raw Strength Control | 71 | 95 | +24 |
 
 These are **whole-deck cost totals**, not an amount payable at setup or in one turn. Players still begin with 20 Command and recover 12/9/6/3 then 1 per Battle, capped at 20. Early Forces may now consume most of the initial reserves; late Battles may struggle to deploy costly reinforcements, potentially creating **Command-related snowballing** despite the recent one-Force Exhaustion cap. Crucial measurements: playable Forces in first 10 cards, Command at each Battle end, how often players can choose between Forces and cheaper Bonds/Names, persistence versus setup speed, and how many Forces stay stranded after recovery falls to 1. **No physical-game win-rate evidence yet.**
 
