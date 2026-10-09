@@ -74,11 +74,12 @@ const hero = {
 const heroHtml = window.PhysicalCards.cardArticle(hero);
 assert.doesNotMatch(heroHtml,/effect-timing-icon|placement-rule-icon/,
   "Hero rules use label words rather than timing pictograms");
-assert.match(heroHtml,/aria-label="Hero Force cost 5 Command, Name cost 2 Command"/);
-assert.match(heroHtml,/hero-cost-fraction" aria-hidden="true"/);
-assert.match(heroHtml,/hero-cost-part hero-cost-force[^>]*><span class="hero-cost-symbol"><(?:img|svg)[^>]*data-icon="force"[^>]*>[\s\S]*?<b>5<\/b>/);
-assert.match(heroHtml,/hero-cost-part hero-cost-name[^>]*><span class="hero-cost-symbol"><(?:img|svg)[^>]*data-icon="name"[^>]*>[\s\S]*?<b>2<\/b>/);
-assert.doesNotMatch(heroHtml,/hero-cost-stack|<small>F<\/small>|<small>N<\/small>/);
+assert.match(heroHtml,/aria-label="Hero Command: top 5 Force, bottom 2 Name"/);
+assert.match(heroHtml,/class="hero-cost-stack" aria-hidden="true"/);
+assert.match(heroHtml,/class="hero-cost-part hero-cost-force"><b>5<\/b><\/span>/);
+assert.match(heroHtml,/class="hero-cost-part hero-cost-name"><b>2<\/b><\/span>/);
+assert.doesNotMatch(heroHtml,/hero-cost-symbol|hero-cost-fraction/,
+  "Hero Command seal must not include mode icons or old diagonal markup");
 assert.doesNotMatch(heroHtml,/mode-command-cost/);
 const heroRuleSections=heroHtml.split('<section class="hero-rule-mode"').slice(1)
   .map(part=>part.split('</section>')[0]);
@@ -104,23 +105,41 @@ for (const value of ["sepia","saturate","grayscale","hue","brightness","contrast
 assert.doesNotMatch(css,/\.physical-card\s*\{[^}]*filter:/s,
   "Filtering the entire card would tint the illustration and text");
 
-// Every Hero fraction dimension / location is editable from one :root block.
-// Keep independent controls for the Force and Name pair, glyph and numeral.
-const controls = [
-  "fraction-inset",
-  ...["force","name"].flatMap(mode=>[
-    ...(mode==="force"?["left","top"]:["right","bottom"]).map(x=>mode+"-"+x),
-    ...["gap","symbol-size","symbol-x","symbol-y","number-size","number-x","number-y"].map(x=>mode+"-"+x)
-  ]),
-  ...["x","y","length","thickness","angle","opacity"].map(x=>"slash-"+x)
+// Independent numeric tuning, but a single horizontal centre axis.
+const controls=[
+  "seal-size","inset","force-top","name-bottom",
+  "force-number-size","name-number-size",
+  "force-number-x","force-number-y","name-number-x","name-number-y",
+  "divider-width","divider-thickness","divider-y","divider-opacity"
 ];
-for (const key of controls) {
+for(const key of controls){
   const variable="--hero-cost-"+key;
-  assert.ok(css.includes(variable+":"),"Missing Hero cost editor control "+variable);
-  assert.ok(css.includes("var("+variable+")"),"Hero cost control is unused: "+variable);
+  assert.ok(css.includes(variable+":"),"Missing Hero cost variable "+variable);
+  assert.ok(css.includes("var("+variable+")"),"Unused Hero cost variable "+variable);
 }
-assert.match(css,/\.hero-cost-symbol svg,[\s\S]*?\.hero-cost-symbol img\.glyph-png/s);
+assert.match(css,/\.hero-cost-part\s*\{[^}]*left:\s*0;[^}]*width:\s*100%;[^}]*justify-content:\s*center;/s);
+assert.doesNotMatch(css,/\.hero-cost-symbol\s*\{/);
+// Every printed exposed reminder is now a concise action/condition prompt,
+// never an effect summary. Preserve full rule text in the accessible label.
+const cueHero={...hero, modes:{
+  force:{effects:[{timing:"action", limit:"once_per_battle",
+                 text:"Move this formation two positions.",edge_cue:"ACTION"}]},
+  name:hero.modes.name
+}};
+const cueHeroHtml=window.PhysicalCards.cardArticle(cueHero);
+assert.match(cueHeroHtml,/edge-mechanic edge-cue[^>]*aria-label="Check rule on action \(once per Battle\): Move this formation two positions\./);
+assert.match(cueHeroHtml,/class="edge-cue-text">ACTION<\/span>/);
+assert.doesNotMatch(cueHeroHtml,/class="edge-cue-text"[^<]*Move this formation/);
+const dual={...hero, type:"force", strength:3, effects:[
+  {timing:"continuous",text:"Can Maneuver without a Name.",edge_cue:"MANEUVER"},
+  {timing:"continuous",text:"Can Maneuver while Exhausted.",edge_cue:"MANEUVER"}
+]};
+const dualHtml=window.PhysicalCards.cardArticle(dual);
+assert.equal(dualHtml.split('class="edge-cue-text"').length-1,1,
+  "Identical reminders on one card must collapse into a single cue");
+assert.match(dualHtml,/Can Maneuver without a Name\. \/ Can Maneuver while Exhausted\./,
+  "The combined cue must still expose both rules accessibly");
 const js=fs.readFileSync(path.join(root,"web/physical-cards.js"),"utf8");
 assert.match(js,/hero-price-outside-seal/);
 assert.match(js,/hero-price-overlap/);
-console.log("PASS: rule icon policy, Hero cost CSS controls, PNG family colouring and seal checks");
+console.log("PASS: compact corner cues, centred Hero numeric costs and PNG icon tint");

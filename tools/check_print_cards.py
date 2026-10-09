@@ -53,6 +53,28 @@ def main() -> None:
         for effect, block in zip(card["effects"], card["rule_blocks"]):
             if effect.get("limit") == "once_per_battle":
                 assert "1/BATTLE" in block["label"], card_id
+    # Every live Force/Bond or Hero-Force ability gets a short cue.
+    # It tells players when to check the body text without summarising payoff.
+    edge_cues = overrides["edge_cues"]
+    assert len(edge_cues) == printed["print_edge_cue_count"] == 35
+    assert len({(x["id"], x["index"]) for x in edge_cues}) == len(edge_cues)
+    for x in edge_cues:
+        card = after[x["id"]]
+        effects = (card["modes"]["force"]["effects"] if card["type"] == "hero"
+                   else card["effects"])
+        cue = effects[x["index"]]["edge_cue"]
+        assert cue == x["cue"]
+        assert len(cue) <= 16
+        assert not any(word in cue for word in ("STRENGTH", "COMMAND", "COST", "DRAW", "MOVE"))
+        # The printed effect array may differ from the canonical version;
+        # checking the same index can be invalid after a replacement pass.
+        original = before[x["id"]]
+        original_effects = (original["modes"]["force"]["effects"]
+                            if card["type"] == "hero" else original["effects"])
+        assert all("edge_cue" not in effect for effect in original_effects), (
+            "Print cue leaked into executable engine: " + x["id"]
+        )
+
     # Hero copy fixes must not alter either playable mode or the canonical
     # engine card. Only an explicit effect text in the printable copy changes.
     for fix in overrides.get("hero_mode_wording", []):
@@ -154,7 +176,8 @@ def main() -> None:
         f"PASS: {len(after)} printed cards, {len(overrides['replacements'])} print replacements, "
         f"{len(overrides.get('cost_adjustments', []))} cost-only adjustments, "
         f"{len(overrides['once_per_battle_text_fixes'])} legacy printed limits, "
-        f"{len(overrides['exposed_only'])} legacy strip fixes, {live_count} exposed live rules. "
+        f"{len(overrides['exposed_only'])} legacy strip fixes, "
+        f"{len(edge_cues)} compact check cues, {live_count} exposed live rules. "
         "Canonical native/Webgame cards unchanged."
     )
 

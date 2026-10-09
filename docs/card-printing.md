@@ -85,29 +85,44 @@ The printed [rulebook](../rules/rulebook.md), [quick reference](../web/playmat.h
 Use `python tools/check_physical_cost_balance.py` for 15 static tabletop decision checks and [the complete 131-card cost ledger](../cards/physical-cost-review.md). A GitHub Actions advisory build checks the card export, generated Pages, PDF, and rulebook PDF. Full-size browser/card geometry still needs a repaired layout fixture or local print inspection. The build is not a full simulation of the print rules.
 
 
-## Hero cost seal and icon colour tuning
+## Hero cost seal and icon colouring
 
-In `web/physical-cards.css`, near the top of the `:root` block under
-**HERO COST SEAL - EDIT THESE VALUES**, tune the diagonal Force/Name Command
-seal without changing card data or renderer code:
+The Hero Command seal now has two **large, horizontally centred numerals**,
+separated by a short horizontal stroke:
 
-- `--hero-cost-force-left` / `--hero-cost-force-top` position the upper-left
-  Force icon and number together; `--hero-cost-name-right` /
-  `--hero-cost-name-bottom` position the lower-right Name pair.
-- `--hero-cost-*-symbol-size`, `--hero-cost-*-number-size`, and
-  `--hero-cost-*-gap` control the separate glyph and numeral dimensions.
-- `--hero-cost-*-symbol-x/y` and `--hero-cost-*-number-x/y` fine-tune each
-  part independently; positive X moves right and positive Y moves down.
-- `--hero-cost-fraction-inset` adjusts the inner area; `--hero-cost-slash-*`
-  controls the diagonal separator. Values use millimetres except the slash
-  position (percent), angle (degrees) and opacity (0–1).
+- **Upper number:** Command for playing this Hero as a **Force**.
+- **Lower number:** Command for playing this Hero as a **Name**.
 
-All these variables are visual only: the Force and Name Command costs still
-come from their separate card-data fields. Inspect all Hero cards at actual
-print size after adjustments; `PhysicalCards.inspect()` flags cost pairs
-that overlap or leave the seal.
+No redundant Force/Name icons or tiny letter labels appear in the seal.
+The full physical rulebook states this once; the Hero rules already have
+Force and Name headings. No prices are duplicated in the body text.
 
-Transparent PNG glyphs now use the **same card-family filter values** as the
-decorative frame PNGs (`--card-shell-*` in each `.card-*` selector).
-They follow the card family theme automatically. Illustrations, text and SVG
-fallback icons are intentionally excluded from that filter.
+The central `:root` **HERO COST SEAL - EDIT THESE VALUES** section in
+`web/physical-cards.css` contains all visual adjustments:
+
+- `--hero-cost-seal-size`: overall Hero seal diameter, separate from ordinary cards.
+- `--hero-cost-inset`: inner seal margin.
+- `--hero-cost-force-number-size` / `--hero-cost-name-number-size`:
+  separate large numerical type sizes.
+- `--hero-cost-force-top` / `--hero-cost-name-bottom`:
+  vertical positions within the seal.
+- `--hero-cost-force-number-x/y` and `--hero-cost-name-number-x/y`:
+  fine adjustments (positive X moves right, positive Y down).
+- `--hero-cost-divider-width`, `--hero-cost-divider-thickness`,
+  `--hero-cost-divider-y`, `--hero-cost-divider-opacity`:
+  separator geometry.
+
+Numbers remain horizontally centred by default, just like ordinary cards.
+`tools/check_hero_seal_layout.py` checks containment, centring, font size,
+and Force-above-Name order for all eleven Heroes in Chromium.
+
+PNG glyphs *elsewhere on the cards* still inherit the card family's CSS
+colour filter (`--card-shell-*`). The price seal uses only numbers.
+
+## Exposed upper-right cues
+
+The 10.5 mm visible upper edge contains only a brief context such as
+`ACTION`, `FRONTLINE`, `BONDED`, `NAMED/MIDDLE`, or `PLAN SET`.
+Do not prefix every cue with `CHECK` and do not repeat mechanics, effects,
+bonuses or prices there. Read the complete effect in the card body.
+`tools/check_edge_cue_layout.py` checks the actual exposed strip layout.

@@ -30,6 +30,34 @@ Rank: King, Captain.
 
 The full face always spells these names out under the title. Only the exposed battlefield row relies on compact pictograms.
 
+## Exposed upper-right timing and condition cues
+
+The right side of an exposed Force/Bond/Hero edge is a **reminder to consult
+the full printed rule**, not an abbreviated rulebook. Use brief textual cues:
+
+- `ACTION` — a player-activated effect may be available.
+- `FRONTLINE` / `MIDDLE` / `REAR` —
+  an effect may matter when the Force occupies this row.
+- `BONDED` / `NAMED` — a layer-dependent effect
+  may be active.
+- `ATTACK` / `PLAN SET` — review the card at that event.
+
+For layered requirements, a minimal context such as
+`NAMED/MIDDLE` is enough. For longer conditions, prefer a single
+relevant trigger (for example `FRONTLINE`) and let the full rule
+supply the remaining requirements. **Never** put Strength bonuses,
+Command taxes, movement permissions, recovery details or other outcomes
+in the strip. A player must look at the card body for the actual effect.
+The full rule is also available to assistive technology through the cue's
+accessible label. Once-per-Battle use sockets are preserved.
+
+The short trigger text is assigned through `edge_cues` in
+`cards/print-overrides.json`, not the canonical engine card effects.
+Each exposed effect must have an explicit cue of at most 16 characters,
+and identical contexts on one card can share a single cue. There is no
+repeated `CHECK` label and no inline symbol. `tools/check_edge_cue_layout.py`
+verifies that the printed text fits the exposed area in Chromium.
+
 ## Symbols inside the rules text
 
 The rules must read like **ordinary sentences**, with very few inline icons.

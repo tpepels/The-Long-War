@@ -99,43 +99,24 @@ CARD ICON SIZES — TUNING PANEL
 
   /*
    * HERO COST SEAL - EDIT THESE VALUES
-   * The Force pair sits at the upper-left; Name at the lower-right.
-   * Move the PAIRS with force-left/top and name-right/bottom.
-   * Adjust individual glyphs and numbers with their own X/Y offsets.
-   * Positive X moves right; positive Y moves down. All sizes are print mm.
-   * These values change appearance only, never gameplay Command costs.
+   * No icons: Force is the upper numeral, Name the lower numeral.
+   * Both are horizontally centred like ordinary Command costs.
+   * Positive X shifts right; positive Y shifts down. Appearance only.
    */
-  --hero-cost-fraction-inset: 1.5mm;
-
-  /* Force (upper-left numerator) */
-  --hero-cost-force-left: 0mm;
+  --hero-cost-seal-size: 14mm;
+  --hero-cost-inset: 0.55mm;
   --hero-cost-force-top: 0mm;
-  --hero-cost-force-gap: 0.16mm;
-  --hero-cost-force-symbol-size: 1.9mm;
-  --hero-cost-force-symbol-x: 0mm;
-  --hero-cost-force-symbol-y: 0mm;
-  --hero-cost-force-number-size: 2.9mm;
+  --hero-cost-name-bottom: 0mm;
+  --hero-cost-force-number-size: 4.5mm;
+  --hero-cost-name-number-size: 4.5mm;
   --hero-cost-force-number-x: 0mm;
   --hero-cost-force-number-y: 0mm;
-
-  /* Name (lower-right denominator) */
-  --hero-cost-name-right: 0mm;
-  --hero-cost-name-bottom: 0mm;
-  --hero-cost-name-gap: 0.16mm;
-  --hero-cost-name-symbol-size: 1.9mm;
-  --hero-cost-name-symbol-x: 0mm;
-  --hero-cost-name-symbol-y: 0mm;
-  --hero-cost-name-number-size: 2.9mm;
   --hero-cost-name-number-x: 0mm;
   --hero-cost-name-number-y: 0mm;
-
-  /* Diagonal dividing stroke; X/Y are percentages of the inner seal */
-  --hero-cost-slash-x: 50%;
-  --hero-cost-slash-y: 50%;
-  --hero-cost-slash-length: 6.3mm;
-  --hero-cost-slash-thickness: 0.2mm;
-  --hero-cost-slash-angle: -45deg;
-  --hero-cost-slash-opacity: 0.8;
+  --hero-cost-divider-width: 5.2mm;
+  --hero-cost-divider-thickness: 0.16mm;
+  --hero-cost-divider-y: 50%;
+  --hero-cost-divider-opacity: 0.8;
 
   /* Once-per-Battle markers */
   --icon-used-marker-size: 2.35mm;
@@ -801,6 +782,18 @@ EXPOSED TOP ROW - TUNING PANEL
 .edge-mechanic[data-reminder-has-timing="true"] .edge-timing-word {
   display: none;
 }
+/* The top-right corner shows only a condition or timing, not a mini rulebook.
+   Keep a single compact cue on one line; the full effect is in the body. */
+.edge-mechanic.edge-cue {
+  flex-wrap: nowrap;
+  gap: var(--edge-reminder-gap-x);
+}
+.edge-cue-text {
+  font: 700 var(--edge-reminder-font-size)/1.03 var(--edge-font-family);
+  font-variant: small-caps;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
 .use-socket {
   width: var(--icon-used-marker-size);
   height: var(--icon-used-marker-size);
@@ -1447,72 +1440,47 @@ EXPOSED TOP ROW - TUNING PANEL
   font-variant-numeric: lining-nums;
 }
 
-/* Hero prices stay in the Command seal only. Every element's dimensions
-   and placement can be tuned in :root, without editing these selectors.
-   Force/shield = upper-left; Name/banner = lower-right. */
+/* Hero Command seal: two large vertically stacked, centred numerals. */
 .cost-gem-hero {
+  width: var(--hero-cost-seal-size);
+  height: var(--hero-cost-seal-size);
   padding-bottom: 0;
 }
-.hero-cost-fraction {
+.hero-cost-stack {
   position: absolute;
-  inset: var(--hero-cost-fraction-inset);
-  display: block;
+  inset: var(--hero-cost-inset);
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
 }
-.hero-cost-fraction::before {
+.hero-cost-stack::before {
   content: "";
   position: absolute;
-  top: var(--hero-cost-slash-y);
-  left: var(--hero-cost-slash-x);
-  width: var(--hero-cost-slash-length);
-  height: var(--hero-cost-slash-thickness);
-  transform: translate(-50%, -50%) rotate(var(--hero-cost-slash-angle));
+  left: 50%;
+  top: var(--hero-cost-divider-y);
+  width: var(--hero-cost-divider-width);
+  height: var(--hero-cost-divider-thickness);
+  transform: translate(-50%, -50%);
   background: currentColor;
-  opacity: var(--hero-cost-slash-opacity);
+  opacity: var(--hero-cost-divider-opacity);
   pointer-events: none;
 }
 .hero-cost-part {
-  position: absolute;
+  position: relative;
   z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-  white-space: nowrap;
-}
-.hero-cost-force {
-  top: var(--hero-cost-force-top);
-  left: var(--hero-cost-force-left);
-  gap: var(--hero-cost-force-gap);
-}
-.hero-cost-name {
-  right: var(--hero-cost-name-right);
-  bottom: var(--hero-cost-name-bottom);
-  gap: var(--hero-cost-name-gap);
-}
-.hero-cost-symbol {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-.hero-cost-force .hero-cost-symbol {
-  width: var(--hero-cost-force-symbol-size);
-  height: var(--hero-cost-force-symbol-size);
-  translate: var(--hero-cost-force-symbol-x) var(--hero-cost-force-symbol-y);
-}
-.hero-cost-name .hero-cost-symbol {
-  width: var(--hero-cost-name-symbol-size);
-  height: var(--hero-cost-name-symbol-size);
-  translate: var(--hero-cost-name-symbol-x) var(--hero-cost-name-symbol-y);
-}
-.hero-cost-symbol svg,
-.hero-cost-symbol img.glyph-png {
-  display: block;
+  left: 0;
   width: 100%;
   height: 100%;
-  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  line-height: 1;
 }
+.hero-cost-force { top: var(--hero-cost-force-top); }
+.hero-cost-name { bottom: var(--hero-cost-name-bottom); }
 .cost-gem .hero-cost-part b {
-  font: 700 var(--hero-cost-force-number-size)/1 var(--card-cost-font-family);
+  font: 600 var(--hero-cost-force-number-size)/1 var(--card-cost-font-family);
   font-variant-numeric: lining-nums;
 }
 .cost-gem .hero-cost-force b {

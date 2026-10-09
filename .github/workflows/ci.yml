@@ -113,6 +113,8 @@ jobs:
         run: node tools/check_physical_rule_icons.cjs
       - name: Verify Hero price and rule geometry in Chromium
         run: python tools/check_hero_seal_layout.py
+      - name: Verify compact exposed-edge cue geometry in Chromium
+        run: python tools/check_edge_cue_layout.py
       - name: Self-test physical playtest metrics
         run: python tools/physical_playtest_metrics.py --self-test
       - name: Build inspection website
