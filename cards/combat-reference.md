@@ -4,11 +4,13 @@
 
 ## Turn and Pass
 
+Any formation, Named or Unnamed, may Maneuver for 1 Action and 1 Command unless Exhausted.
+
 Before drawing, either **Pass** (a complete turn with no draw and no Actions) or draw **1** and take up to **2 Actions**: play a card, use a printed ACTION ability, Maneuver (1 Command), Attack, or cycle two cards into one. Passing voluntarily starts exactly two closing turns: opponent (draw, up to 2 Actions), then passer (draw, up to 2 Actions), then two secret Opening Orders per player, then Stratagems and Front resolution.
 
 ## Opening Orders
 
-Both players secretly choose **two orders** (same type allowed), number them 1–2, then reveal all together. **Maneuver:** one legal Maneuver, even if Unnamed, free of Action/Command (Exhausted cannot initiate). **Commit:** pay 1 Command for +2 to an occupied active Front's **total** Strength this Battle (not a Force); bonus remains only while a friendly Force is there. **Strike:** make an unused legal basic Attack after Maneuvers; it uses the normal Attack allowance. **Hold:** nothing. Pay Commits, resolve Maneuvers then Strikes, each numbered 1 before 2 and corresponding opposing steps simultaneously. Repeat orders are allowed. In every Battle, including Battle I: after the first Pass and two closing turns, before Stratagem reveals and Front comparison.
+Both players secretly choose **two orders** (same type allowed), number them 1–2, then reveal all together. **Maneuver:** one legal Maneuver, free of Action/Command (Exhausted cannot initiate). **Commit:** pay 1 Command for +2 to an occupied active Front's **total** Strength this Battle (not a Force); bonus remains only while a friendly Force is there. **Strike:** make an unused legal basic Attack after Maneuvers; it uses the normal Attack allowance. **Hold:** nothing. Pay Commits, resolve Maneuvers then Strikes, each numbered 1 before 2 and corresponding opposing steps simultaneously. Repeat orders are allowed. In every Battle, including Battle I: after the first Pass and two closing turns, before Stratagem reveals and Front comparison.
 
 ## Formation Strength and classifications
 
@@ -37,6 +39,8 @@ A Frontline Force is flanked when its opponent has a Frontline Force in an adjac
 | Guarded | Prevent next affliction, including defeat Exhaustion, then remove. |
 | Inspired | Remove and prevent Shaken while present. |
 | Empowered | Next Attack ignores screening, but not range or flanking rules. |
+
+**Stratagem limit:** each player may set only one Stratagem card per Battle, including free effects. Returning or revealing it does not refill the allowance.
 
 ## End of Battle
 
