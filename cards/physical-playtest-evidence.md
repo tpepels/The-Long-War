@@ -152,3 +152,19 @@ without consulting the reference.
 For both players, compare Battle I losses and subsequent Battle II/III
 front reversals. An incursion should create immediate tactical pressure,
 **not** compound Command loss or destroy a persistent Force.
+
+## Force economy after the strict tariff
+
+In the next matches, record how often the **minimum 3C Force** prevents
+a player from reinforcing in later Battles, and compare against the
+cheaper Bond, Name, Tactic or zero-Command Order they chose instead.
+
+Separate the small one-Battle benefits of Thirty Spears, Fifty Men
+and Aradai from the large **Damar 4C** double action. Count situations
+where Damar's Move *newly* enables an unused Attack (not merely all
+scenes where moving happens to be legal). Check that Volley reaches
+a Frontline/Middle target even if an Archer's ordinary Attack cannot,
+and that Shared the Spoils With no longer steals Command.
+
+These are observation prompts only; do not silently extrapolate the
+old 2C Thirty Spears / 3C Damar deck-wide cost calculations.
