@@ -109,12 +109,14 @@ Choose a legal opposing Force, check target and screening, allow eligible respon
 
 | Attacker | Legal target | Result |
 | --- | --- | --- |
-| **Archer** | Opposing Rear in same Front | Exhaust |
+| **Archer** | Opposing Rear in same Front | Shake |
 | **Skirmisher** | Opposing Middle in same Front | Shake |
-| **Raider** | Opposing Middle or Rear in same Front, if opposing Frontline is empty | Deplete |
+| **Raider** | Opposing Middle or Rear in same Front, with a successful Incursion | Deplete |
 | **Rider** from Frontline/Middle | Flanked opposing Frontline in adjacent active Front | Shake |
 
-An **ATTACK** ability modifies or extends that one Attack; it does not grant another unless explicitly stated. A friendly **Guard in Middle** screens the Rear Force directly behind it from basic Archer Attacks; Shaken or Depleted Guards cannot screen. Other Attacks and effects are not automatically screened.
+**Incursion:** A Raider in your Frontline succeeds if its current Strength is greater than the opposing Frontline formation's Strength, or if that opposing position has no Force. A tie holds the line. The Raider stays on your side; the Incursion is its normal Attack, not another Action.
+
+An **ATTACK** ability modifies or extends that one Attack; it does not grant another unless explicitly stated. Only a **card effect** can combine a Move or Maneuver with a free Attack. A friendly **Guard in Middle** screens the Rear Force directly behind it from basic Archer Attacks; Shaken or Depleted Guards cannot screen. Other Attacks and effects are not automatically screened.
 
 ### Flanking
 
@@ -188,10 +190,10 @@ Check **before recovery**. A player at 0 or less loses the war. If both collapse
 
 ### 5. Clean up and Exhaust defenders
 
-First let **Guarded** prevent lost-Front Exhaustion. Then:
+Choose **one Force in each lost Front**, if any. Its Guarded may prevent Exhaustion; if it does, do not choose a replacement. Then:
 
 1. Clear old afflictions, Boons, use markers, temporary effects and Narratives; discard unrevealed Stratagems.
-2. Apply **one new Exhaustion token** to every unprotected Force in a lost Front.
+2. Apply **one new Exhaustion token** to each chosen, unprotected Force (at most one per lost Front).
 
 New Exhaustion lasts through the next Battle unless removed by a card. Layers remain in play. An Exhausted Force still contributes Strength and may Attack.
 
