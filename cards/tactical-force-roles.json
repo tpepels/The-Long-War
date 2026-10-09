@@ -5,7 +5,7 @@
     {
       "id": "the-fifty-men",
       "role": "line",
-      "purpose": "Reliable permanent Strength without an additional rule."
+      "purpose": "Massed Human line gains temporary Strength when deployed behind another Human in its Front."
     },
     {
       "id": "seven-black-ships",
@@ -105,7 +105,7 @@
     {
       "id": "the-aradai",
       "role": "raider",
-      "purpose": "Contribute cheap strength with an eventual Raider incursion."
+      "purpose": "Apply brief Frontline pressure to enable a Raider Incursion after a local Strength tie."
     },
     {
       "id": "the-ilyri",
@@ -115,7 +115,7 @@
     {
       "id": "the-damar",
       "role": "command",
-      "purpose": "Advance another formation to unlock its basic Attack."
+      "purpose": "Advance an ally and unlock its basic Attack; high tempo pays an ability premium."
     },
     {
       "id": "the-serekh",
