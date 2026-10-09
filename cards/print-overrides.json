@@ -1082,8 +1082,8 @@
     },
     {
       "id": "thirty-spears",
-      "command_cost": 3,
-      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
+      "command_cost": 2,
+      "reason": "Unadorned odd-Strength exception: no utility ability uses the half-point; preserve cheapest plain reinforcement."
     },
     {
       "id": "a-hundred-shields",
