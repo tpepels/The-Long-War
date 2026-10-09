@@ -49,6 +49,15 @@ assert.equal(inlineCount(parts[1]),1,"Repeated affliction pictogram must not rec
 assert.equal(inlineCount(parts[2]),0,"Conditions, classes and generic resource mentions stay as prose");
 assert.match(plain(parts[1]), /Exhausted.*Shaken.*Depleted.*Move/);
 assert.match(plain(parts[2]), /Scout.*Move.*Middle.*Strength.*Command/);
+// PNG-first and explicit SVG comparison modes must obey the same policy.
+window.location.search="?icons=svg";
+const svgParts=effectTexts(window.PhysicalCards.cardArticle(outcome));
+assert.equal(inlineCount(svgParts[0]),2);
+assert.equal(inlineCount(svgParts[1]),1);
+assert.equal(inlineCount(svgParts[2]),0);
+assert.match(svgParts[0], /class="inline-rule-ref inline-impact-ref"[^>]*><svg/,
+  "SVG fallback must retain an impact glyph");
+window.location.search="";
 const hero = {
   id: "hero-smoke", type: "hero", title: "Hero test",
   command_cost: 5, hero_force_command_cost: 5,
