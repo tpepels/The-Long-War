@@ -266,7 +266,7 @@ function inspect(root=document){
     const bound=seal.getBoundingClientRect();
     const parts=[...seal.querySelectorAll(".hero-cost-part")];
     const pairBounds=parts.map(part=>{
-      const ink=[...part.querySelectorAll(".hero-cost-symbol, b")].map(node=>node.getBoundingClientRect());
+      const ink=[...part.querySelectorAll(".hero-cost-symbol svg, .hero-cost-symbol img, b")].map(node=>node.getBoundingClientRect());
       for(const rect of ink){
         if(rect.left<bound.left+1||rect.right>bound.right-1||
            rect.top<bound.top+1||rect.bottom>bound.bottom-1)
