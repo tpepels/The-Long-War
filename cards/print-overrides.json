@@ -187,7 +187,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if you have a Named Formation here and the opponent has none, reveal if you would tie or lose by 1 Strength. If tied, you win only if still tied after other reveals. If losing by 1, give one of your Named Formations here +2 Strength this Battle."
+          "text": "At resolution, with a Named Formation here and none opposite, reveal if tied or losing by 1 Strength. If tied, win only if still tied after other reveals; if losing by 1, give one Named Formation here +2 Strength this Battle."
         }
       ],
       "design_note": "Close Fronts matter, including a one-point loss. Eligibility is checked only once against the pre-reveal totals."
@@ -551,7 +551,7 @@
       "effects": [
         {
           "timing": "reaction",
-          "text": "When your opponent sets a Stratagem here or in an adjacent active Front containing your Scout or Ship, look at it. Give one friendly formation in that Stratagem's Front +2 Strength this Battle, if any.",
+          "text": "When your opponent sets a Stratagem in a Front containing your Scout or Ship, or an adjacent active Front, look at it. Give one friendly formation in that Stratagem's Front +2 Strength this Battle, if any.",
           "limit": "once_per_battle"
         }
       ],
