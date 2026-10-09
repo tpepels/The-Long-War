@@ -39,19 +39,6 @@ A playmat is optional. Lay out four Fronts with three rows on each player's side
 
 Hands, decks and face-down Stratagem identities are hidden. Command, card counts, battlefield, discard piles and a Stratagem's assigned Front are public.
 
-## Opening Orders {#opening-orders}
-
-At the start of each Battle, both players secretly write **two orders**, numbered 1 and 2. You may choose the same order twice:
-
-- **Maneuver:** Maneuver one friendly formation one legal step, even if Unnamed. No Action or Command cost. An Exhausted Force still cannot initiate.
-- **Commit:** Pay **1 Command** to give **+2 Strength** to one active Front containing one of your Forces this Battle. This adds to the **Front total**, not an individual Force; it counts only while you have a Force there.
-- **Strike:** Make one legal **basic Attack** with a chosen Force against a chosen target. It uses that Force's normal once-per-Battle Attack.
-- **Hold:** Do nothing.
-
-**Reveal all four orders together.** Pay for valid Commit orders first. Then resolve Maneuvers, followed by Strikes, in numbered order. Opposing orders at the same step happen simultaneously. Check legal positions and targets after earlier steps; an impossible order does nothing. Two Commits may reinforce the same Front. All Opening Orders are **free Actions**; only Commit spends Command.
-
-**Battle I:** Issue Opening Orders **after each player has taken their first turn**, so there can be Forces to command. If someone has already Passed, skip Opening Orders. From Battle II onward, issue them before the first turn.
-
 ## Your turn {#turn}
 
 Before drawing, choose whether to **Pass** (see *Passing*). Otherwise:
@@ -177,13 +164,26 @@ The first Pass begins the closing sequence:
 
 1. The **other player** takes a full turn (draw 1, up to 2 Actions).
 2. The **passer** takes a full turn (draw 1, up to 2 Actions).
-3. **Resolve the Battle** immediately.
+3. Both players reveal their **Opening Orders**, then **resolve the Battle**.
 
 Neither closing turn may Pass. If the war continues, the player **who did not Pass** starts the next Battle.
 
+## Opening Orders {#opening-orders}
+
+After the two closing turns following the first **Pass**, but before settling the Fronts, both players secretly write **two orders**, numbered 1 and 2. You may choose the same order twice:
+
+- **Maneuver:** Maneuver one friendly formation one legal step, even if Unnamed. No Action or Command cost. An Exhausted Force still cannot initiate.
+- **Commit:** Pay **1 Command** to give **+2 Strength** to one active Front containing one of your Forces this Battle. This adds to the **Front total**, not an individual Force; it counts only while you have a Force there.
+- **Strike:** Make one legal **basic Attack** with a chosen Force against a chosen target. It uses that Force's normal once-per-Battle Attack.
+- **Hold:** Do nothing.
+
+**Reveal all four orders together.** Pay for valid Commit orders first. Then resolve Maneuvers, followed by Strikes, in numbered order. Opposing orders at the same step happen simultaneously. Check legal positions and targets after earlier steps; an impossible order does nothing. Two Commits may reinforce the same Front. All Opening Orders are **free Actions**; only Commit spends Command.
+
+The procedure is **identical in every Battle, including Battle I**. Players play their cards during their normal turns before the Pass and closing turns. Opening Orders happen **once**, after those turns and before Stratagems are revealed.
+
 ## Resolving a Battle {#scoring}
 
-Resolve these six steps **in order** after the last closing turn.
+After the Opening Orders have resolved, follow these six steps **in order**.
 
 ### 1. Reveal Stratagems
 
