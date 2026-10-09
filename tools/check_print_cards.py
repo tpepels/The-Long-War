@@ -63,6 +63,33 @@ def main() -> None:
         assert len(after[cid]["modes"][mode]["effects"]) == len(
             before[cid]["modes"][mode]["effects"])
 
+    # Physical Hero cards choose a role on PLAY; their printed Command cost
+    # must be attached to that role. The two costs are independent and do
+    # not grant both role abilities or both Strength values at once.
+    hero_costs = overrides.get("hero_mode_costs", [])
+    assert len(hero_costs) == 11, "All physical Heroes need explicit mode costs"
+    assert len({item["id"] for item in hero_costs}) == len(hero_costs)
+    assert {item["id"] for item in hero_costs} == {
+        cid for cid, card in before.items() if card["type"] == "hero"
+    }
+    for entry in hero_costs:
+        cid = entry["id"]
+        changed.add(cid)
+        original, revised = before[cid], after[cid]
+        assert revised["command_cost"] == entry["force_cost"]
+        assert revised["hero_force_command_cost"] == entry["force_cost"]
+        assert revised["hero_name_command_cost"] == entry["name_cost"]
+        for mode, cost_key in (("force", "force_cost"), ("name", "name_cost")):
+            assert revised["modes"][mode]["command_cost"] == entry[cost_key]
+        assert revised["force_strength"] == original["force_strength"]
+        assert revised["name_strength_modifier"] == original["name_strength_modifier"]
+        assert revised["classes"] == original["classes"]
+        assert [x["timing"] for x in revised["modes"]["force"]["effects"]] == [
+            x["timing"] for x in original["modes"]["force"]["effects"]]
+        assert [x["timing"] for x in revised["modes"]["name"]["effects"]] == [
+            x["timing"] for x in original["modes"]["name"]["effects"]]
+    assert printed["print_hero_mode_price_count"] == 11
+
     for card_id in overrides["once_per_battle_text_fixes"]:
         changed.add(card_id)
         assert after[card_id]["text"].startswith("ACTION · 1/BATTLE"), card_id
