@@ -456,15 +456,16 @@ PLAY/ACTION/HIDDEN window; none modifies the universal Action menu.
    opposing face-down Stratagem in its Front before making a local
    Move. Track whether information changes the positional choice.
 5. **Iria / Lysa / Kael-as-Name**: complete a Named Formation.
-   Iria and Kael may combine peeking with an immediate Move;
+   Iria can retarget an announced Opening Strike after reveal; Kael may peek and Move;
    Lysa inspects the opponent's hand and protects a Force with
    Guarded. No general information-triggered free Actions arise.
-6. **The Lines Held / The Center Must Hold / The Flank Was Refused**:
-   set a valid face-down plan. At the one normal resolution window,
-   legally Move the selected formation. Apply the printed +2
-   temporary Strength to the specified formation. Compare the
-   provisional and final results in both affected Fronts, and
-   cancel conflicting simultaneous movement as usual.
+6. **Three distinct hidden resolution plans**: The Lines Held grants
+   one late legal Move and +2; The Center Must Hold exchanges one
+   formation across adjacent Fronts with a legal same-rank partner;
+   The Flank Was Refused cancels a flanked outer Frontline Force's
+   penalty and gives it +2. Each player can set **only one**
+   Stratagem in total. Check eligibility after the Opening Orders,
+   before simultaneous resolution reveals.
 7. **They Returned With Names**: Shake an opposing Named Force
    and suppress that Name's text for this Battle; attachments
    remain in place and regain normal text at Battle cleanup.
@@ -545,3 +546,11 @@ Maneuver and Strike? How rapidly does uncapped Strength-margin loss
 cause Collapse on undefended Fronts? Keep the previous 12/9/6/3/1
 recovery sequence for these initial tests; do not silently
 compensate it without matched tabletop results.
+
+## One Stratagem per Battle and ordinary Maneuvers by any formation
+
+With an Unnamed and unexhausted Force, spend 1 Action and 1 Command to perform a legal ordinary Maneuver. Repeat with a Named Force: identical cost and reach. An Exhausted Force cannot initiate either without a printed exemption. Grey Riders retain this exemption and their unused Rider Attack combination. A Bonded Dust Riders formation instead saves the Command of its first Maneuver each Battle; the second costs 1.
+
+Set The Center Must Hold via the usual Action. If Teren later completes a Named Formation, its BECOMES NAMED ability cannot set another Stratagem this Battle. Return the original Stratagem to hand via a legal card effect: the allowance remains spent. Re-setting **that same card** explicitly, as allowed by The Scouts Found the Gap, does not create an additional Stratagem identity.
+
+After the first Pass and two closing turns, reveal two secret Opening Orders each. Had Been Ordered Forward may move its Bonded formation two legal steps with one Opening Maneuver; The Long March may Move **two different Riders** with one order; Iria may redirect a declared Strike aimed into her Front but may not invent a new Strike or violate Attack legality. Resolve one pre-set Stratagem per player at its eligible timing, including The Archers Were Ready or The Trap Closed reacting to an Opening Strike, then settle Fronts.
