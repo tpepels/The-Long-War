@@ -215,7 +215,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if you have a King or Captain here, choose another friendly formation here. You may Move it one adjacent legal position. Give it +2 Strength this Battle."
+          "text": "At resolution, if you have a King or Captain here, choose an ally here. You may Move it one legal position. Give it +2 Strength this Battle."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules.",
@@ -226,7 +226,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if this is an outer Front, choose a friendly Archer, Guard or Stronghold here. You may Move it one adjacent legal position. Give it +2 Strength this Battle."
+          "text": "At resolution in an outer Front, choose a friendly Archer, Guard or Stronghold here. You may Move it one legal position. It gets +2 Strength this Battle."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -651,7 +651,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If you control a Scout or Captain here, look at an opposing face-down Stratagem here or in an adjacent active Front, if any. You may Move a friendly formation here one adjacent legal position."
+          "text": "If you control a Scout or Captain here, look at a face-down enemy Stratagem in this or an adjacent Front, if any. You may Move an ally here one legal position."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -1044,7 +1044,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If you have less Command than your opponent, regain 1 Command. You may Move one friendly formation in this Front one adjacent legal position."
+          "text": "If you have less Command, regain 1 Command. You may Move a friendly formation here one legal position."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -1054,7 +1054,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Look at an opposing face-down Stratagem in this or an adjacent active Front, if any. You may Move one friendly formation here one adjacent legal position."
+          "text": "Look at a face-down opposing Stratagem in this or an adjacent Front, if any. You may Move an ally here one legal position."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
