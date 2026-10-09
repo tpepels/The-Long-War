@@ -32,7 +32,7 @@ Play a Human Force without an Attack classification, attach a +1 Bond and attach
 
 ## 5. Completion sequences are intentionally powerful
 
-Put a Force and **Mara** (Name) in one position, with no Bond. Play **Swore Again To** as the Bond. Its PLAY effect grants an immediate no-Action/no-Command Maneuver, subject to other Maneuver restrictions; resolve that movement first. Then Mara's BECOMES NAMED effect lets you inspect the opponent's hand and optionally Move. Return the Bond through a legal card effect; the Force with Name is no longer Named. Playing a different Bond later can trigger Mara again. An unused PLAY effect on a Bond prepared earlier does not start when that Bond attaches by movement.
+Put a Force and **Mara** (Name) in one position, with no Bond. Play **Swore Again To** as the Bond. Because it completes a Named Formation, its PLAY effect gives that formation **+2 Strength this Battle**, then Mara's BECOMES NAMED effect lets you inspect the opponent's hand and optionally Move. Repeat by playing Swore Again To on a formation that remains Unnamed: instead, draw 1 card and discard 1 card. Return the first Bond through a legal card effect and play a different Bond to complete that formation again; Mara's BECOMES NAMED ability may resolve again. An unused PLAY effect on a Bond prepared earlier does not start when the Bond attaches by movement.
 
 **Watch for:** legal spatial combinations and degenerate resource loops; do not automatically suppress BECOMES NAMED just because it can be repeated.
 
@@ -76,13 +76,37 @@ Give a named **Grey Riders** formation Exhaustion by losing a Front. It may stil
 
 ## 12. Hero mode cost and role selection
 
-Put **Avaros**, **Tovan** and **Doros** on the table. Avaros costs 5 Command when played as a 5-Strength King Force, but 4 as a +1 Name. Tovan costs 3 as a 2-Strength Force, but 4 as a Name with ongoing discounts. Doros costs 5 as a 5-Strength Force, but only 2 as a +1 Name. Pay the chosen mode's price and apply only that mode's Strength and effects; there is no extra charge for being dual-mode. Repeat by preparing Tovan as a Name, paying **4 Command** on PLAY; later attachment does not replay his PLAY effects or require another Command payment. Verify that a discount referring to Names affects the Name price, not the Force price.
+Put **Avaros**, **Tovan** and **Doros** on the table. Avaros costs 5 Command when played as a 5-Strength King Force, but 4 as a +1 Name. Tovan costs 3 as a 2-Strength Force, but 4 as a Name with ongoing discounts. Doros costs 5 as a 5-Strength Force, but only 1 as a +1 Name. Pay the chosen mode's price and apply only that mode's Strength and effects; there is no extra charge for being dual-mode. Repeat by preparing Tovan as a Name, paying **4 Command** on PLAY; later attachment does not replay his PLAY effects or require another Command payment. Verify that a discount referring to Names affects the Name price, not the Force price.
 
 **Check:** both labelled prices legible on a printed Hero at actual size; single Hero Force and Hero Name allowances still respected; ability/Strength from the unchosen mode never applies.
 
 ## 13. Physical print integrity
 
 Print one Force+Bond+Name stack and one Hero+Bond+Name stack at **actual size**, leaving the bottom card and middle card's **10.5 mm top strips** exposed. Confirm that every **ongoing** buried effect can be read without lifting the Name, including Grey Riders' two movement permissions. Confirm that PLAY-only text may be covered. Read the updated Reference next to the cards and flag any different rule.
+
+## Pre-playtest usefulness and dominance checks
+
+### Leadership disruption is not generic Name suppression
+
+Give B a Named Captain in Front 2 and another Force in the same Front. A holds **All Banners Forward** and **They Let Them Through** (both cost 1 Command). Playing All Banners Forward gives the Captain's Force Shaken and applies −1 Strength to the other opposing formation this Battle. Playing They Let Them Through instead disables an opposing formation's ACTION abilities and removes its Name Strength if Named, **without applying Shaken**. Compare actual Front totals with the Captain's ACTION already spent: the choices must still differ. Repeat with an Unnamed Captain Force and with no King/Captain in play: All Banners Forward requires the leader but remains playable without a Name; without a leader it is not legal.
+
+**Watch for:** an attractive leadership-specific payoff without creating universal 1C multi-target shutdown.
+
+### The Ilyri's movement needs another occupied position
+
+A has a friendly Frontline Force under threat; Middle is empty. Play **The Ilyri** into Middle and choose to swap with that Frontline Force. Move both formations into each other's places, keeping Bonds, Names and conditions attached to their Forces. Give the displaced Frontline Force Guarded. Contrast with placing The Ilyri in Frontline directly: ordinary deployment cannot both reposition the existing Force and Guard it. Repeat with a row-restricted friendly formation that cannot legally occupy the new row: no swap and no Guarded. Repeat without a second Force: The Ilyri remains a 2-Strength Skirmisher with its ordinary Attack option.
+
+**Watch for:** the swap actually protecting something worth protecting; the 2-Strength fallback being enough to justify a 3C conditional tool.
+
+### One-Action opportunity cost for logistics and scouting
+
+During Battle II, compare playing **The Field Train** behind a Force and using a prepared Bond from an adjacent Front, versus spending the same next two Actions on direct layers. Then compare **The Signal Company** and **The Relief Column** with simply completing the friendly Force's Name or playing a regular supporting Force instead. For scouting, record whether **The Watchtowers of Eren**, **The Lantern Scouts** and **Before Sunset, the Ford Would Be Ours** ever cause a different legal decision after inspecting a hidden Stratagem.
+
+**Watch for:** spending Command and Actions to enable something that cannot pay back the tempo before this Battle ends. Count the legal setups that *could* have occurred, not just card draws.
+
+### Lab-only cards do not disappear from the results
+
+Before ordinary matched decks, run the targeted specialist cases for the 20 cards that appear in no standard deck (see `cards/preplaytest-readiness.md`). Record a playable/useful opportunity even when the ability never triggers; an unseen card is not evidence that its ability works.
 
 ## Evaluation record
 
