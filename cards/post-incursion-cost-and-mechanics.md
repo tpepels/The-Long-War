@@ -94,9 +94,11 @@ or player-rulebook exceptions were introduced.
    combinations. A normal Maneuver does **not** grant an Attack; no card
    refreshes an already used Attack. An unused free Attack is still a
    single Attack, not a chain.
-6. **Persistent attrition.** Loss remains **1 Command and one chosen Force
-   Exhausted per lost Front** (Guarded can stop that Exhaustion). Neither
-   Incursion nor the new support effects remove Forces or add defeat taxes.
+6. **Persistent attrition.** Under the subsequent Opening Orders
+   revision, each lost Front costs Command equal to its final
+   **Strength difference**, while still Exhausting only one chosen
+   Force for the next Battle (Guarded may prevent Exhaustion). This
+   changes Command economics substantially and requires new playtests.
 7. **Card types stay comprehensible.** New opportunities live primarily
    in short PLAY/ACTION/CONTINUOUS card text, not extra procedures in the
    short rulebook. No new role badges are printed; every Force has a
