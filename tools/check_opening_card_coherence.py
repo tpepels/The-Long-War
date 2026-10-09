@@ -123,7 +123,7 @@ def run() -> None:
     assert "set only one Stratagem card total per Battle" in RULES
     assert "Returning or revealing it does not" in PLAYER_RULES
     assert "The same sequence applies to every Battle, including Battle I" in RULES
-    assert "up to **4 Narratives**" in RULES or "up to **4** Narratives" in RULES or "at most **4** Narratives" in RULES
+    assert "up to **4 Narratives in play**" in RULES
 
     def decks(path):
         return json.loads(path.read_text(encoding="utf-8"))["decks"]
