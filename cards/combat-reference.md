@@ -34,7 +34,7 @@ A Frontline Force is flanked when its opponent has a Frontline Force in an adjac
 
 ## End of Battle
 
-1. Eligible pre-comparison and tie-related Stratagems are chosen **secretly and revealed simultaneously** in a single window, checked against the state before reveals.
+1. Eligible pre-comparison, tie and down-by-one-related Stratagems are chosen **secretly and revealed simultaneously** in a single window, checked against the state before reveals.
 2. Resolve independent effects, prevent prevented actions, cancel contradictory movement, then compare each Front.
 3. Resolve Battle-end effects, lose 1 Command per lost Front, and check Collapse at 0 or less **before** recovery.
 4. Before clearing Boons, Guarded can prevent loss-based Exhaustion. Clear old afflictions and Boons, then apply **one new Exhaustion token** to each unprotected Force in each lost Front. These tokens last **through the next Battle**, unless removed early.
@@ -42,6 +42,6 @@ A Frontline Force is flanked when its opponent has a Frontline Force in an adjac
 
 ## Card-timing reminders
 
-PLAY resolves when played (also when prepared), not when the prepared card later attaches. Bonds with a legal other-formation target can resolve PLAY even when prepared. House of Reed may attach two prepared layers one at a time with one ACTION, and completion rewards follow BECOMES NAMED triggers. BECOMES NAMED can retrigger upon rebuilding after a genuine loss of Named status. Attached Force/Name classifications combine. ACTION takes a turn Action. ATTACK modifies an existing Attack. Move into compatible prepared cards to attach them; don't overwrite an occupied Bond/Name layer. Printed once-per-Battle use stays spent even if a card is returned and replayed. Narratives stay face-up until Battle end (max **4**). A set Stratagem is publicly assigned to an active Front and optionally revealed when eligible.
+PLAY resolves when played (also when prepared), not when the prepared card later attaches. Bonds with a legal other-formation target can resolve PLAY even when prepared. House of Reed may attach two prepared layers one at a time with one ACTION, and completion rewards follow BECOMES NAMED triggers. BECOMES NAMED can retrigger upon rebuilding after a genuine loss of Named status. Attached Force/Name classifications combine. ACTION takes a turn Action. ATTACK modifies an existing Attack. Move into compatible prepared cards to attach them; don't overwrite an occupied Bond/Name layer. Printed once-per-Battle use stays spent even if a card is returned and replayed. Narratives stay face-up until Battle end (max **4**). A set Stratagem is publicly assigned to an active Front and optionally revealed when eligible. A prevention plan is revealed before its eligible Attack affliction applies. A tie-break is eligible only from the pre-reveal board state; an initial one-point deficit can also qualify if a card says so. A full-Front exchange is one legal all-or-nothing rank-for-rank card effect, not a Maneuver.
 
 A condition tracker alongside a formation should not obscure buried live reminders on the exposed 10.5 mm edges.
