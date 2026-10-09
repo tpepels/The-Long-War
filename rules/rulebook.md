@@ -81,6 +81,8 @@ Each position holds one of each layer. To change an attached Bond or Name, use a
 
 For instance, a Force joined with a Bond and Name immediately becomes a Named Formation. Read the new component's PLAY instructions first, then the newly completed formation's BECOMES NAMED instructions. The Reference explains the rarer cases involving preparation, rebuilding and several effects at once.
 
+If an **ACTION** ability explicitly instructs you to *play a Bond from your hand*, that play is part of the Action already spent on the ability; it does **not** consume another Action. You must still have a legal slot and pay the Bond's Command cost after any stated discount. Resolve the Bond's PLAY text and any BECOMES NAMED triggers normally. For example, **Oren** can use one Action to play a discounted Bond, with an extra card drawn if that play completes a Named Formation.
+
 ### Row and placement restrictions
 
 Each Force's printed row icons tell you where it can stand throughout the game. A **Frontline-only** Force stays in the Frontline, including after Moves and swaps. Play, move, and attach cards only into active Fronts and positions where every resulting card is legal.
@@ -138,7 +140,7 @@ An **Archer** normally targets the opposing Rear Force. *The Crow Archers* exten
 
 A Frontline Force is **flanked** if an opposing Frontline Force occupies an adjacent **active** Front and its controller has no friendly Frontline Force in that same neighboring Front. The outer edge of the active battlefield does not create a flank. Only Frontline Forces can be flanked.
 
-**A flanked Force has −1 Strength while it remains flanked.** This is an ongoing positional modifier, not a marker or affliction. Recalculate it immediately if a Force moves or an adjacent Frontline is filled or vacated. Both sides can create flanks; a Force flanked from both sides still receives **only one −1 penalty** from the flanked condition. Rider Attacks and printed card effects can exploit the same flanking condition.
+**A flanked Force has −1 Strength while it remains flanked.** This is an ongoing positional modifier, not a marker or affliction. Recalculate it immediately if a Force moves or an adjacent Frontline is filled or vacated. Both sides can create flanks; a Force flanked from both sides still receives **only one −1 penalty** from the flanked condition. Rider Attacks and printed card effects can exploit the same flanking condition. If a card says its formation **cannot be flanked**, it is not flanked even when the neighboring positions would ordinarily satisfy that definition: it suffers no flanking Strength penalty and is not a legal target for a basic Rider Attack that requires a flanked target. It can still be affected by other legal Attacks and card effects.
 
 ## Conditions and protection {#conditions}
 
@@ -166,7 +168,7 @@ Middle Guards provide their usual screening. Other roles—Strongholds, Ships, H
 
 **Tactics** are one-shot hostile cards. **Orders** are their friendly counterparts. Each costs one Action plus any printed Command; resolve its PLAY text and discard it. Even a 0-Command Order uses one Action unless its text explicitly says otherwise. *Re-form the Line* can deliberately discard one of your Forces (including its attached Bond and Name) to regain 2 Command and vacate that battlefield position; this is the only general-purpose withdrawal option in the initial physical playtest pool. It requires a Captain in that Front. Discarded formation layers cannot be recovered merely by Maneuvering.
 
-A **Narrative** is a face-up effect that lasts **until the end of the current Battle**. You may have up to **4 Narratives in play** at once. Their CONTINUOUS abilities operate while they remain face-up; their ACTION abilities can be used on your normal turns (respecting printed limits). All Narratives leave play at Battle end. There is no separate player-facing Ongoing subtype or automatic rule for a Narrative's literary theme.
+A **Narrative** is a face-up effect that lasts **until the end of the current Battle**. You may have up to **4 Narratives in play** at once. Any PLAY text resolves immediately; it costs no further Action beyond playing the Narrative. CONTINUOUS abilities operate while they remain face-up; ACTION abilities can be used on your normal turns (respecting printed limits). A Narrative with only PLAY text still remains face-up and occupies a Narrative slot until Battle end. All Narratives leave play at Battle end. There is no separate player-facing Ongoing subtype or automatic rule for a Narrative's literary theme.
 
 A **Stratagem** is a hidden plan. Playing one costs one Action and its printed Command, and you may play **at most 1 Stratagem from hand per Battle**. When you play it, **publicly choose one active Front and set it face-down beside that Front**. Its location and existence are public; its identity is hidden. An effect on that Stratagem applies to its chosen Front unless its printed wording explicitly allows another Front.
 
