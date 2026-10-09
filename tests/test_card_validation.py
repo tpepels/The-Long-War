@@ -126,6 +126,8 @@ def _expanded_pool(data, size: int):
 
 
 def test_card_identity_capacity_is_checked_before_native_packing(data) -> None:
-    GameEngine(_expanded_pool(copy.deepcopy(data), 128))
-    with pytest.raises(ValueError, match="at most 128"):
-        GameEngine(_expanded_pool(copy.deepcopy(data), 129))
+    # Current paper pool has more than 128 identities. Reserve signed-byte
+    # overflow checks for actual native packing, not physical card count.
+    GameEngine(_expanded_pool(copy.deepcopy(data), 192))
+    with pytest.raises(ValueError, match="at most 192"):
+        GameEngine(_expanded_pool(copy.deepcopy(data), 193))
