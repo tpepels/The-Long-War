@@ -274,6 +274,10 @@ def markdown_to_typst(source: str, version: str) -> str:
             raise ValueError("Rulebook Markdown table has inconsistent column counts")
         headings = rows[0]
         if width == 2:
+            # Keep the final short definitions on a balanced second column.
+            # This is one deliberate last-page break, not a forced new page.
+            if headings[0].strip().lower() == "event":
+                out.append("#colbreak()")
             # A true compact table is far denser and easier to scan than
             # repeating "MEANING:" or "RESULT:" inside every shaded card.
             cells = []
