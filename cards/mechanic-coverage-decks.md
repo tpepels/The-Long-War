@@ -1,4 +1,6 @@
-# Physical diagnostic decks
+$0
+
+**Force pricing (current):** Forces are priced at 1 + ceil(Strength/2) plus an assessed ability premium; totals below reflect the [Force pricing ledger](force-pricing.json). These are whole-deck sums, not up-front costs.
 
 These **four 48-card lists** are for controlled comparison and underrepresented mechanic testing, not the primary competitive decks. Use current [physical rules](../rules/rulebook.md), the print-only card overrides, and [tabletop test scenarios](physical-rule-playtest-scenarios.md). They do not imply measured win rates.
 
@@ -8,7 +10,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's +1 Strength payoff to repeated Maneuvers.
 
-**Composition:** 48 cards, 72 Command across all cards, 54 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 94 Command across all cards, 54 sum printed Force Strength (not the Front total).
 
 **What to record**
 
@@ -52,7 +54,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Use Scouts or Seers to trigger a hostile Stratagem, compare Guarded versus +2 temporary Strength responses, and test Ground Was Held from both tied and down-by-one provisional totals.
 
-**Composition:** 48 cards, 66 Command across all cards, 51 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 93 Command across all cards, 51 sum printed Force Strength (not the Front total).
 
 **What to record**
 
@@ -97,7 +99,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Build a Named stack in adjacent Fronts with support Forces. Play No Road Was Too Long to exchange columns legally, then verify Named Strength and all token transfer details.
 
-**Composition:** 48 cards, 83 Command across all cards, 51 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 106 Command across all cards, 51 sum printed Force Strength (not the Front total).
 
 **What to record**
 
@@ -142,7 +144,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Use only Thirty Spears, Fifty Men, Hundred Shields and Aradai as Forces (four copies each). Other card types remain legal and supply simple Bonds, Names and counterplay. Do not treat this as proof that non-Force combos cannot win; compare mirrored draws against each core combo deck.
 
-**Composition:** 48 cards, 71 Command across all cards, 68 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 99 Command across all cards, 68 sum printed Force Strength (not the Front total).
 
 **What to record**
 
@@ -179,5 +181,5 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 1. Compare each diagnostic deck against each core combination deck with mirrored opening draws and starting order. Record per-Battle Front totals, Actions spent, Command trajectory and Force-slot saturation.
 2. Separate **printed Force Strength**, persistent Bonds/Names, temporary Battle bonuses, and denial through Shaken/Depleted/Exhausted. A strong body can be efficient without proving an automatic win.
-3. The **Raw Strength Control** deliberately uses only four ability-free Force identities: Thirty Spears (3 Strength / 1 Command), Fifty Men (5 / 2), Hundred Shields (6 / 3), and Aradai (3 / 2). The Aradai still has its Raider classification and corresponding basic Attack; its text has no separate printed ability.
+3. The **Raw Strength Control** deliberately uses only four ability-free Force identities: Thirty Spears (3 Strength / 3 Command), Fifty Men (5 / 4), Hundred Shields (6 / 5), and Aradai (3 / 3). The Aradai still has its Raider classification and corresponding basic Attack; its text has no separate printed ability.
 4. Never substitute the native/Webgame outcomes for the print-only rules. There is currently no completed physical-compatible automated win-rate study.
