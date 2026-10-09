@@ -100,8 +100,10 @@ async function main(){
         '<span>'+esc(deck.title)+' · '+expanded.length+' cards</span></header>'+
         '<div class="deck-screen-summary"><div><p class="deck-print-kicker">PLAYTEST DECK</p><h2>'+esc(deck.title)+'</h2><p>'+esc(deck.playstyle||"")+'</p></div>'+
         '<aside><strong>Key combinations</strong><ul class="deck-combo-list">'+
-        (deck.combo_notes||[]).map(note=>'<li>'+esc(note)+'</li>').join("")+
-        '</ul><details class="deck-combo-question"><summary>Playtest question</summary><p>'+esc(deck.hypothesis||"")+'</p></details></aside></div>'+
+        (deck.combo_notes||[]).slice(0,2).map(note=>'<li>'+esc(note)+'</li>').join("")+
+        '</ul><details class="deck-combo-question"><summary>More combos and playtest question</summary><ul class="deck-combo-list">'+
+        (deck.combo_notes||[]).slice(2).map(note=>'<li>'+esc(note)+'</li>').join("")+
+        '</ul><p>'+esc(deck.hypothesis||"")+'</p></details></aside></div>'+
         chunk(expanded,8).map((sheet,sheetIndex)=>
           '<div class="deck-card-grid print-sheet" data-sheet="'+(sheetIndex+1)+'">'+
           sheet.map(id=>window.PhysicalCards.cardArticle(index.get(id),"print-card deck-card",{printArt:true})).join("")+
