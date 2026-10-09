@@ -81,6 +81,11 @@ def run() -> None:
             seen.add(item["id"])
     assert seen == set(cards)
 
+    focused = json.loads((ROOT / "cards/preplaytest-focus.json").read_text(encoding="utf-8"))["focus"]
+    focus_ids = [row["id"] for row in focused]
+    assert len(focus_ids) == 77 and len(set(focus_ids)) == 77
+    assert {cid for cid, row in rows.items() if row["review"] in ("watch", "new_opening_card")} <= set(focus_ids)
+
     all_texts = []
     force_prices = []
     for cid, card in cards.items():
