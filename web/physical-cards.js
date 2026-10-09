@@ -8,55 +8,28 @@ const titleCase=value=>String(value??"").split(/[-_ ]+/).filter(Boolean).map(par
 const TYPE={force:"Force",bond:"Bond",name:"Name",hero:"Hero",tactic:"Tactic",order:"Order",stratagem:"Stratagem",narrative:"Narrative"};
 const LABEL={play:"PLAY",attack:"ATTACK",action:"ACTION",reaction:"REACTION",bonded:"BONDED",while_named:"WHILE NAMED",becomes_named:"BECOMES NAMED",trigger:"TRIGGER",continuous:"CONTINUOUS",hidden:"REVEAL",front:"FRONT",middle:"MIDDLE",rear:"REAR",exhausted:"EXHAUSTED",tireless:"TIRELESS",mobile:"MOBILE"};
 const LIVE=new Set(["action","attack","reaction","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"]);
-// Gameplay vocabulary used in printed card rules. Every recognized term has a
-// small leading icon, kept together with its word so line wrapping never splits
-// the pictogram from "Force", "Bond", etc.
-const RULE_TERMS=[
-  "Named Formation","Bonded Formation","Unbonded Formation","Formation",
-  "Exhaustion token","temporary negative marker","Tax marker",
-  "prepared Bond","prepared Name","Frontline","Middle row","Rear row","Front row","Middle","Rear",
-  "Force","Bond","Name","Hero","Tactic","Order","Stratagem","Narrative",
-  "Command","Strength","Attack","Action","Reaction","Battle","Front",
-  "Maneuver","Move","Pass","Exhausted","Exhaustion","Shaken","Depleted",
-  "Guarded","Inspired","Empowered","Named","Bonded"
-];
-const CLASSIFICATION_TERMS=[
-  "Human","Archer","Captain","Guard","Healer","King","Raider",
-  "Rider","Scout","Seer","Ship","Skirmisher","Steward","Stronghold"
-];
-const REFERENT_TERMS=["discard pile","deck","hand","card","marker","turn"];
-const pluralize=term=>term.endsWith("s")?term:term+"s";
-const RULE_TERM_SET=new Set(RULE_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
-const REFERENT_TERM_SET=new Set(REFERENT_TERMS.flatMap(term=>[term,pluralize(term)]).map(term=>term.toLowerCase()));
-const CLASSIFICATION_TERM_MAP=new Map(CLASSIFICATION_TERMS.flatMap(term=>[
-  [term.toLowerCase(),term.toLowerCase()],
-  [pluralize(term).toLowerCase(),term.toLowerCase()]
-]));
-const EMPHASIS_TERMS=[...new Set([...RULE_TERM_SET,...REFERENT_TERM_SET,...CLASSIFICATION_TERM_MAP.keys()])]
-  .sort((a,b)=>b.length-a.length)
-  .map(term=>term.replace(/[.*+?^$()|[\]\\{}]/g,match=>"\\"+match));
-const EMPHASIS_RE=new RegExp("\\b("+EMPHASIS_TERMS.join("|")+")\\b","gi");
-const RULE_GLYPH_KIND={
-  "named formation":"name","bonded formation":"bond","unbonded formation":"force","formation":"force",
-  "force":"force","bond":"bond","name":"name","hero":"hero",
-  "tactic":"tactic","order":"order","stratagem":"stratagem","narrative":"narrative",
-  "command":"command","strength":"strength","attack":"target","action":"action","reaction":"reaction",
-  "battle":"trigger","front":"target","frontline":"front","middle row":"middle",
-  "rear row":"rear","front row":"front","middle":"middle","rear":"rear","maneuver":"move","move":"move","pass":"trigger",
-  "exhausted":"marker","exhaustion":"marker","exhaustion token":"marker",
-  "shaken":"marker","depleted":"marker","guarded":"shield","inspired":"shield",
-  "empowered":"target","tax marker":"marker","temporary negative marker":"marker",
-  "prepared bond":"prepared","prepared name":"prepared","named":"name","bonded":"bond"
+// Icon policy for the *rules prose*, not the exposed edge, footer, cost,
+// placement or effect-timing labels. Those structural areas already carry
+// their own symbols. Keep normal card types, classifications, ranks, verbs,
+// and references as uninterrupted prose.
+//
+// Within one effect, show at most TWO icons, one per visual category:
+//  - condition/boon mentions (marker or shield),
+//  - an explicitly quantified Strength change,
+//  - an explicitly quantified Command amount.
+// The text is authoritative even without the pictogram. No glossary-wide
+// word replacement: icons indicate important effects, not every game noun.
+const MAX_RULE_ICONS=2;
+const INLINE_IMPACT_RE=/\b(Exhausted|Exhaustion|Shaken|Depleted|Guarded|Inspired|Empowered|Strength|Command)\b/gi;
+const RULE_IMPACT_KIND={
+  exhausted:"condition",exhaustion:"condition",shaken:"condition",depleted:"condition",
+  guarded:"boon",inspired:"boon",empowered:"boon",
+  strength:"strength",command:"command"
 };
-function inlineGlyph(term,classification){
-  const base=String(term).toLowerCase().replace(/s$/,"");
-  const symbol=classification?classGlyph(classification):RULE_GLYPH_KIND[term.toLowerCase()]||RULE_GLYPH_KIND[base];
-  if(!symbol)return "";
-  const markup=classification?symbol:
-    ["force","bond","name","hero","tactic","order","stratagem","narrative"].includes(symbol)?typeGlyph(symbol):
-    ["front","middle","rear"].includes(symbol)?rowGlyph(symbol):
-    symbol==="strength"?H()?.strength():
-    symbol==="command"?H()?.command():utilityGlyph(symbol);
+function inlineImpactGlyph(kind){
+  const markup=kind==="strength"?H()?.strength():
+    kind==="command"?H()?.command():
+    kind==="boon"?utilityGlyph("shield"):utilityGlyph("marker");
   return String(markup||"")
     .replace(/<title>.*?<\/title>/g,"")
     .replace(/\srole="img"/g,"")
@@ -64,20 +37,28 @@ function inlineGlyph(term,classification){
     .replace(/\s(?:alt|title)="[^"]*"/g,"")
     .replace(/<(svg|img)\b/,'<$1 aria-hidden="true" focusable="false"');
 }
-function formatRuleText(value){
+function quantifiedResource(source,index,term){
+  // The pictogram belongs to the number being gained, paid or modified,
+  // never to a generic mention of Command or Strength in the prose.
+  const before=source.slice(Math.max(0,index-35),index);
+  const after=source.slice(index+term.length,index+term.length+18);
+  return /(?:[+\-−]\s*\d+|\b\d+)\s*(?:additional\s+)?$/i.test(before) ||
+    /^\s+(?:by|to)\s+[+\-−]?\d+\b/i.test(after);
+}
+function formatRuleText(value,{icons=true}={}){
   const source=String(value??"");
+  if(!icons)return esc(source);
   let html="",cursor=0;
-  for(const match of source.matchAll(EMPHASIS_RE)){
-    const index=match.index??0,token=match[0],key=token.toLowerCase();
+  const used=new Set();
+  for(const match of source.matchAll(INLINE_IMPACT_RE)){
+    const index=match.index??0,token=match[0],kind=RULE_IMPACT_KIND[token.toLowerCase()];
+    if(!kind||used.has(kind)||used.size>=MAX_RULE_ICONS)continue;
+    if((kind==="strength"||kind==="command")&&!quantifiedResource(source,index,token))continue;
     html+=esc(source.slice(cursor,index));
-    const classification=CLASSIFICATION_TERM_MAP.get(key);
-    const rule=RULE_TERM_SET.has(key);
-    if(classification||rule){
-      const glyph=inlineGlyph(classification||key,classification);
-      html+='<span class="inline-rule-ref'+(classification?' inline-class-ref':'')+'" title="'+esc(token)+'">'+glyph+'<span class="'+(rule?"rule-term":"rule-class-term")+'">'+esc(token)+'</span></span>';
-    }else{
-      html+='<em class="rule-referent">'+esc(token)+'</em>';
-    }
+    const glyph=inlineImpactGlyph(kind);
+    html+='<span class="inline-rule-ref inline-impact-ref" title="'+esc(token)+'">'+glyph+
+      '<span class="rule-term">'+esc(token)+'</span></span>';
+    used.add(kind);
     cursor=index+token.length;
   }
   return html+esc(source.slice(cursor));
@@ -204,7 +185,7 @@ function mechanicReminder(effect){
 function effectBlock(effect,options={}){
   const kind=["attack","bonded","while_named","continuous","front","middle","rear","exhausted","tireless","mobile"].includes(effect.timing)?"state":["becomes_named","trigger","reaction","hidden"].includes(effect.timing)?"event":"operation";
   const reminder=mechanicReminder(effect);
-  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder)+'</div>':"")+'</section>';
+  return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder,{icons:false})+'</div>':"")+'</section>';
 }
 function heroModeHeading(card,mode){
   const cost=mode==="force"?card.hero_force_command_cost:card.hero_name_command_cost;
