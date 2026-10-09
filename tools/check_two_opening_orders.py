@@ -85,7 +85,7 @@ def run() -> None:
     assert "No Action or Command cost" in SHORT
     assert "all valid Commit costs" in DETAILED
     assert "two Commits" in SHORT or "Two Commits" in SHORT
-    assert "then Strikes" in SHORT
+    assert "followed by Strikes" in SHORT
     print("PASS: two secret Opening Orders/player, repeated types and simultaneous steps")
     print("PASS: Battle I first-turn placement; Commit fronts and normal Attack-use legality")
     print("PASS: independent full-margin Command loss, tie=0, Collapse-before-recovery")
