@@ -114,7 +114,7 @@ function liveMarkup(effect){
   // outcomes, costs or a miniature version of the effect here.
   if(effect.edge_cue){
     return '<span class="edge-mechanic edge-cue" data-timing="'+esc(effect.timing)+'" title="'+esc(effect.text)+'" aria-label="'+esc("Check rule on "+effect.edge_cue.toLowerCase()+(limited?" (once per Battle)":"")+": "+effect.text)+'">'+
-      '<span class="edge-cue-text">CHECK · '+esc(effect.edge_cue)+'</span>'+
+      '<span class="edge-cue-text">'+esc(effect.edge_cue)+'</span>'+
       (limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'</span>';
   }
   const reminder=exposedText(effect);
@@ -204,8 +204,8 @@ function effectBlock(effect,options={}){
   return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder,{icons:false})+'</div>':"")+'</section>';
 }
 function heroModeHeading(mode){
-  // Mode identity belongs in the rules section; prices live only in the
-  // diagonal Force/Name Command seal in the footer.
+  // The Command seal contains the two vertically stacked mode prices.
+  // Upper = Force, lower = Name; details appear in the rulebook.
   return '<h4 class="mode-heading"><span class="mode-heading-core"><span>'+esc(titleCase(mode))+'</span></span></h4>';
 }
 function rules(card){
@@ -217,17 +217,16 @@ function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.t
 function costSeal(card){
   if(card.type==="hero"){
     const f=card.hero_force_command_cost,n=card.hero_name_command_cost;
-    // The numerator is the Force price (shield), the denominator is the
-    // Name price (banner). Both use the same symbols as the exposed edge.
-    // The role-labelled mode headings and accessible name confirm the pair.
-    return '<span class="cost-gem cost-gem-hero" aria-label="Hero Force cost '+esc(f)+' Command, Name cost '+esc(n)+' Command">'+
-      '<span class="hero-cost-fraction" aria-hidden="true">'+
-        '<span class="hero-cost-part hero-cost-force"><span class="hero-cost-symbol">'+typeGlyph("force")+'</span><b>'+esc(f)+'</b></span>'+
-        '<span class="hero-cost-part hero-cost-name"><span class="hero-cost-symbol">'+typeGlyph("name")+'</span><b>'+esc(n)+'</b></span>'+
+    // Numerals share the ordinary card seal's centre; no mode icons.
+    return '<span class="cost-gem cost-gem-hero" aria-label="Hero Command: top '+esc(f)+' Force, bottom '+esc(n)+' Name">'+
+      '<span class="hero-cost-stack" aria-hidden="true">'+
+        '<span class="hero-cost-part hero-cost-force"><b>'+esc(f)+'</b></span>'+
+        '<span class="hero-cost-part hero-cost-name"><b>'+esc(n)+'</b></span>'+
       '</span></span>';
   }
   return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>';
 }
+
 function densityClass(card){
   const es=effects(card),placement=placementRuleText(card);
   const chars=placement.length+es.reduce((n,e)=>n+(e.text||"").length+mechanicReminder(e).length,0);
@@ -277,14 +276,13 @@ function inspect(root=document){
   if(art&&rules&&rules.getBoundingClientRect().top<art.getBoundingClientRect().bottom-.5)problems.push("art-rules-overlap");
   if(rules&&footer&&rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+.5)problems.push("rules-footer-overlap");
   if(art?.querySelector("svg,img"))problems.push("art-overlay");
-  // Use the actual ink boxes, not just the flex wrappers: the CSS tuning
-  // panel can translate symbols and numbers independently of their pair.
+  // Inspect actual numeral boxes after CSS positioning adjustments.
   const seal=card.querySelector(".cost-gem-hero");
   if(seal){
     const bound=seal.getBoundingClientRect();
     const parts=[...seal.querySelectorAll(".hero-cost-part")];
     const pairBounds=parts.map(part=>{
-      const ink=[...part.querySelectorAll(".hero-cost-symbol svg, .hero-cost-symbol img, b")].map(node=>node.getBoundingClientRect());
+      const ink=[...part.querySelectorAll("b")].map(node=>node.getBoundingClientRect());
       for(const rect of ink){
         if(rect.left<bound.left+1||rect.right>bound.right-1||
            rect.top<bound.top+1||rect.bottom>bound.bottom-1)
