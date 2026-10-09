@@ -651,7 +651,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "With a friendly Scout or Captain here, you may Move one friendly formation here one legal position and look at an opposing face-down Stratagem, if any."
+          "text": "With a friendly Scout or Captain here, you may Move one friendly formation here one legal position and look at an opposing face-down Stratagem here, if any."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
