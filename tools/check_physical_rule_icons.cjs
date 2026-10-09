@@ -79,8 +79,15 @@ assert.match(heroHtml, /hero-cost-part hero-cost-name[^>]*><span class="hero-cos
   "Name denominator must use the printed Name banner symbol and cost");
 assert.doesNotMatch(heroHtml, /hero-cost-stack|<small>F<\/small>|<small>N<\/small>/,
   "Old stacked letter labels must not return");
-assert.match(heroHtml, /mode-command-cost">5 Command/, "Force rule panel must explain Force cost");
-assert.match(heroHtml, /mode-command-cost">2 Command/, "Name rule panel must explain Name cost");
+assert.doesNotMatch(heroHtml, /mode-command-cost|class="mode-heading-core"[^>]*>[^<]*\\d+ Command/,
+  "Hero rules headings must not repeat prices from the diagonal cost seal");
+const heroRuleSections = heroHtml.split('<section class="hero-rule-mode"').slice(1)
+  .map(part => part.split('</section>')[0]);
+assert.equal(heroRuleSections.length, 2, "Both Hero roles remain visible in the rules");
+for (const rule of heroRuleSections)
+  assert.doesNotMatch(rule, /\\b(?:5|2) Command\\b/, "Prices belong only in the Hero seal");
+assert.match(heroRuleSections[0], /mode-heading-core[\\s\\S]*?Force/, "Force heading remains");
+assert.match(heroRuleSections[1], /mode-heading-core[\\s\\S]*?Name/, "Name heading remains");
 const css=fs.readFileSync(path.join(root,"web/physical-cards.css"),"utf8");
 assert.match(css, /\.inline-rule-ref\s*\{[^}]*white-space:\s*nowrap/s);
 assert.match(css, /\.card-hero \.effect-head\s*\{[^}]*display:\s*inline-flex/s);
