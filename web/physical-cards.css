@@ -801,6 +801,18 @@ EXPOSED TOP ROW - TUNING PANEL
 .edge-mechanic[data-reminder-has-timing="true"] .edge-timing-word {
   display: none;
 }
+/* The top-right corner is a *check prompt*, not a mini rulebook.
+   Keep a single compact cue on one line; the full effect is in the body. */
+.edge-mechanic.edge-cue {
+  flex-wrap: nowrap;
+  gap: var(--edge-reminder-gap-x);
+}
+.edge-cue-text {
+  font: 700 var(--edge-reminder-font-size)/1.03 var(--edge-font-family);
+  font-variant: small-caps;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
 .use-socket {
   width: var(--icon-used-marker-size);
   height: var(--icon-used-marker-size);
