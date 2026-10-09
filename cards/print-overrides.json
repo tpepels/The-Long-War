@@ -1158,10 +1158,10 @@
     {
       "id": "kael-the-roadless",
       "force_cost": 3,
-      "name_cost": 2,
+      "name_cost": 1,
       "force_ability_premium": 0,
       "force_rationale": "3-Strength Scout with once-per-Battle two-step Move (Action required)",
-      "name_rationale": "Name brings information from a hidden plan and a paid once-per-Battle second peek",
+      "name_rationale": "Limited information is worth less than regular Names' more reliable combat or card benefits; a Hero Name also occupies the one-per-Battle Hero slot.",
       "previous_command_cost": 3
     },
     {
@@ -1176,10 +1176,10 @@
     {
       "id": "alda-keeper-of-the-ford",
       "force_cost": 4,
-      "name_cost": 3,
+      "name_cost": 2,
       "force_ability_premium": 1,
       "force_rationale": "3-Strength Guard with continuous Tactic-cost screening for its rank",
-      "name_rationale": "Name removes harmful markers when completed and redirects one hostile Tactic when eligible",
+      "name_rationale": "A one-time conditional marker cleanse and redirect compares more closely to 2C protection Names than to a 3C persistent engine.",
       "previous_command_cost": 2
     },
     {
@@ -1221,29 +1221,51 @@
     {
       "id": "yara-the-chronicler",
       "force_cost": 4,
-      "name_cost": 3,
+      "name_cost": 2,
       "force_ability_premium": 1,
       "force_rationale": "3-Strength Seer offers strong on-PLAY top-three deck selection",
-      "name_rationale": "Name recovers a Narrative on completion and filters cards when you play Narratives",
+      "name_rationale": "Narrative recursion requires a suitable discard and further Actions; it has a weaker opening-Battle floor than other 3C Names.",
       "previous_command_cost": 3
     },
     {
       "id": "serai-queen-of-crows",
       "force_cost": 4,
-      "name_cost": 3,
+      "name_cost": 2,
       "force_ability_premium": 1,
       "force_rationale": "4-Strength King/Archer with a Bonded +1 Strength condition",
-      "name_rationale": "Name temporarily buffs friendly Archers and weakens opponents with a paid ACTION",
+      "name_rationale": "The transient Archer buff and paid -1 Strength Action underperform 2C Corin's persistent Archer support in many positions.",
       "previous_command_cost": 3
     },
     {
       "id": "doros-the-last-spear",
       "force_cost": 5,
-      "name_cost": 2,
+      "name_cost": 1,
       "force_ability_premium": 1,
       "force_rationale": "5-Strength Force gains a persistent +1 when Bonded and Frontline",
-      "name_rationale": "Name regains 1 Command and passively prevents hostile Tactic Strength reduction",
+      "name_rationale": "Regain 1 Command and Tactic-specific Strength protection compares directly to Edrin's 1C regain and broader one-use affliction prevention.",
       "previous_command_cost": 3
+    }
+  ],
+  "strength_adjustments": [
+    {
+      "id": "the-white-hands-of-elara",
+      "strength": 3,
+      "reason": "Conditional healer Action needs another Action and an afflicted Force ahead; +1 printed Strength restores a viable default body without changing the effect or cost."
+    },
+    {
+      "id": "the-relief-column",
+      "strength": 3,
+      "reason": "Middle-only passive for an already Exhausted and otherwise Maneuver-eligible Force is a rare setup; +1 Strength compensates its narrow floor."
+    },
+    {
+      "id": "the-banner-singers",
+      "strength": 3,
+      "reason": "Middle-only, Named-only Tactic tax against other formations has a late and uncertain trigger; +1 Strength restores a useful default contribution."
+    },
+    {
+      "id": "the-lantern-scouts",
+      "strength": 3,
+      "reason": "One optional reaction to a same-Front hidden Stratagem per Battle is too intermittent for a 2-Strength 3C Force; +1 Strength ensures value without a Stratagem."
     }
   ]
 }
