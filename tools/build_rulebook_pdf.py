@@ -155,32 +155,7 @@ def markdown_to_typst(source: str, version: str) -> str:
   #v(3pt)
   #text(size: 10pt, style: "italic", fill: rgb("#f6edda"))[Fight now. Live with it later.]
 ]
-#v(6pt)
-#grid(
-  columns: (1fr, 1fr, 1fr, 1fr),
-  gutter: 4pt,
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[20]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[STARTING COMMAND]
-  ]],
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[2]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[ACTIONS PER TURN]
-  ]],
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[4]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[FRONTS BY BATTLE III]
-  ]],
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[3]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[FORMATION LAYERS]
-  ]],
-)
-#v(6pt)
+#v(3pt)
 """
     out.append(preamble)
 
@@ -204,9 +179,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 
         cards = {
             ("The shape of the war", "bullet"): (2, "BATTLE", "#e8e8e1", "#293c47"),
-            ("What you need", "bullet"): (2, "PREPARE", "#f0e8d9", "#ad8a50"),
             ("Setup", "numbered"): (2, "STEP", "#f0e8d9", "#986448"),
-            ("Your turn", "bullet"): (2, "ACTION", "#e8eeed", "#293c47"),
             ("Conditions and protection", "bullet"): (2, "CONDITION", "#f3e8df", "#986448"),
             ("Passing and ending a Battle", "numbered"): (3, "CLOSING TURN", "#e8eeed", "#293c47"),
         }
