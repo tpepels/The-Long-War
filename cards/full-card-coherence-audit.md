@@ -138,6 +138,10 @@ loser's Strength deficit. Another concern is how often the special
 opening abilities actually activate when they compete against
 two ordinary Opening Orders.
 
+All **27 watch cases** and all **three new Opening Order cards** have
+specific opportunity/alternative/failure prompts in the **77-case**
+[focused playtest sheet](preplaytest-focus.json).
+
 No additional identities, counters, global keywords, new Battle I
 timing, or Hero prices were introduced. Printed cards, rulebook,
 decks and timing tests were updated consistently, but **there is
