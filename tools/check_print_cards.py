@@ -66,10 +66,14 @@ def main() -> None:
         assert cue == x["cue"]
         assert len(cue) <= 16
         assert not any(word in cue for word in ("STRENGTH", "COMMAND", "COST", "DRAW", "MOVE"))
-        assert "edge_cue" not in (
-            before[x["id"]]["modes"]["force"]["effects"][x["index"]]
-            if card["type"] == "hero" else before[x["id"]]["effects"][x["index"]]
-        ), "Print cue leaked into executable engine"
+        # The printed effect array may differ from the canonical version;
+        # checking the same index can be invalid after a replacement pass.
+        original = before[x["id"]]
+        original_effects = (original["modes"]["force"]["effects"]
+                            if card["type"] == "hero" else original["effects"])
+        assert all("edge_cue" not in effect for effect in original_effects), (
+            "Print cue leaked into executable engine: " + x["id"]
+        )
 
     # Hero copy fixes must not alter either playable mode or the canonical
     # engine card. Only an explicit effect text in the printable copy changes.
