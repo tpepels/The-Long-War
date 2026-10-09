@@ -99,7 +99,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 
     preamble = f"""#set page(
   paper: "a4",
-  margin: (top: 17mm, bottom: 18mm, x: 17mm),
+  margin: (top: 14mm, bottom: 15mm, x: 14mm),
   fill: rgb("#faf7ef"),
   header: [
     #text(size: 7pt, weight: "bold", fill: rgb("#53636a"))[THE LONG WAR   /   FIELD MANUAL]
@@ -116,78 +116,78 @@ def markdown_to_typst(source: str, version: str) -> str:
     )
   ],
 )
-#set text(size: 9.5pt, fill: rgb("#242620"))
-#set par(justify: false, leading: .63em, spacing: .78em)
-#set list(indent: 12pt, body-indent: 6pt, spacing: 4pt)
-#set enum(indent: 12pt, body-indent: 6pt, spacing: 4pt)
+#set text(size: 9.1pt, fill: rgb("#242620"))
+#set par(justify: false, leading: .52em, spacing: .50em)
+#set list(indent: 10pt, body-indent: 5pt, spacing: 2pt)
+#set enum(indent: 10pt, body-indent: 5pt, spacing: 2pt)
 #set heading(numbering: none)
 
 #show heading.where(level: 2): it => block(
   sticky: true,
-  above: 15pt,
-  below: 7pt,
+  above: 9pt,
+  below: 4pt,
   breakable: false,
   fill: rgb("#e7ebea"),
   stroke: (left: 3pt + rgb("#293c47"), bottom: .55pt + rgb("#bbc6c4")),
-  inset: (x: 11pt, y: 9pt),
+  inset: (x: 8pt, y: 5pt),
   radius: 1pt,
-)[#text(size: 17pt, weight: "semibold", fill: rgb("#283b45"))[#it.body]]
+)[#text(size: 14pt, weight: "semibold", fill: rgb("#283b45"))[#it.body]]
 
 #show heading.where(level: 3): it => block(
   sticky: true,
-  above: 11pt,
-  below: 4pt,
+  above: 7pt,
+  below: 3pt,
   breakable: false,
   fill: rgb("#f0e8dc"),
   stroke: (left: 1.6pt + rgb("#986448")),
-  inset: (x: 8pt, y: 5pt),
+  inset: (x: 6pt, y: 3pt),
   radius: 1pt,
-)[#text(size: 10.5pt, weight: "bold", fill: rgb("#39342d"))[#it.body]]
+)[#text(size: 9.8pt, weight: "bold", fill: rgb("#39342d"))[#it.body]]
 
 #block(
   fill: rgb("#293c47"),
   width: 100%,
-  inset: (x: 14pt, y: 16pt),
+  inset: (x: 12pt, y: 9pt),
 )[
   #text(size: 7.5pt, weight: "bold", fill: rgb("#eacb92"))[A GAME OF COMMITMENT AND CONSEQUENCE]
-  #v(7pt)
-  #text(size: 32pt, weight: "semibold", fill: white)[The Long War]
-  #v(5pt)
-  #text(size: 12pt, style: "italic", fill: rgb("#f6edda"))[Fight now. Live with it later.]
+  #v(4pt)
+  #text(size: 27pt, weight: "semibold", fill: white)[The Long War]
+  #v(3pt)
+  #text(size: 10pt, style: "italic", fill: rgb("#f6edda"))[Fight now. Live with it later.]
 ]
-#v(10pt)
+#v(6pt)
 #grid(
   columns: (1fr, 1fr, 1fr, 1fr),
-  gutter: 5pt,
-  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[20]
-    #v(3pt)
-    #text(size: 7pt, weight: "bold")[STARTING COMMAND]
+  gutter: 4pt,
+  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[20]
+    #v(1.2pt)
+    #text(size: 6.6pt, weight: "bold")[STARTING COMMAND]
   ]],
-  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[2]
-    #v(3pt)
-    #text(size: 7pt, weight: "bold")[ACTIONS PER TURN]
+  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[2]
+    #v(1.2pt)
+    #text(size: 6.6pt, weight: "bold")[ACTIONS PER TURN]
   ]],
-  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[4]
-    #v(3pt)
-    #text(size: 7pt, weight: "bold")[FRONTS BY BATTLE III]
+  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[4]
+    #v(1.2pt)
+    #text(size: 6.6pt, weight: "bold")[FRONTS BY BATTLE III]
   ]],
-  [#block(fill: rgb("#ece5d7"), inset: 9pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 23pt, weight: "bold", fill: rgb("#293c47"))[3]
-    #v(3pt)
-    #text(size: 7pt, weight: "bold")[FORMATION LAYERS]
+  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
+    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[3]
+    #v(1.2pt)
+    #text(size: 6.6pt, weight: "bold")[FORMATION LAYERS]
   ]],
 )
-#v(9pt)
+#v(6pt)
 """
     out.append(preamble)
 
     def open_columns() -> None:
         nonlocal columns_open
         if not columns_open:
-            out.append("#columns(2, gutter: 8mm)[")
+            out.append("#columns(2, gutter: 7mm)[")
             columns_open = True
 
     def close_columns() -> None:
@@ -228,14 +228,14 @@ def markdown_to_typst(source: str, version: str) -> str:
                 out.append(
                     '#block(fill: rgb("' + item_bg
                     + '"), stroke: (left: 2pt + rgb("' + item_accent
-                    + '")), inset: (x: 8pt, y: 6pt), width: 100%,'
+                    + '")), inset: (x: 7pt, y: 4pt), width: 100%,'
                     ' breakable: false)['
                     + '#text(size: 7pt, weight: "bold", fill: rgb("' + item_accent
                     + '"))[' + label + ' ' + f"{index:02d}" + ']'
                     + '#v(3pt)'
                     + _inline(item) + ']'
                 )
-                out.append("#v(3pt)")
+                out.append("#v(1.5pt)")
         out.append("")
         pending_list = []
         pending_kind = ""
@@ -255,7 +255,7 @@ def markdown_to_typst(source: str, version: str) -> str:
         text = " ".join(quote_lines).strip()
         out.append(
             '#block(fill: rgb("#efe8db"), stroke: (left: 2pt + rgb("#ab8950")), '
-            'inset: 8pt, width: 100%)[' + _inline(text) + "]"
+            'inset: (x: 7pt, y: 5pt), width: 100%)[' + _inline(text) + "]"
         )
         out.append("")
         quote_lines = []
@@ -277,11 +277,6 @@ def markdown_to_typst(source: str, version: str) -> str:
         # and each entry can independently move to the next column.
         headings = rows[0]
         for row_index, row in enumerate(rows[1:], 1):
-            # Balance the final Reference page manually. Typst cannot balance
-            # the last two columns automatically, and without this break the
-            # final reference cards occupy only the left-hand column.
-            if headings[0].strip().lower() == "event" and row_index == 3:
-                out.append("#colbreak()")
             colour = "#f1eadd" if row_index % 2 else "#e9eeec"
             out.append(
                 '#block(fill: rgb("' + colour
@@ -385,7 +380,7 @@ def markdown_to_typst(source: str, version: str) -> str:
                 # A small illustrated key stays with the explanation.
                 out.append(
                     '#block(fill: rgb("#f0e8dc"), width: 100%,'
-                    ' inset: 8pt, stroke: (left: 2pt + rgb("#ad8a50")))['
+                    ' inset: 5pt, stroke: (left: 2pt + rgb("#ad8a50")))['
                     '#text(weight: "bold")[FORMATION LAYERS]'
                     '#v(3pt)'
                     '#text(size: 8pt)[Name (top) · Bond (middle) · Force (base)]'
@@ -405,15 +400,15 @@ def markdown_to_typst(source: str, version: str) -> str:
                 accent = "#986448" if resolution_index % 2 == 0 else "#293c47"
                 fill = "#f5ece4" if resolution_index % 2 == 0 else "#e9eeec"
                 out.append(
-                    '#block(width: 100%, breakable: false, inset: (x: 11pt, y: 10pt),'
+                    '#block(width: 100%, breakable: false, inset: (x: 8pt, y: 6pt),'
                     ' fill: rgb("' + fill + '"),'
                     ' stroke: (left: 3pt + rgb("' + accent + '")))['
                 )
                 out.append(
-                    '#text(size: 12pt, weight: "bold", fill: rgb("' + accent
+                    '#text(size: 10.5pt, weight: "bold", fill: rgb("' + accent
                     + '"))[' + _string(title) + ']'
                 )
-                out.append("#v(5pt)")
+                out.append("#v(3pt)")
                 resolution_open = True
             else:
                 out.append(f"=== {title}")
