@@ -36,7 +36,13 @@ def main() -> None:
         assert type(premium) is int and premium in (0, 1), row
         assert len(row["rationale"]) >= 25, row
         assert type(row["previous_printed_command"]) is int, row
-        expected = base + premium
+        credit = row.get("unused_half_point_credit", 0)
+        assert type(credit) is int and credit in (0, 1), row
+        if credit:
+            assert strength % 2 == 1 and not card.get("effects"), row
+            assert set(card.get("classes", [])) == {"human"}, row
+            assert premium == 0, row
+        expected = base + premium - credit
         assert card["command_cost"] == expected, (
             card["id"], card["command_cost"], base, premium
         )
@@ -54,7 +60,8 @@ def main() -> None:
     # No permanent assertions on total costs or the current price range:
     # physical card values are intentionally still under active development.
     assert len(cards) == 131
-    print(f"PASS: {len(forces)} Forces priced at 1 + ceil(STR / 2) + premium (0 or 1)")
+    print(f"PASS: {len(forces)} Forces priced at 1 + ceil(STR / 2) + premium, "
+          "with documented odd-Strength unused-ability credit where applicable")
     print(f"  Print costs: {dict(sorted(costs.items()))}")
     print(f"  Total per-single-copy Force costs: {previous} -> {current} "
           f"(+{current-previous} Command over all distinct identities)")
