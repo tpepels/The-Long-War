@@ -42,7 +42,7 @@ class GameRules:
     turn_draw_count: int = 1
     maneuver_command_cost: int = 1
     hand_limit: int = 10
-    ongoing_narrative_limit: int = 2
+    ongoing_narrative_limit: int = 4
     hero_force_play_limit_per_battle: int = 1
     hero_name_play_limit_per_battle: int = 1
     stratagem_play_limit_per_battle: int = 1
