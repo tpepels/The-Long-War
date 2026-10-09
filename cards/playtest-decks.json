@@ -659,6 +659,393 @@
           "copies": 1
         }
       ]
+    },
+    {
+      "id": "the-last-watch",
+      "title": "The Last Watch",
+      "playstyle": "Exhaustion recovery, interlocking Guard defence and resilient Named formations turn previously defeated Forces back into winning Fronts.",
+      "hypothesis": "Can layered Guards and Healers recover the −1 Strength of old Exhaustion efficiently enough to hold a Front without depending on a single Hero?",
+      "combo_notes": [
+        "Relief Column and White Hands heal or enable a recovery line; They Lived to Tell It, No One Would Be First to Leave, Bind the Wound and Catch Your Breath provide alternative ways to lift conditions.",
+        "Middle Old Guard, Serekh and First Spear protect Rear formations, while Supported By, Held the Line For, Blocked the Road For and Guarded each protect a different weakness.",
+        "Covered the Withdrawal Of, Kept the Gate For and Trusted allow Exhausted formations to Maneuver when necessary, but recovery and actual Strength must remain the primary payoff.",
+        "Rallied Behind helps recover Command after falling behind; No Step Back and The Ground Was Held can change the result of a narrow defensive Battle."
+      ],
+      "combo_packages": [
+        {
+          "label": "Recover and re-form",
+          "enablers": [
+            "the-relief-column",
+            "the-white-hands-of-elara",
+            "maelin",
+            "asha-the-shield-bearer"
+          ],
+          "payoffs": [
+            "they-lived-to-tell-it",
+            "no-one-would-be-first-to-leave",
+            "bind-the-wound",
+            "catch-your-breath"
+          ]
+        },
+        {
+          "label": "Frontline screen and back-rank shelter",
+          "enablers": [
+            "the-old-guard",
+            "the-serekh",
+            "the-first-spear"
+          ],
+          "payoffs": [
+            "supported-by",
+            "held-the-line-for",
+            "guarded",
+            "the-wall-did-not-break"
+          ]
+        },
+        {
+          "label": "Hold under pressure",
+          "enablers": [
+            "the-fifty-men",
+            "thirty-spears",
+            "the-damar",
+            "the-first-spear"
+          ],
+          "payoffs": [
+            "stood-fast-with",
+            "no-step-back",
+            "the-ground-was-held",
+            "rallied-behind"
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "id": "the-serekh",
+          "copies": 2
+        },
+        {
+          "id": "the-relief-column",
+          "copies": 3
+        },
+        {
+          "id": "thirty-spears",
+          "copies": 3
+        },
+        {
+          "id": "the-damar",
+          "copies": 2
+        },
+        {
+          "id": "the-white-hands-of-elara",
+          "copies": 3
+        },
+        {
+          "id": "the-old-guard",
+          "copies": 2
+        },
+        {
+          "id": "the-first-spear",
+          "copies": 2
+        },
+        {
+          "id": "covered-the-withdrawal-of",
+          "copies": 2
+        },
+        {
+          "id": "blocked-the-road-for",
+          "copies": 1
+        },
+        {
+          "id": "held-the-line-for",
+          "copies": 1
+        },
+        {
+          "id": "rallied-behind",
+          "copies": 1
+        },
+        {
+          "id": "trusted",
+          "copies": 1
+        },
+        {
+          "id": "kept-the-gate-for",
+          "copies": 1
+        },
+        {
+          "id": "supported-by",
+          "copies": 2
+        },
+        {
+          "id": "carried-the-oath-of",
+          "copies": 1
+        },
+        {
+          "id": "guarded",
+          "copies": 1
+        },
+        {
+          "id": "maelin",
+          "copies": 1
+        },
+        {
+          "id": "asha-the-shield-bearer",
+          "copies": 1
+        },
+        {
+          "id": "meren",
+          "copies": 1
+        },
+        {
+          "id": "edrin",
+          "copies": 1
+        },
+        {
+          "id": "sorin",
+          "copies": 1
+        },
+        {
+          "id": "eira",
+          "copies": 1
+        },
+        {
+          "id": "alda-keeper-of-the-ford",
+          "copies": 1
+        },
+        {
+          "id": "veyra-keeper-of-oaths",
+          "copies": 1
+        },
+        {
+          "id": "nara-builder-of-walls",
+          "copies": 1
+        },
+        {
+          "id": "all-banners-forward",
+          "copies": 1
+        },
+        {
+          "id": "they-returned-with-names",
+          "copies": 1
+        },
+        {
+          "id": "the-line-wheeled",
+          "copies": 1
+        },
+        {
+          "id": "no-step-back",
+          "copies": 2
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 1
+        },
+        {
+          "id": "they-lived-to-tell-it",
+          "copies": 1
+        },
+        {
+          "id": "no-one-would-be-first-to-leave",
+          "copies": 1
+        },
+        {
+          "id": "the-wall-did-not-break",
+          "copies": 1
+        },
+        {
+          "id": "bind-the-wound",
+          "copies": 1
+        },
+        {
+          "id": "catch-your-breath",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "broken-oaths",
+      "title": "Broken Oaths",
+      "playstyle": "Scout-led feints and Raider breaches drive opposing formations out of position, then remove attachments and convert Exhaustion into Command pressure.",
+      "hypothesis": "Can a Scout/Skirmisher/Raider setup create meaningful Strength denial and attached-layer theft, or does plain Force Strength still win?",
+      "combo_notes": [
+        "Seven Black Ships, River Raiders and Seized the Standard Of can remove attached layers after the opposing Frontline opens; The Muster Was False offers another Bond-punishment line with a Scout or Seer.",
+        "Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.",
+        "Lantern Scouts and Lysa support They Were Gathering There, The Scouts Had Warned Them and Before Sunset for actual Strength or Guarded counterplay, not merely looking at cards.",
+        "Bloodied Raider/Skirmisher pressure makes Shared the Spoils With and The Trap Closed useful; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills."
+      ],
+      "combo_packages": [
+        {
+          "label": "Breach then steal attachments",
+          "enablers": [
+            "seven-black-ships",
+            "the-river-raiders",
+            "the-aradai",
+            "rovan-the-gatebreaker"
+          ],
+          "payoffs": [
+            "seized-the-standard-of",
+            "the-muster-was-false",
+            "the-trap-closed"
+          ]
+        },
+        {
+          "label": "Scout-supported affliction",
+          "enablers": [
+            "the-lantern-scouts",
+            "the-ash-bowmen",
+            "the-red-duelists",
+            "mara",
+            "lysa-the-listener"
+          ],
+          "payoffs": [
+            "they-were-gathering-there",
+            "the-line-was-baited",
+            "they-had-gone-too-far"
+          ]
+        },
+        {
+          "label": "Scouting becomes an advantage",
+          "enablers": [
+            "the-lantern-scouts",
+            "lysa-the-listener",
+            "mara",
+            "kael-the-roadless"
+          ],
+          "payoffs": [
+            "the-scouts-had-warned-them",
+            "before-sunset-the-ford-would-be-ours",
+            "shared-the-spoils-with"
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "id": "seven-black-ships",
+          "copies": 2
+        },
+        {
+          "id": "the-ilyri",
+          "copies": 2
+        },
+        {
+          "id": "the-ash-bowmen",
+          "copies": 2
+        },
+        {
+          "id": "the-salt-road-fleet",
+          "copies": 2
+        },
+        {
+          "id": "the-river-raiders",
+          "copies": 3
+        },
+        {
+          "id": "the-red-duelists",
+          "copies": 3
+        },
+        {
+          "id": "the-lantern-scouts",
+          "copies": 2
+        },
+        {
+          "id": "the-aradai",
+          "copies": 2
+        },
+        {
+          "id": "had-been-ordered-forward",
+          "copies": 2
+        },
+        {
+          "id": "bought-time-for",
+          "copies": 1
+        },
+        {
+          "id": "seized-the-standard-of",
+          "copies": 2
+        },
+        {
+          "id": "shared-the-spoils-with",
+          "copies": 2
+        },
+        {
+          "id": "kept-pace-with",
+          "copies": 2
+        },
+        {
+          "id": "brannoc",
+          "copies": 1
+        },
+        {
+          "id": "tala",
+          "copies": 1
+        },
+        {
+          "id": "mara",
+          "copies": 1
+        },
+        {
+          "id": "lysa-the-listener",
+          "copies": 1
+        },
+        {
+          "id": "sorin",
+          "copies": 1
+        },
+        {
+          "id": "iven",
+          "copies": 1
+        },
+        {
+          "id": "rovan-the-gatebreaker",
+          "copies": 1
+        },
+        {
+          "id": "kael-the-roadless",
+          "copies": 1
+        },
+        {
+          "id": "yara-the-chronicler",
+          "copies": 1
+        },
+        {
+          "id": "they-were-gathering-there",
+          "copies": 2
+        },
+        {
+          "id": "the-line-had-begun-to-move",
+          "copies": 1
+        },
+        {
+          "id": "the-muster-was-false",
+          "copies": 1
+        },
+        {
+          "id": "they-had-gone-too-far",
+          "copies": 1
+        },
+        {
+          "id": "the-trap-closed",
+          "copies": 2
+        },
+        {
+          "id": "the-scouts-had-warned-them",
+          "copies": 1
+        },
+        {
+          "id": "the-raiders-came-home-loaded",
+          "copies": 1
+        },
+        {
+          "id": "before-sunset-the-ford-would-be-ours",
+          "copies": 1
+        },
+        {
+          "id": "send-a-runner",
+          "copies": 1
+        },
+        {
+          "id": "fresh-orders",
+          "copies": 1
+        }
+      ]
     }
   ]
 }
