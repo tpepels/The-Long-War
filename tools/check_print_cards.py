@@ -138,13 +138,15 @@ def main() -> None:
             assert after[card_id]["text"] == before[card_id]["text"], card_id
 
     # Verify representative counterplay and cost changes, not just text counts.
-    # Odd Strength must earn its rounded-up half-point by conditional value
-    # or a documented discount (Thirty Spears).
+    # Every odd-Strength Force has an on-card compensation for the rounded
+    # half-Strength step; even simple Thirty Spears now pay full baseline.
     assert after["the-fifty-men"]["strength"] == 5
     assert after["the-fifty-men"]["command_cost"] == 4
     assert "+1 Strength this Battle" in after["the-fifty-men"]["text"]
     assert "Frontline" in after["the-aradai"]["text"]
     assert after["the-damar"]["command_cost"] == 4
+    assert after["thirty-spears"]["command_cost"] == 3
+    assert "another friendly formation" in after["thirty-spears"]["text"]
     assert after["stood-fast-with"]["effects"][0]["exposed"]
     assert after["oren"]["effects"][1]["limit"] == "once_per_battle"
     assert after["the-thornbow-hunters"]["effects"][0]["timing"] == "rear"
