@@ -12,11 +12,11 @@ During Battle I, leave both players with several playable cards. At the **start 
 
 ## 2. Front loss causes one future Battle of Exhaustion
 
-After comparing Fronts, Player A loses Front 2 with three Forces across its Frontline, Middle and Rear. The Middle Force has **Guarded**; the others do not. Deduct 1 Command for the lost Front and check Collapse. Guarded protects the Middle Force from the new loss-based Exhaustion; consume Guarded. Clear all old conditions and then give the Frontline and Rear Forces one Exhaustion token each. These start the next Battle Exhausted, with **−1 Strength each**, and cannot initiate ordinary Maneuvers. They may still Attack unless also Depleted. A recovery card can remove their tokens.
+After comparing Fronts, A loses Front 2 with three Forces in Frontline, Middle and Rear. The Middle Force is **Guarded**. Deduct 1 Command and check Collapse. A selects **Frontline** for defeat-caused Exhaustion. Clear all old conditions and Boons, then give **only that Force** one new Exhaustion token; Middle and Rear do not receive new tokens. Frontline has **−1 Strength** and cannot initiate ordinary Maneuvers next Battle, but may still Attack if not Depleted.
 
-At the following Battle end, those old tokens clear. If A loses Front 2 again, the defeated, unprotected Forces receive fresh Exhaustion tokens for the Battle after that.
+Repeat by selecting the **Guarded Middle Force** instead. Guarded prevents its Exhaustion and is consumed; do not select a replacement. Repeat with an empty lost Front: no Exhaustion occurs. At the following Battle end, clear any old Exhaustion; another loss permits choosing just one Force again.
 
-**Watch for:** two Battles of Exhaustion from one loss (wrong); Guarded clearing before it protects (wrong); repeated defeats causing a runaway −1 Strength disadvantage (balance risk).
+**Watch for:** more than one new loss-based token per Front, clearing Guarded before prevention, or selecting another Force when Guarded prevents the chosen affliction.
 
 ## 3. Flanking influences Strength without adding a marker
 
@@ -158,14 +158,7 @@ PLAY effect runs twice.
 
 ### Measure comeback viability, not merely legality
 
-In separate matched trials, give A a lost Front with three surviving Forces
-and B an otherwise identical winning Front. Begin Battle II and measure
-how often A can recover through a new Force, healing, a Boon, attacking,
-or Named completion before the next resolution. Run the same scenario
-with **Guarded** on one of A's Forces. The goal is to establish whether
-lost-Front Exhaustion's −1 per Force compounds too severely. Record
-actual Front results and Command totals; do not infer balance from these
-written scenarios alone.
+In separate matched trials, give A a lost Front with three surviving Forces and B an otherwise identical winning Front. The current rule imposes **at most one −1 Strength** from defeat in that Front next Battle. Test how A recovers with fresh Forces, healing, a Boon, an Attack or Named completion. Repeat with Guarded on A's *selected* Force, which prevents that loss Exhaustion. Compare against the historical all-Forces rule only as an explicitly labeled counterfactual. Record actual Front results and Command totals; these scenarios are not balance measurements.
 
 ## Phases 4–5: surprise interactions and combo consistency
 
@@ -291,21 +284,10 @@ against each core deck with mirrored hand/deal order. The simple deck
 does not automatically win: track conditions, attached-card disruption,
 Guards, targeted Stratagems, and how often cards become unplayable.
 
-### Two lost-Front Exhaustion procedures (experiment only)
+### Current loss rule versus historical all-Force comparison
 
-Under **current physical rules**, lose a Front containing three
-unprotected friendly Forces. All three become Exhausted after old
-afflictions clear. Next Battle, that Front starts with a combined
-−3 Strength from Exhaustion.
+Under the **current physical rule**, after losing a Front with three unprotected friendly Forces, the loser chooses **one Force** for the new Exhaustion. It gives at most **−1 Strength** in the next Battle. A chosen Guarded Force prevents the affliction instead; no replacement is selected.
 
-Separately, under **proposed Variant A**, after the same loss the losing
-player chooses only **one unguarded Force** there to become Exhausted,
-or a Guarded Force if no unguarded one is available. Next Battle that
-Front loses at most −1 Strength from this new marker. Apply exactly the
-same −1 Command penalty, Collapse timing, draw and recover schedule
-in both trials.
+For a separately labelled **historical comparison only**, apply the old all-unprotected-Forces rule: the same Front would lose up to **−3 Strength** next Battle. Keep the identical −1 Command penalty, Collapse timing, draw and recovery schedule to isolate the change.
 
-**Record:** whether either version makes a repeated Front loss almost
-inevitable by Battle II/III, and how often recovery/healing changes that
-result. Do not mix the variant into normal logged games until a rule
-change is accepted.
+**Record:** repeated Front losses, comeback opportunities and the impact of recovery or Guarded. Do not mix historical-variant results into normal games.

@@ -37,7 +37,7 @@ A Frontline Force is flanked when its opponent has a Frontline Force in an adjac
 1. Eligible pre-comparison, tie and down-by-one-related Stratagems are chosen **secretly and revealed simultaneously** in a single window, checked against the state before reveals.
 2. Resolve independent effects, prevent prevented actions, cancel contradictory movement, then compare each Front.
 3. Resolve Battle-end effects, lose 1 Command per lost Front, and check Collapse at 0 or less **before** recovery.
-4. Before clearing Boons, Guarded can prevent loss-based Exhaustion. Clear old afflictions and Boons, then apply **one new Exhaustion token** to each unprotected Force in each lost Front. These tokens last **through the next Battle**, unless removed early.
+4. After Collapse, the loser chooses **one Force per lost Front**, if any. Guarded on the chosen Force prevents its new Exhaustion (do not choose a replacement). Clear old afflictions and Boons; apply **one new Exhaustion token** only to an unprotected chosen Force. It lasts **through the next Battle**, unless removed early.
 5. Discard Battle-duration Narratives and unused Stratagems, clear used Attack/once-per-Battle markers, recover Command, refill hands to 10, open the next Front, and let the non-passer start.
 
 ## Card-timing reminders

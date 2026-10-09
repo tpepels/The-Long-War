@@ -81,9 +81,7 @@ Record the following alongside ordinary card plays and game results:
   when combined with Shaken (−2), the penalty can be −4 before flanking.
 - Whether a **Guarded** prevention or condition removal actually changed the
   Front winner, rather than merely avoiding a marker.
-- **Lost-Front follow-up:** for each Force Exhausted at the end of Battle N,
-  whether it remains present and whether it causes a loss in Battle N+1.
-  Check repeated-defeat spirals against turns with unprotected Forces.
+- **Lost-Front follow-up:** for each lost Front in Battle N, record the **one Force selected by its losing player**, whether Guarded prevented its Exhaustion, and whether the unprevented −1 Strength or Maneuver restriction changed a result in Battle N+1. Note repeat losses and the case where no friendly Force survives.
 - **Baggage/Crows overpressure:** both may impose Exhausted and Shaken for a
   potential combined −3 Strength. Record how often this is achieved and
   whether that single threat forces too much Command or protection.

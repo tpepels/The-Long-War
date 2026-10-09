@@ -1,9 +1,6 @@
 # Simple Strength, combo value and lost-Front snowball audit
 
-**Status:** design analysis and **proposed** rules experiments. The current
-131-card physical rules and Exhaustion procedure are **unchanged** in this
-commit. The native/Webgame does not implement the complete physical rules,
-so there are no simulated or measured physical win rates.
+**Status:** physical-print loss rule approved and implemented: **one chosen Exhausted Force per lost Front**. The raw-Strength and combo discussion is still a design audit, not measured win rates. The native/Webgame does not implement the complete physical rules.
 
 ## Does playing only the biggest straightforward Forces win?
 
@@ -64,40 +61,65 @@ If raw Strength repeatedly dominates, first strengthen **decisions and
 reliable payoffs** in the losing deck, or improve counterplay. Do not just
 inflate all costs or add another keyword without knowing the cause.
 
-## Why losing Fronts now risks snowballing
+## Keeping simple high-Strength Forces from dominating without Attack/Defence stats
 
-After a lost Front, the current rule Exhausts **every unprotected Force in
-that Front** for the following Battle. Exhausted means **−1 Strength
-and restricted Maneuver**. A Front lost with three unprotected Forces
-therefore starts the next Battle **3 Strength behind its former total**.
-The opponent need not spend a card or Action to create that gap, and the
-loser also loses **1 Command per Front** before Collapse/recovery.
-With two full lost Fronts this can mean six weakened Forces next Battle,
-even if the winning opponent's board persists unchanged.
+**These are noncanonical balance experiments**. We should not introduce an
+Attack and Defence number for every card before establishing whether the
+existing Strength, ranks, Guard screening, basic Attacks and named-layer
+interactions can create enough distinct strategic value.
 
-This is positive feedback: the greater the defeat, the harder it may be
-to contest the same Front again. Between-Battle recovery refills Command,
-especially early, but does not restore that Strength disadvantage.
+| Candidate | One-line rule or adjustment | Benefit | Main risk |
+| --- | --- | --- | --- |
+| **A — Named formation bonus** | Every completed Named Formation gets **+1 persistent Strength** while Named; test +2 separately | Rewards investing an extra Action and occupying just one position | High-Strength plain bodies may become the best chassis for Names; increases runaway persistent Strength |
+| **B — improved specialist Force abilities** | Selectively replace weak Move/peek effects with useful Guarded, Exhausted, Shaken, attached-card interaction or +Strength conditional on position | Encourages a specialist even at 2–3 less raw Strength, with meaningful counterplay | Ability text density, and some specialists may become efficient regardless of setup |
+| **C — adjust over-efficient vanilla bodies** | Test The Fifty Men at **5 Strength / 3 Command** rather than 5 / 2; leave its one-Action Strength unchanged | Reduces cost efficiency without adding a stat | Command frequently recovers early; does not address Force-play Action advantage |
+| **D — speed up assembly (experimental)** | Allow one Bond to be played together with a Force for the same Action, still paying both Command costs | Lets formations compete with extra Force plays in the first two Battles | Changes Action economy widely and may strengthen large vanilla Forces even more |
 
-## Candidate interventions (not yet canonical)
+**Suggested order:** First benchmark the **current** Raw Strength Control
+against the four core decks with mirrored deals. If it dominates, test
+*A at +1* and *B through targeted card changes* **separately**. Only if
+those fail should we consider a cost change or the much more disruptive
+one-Action Bond attachment. Do not apply A/B/C/D simultaneously. Pay
+attention to the fact that the biggest Force also benefits from a Named
+bonus: the goal is **meaningful strategic decisions** and worthwhile
+classifications, not simply making the largest number even larger.
 
-| Variant | Procedure | Main tradeoff |
+### One concrete Action-equivalence example
+
+Current printed cards: The Fifty Men (5 Strength, 2 Command), Followed
+(+1 Strength and another +1 when Named, 1 Command), and an eligible
++1 Name (often 1 Command). In three plays the resulting formation has
+**8 permanent Strength in one position for 4 Command**. Add candidate A:
+with +1 universal Named, it would have 9; with +2, it would have 10.
+In comparison A Hundred Shields (6 Strength, 3 Command) plus Thirty
+Spears (3 Strength, 1 Command) supplies **9 Strength in two positions
+for 4 Command and only two Actions**. Which is preferable depends on
+Front occupancy, access to Named-completion triggers, Attack screening
+and the cost of another Force in hand.
+
+This contrast is why Attack/Defence is not the first required mechanism.
+First establish whether the **third Action** spent building a Name
+produces a fair, lasting payoff or a hard tactical choice.
+
+## The updated loss rule reduces the attrition feedback loop
+
+**Current, approved rule:** after losing a Front and paying the normal 1 Command (with Collapse checked before recovery), the losing player chooses **one Force** in that lost Front, if any, to become Exhausted for the next Battle. Exhaustion gives **−1 Strength** and restricts ordinary Maneuvers. If the chosen Force has Guarded, that Guarded prevents the Exhaustion and is consumed; the loser does not choose a substitute. A Front with no surviving Force causes no loss-based Exhaustion. Old afflictions/Boons clear before the unprevented new token is applied.
+
+The old rule Exhausted **every unprotected Force** in the lost Front. Three surviving unprotected Forces could therefore produce **−3 next-Battle Strength**, and two lost Fronts could weaken six separate Forces. The new rule limits the same loss to **at most −1 per Front**, rather than −1 per surviving Force. Card- and Attack-inflicted Exhaustion still operates normally.
+
+This change reduces a positive feedback loop without changing printed Force Strength, the −1 Command penalty, Command recovery, or the one-Battle lifetime of loss-based Exhaustion. A player who continually loses still faces real danger; **no measured comeback or win rates exist** to show how large the improvement will be.
+
+### Historical comparison and remaining watchpoints
+
+| Situation | Historical all-Forces rule | Current one-chosen-Force rule |
 | --- | --- | --- |
-| **A — one casualty per lost Front (recommended)** | For each lost Front, losing player chooses one *unguarded* friendly Force there to become Exhausted; if none are unguarded, choose a Guarded one, whose Guarded is consumed instead | Keeps a scar, but limits the new penalty to at most −1 Strength per lost Front; requires one small choice |
-| **B — no automatic Exhaustion for Front loss** | Only Attacks/card effects Exhaust; losing a Front still costs its Command | Strongest anti-snowball simplification, but loses a persistent scar from defeat |
-| **C — one free Rally per player next Battle** | Before the first turn, remove one existing Exhaustion without Command or Action | Gives meaningful recovery, but adds a new phase, and may erase small pressure entirely |
-| **D — extra Command to the loser** | Give comeback Command for each lost Front next Battle | Less effective while recovery already returns players to the 20 Command cap; increases economy rules |
+| Lost Front with 3 unguarded Forces | 3 exhausted; −3 next-Battle Strength | 1 exhausted; −1 next-Battle Strength |
+| Lost Front with 1 unguarded Force | 1 exhausted; −1 | 1 exhausted; −1 |
+| Lost Front with 1 Guarded + 2 unguarded | Both unguarded Exhausted; −2 | Losing player may choose Guarded to prevent all loss-based Exhaustion |
+| Lost Front with no surviving Force | None | None |
+| Command loss | −1 before Collapse | Unchanged |
 
-**Proposed trial order:** A versus current all-Forces Exhaustion, then B
-if repeated defeats remain decisive. Keep the Command loss, collapse
-timing, Attack-created Exhaustion, Guarded prevention, and temporary
-condition cleanup unchanged during that comparison. Evaluate at one/two/
-three Forces per lost Front and Battles I–IV; separately track whether
-Shaken/Depleted combinations amplify the disadvantage.
-
-This audit deliberately does **not** change the rulebook to Variant A.
-Changing the system now would invalidate the current deck comparison
-baseline before the match data is collected.
+Use matched hands and the same board state to compare repeated Front losses and opportunities to recover. Track selection choices and Guarded prevention separately from other sources of Exhaustion. If one lost Front still repeats too reliably, investigate the persistent board disparity and direct temporary combat penalties before adding an automatic consolation bonus.
 
 ## Do the decks contain combinations instead of vague play-styles?
 

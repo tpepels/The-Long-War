@@ -62,7 +62,7 @@ async function main(){
       ["BOONS","Guarded blocks next affliction, including lost-Front Exhaustion; Inspired prevents Shaken; Empowered bypasses Archer screening for next Attack."],
       ["NARRATIVE","Up to 4 face-up per player; all last through the current Battle, then discard."],
       ["STRATAGEM","Assign an active Front publicly; identity hidden. Reveal on an eligible trigger. One pre-comparison simultaneous window; a tie or one-point deficit must exist before reveals, not arise during them."],
-      ["RESOLUTION","Compare Fronts, apply Battle-end effects and Command losses; check Collapse before recovery. Guarded protects defeat, then clear temporary effects and apply new lost-Front Exhaustion."],
+      ["RESOLUTION","Compare Fronts; lose 1 Command per lost Front, then check Collapse. The loser chooses one Force per lost Front to Exhaust next Battle; Guarded on it prevents this. Clear old effects, apply new Exhaustion, then recover."],
     ].filter(([,value])=>value);
     reference.innerHTML='<h1>Card mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
