@@ -104,21 +104,20 @@ def run() -> None:
          and cost("the-baggage-was-abandoned") == 2,
          "Crows should do something when played and reward the later Action")
 
-    # B2 has active Fronts 1,2,3; 1 and 3 are ordinarily nonadjacent.
-    case("B2: Seer changes geography without creating flanks",
+    # Phase 4 gives Seers a useful nearby Named-formation Strength payoff.
+    case("B2: Seer rewards real Named formations",
          cost("they-knew-the-ground") == 1
-         and abs(1-3) > 1
-         and has("they-knew-the-ground", "Seer", "outermost active Fronts",
-                 "Maneuvers", "does not create flanks", "Attack targets"),
-         "Magic Narrative gives access to a new movement line, not free flank")
+         and has("they-knew-the-ground", "Seer", "Named Formations",
+                 "adjacent active Front", "+1 Strength"),
+         "A Seer supplies Strength near an actual Named formation, not free geography")
 
-    # B3, Guard in a lost Front from B2; it can Maneuver if Named despite
-    # Exhaustion, while Riders gain unnamed Maneuvers on different Narrative.
-    case("B3: exhaustion recovery versus Rider mobility",
+    # Defensive Guard support now differs from aggressive Rider support;
+    # both give immediate, useful Battle consequences before optional movement.
+    case("B3: defence support versus Rider pressure",
          cost("the-wall-did-not-break") == cost("the-long-march") == 2
-         and has("the-wall-did-not-break", "Guards", "Exhausted", "0 Command")
-         and has("the-long-march", "Rider", "without being Named", "0 Command"),
-         "Same price unlocks distinct combat roles")
+         and has("the-wall-did-not-break", "Guarded", "Rear", "+1 Strength")
+         and has("the-long-march", "Rider", "+1 Strength", "0 Command"),
+         "One card protects Rear and the other boosts Riders before Maneuver")
 
     # A prepared opponent's Bond is vulnerable only after pressure connects.
     case("B3: ambush damages a formation rather than adding Strength",
@@ -220,13 +219,13 @@ def run() -> None:
                  for e in cards["the-house-of-reed"]["effects"]),
          "One-shot wider logistics differs from repeatable local support")
 
-    case("B1: Seer Narrative has immediate payoff",
+    case("B1: Seer Narrative has an immediate Strength floor",
          cost("they-knew-the-ground") == 1
          and any(e["timing"] == "play"
                  for e in cards["they-knew-the-ground"]["effects"])
-         and has("they-knew-the-ground", "Move one", "Seer",
-                 "outermost active Fronts"),
-         "Geography spell matters even before outside Fronts open")
+         and has("they-knew-the-ground", "Choose one friendly formation",
+                 "+1 Strength", "may Move", "Seer"),
+         "A support spell changes the Front even if no Move is legal")
 
     case("B4: sacrifice releases a persistent position",
          cost("re-form-the-line") == 0
@@ -236,14 +235,14 @@ def run() -> None:
          and "That position becomes empty" in rulebook,
          "Withdrawal discards entire formation and vacates its slot")
 
-    case("B2: reconnaissance creates a reactive Move",
+    case("B2: reconnaissance earns a reactive Strength swing",
          cost("before-sunset-the-ford-would-be-ours") == 1
          and used_once("before-sunset-the-ford-would-be-ours")
          and any(e["timing"] == "reaction"
                  for e in cards["before-sunset-the-ford-would-be-ours"]["effects"])
          and has("before-sunset-the-ford-would-be-ours",
-                 "Stratagem", "look", "Move"),
-         "Scouting no longer requires a second paid ACTION")
+                 "Stratagem", "look", "+2 Strength"),
+         "Scouting matters directly to the Front result, not a free Move")
 
     case("B1: Raider Narrative has on-play filtering",
          cost("the-raiders-came-home-loaded") == 1
@@ -413,6 +412,106 @@ def run() -> None:
          and "does **not** replay its earlier PLAY effect" in rulebook
          and "Resolve the attachments **one at a time**" in rulebook,
          "No global repeatable PLAY trigger or infinite attachment loop")
+
+    # Phase 4: effects must cause a meaningful decision and preserve the one
+    # reveal window, timing, target, and no-universal-Move rules.
+    case("P4: defensive Stratagem answers Tactic or Attack affliction",
+         cost("no-step-back") == 2
+         and has("no-step-back", "Tactic", "ignore", "Attack",
+                 "prevent that affliction")
+         and "reveal before applying that affliction" in rulebook,
+         "No Step Back provides actual combat prevention, not only Tactic immunity")
+
+    case("P4: Ground Held covers a tie or one-point deficit only",
+         cost("the-ground-was-held") == 1
+         and has("the-ground-was-held", "Named Formation", "none opposite",
+                 "tied", "losing by 1", "+2 Strength")
+         and "would lose by exactly 1 Strength" in rulebook,
+         "Only initial provisional result qualifies, no reaction to other reveals")
+
+    case("P4: Scout Stratagem gives Guarded after looking",
+         cost("the-scouts-had-warned-them") == 1
+         and has("the-scouts-had-warned-them", "Scout or Seer",
+                 "look at it", "Guarded"),
+         "Hidden information has direct protective payoff when a plan is set")
+
+    case("P4: scouting Narrative turns intelligence into Strength",
+         used_once("before-sunset-the-ford-would-be-ours")
+         and has("before-sunset-the-ford-would-be-ours",
+                 "adjacent active Front", "Scout or Ship",
+                 "look at it", "+2 Strength"),
+         "Adjacent plan can matter without a second paid ACTION")
+
+    case("P4: Guard Narrative produces on-play Boon and Rear support",
+         cost("the-wall-did-not-break") == 2
+         and any(e["timing"] == "play" and "Guarded" in e["text"]
+                 for e in cards["the-wall-did-not-break"]["effects"])
+         and any(e["timing"] == "continuous" and "Middle" in e["text"]
+                 and "Rear" in e["text"] and "+1 Strength" in e["text"]
+                 for e in cards["the-wall-did-not-break"]["effects"]),
+         "Defensive Strength reward replaces low-value recovery Maneuver exception")
+
+    case("P4: Long March Riders matter without moving",
+         cost("the-long-march") == 2
+         and any(e["timing"] == "play" and "up to two" in e["text"]
+                 and "+1 Strength" in e["text"]
+                 for e in cards["the-long-march"]["effects"])
+         and any(e["timing"] == "continuous" for e in cards["the-long-march"]["effects"]),
+         "Rider Strength is the payoff; movement remains a supporting option")
+
+    case("P4: full-Front exchange now happens in the PLAY Action",
+         cost("no-road-was-too-long") == 3
+         and len(cards["no-road-was-too-long"]["effects"]) == 1
+         and cards["no-road-was-too-long"]["effects"][0]["timing"] == "play"
+         and has("no-road-was-too-long", "two adjacent active Fronts",
+                 "rank for rank", "if both placements remain legal",
+                 "Named Formation", "+2 Strength")
+         and "cannot be made partially" in rulebook,
+         "Wild exchange no longer consumes a second Action or breaks rank rules")
+
+    case("P4: Seer geography gives Name a tactical payoff",
+         cost("they-knew-the-ground") == 1
+         and has("they-knew-the-ground", "Seer", "Named Formations",
+                 "+1 Strength", "Move"),
+         "A Seer matters without changing generic Attack or flank geometry")
+
+    case("P4: Scout exhaustion converts into Shaken at a threshold",
+         cost("they-were-gathering-there") == 1
+         and has("they-were-gathering-there", "Scout",
+                 "If it is Exhausted", "Shaken", "Otherwise, Exhaust"),
+         "Scout Tactic either deals -1 now or -2 to existing Exhaustion")
+
+    case("P4: Muster False raids a Scout- or Seer-held Bond",
+         cost("the-muster-was-false") == 1
+         and has("the-muster-was-false", "prepared Bond or Name",
+                 "Scout or Seer", "attached Bond"),
+         "Prepared punish retains a useful rare-class branch")
+
+    case("P4: retreat-or-Shaken is conditional on actual pressure",
+         cost("they-had-gone-too-far") == 1
+         and has("they-had-gone-too-far", "Scout or Skirmisher",
+                 "Frontline or Middle", "if legal and empty",
+                 "otherwise", "Shaken"),
+         "An opponent can offer empty Rear space to avoid Shaken")
+
+    case("P4: suppressing once-only actions includes immediate Named cost",
+         cost("they-let-them-through") == 1
+         and has("they-let-them-through", "ACTION",
+                 "Named", "Name contributes no Strength"),
+         "A suppressed opponent must lose useful Strength or ACTIONs")
+
+    case("P4: baited displacement applies Depleted only if moved",
+         cost("the-line-was-baited") == 0
+         and has("the-line-was-baited", "Skirmisher",
+                 "Frontline or Middle", "If it moved",
+                 "Depleted"),
+         "Zero-Command disruption has a meaningful legal-position dependency")
+
+    case("P4: fresh orders help the Front even if no Move is possible",
+         cost("fresh-orders") == 0
+         and has("fresh-orders", "King or Captain",
+                 "+1 Strength", "may Move"),
+         "Leadership Order changes Strength while movement remains optional")
 
     # All four example decks are 48 cards, and neither their published content
     # nor the executable source were mutated by the print-only revisions.
