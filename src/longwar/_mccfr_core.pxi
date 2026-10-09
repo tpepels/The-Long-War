@@ -221,23 +221,23 @@ cdef double _packed_traverse(
     cdef double threshold
     cdef double cumulative = 0.0
 
-    if state.phase == PHASE_COMPLETE:
-        if state.winner < 0:
+    if _sg_terminal(state):
+        if _sg_winner(state) < 0:
             return 0.0
-        return 1.0 if state.winner == traverser else -1.0
+        return 1.0 if _sg_winner(state) == traverser else -1.0
 
     if (
         turn_depth >= max_depth
-        and not _fe_forced_substep_pending(state)
+        and not _sg_forced_substep(state)
     ):
         return tanh(evaluator.evaluate_fast(state, traverser) / leaf_scale)
 
-    actor = state.active_player
-    n = _fe_legal_actions_into(engine, state, &actions[0])
+    actor = _sg_actor(state)
+    n = _sg_legal_actions(engine, state, &actions[0])
     if n <= 0:
         raise RuntimeError("Packed non-terminal state has no legal actions")
 
-    info_key = _fe_information_key_fast(engine, state, actor)
+    info_key = _sg_information_key(engine, state, actor)
     raw_node = nodes.get(info_key)
     if raw_node is None:
         node = FastCFRNode()
@@ -254,11 +254,11 @@ cdef double _packed_traverse(
             probability = probabilities[i]
             child = <FastState>scratch[child_level]
             child.copy_from_fast(state)
-            kind = action_kind(actions[i])
-            turn_serial = state.turn_number
-            actions_before = state.actions_this_turn
-            _fe_apply_fast(engine, child, actions[i])
-            turn_completed = _fe_transition_completed_turn(
+            kind = _sg_action_kind(actions[i])
+            turn_serial = _sg_turn_serial(state)
+            actions_before = _sg_actions_in_turn(state)
+            _sg_apply(engine, child, actions[i])
+            turn_completed = _sg_completed_turn(
                 engine, child, turn_serial, actions_before, kind
             )
             child_turn_depth = turn_depth + (1 if turn_completed else 0)
@@ -298,11 +298,11 @@ cdef double _packed_traverse(
     probability = probabilities[sampled_index]
     child = <FastState>scratch[child_level]
     child.copy_from_fast(state)
-    kind = action_kind(actions[sampled_index])
-    turn_serial = state.turn_number
-    actions_before = state.actions_this_turn
-    _fe_apply_fast(engine, child, actions[sampled_index])
-    turn_completed = _fe_transition_completed_turn(
+    kind = _sg_action_kind(actions[sampled_index])
+    turn_serial = _sg_turn_serial(state)
+    actions_before = _sg_actions_in_turn(state)
+    _sg_apply(engine, child, actions[sampled_index])
+    turn_completed = _sg_completed_turn(
         engine, child, turn_serial, actions_before, kind
     )
     child_turn_depth = turn_depth + (1 if turn_completed else 0)
