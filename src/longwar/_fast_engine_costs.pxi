@@ -750,7 +750,12 @@ cdef inline int _fe_command_cost_fast(
     card = action_card(action)
     if card < 0:
         return 0
-    cost = self.card_command_cost[card]
+    # The printed Hero seal has independent Force (top) and Name (bottom)
+    # prices. Normal cards use a single printed Command price.
+    if self.card_type[card] == CARD_HERO and kind == TYPE_NAME:
+        cost = self.hero_name_command_cost[card]
+    else:
+        cost = self.card_command_cost[card]
     pos = action_pos(action)
     extra = action_extra(action)
     if (
