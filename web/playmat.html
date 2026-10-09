@@ -90,7 +90,7 @@
             <li>One simultaneous Stratagem reveal window, using pre-reveal board and Strength for eligibility. Prevention wins; conflicting moves cancel.</li>
             <li>Compare Strength in each active Front (minimum 0 per formation); record lost Fronts and ties. Resolve Battle-end card effects.</li>
             <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost; check Collapse at {{COLLAPSE_THRESHOLD}} before recovering.</li>
-            <li>Guarded can prevent lost-Front Exhaustion. Clear old temporary conditions, then Exhaust every other Force in a lost Front for the <b>next Battle</b>. Recover, refill and open the next Front.</li>
+            <li>The loser chooses <b>one Force per lost Front</b> for next-Battle Exhaustion. Its Guarded may prevent it (do not choose another Force). Clear old conditions, then apply the new Exhaustion; recover, refill and open the next Front.</li>
           </ol>
         </section>
       </aside>
@@ -99,7 +99,7 @@
     <footer class="reference-v3-footer">
       <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}, cap {{COMMAND_CAP}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. Lose {{LOST_FRONT_COMMAND_PENALTY}} per unprotected Front lost. Collapse at {{COLLAPSE_THRESHOLD}} or below: lower Command loses, equal collapsed totals means passer loses.</span></div>
       <div><b>RECOVERY</b><span>If the war continues, recover the current base: <b>{{RECOVERY_SERIES}}</b>, minimum {{RECOVERY_FLOOR}}; Front losses have already reduced Command before Collapse; max total {{COMMAND_CAP}}.</span></div>
-      <div><b>BETWEEN BATTLES</b><span>Clear old afflictions and Boons, preserve Guarded protection from lost-Front Exhaustion, then place new Exhaustion on unprotected Forces in lost Fronts for the next Battle. Formations and prepared cards stay · refill to {{HAND_LIMIT}} · activate the next Front · non-passer starts.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>Before clearing Boons, choose one Force per lost Front; Guarded on the chosen Force prevents its Exhaustion. Clear old afflictions and Boons, then apply any new Exhaustion to the chosen Forces for next Battle. Formations and prepared cards stay · refill to {{HAND_LIMIT}} · activate the next Front · non-passer starts.</span></div>
     </footer>
   </main>
 </body>
