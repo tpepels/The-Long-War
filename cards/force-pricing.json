@@ -162,19 +162,19 @@
     {
       "id": "the-relief-column",
       "premium": 0,
-      "rationale": "3-Strength specialist with narrow conditional utility included in the rounded-up odd-Strength tariff: Middle-only passive for an already Exhausted and otherwise Maneuver-eligible Force is a rare setup; +1 Strength compensates its narrow floor.",
+      "rationale": "3-Strength Middle-only Healer/Steward: an immediate rescue of another Force in the same Front, clearing negative markers and giving Guarded. The positional requirement and odd-Strength rounding margin keep the ability premium at zero.",
       "previous_printed_command": 2
     },
     {
       "id": "the-field-train",
       "premium": 1,
-      "rationale": "Prepared-layer attachment and +2 completion Strength on PLAY.",
+      "rationale": "2-Strength Middle Steward: playing one Bond/Name from hand without a second Action on this or an adjacent active Front, with Guarded on Named completion. The Action saving and cross-Front reach justify the even-Strength premium.",
       "previous_printed_command": 2
     },
     {
       "id": "the-signal-company",
       "premium": 1,
-      "rationale": "Captain/Scout supplies ongoing no-Name Maneuver permission to Force ahead.",
+      "rationale": "2-Strength Middle Scout/Captain: immediate free-Action Move of another friendly formation, potentially from an adjacent Front, plus card draw only if a flank status changes. Mobility reach justifies the even-Strength premium.",
       "previous_printed_command": 2
     },
     {

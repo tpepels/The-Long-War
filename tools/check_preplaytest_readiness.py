@@ -130,6 +130,26 @@ def run(inventory=False):
     assert "swap this formation" in ilyri_text and "Guarded" in ilyri_text, ilyri_text
     assert "adjacent active empty position" not in ilyri_text
 
+    # A 2-Strength/3C support must create an immediate, paid-for choice;
+    # the Relief Column's 3 Strength remains a viable floor but its ability
+    # must do more than restore a rare Maneuver permission.
+    train, signal, relief = (cards[i] for i in
+        ("the-field-train", "the-signal-company", "the-relief-column"))
+    assert train["strength"] == signal["strength"] == 2
+    assert all(c["command_cost"] == 3 for c in (train, signal, relief))
+    assert all(c["allowed_rows"] == ["middle"] for c in (train, signal, relief))
+    assert relief["strength"] == 3
+    assert all(c["effects"][0]["timing"] == "play"
+               for c in (train, signal, relief))
+    assert "without another Action" in " ".join(effect_texts(train))
+    assert "adjacent active Front" in " ".join(effect_texts(train))
+    assert "Guarded" in " ".join(effect_texts(train))
+    assert "another friendly formation" in " ".join(effect_texts(signal))
+    assert "flanked" in " ".join(effect_texts(signal))
+    assert "draw 1 card" in " ".join(effect_texts(signal))
+    assert "negative markers" in " ".join(effect_texts(relief))
+    assert "Guarded" in " ".join(effect_texts(relief))
+
     # Similar-looking Tactics have different payoffs, and the zero-Command
     # alternative is not accidentally identical to the paid fallback.
     bait = " ".join(effect_texts(cards["the-line-was-baited"]))

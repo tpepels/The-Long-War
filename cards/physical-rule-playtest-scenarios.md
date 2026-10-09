@@ -70,7 +70,7 @@ Play four Narratives across turns; their CONTINUOUS text applies only when eligi
 
 ## 11. Exhaustion / Maneuver exceptions create recovery choices
 
-Give a named **Grey Riders** formation Exhaustion by losing a Front. It may still initiate a Maneuver if its printed rule allows it, although its Exhaustion token remains until recovery or cleanup. Try the same with a non-exempt Force supported by **The Relief Column** or **Covered the Withdrawal of**: the exception should follow the exposed support effect and disappear if that support leaves. A card **Move** may still reposition an Exhausted formation without using a Maneuver.
+Give a Named **Grey Riders** formation Exhaustion by losing a Front. It may still initiate a Maneuver if its printed rule allows it, although its Exhaustion token remains until recovery or cleanup. Try the same with a non-exempt Force supported by **Covered the Withdrawal of** or **Trusted**: the exception follows the exposed Bond and disappears if that Bond leaves. Alternatively, play **The Relief Column** in Middle to remove all temporary negative markers from **another** Force in its Front and give it Guarded; it does not grant Maneuver permission. A card **Move** may still reposition an Exhausted formation without using a Maneuver.
 
 **Watch for:** recovery cards mattering without Exhaustion becoming a hard permanent trap.
 
@@ -100,7 +100,7 @@ A has a friendly Frontline Force under threat; Middle is empty. Play **The Ilyri
 
 ### One-Action opportunity cost for logistics and scouting
 
-During Battle II, compare playing **The Field Train** behind a Force and using a prepared Bond from an adjacent Front, versus spending the same next two Actions on direct layers. Then compare **The Signal Company** and **The Relief Column** with simply completing the friendly Force's Name or playing a regular supporting Force instead. For scouting, record whether **The Watchtowers of Eren**, **The Lantern Scouts** and **Before Sunset, the Ford Would Be Ours** ever cause a different legal decision after inspecting a hidden Stratagem.
+During Battle II, compare playing **The Field Train** in Middle and spending Command for one additional Bond or Name from hand without another Action, versus spending two Actions to play those cards separately. Compare **The Signal Company's** immediate Move of an existing Force with a normal 1C Maneuver or a directional Move effect; count whether it changes a flank and draws a card. Compare **The Relief Column's** all-condition removal and Guarded with a 1C Guarded Bond or ordinary healing, counting the target's value. For scouting, record whether **The Watchtowers of Eren**, **The Lantern Scouts** and **Before Sunset, the Ford Would Be Ours** ever cause a different legal decision after inspecting a hidden Stratagem.
 
 **Watch for:** spending Command and Actions to enable something that cannot pay back the tempo before this Battle ends. Count the legal setups that *could* have occurred, not just card draws.
 
@@ -173,18 +173,24 @@ unearned Guarded is granted.
 
 ### Field Train and Swore Again To are different completion rewards
 
-With **The Field Train** in Middle, arrange a friendly Force directly ahead
-that has a Bond but no Name. Prepare a Name in an adjacent active Front.
-Playing Field Train attaches that Name across the Front boundary. The
-resulting Named Formation gets **+2 Strength this Battle**, after its
-BECOMES NAMED effect. Next, directly play **Swore Again To** as the missing
-Bond on a Force that already has a Name: it gets another temporary +2
-Strength from the Bond's own PLAY effect. But if Swore Again To is prepared
-first, it only draws 1/discards 1 immediately and does not award that
-PLAY-based +2 when it eventually joins a formation.
+Hold **The Field Train** and a Name in hand. Have a friendly Bonded
+Force in an adjacent **active** Front with an empty Name slot. PLAY Field
+Train in Middle (3 Command, one Action). As part of its PLAY, choose that
+Force and play the Name from your hand, paying the Name's Command but **no
+additional Action**. Resolve the Name's PLAY text if any, then its BECOMES
+NAMED effects; Field Train gives the completed formation **Guarded**.
+Rewind and instead spend one Action on Field Train and a second Action on
+the same Name: Command is the same, but tempo and Guarded reward differ.
+Field Train does **not** attach already-prepared layers.
 
-**Check:** the adjacent Front is active, all placements are legal and no
-PLAY effect runs twice.
+Next, directly play **Swore Again To** as the missing Bond on another
+Force with a Name: the Bond's own PLAY awards **+2 Strength this Battle**.
+If Swore Again To is prepared first, its PLAY filters cards instead; it
+does not award PLAY-based +2 when it attaches later.
+
+**Check:** no free Command, no extra Action for the second hand play,
+the adjacent Front is active, Name PLAY and completion trigger exactly
+once, and Guarded is granted only on actual Named completion.
 
 ### Measure comeback viability, not merely legality
 
@@ -293,8 +299,9 @@ is affected and *which* friendly target is protected; do not apply a
 self-protection ability to adjacent formations automatically. Compare
 The River Raiders and Seven Black Ships for the same open-Frontline
 attachment return instruction at different timings. Compare The
-Field Train and The House of Reed for legal prepared-card transfer and
-the Named completion reward.
+Field Train's extra **card played from hand** with The House of Reed's
+**transfer of already-prepared layers**, checking Command and Action
+payments and the Named completion reward.
 
 Inspect both Hero modes on physical cards; the print-only Hero text must
 not change the native/Webgame data.
