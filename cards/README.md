@@ -7,7 +7,8 @@
 - `catalogue.md` - human-readable card reference; reconcile it with JSON when editing cards.
 - `playtest-matrix.md` / `effect-audit.md` - authored coverage and readability reviews.
 - `value-model.md` / `valuation-audit.md` - provisional design diagnostics, not measured balance evidence.
-- `playtest-decks.json` / `playtest-decks.md` - four exploratory 48-card physical decklists; distinct from shipped research profiles.
+- `playtest-decks.json` / `playtest-decks.md` - four Strength-first 48-card combo decklists with exact two-package availability baselines; distinct from shipped research profiles.
+- `mechanic-coverage-decks.json` / `mechanic-coverage-decks.md` - three separate 48-card diagnostic decks for Riders, Seers, hidden plans, preparation and Front exchange. These are not primary competitive decks.
 - `art-sources/` - uncropped illustration originals for future artwork edits.
 
 Canonical per-card PNGs live in `web/art/cards/`. Pages generates optimized WebP derivatives in `dist/art/cards-print/`; it never rewrites the PNGs. Neither the physical game nor print presentation requires runtime parity to be usable.
@@ -16,4 +17,4 @@ Canonical per-card PNGs live in `web/art/cards/`. Pages generates optimized WebP
 
 **Print rulebook reconciliation (8 October 2026):** the approved physical rules and explanations are in [`rules/rulebook.md`](../rules/rulebook.md), with card-specific printed wording in [`print-overrides.json`](print-overrides.json). Every Stratagem is associated with a visible active Front; all Narratives last for their Battle, up to four per player. Do not infer these print mechanics from the native/Webgame card catalogue.
 
-**Physical cost rebalance (8 October 2026):** [131-card cost review and play-like hand checks](physical-cost-review.md). The seven cost-only changes and row restrictions are applied in `print-overrides.json`; the native deck and card data are untouched.
+**Physical cost rebalance (8 October 2026):** [131-card cost review and play-like hand checks](physical-cost-review.md). The currently retained cost-only corrections, row restrictions, and revised printed card effects are applied in `print-overrides.json`; the native deck and card data are untouched.

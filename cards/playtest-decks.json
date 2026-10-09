@@ -1,86 +1,100 @@
 {
   "schema_version": 1,
-  "status": "combo-driven-physical-playtest-decks",
+  "status": "physical-phase-5-combo-consistency-decks",
   "deck_size": 48,
   "decks": [
     {
       "id": "banner-and-blood",
       "title": "Banner & Blood",
-      "playstyle": "Complete commanding formations, then turn Kings, Captains and Named units into permanent Strength backed by a few decisive hidden bonuses.",
-      "hypothesis": "Can clustered leadership and completed formations win Fronts by 1–3 Strength while staying resilient when individual Names or Bonds are removed?",
+      "playstyle": "Reliable leadership and permanent Strength: Captain/King formations amplify Bonded stacks and convert close Fronts through repeatable hidden plans.",
+      "hypothesis": "With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?",
       "combo_notes": [
-        "Late Banner + Marched Beneath the Banner of + Namar or Arel turns a cheaper Name into a Named leadership formation with an additional Bond Strength bonus; Namar restores Command for the next attachment.",
-        "Avaros, the Bronze King + The Center Must Hold or Every Banner Turned Toward Them creates a concentrated final Strength swing; the Banner Stratagem can also reinforce an adjacent active Front.",
-        "Doros, the Last Spear or A Hundred Shields + Followed + a Name forms a large persistent stack; The Battle Had Chosen Them adds a further +1 to Named formations.",
-        "First Spear protects the Force behind it with Guarded, while Red Shields, Serekh and Alda deter hostile Tactics. The King Had Given the Order exchanges attached Bonds and gives affected Named formations +1 Strength this Battle. Re-form the Line opens overcrowded positions."
+        "Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them give several independent leadership payoffs.",
+        "Followed x3 and The Battle Had Chosen Them x2 reward any of six different Names; the large Fifty Men, Hundred Shields and First Spear remain useful even before Named completion.",
+        "Stood Fast With x2 guards a critical Frontline from flanking and protects the Rider weakness; First Spear x3 can place Guarded on Middle support.",
+        "The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed final swings."
+      ],
+      "combo_packages": [
+        {
+          "label": "Leadership Strength spike",
+          "enablers": [
+            "the-late-banner",
+            "the-banner-singers",
+            "namar",
+            "arel",
+            "oren",
+            "avaros-the-bronze-king"
+          ],
+          "payoffs": [
+            "marched-beneath-the-banner-of",
+            "the-center-must-hold",
+            "every-banner-turned-toward-them"
+          ]
+        },
+        {
+          "label": "Named persistent Strength",
+          "enablers": [
+            "the-fifty-men",
+            "a-hundred-shields",
+            "the-first-spear"
+          ],
+          "payoffs": [
+            "followed",
+            "the-battle-had-chosen-them"
+          ]
+        },
+        {
+          "label": "Bond exchange and defended ranks",
+          "enablers": [
+            "the-late-banner",
+            "the-red-shields",
+            "the-first-spear"
+          ],
+          "payoffs": [
+            "stood-fast-with",
+            "the-king-had-given-the-order"
+          ]
+        }
       ],
       "cards": [
         {
+          "id": "the-late-banner",
+          "copies": 3
+        },
+        {
+          "id": "the-first-spear",
+          "copies": 3
+        },
+        {
           "id": "the-red-shields",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "a-hundred-shields",
           "copies": 2
         },
         {
-          "id": "the-first-spear",
-          "copies": 2
-        },
-        {
-          "id": "the-late-banner",
-          "copies": 2
+          "id": "the-fifty-men",
+          "copies": 3
         },
         {
           "id": "the-banner-singers",
-          "copies": 1
-        },
-        {
-          "id": "the-kings-spears",
-          "copies": 1
-        },
-        {
-          "id": "thirty-spears",
           "copies": 2
-        },
-        {
-          "id": "the-serekh",
-          "copies": 1
-        },
-        {
-          "id": "the-damar",
-          "copies": 1
-        },
-        {
-          "id": "the-fifty-men",
-          "copies": 1
-        },
-        {
-          "id": "the-house-of-reed",
-          "copies": 1
         },
         {
           "id": "marched-beneath-the-banner-of",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "followed",
+          "copies": 3
+        },
+        {
+          "id": "stood-fast-with",
           "copies": 2
         },
         {
           "id": "guarded",
-          "copies": 1
-        },
-        {
-          "id": "held-the-line-for",
-          "copies": 1
-        },
-        {
-          "id": "stood-fast-with",
-          "copies": 1
-        },
-        {
-          "id": "rallied-behind",
           "copies": 1
         },
         {
@@ -121,51 +135,27 @@
         },
         {
           "id": "all-reserves-forward",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-line-wheeled",
-          "copies": 1
-        },
-        {
-          "id": "all-banners-forward",
-          "copies": 1
-        },
-        {
-          "id": "they-returned-with-names",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-center-must-hold",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "every-banner-turned-toward-them",
-          "copies": 1
-        },
-        {
-          "id": "the-ground-was-held",
-          "copies": 1
-        },
-        {
-          "id": "no-step-back",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-battle-had-chosen-them",
-          "copies": 1
-        },
-        {
-          "id": "they-lived-to-tell-it",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-king-had-given-the-order",
-          "copies": 1
-        },
-        {
-          "id": "no-one-would-be-first-to-leave",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "re-form-the-line",
@@ -174,23 +164,58 @@
         {
           "id": "fresh-orders",
           "copies": 1
-        },
-        {
-          "id": "take-stock",
-          "copies": 1
         }
       ]
     },
     {
       "id": "crown-of-crows",
       "title": "Crown of Crows",
-      "playstyle": "Hide durable Archer formations behind Guards, stack their Strength with completed Names, and punish attackers with delayed Archer responses.",
-      "hypothesis": "Can a guarded Archer line convert its setup into a decisive Strength advantage without relying on surveillance or repeated relocation?",
+      "playstyle": "Archer pressure reinforced by real Guard screening and repeatable conditional defence. Aim for Strength and protected Rear support, not reactive card inspection.",
+      "hypothesis": "Do repeated Archer/Guard packages win Fronts often enough to justify lower raw starting Strength and the limited Rear positions?",
       "combo_notes": [
-        "Crow Archers + a Bond + Corin of the High Wall or Serai, Queen of Crows combines Empowered pressure, Archer classifications, and multiple +1 Strength effects; Every Bow Was Strung rewards bonded Archers.",
-        "Old Guard in Middle protects a Rear Archer from basic Archer Attacks. Thornbow Hunters in Rear give every other friendly Archer in their Front +1 Strength; First Spear can Guard the Middle screen.",
-        "The Archers Were Ready can trigger a free legal Archer Attack after an enemy Attack. The Crows Came Down now reduces opposing Strength by 1 when it Exhausts on PLAY and can add Shaken (−2) with a later ACTION; track whether this stacked −3 swing is too reliable.",
-        "Serai + other Archers + The Battle Had Chosen Them pushes Strength, while Asha, Alda, Veyra, No Step Back and Guarded protect crucial formations from hostile effects."
+        "Three Crow Archers and two Thornbow Hunters offer five primary Archer Forces, while Corin and Serai add Archer classifications; Every Bow Was Strung x2 converts completed Bonds into predictable Strength.",
+        "Three Old Guards and two First Spears screen and protect Rear, while The Wall Did Not Break x2 supplies Guarded on PLAY and a Middle-to-Rear +1 Strength defence.",
+        "The Archers Were Ready x2 creates more likely counterattack opportunities; No Step Back x2 now protects against hostile Tactics or Attack afflictions.",
+        "The Baggage Was Abandoned x2 and A Volley Before Dawn x2 can directly weaken contested opposing ranks instead of requiring hidden information to be relevant."
+      ],
+      "combo_packages": [
+        {
+          "label": "Bonded Archer battery",
+          "enablers": [
+            "the-crow-archers",
+            "the-thornbow-hunters",
+            "corin-of-the-high-wall",
+            "serai-queen-of-crows"
+          ],
+          "payoffs": [
+            "every-bow-was-strung",
+            "a-volley-before-dawn"
+          ]
+        },
+        {
+          "label": "Screen and protect Rear",
+          "enablers": [
+            "the-old-guard",
+            "the-first-spear",
+            "the-house-of-reed"
+          ],
+          "payoffs": [
+            "guarded",
+            "the-wall-did-not-break"
+          ]
+        },
+        {
+          "label": "Hidden anti-attack defence",
+          "enablers": [
+            "the-crow-archers",
+            "the-thornbow-hunters",
+            "the-red-shields"
+          ],
+          "payoffs": [
+            "the-archers-were-ready",
+            "no-step-back"
+          ]
+        }
       ],
       "cards": [
         {
@@ -203,6 +228,10 @@
         },
         {
           "id": "the-old-guard",
+          "copies": 3
+        },
+        {
+          "id": "the-first-spear",
           "copies": 2
         },
         {
@@ -210,48 +239,24 @@
           "copies": 2
         },
         {
-          "id": "the-first-spear",
+          "id": "the-white-hands-of-elara",
           "copies": 2
-        },
-        {
-          "id": "the-banner-singers",
-          "copies": 1
-        },
-        {
-          "id": "the-fifty-men",
-          "copies": 1
-        },
-        {
-          "id": "a-hundred-shields",
-          "copies": 1
-        },
-        {
-          "id": "the-serekh",
-          "copies": 1
         },
         {
           "id": "the-house-of-reed",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "followed",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "guarded",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "endured-with",
-          "copies": 1
-        },
-        {
-          "id": "held-the-line-for",
-          "copies": 1
-        },
-        {
-          "id": "stayed-behind-for",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "stood-fast-with",
@@ -263,10 +268,6 @@
         },
         {
           "id": "asha-the-shield-bearer",
-          "copies": 1
-        },
-        {
-          "id": "tala",
           "copies": 1
         },
         {
@@ -282,11 +283,11 @@
           "copies": 1
         },
         {
-          "id": "serai-queen-of-crows",
+          "id": "tala",
           "copies": 1
         },
         {
-          "id": "veyra-keeper-of-oaths",
+          "id": "serai-queen-of-crows",
           "copies": 1
         },
         {
@@ -294,154 +295,131 @@
           "copies": 1
         },
         {
-          "id": "a-volley-before-dawn",
+          "id": "veyra-keeper-of-oaths",
           "copies": 1
+        },
+        {
+          "id": "a-volley-before-dawn",
+          "copies": 2
         },
         {
           "id": "the-baggage-was-abandoned",
-          "copies": 1
-        },
-        {
-          "id": "all-reserves-forward",
-          "copies": 1
-        },
-        {
-          "id": "the-line-wheeled",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-archers-were-ready",
-          "copies": 1
-        },
-        {
-          "id": "the-flank-was-refused",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "no-step-back",
-          "copies": 1
-        },
-        {
-          "id": "the-ground-was-held",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "every-bow-was-strung",
-          "copies": 1
+          "copies": 2
         },
         {
-          "id": "the-crows-came-down",
-          "copies": 1
-        },
-        {
-          "id": "the-battle-had-chosen-them",
-          "copies": 1
-        },
-        {
-          "id": "they-lived-to-tell-it",
-          "copies": 1
-        },
-        {
-          "id": "bind-the-wound",
-          "copies": 1
+          "id": "the-wall-did-not-break",
+          "copies": 2
         },
         {
           "id": "catch-your-breath",
-          "copies": 1
-        },
-        {
-          "id": "take-stock",
-          "copies": 1
+          "copies": 2
         }
       ]
     },
     {
       "id": "oathforge",
       "title": "Oathforge",
-      "playstyle": "Build high-Strength Named Formations through Bond discounts, prepared layers and completion rewards, then protect the finished stacks.",
-      "hypothesis": "Do the attachment chains create enough persistent Strength and defensive redundancy to justify setup Actions against ordinary Force deployment?",
+      "playstyle": "Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed, Field Train and Swore Again To to add protection or temporary Strength to persistent Named stacks.",
+      "hypothesis": "Can repeated support Forces and prepared Bonds assemble multiple Named Formations without consuming more Actions than a direct Force deployment?",
       "combo_notes": [
-        "Late Banner + Followed + a Name yields a cheaper Named stack with an extra Bond Strength bonus; The Battle Had Chosen Them rewards that same Named state.",
-        "Tovan, the Quartermaster discounts Bonds and Names. Torren supplies immediate Bond attachment, while Oren discounts a Bond by 1 Command once per Battle and draws if it completes a Named formation. Namar restores Command and discounts another attachment.",
-        "Field Train delivers a prepared layer from its Front or an adjacent active Front and grants +2 Strength if it completes Named. House of Reed can attach one prepared layer on PLAY and up to two more with one once-per-Battle ACTION, giving Guarded to formations completed. Stayed Behind For can send a prepared Name to another friendly Force.",
-        "Teren turns Named completion into a free Stratagem setting Action; There Was No Road Back can then punish an enemy Bond or reposition a completed stack. Avaros and the Banner Stratagem convert prepared strength into a winning Front."
+        "House of Reed x3 and Field Train x3 repeatedly make prepared cards worth playing; Field Train gives +2 temporary Strength when a Name completes a formation and House of Reed gives Guarded on completion.",
+        "Three Swore Again To, two Stayed Behind For and two Supplied By support different preparation routes; direct Swore completion gives +2 Strength while early preparation instead filters a card.",
+        "Late Banner x3, Oren, Torren and Tovan reduce the cost of Named building; seven interchangeable Unique Names make completion more likely despite individual singletons.",
+        "The Battle Had Chosen Them x2 rewards all those Named stacks. There Was No Road Back x2 is a hidden completion follow-up, and the King's Order x2 can reassign existing Bonds."
+      ],
+      "combo_packages": [
+        {
+          "label": "Prepared completion machine",
+          "enablers": [
+            "the-house-of-reed",
+            "the-field-train",
+            "stayed-behind-for",
+            "supplied-by"
+          ],
+          "payoffs": [
+            "swore-again-to",
+            "the-battle-had-chosen-them"
+          ]
+        },
+        {
+          "label": "Cheap Name/Bond assembly",
+          "enablers": [
+            "the-late-banner",
+            "oren",
+            "torren",
+            "tovan-the-quartermaster"
+          ],
+          "payoffs": [
+            "swore-again-to",
+            "followed",
+            "the-king-had-given-the-order"
+          ]
+        },
+        {
+          "label": "Secret Named completion",
+          "enablers": [
+            "the-house-of-reed",
+            "the-field-train",
+            "the-late-banner"
+          ],
+          "payoffs": [
+            "there-was-no-road-back",
+            "the-battle-had-chosen-them"
+          ]
+        }
       ],
       "cards": [
         {
-          "id": "the-late-banner",
-          "copies": 2
-        },
-        {
           "id": "the-house-of-reed",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "the-field-train",
-          "copies": 2
+          "copies": 3
+        },
+        {
+          "id": "the-late-banner",
+          "copies": 3
         },
         {
           "id": "the-kings-spears",
           "copies": 2
         },
         {
+          "id": "the-fifty-men",
+          "copies": 3
+        },
+        {
           "id": "the-red-shields",
           "copies": 2
         },
         {
-          "id": "a-hundred-shields",
-          "copies": 1
+          "id": "swore-again-to",
+          "copies": 3
         },
         {
-          "id": "the-banner-singers",
-          "copies": 1
-        },
-        {
-          "id": "the-crow-archers",
-          "copies": 1
-        },
-        {
-          "id": "thirty-spears",
-          "copies": 1
-        },
-        {
-          "id": "the-fifty-men",
-          "copies": 1
-        },
-        {
-          "id": "the-damar",
-          "copies": 1
+          "id": "stayed-behind-for",
+          "copies": 2
         },
         {
           "id": "followed",
           "copies": 2
         },
         {
-          "id": "marched-beneath-the-banner-of",
-          "copies": 1
-        },
-        {
-          "id": "stood-fast-with",
-          "copies": 1
-        },
-        {
-          "id": "stayed-behind-for",
-          "copies": 1
-        },
-        {
           "id": "supplied-by",
-          "copies": 1
-        },
-        {
-          "id": "guarded",
-          "copies": 1
-        },
-        {
-          "id": "bought-time-for",
-          "copies": 1
-        },
-        {
-          "id": "rallied-behind",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "namar",
@@ -485,88 +463,99 @@
         },
         {
           "id": "all-reserves-forward",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-line-wheeled",
-          "copies": 1
-        },
-        {
-          "id": "they-returned-with-names",
-          "copies": 1
-        },
-        {
-          "id": "all-banners-forward",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "there-was-no-road-back",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-center-must-hold",
           "copies": 1
         },
         {
-          "id": "every-banner-turned-toward-them",
-          "copies": 1
-        },
-        {
           "id": "the-battle-had-chosen-them",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-king-had-given-the-order",
-          "copies": 1
-        },
-        {
-          "id": "no-one-would-be-first-to-leave",
-          "copies": 1
-        },
-        {
-          "id": "they-lived-to-tell-it",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "take-stock",
-          "copies": 1
-        },
-        {
-          "id": "re-form-the-line",
-          "copies": 1
+          "copies": 2
         }
       ]
     },
     {
       "id": "blood-and-spoils",
       "title": "Blood & Spoils",
-      "playstyle": "Combine persistent high-Strength Raiders with Archer Exhaustion, Skirmisher Shaken penalties, Command transfers and attachment raids.",
-      "hypothesis": "Can Exhaustion and Shaken turn into genuine Strength and Command advantages without leaving the deck unable to defend or finish a Front?",
+      "playstyle": "Exhaust or Deplete opposing Forces, then convert their negative conditions into Command theft and lost Bonds while retaining strong frontline bodies.",
+      "hypothesis": "Can repeated Raiders and Shaken/Depleted enablers generate more sustainable Command and effective Strength than direct King/Captain stacking?",
       "combo_notes": [
-        "Crow Archers or The Baggage Was Abandoned Exhaust an enemy for −1 Strength. The Unnamed Host and Shared the Spoils With then turn that Exhaustion into Command advantage; Brannoc or Black Company can strip an attachment.",
-        "Red Duelists and Tala apply Shaken (−2) to swing a contested Front. Iron Boars Deplete exposed support for −1 Strength and suppress ACTION abilities throughout that formation, enabling The Stores Were Taken to threaten a Bond.",
-        "Raider or Skirmisher affliction can activate The Trap Closed, returning an attached Bond/Name; All Reserves Forward and Seized the Standard of offer additional layer removal instead of relying on movement.",
-        "Rovan, Doros and Red Shields provide durable raw Strength, while Serai + Crow Archers + The Archers Were Ready gives an independent defensive counterattack and Strength line."
+        "Iron Boars x3 and Red Duelists x3 give tangible initial penalties; The Stores Were Taken x2 and Trap Closed x2 follow up with layer loss or Command taxation.",
+        "Two Baggage Was Abandoned and two Crows Came Down create repeatable −1 Exhaustion; three Unnamed Hosts and three Shared the Spoils With convert this into Command transfer.",
+        "Black Company x2 and River Raiders x2 punish opponent attachment investment. Two Seized the Standard Of Bonds can remove a Bond even without waiting for an enemy condition.",
+        "The Line Was Baited now gives Depleted only on a legal forced retreat by your Skirmisher. Raider bodies and Rovan remain useful when no affliction combo appears."
+      ],
+      "combo_packages": [
+        {
+          "label": "Exhaustion-to-Command transfer",
+          "enablers": [
+            "the-crow-archers",
+            "the-baggage-was-abandoned",
+            "the-crows-came-down"
+          ],
+          "payoffs": [
+            "the-unnamed-host",
+            "shared-the-spoils-with"
+          ]
+        },
+        {
+          "label": "Breakthrough-to-attachment raid",
+          "enablers": [
+            "the-iron-boars",
+            "the-red-duelists",
+            "the-line-was-baited"
+          ],
+          "payoffs": [
+            "the-stores-were-taken",
+            "the-trap-closed",
+            "seized-the-standard-of"
+          ]
+        },
+        {
+          "label": "Reusable raid pressure",
+          "enablers": [
+            "the-black-company",
+            "the-river-raiders",
+            "the-aradai"
+          ],
+          "payoffs": [
+            "seized-the-standard-of",
+            "the-stores-were-taken"
+          ]
+        }
       ],
       "cards": [
         {
           "id": "the-iron-boars",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "the-unnamed-host",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "the-red-duelists",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "the-black-company",
-          "copies": 2
-        },
-        {
-          "id": "the-aradai",
           "copies": 2
         },
         {
@@ -574,28 +563,16 @@
           "copies": 2
         },
         {
-          "id": "seven-black-ships",
-          "copies": 1
-        },
-        {
           "id": "the-crow-archers",
-          "copies": 1
+          "copies": 2
         },
         {
-          "id": "the-red-shields",
-          "copies": 1
-        },
-        {
-          "id": "the-salt-road-fleet",
-          "copies": 1
-        },
-        {
-          "id": "the-thornbow-hunters",
-          "copies": 1
+          "id": "the-aradai",
+          "copies": 2
         },
         {
           "id": "shared-the-spoils-with",
-          "copies": 2
+          "copies": 3
         },
         {
           "id": "seized-the-standard-of",
@@ -603,19 +580,11 @@
         },
         {
           "id": "followed",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "guarded",
-          "copies": 1
-        },
-        {
-          "id": "rallied-behind",
-          "copies": 1
-        },
-        {
-          "id": "held-the-line-for",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "brannoc",
@@ -655,54 +624,34 @@
         },
         {
           "id": "the-baggage-was-abandoned",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-stores-were-taken",
-          "copies": 1
+          "copies": 2
         },
         {
-          "id": "a-volley-before-dawn",
-          "copies": 1
-        },
-        {
-          "id": "all-reserves-forward",
+          "id": "the-line-was-baited",
           "copies": 1
         },
         {
           "id": "the-trap-closed",
-          "copies": 1
+          "copies": 2
         },
         {
           "id": "the-archers-were-ready",
           "copies": 1
         },
         {
-          "id": "the-flank-was-refused",
-          "copies": 1
-        },
-        {
-          "id": "no-step-back",
-          "copies": 1
+          "id": "the-crows-came-down",
+          "copies": 2
         },
         {
           "id": "the-raiders-came-home-loaded",
           "copies": 1
         },
         {
-          "id": "the-crows-came-down",
-          "copies": 1
-        },
-        {
-          "id": "the-battle-had-chosen-them",
-          "copies": 1
-        },
-        {
           "id": "re-form-the-line",
-          "copies": 1
-        },
-        {
-          "id": "catch-your-breath",
           "copies": 1
         },
         {
