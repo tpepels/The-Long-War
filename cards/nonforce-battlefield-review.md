@@ -1,3 +1,11 @@
+> **Current revision:** The Opening Orders pass replaces three older
+> card effects: Had Been Ordered Forward, Every Bow Was Strung and
+> The Scouts Had Warned Them. See the full
+> [131-card coherence audit](full-card-coherence-audit.md).
+> The updated non-Force role inventory now records **21 revised,
+> 60 retained, 17 on watch**. Earlier 18/62/18 figures below
+> describe the preceding pass, not the current cards.
+>
 # Non-Force battlefield-agency audit
 
 **9 October 2026 — printed paper game only.** This is the missing
