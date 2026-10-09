@@ -63,14 +63,14 @@ def run() -> None:
          and "rider" in cards["the-dust-riders"]["classes"],
          "Duelists must offer a Frontline surprise, not clone Dust Riders")
 
-    # A Middle Guard screens a Rear defender from basic Archer Attacks.
-    # Empowered gives the Crow Archers a one-Attack answer while Thornbows
-    # choose proactive reconnaissance and a separate Archer identity.
-    case("B1: Archer breaks screening",
+    # Crow Archer has an immediate screening answer; Thornbow instead adds
+    # persistent Front Strength if at least one OTHER Archer shares its Front.
+    case("B1: Archer pressure has different payoff requirements",
          cost("the-crow-archers") == cost("the-thornbow-hunters") == 2
          and has("the-crow-archers", "Empowered", "Middle Force")
-         and has("the-thornbow-hunters", "Stratagem", "once per Battle"),
-         "Archer options should answer different board problems")
+         and has("the-thornbow-hunters", "Rear", "other friendly Archer",
+                 "+1 Strength"),
+         "Crow rewards an Attack; Thornbow rewards multiple Archers in one Front")
 
     # Start of B2: a Force lost a Front in B1 and is Exhausted.
     # Both Narratives take one Action to play and one ACTION to activate.
@@ -143,13 +143,14 @@ def run() -> None:
          and has("the-line-had-begun-to-move", "Tax", "2 additional Command"),
          "A 2C Tax2 was economically break-even even when it succeeded")
 
-    # Counterintelligence needs different timing windows and effort.
-    case("B3: scoped scouting and earned foreknowledge",
+    # Information still exists on Lantern/Watchtowers, but Thornbow now
+    # directly strengthens an Archer position instead of another peek.
+    case("B3: information and Archer Strength are distinct alternatives",
          has("the-lantern-scouts", "once per Battle", "this Front", "draw 1")
-         and has("the-thornbow-hunters", "once per Battle", "adjacent active Front")
+         and has("the-thornbow-hunters", "other friendly Archer", "+1 Strength")
          and has("the-watchtowers-of-eren", "any active Front", "draw 1")
          and used_once("the-watchtowers-of-eren"),
-         "Scout/Archer/Stronghold must not provide permanent free omniscience")
+         "Do not accidentally expect Thornbow to reveal a Stratagem")
 
     # King discount uses a second Action to exploit; card-flow compensates.
     case("B2+: King's orchestration pays for timing",
@@ -257,6 +258,55 @@ def run() -> None:
          and has("there-was-no-road-back", "becomes Named",
                  "two adjacent legal", "opposing attached Bond"),
          "Completion plan offers reposition or attachment disruption")
+
+    # Phase 1 keeps pure baseline bodies simple but differentiates absolute
+    # per-position Strength against specialist protection and Attack classes.
+    case("P1: Fifty Men trades abilities for highest simple 2C body",
+         cost("the-fifty-men") == cost("the-red-shields") == 2
+         and cards["the-fifty-men"]["strength"] == 5
+         and cards["the-red-shields"]["strength"] == 4
+         and cards["the-fifty-men"]["effects"] == []
+         and "guard" not in cards["the-fifty-men"]["classes"]
+         and "guard" in cards["the-red-shields"]["classes"],
+         "A plain body is stronger but cannot screen Rear or tax hostile Tactics")
+
+    case("P1: Stood Fast and Followed trade different payoffs",
+         cost("stood-fast-with") == cost("followed") == 1
+         and cards["stood-fast-with"]["strength_modifier"] == 1
+         and cards["followed"]["strength_modifier"] == 1
+         and has("stood-fast-with", "Frontline", "+1 additional Strength",
+                 "cannot be flanked")
+         and has("followed", "Named", "+1 additional Strength")
+         and cards["stood-fast-with"]["effects"][0]["timing"] == "bonded",
+         "Stood Fast wins on Frontline protection; Followed works Named in any rank")
+
+    case("P1: Oren ACTION is better than a normal Bond play",
+         cost("oren") == 2
+         and has("oren", "Draw 2 cards", "discard 1 card",
+                 "1 less Command", "minimum 0",
+                 "completes a Named Formation", "draw 1 card")
+         and used_once("oren")
+         and any(e["timing"] == "action" for e in cards["oren"]["effects"]),
+         "Oren discounts Bond play inside one Action and rewards completion")
+
+    case("P1: Thornbow supports multiple Archers without passive scouting",
+         cost("the-thornbow-hunters") == cost("the-crow-archers") == 2
+         and cards["the-thornbow-hunters"]["strength"] == 3
+         and len(cards["the-thornbow-hunters"]["effects"]) == 1
+         and cards["the-thornbow-hunters"]["effects"][0]["timing"] == "rear"
+         and has("the-thornbow-hunters", "other friendly Archer",
+                 "in this Front", "+1 Strength")
+         and not has("the-thornbow-hunters", "Stratagem"),
+         "Rear Archer demands a second friendly Archer instead of free information")
+
+    case("P1: King's Bond exchange pays off on play",
+         cost("the-king-had-given-the-order") == 2
+         and len(cards["the-king-had-given-the-order"]["effects"]) == 1
+         and cards["the-king-had-given-the-order"]["effects"][0]["timing"] == "play"
+         and has("the-king-had-given-the-order", "Exchange", "two",
+                 "Bonds", "Named", "+1 Strength this Battle")
+         and not used_once("the-king-had-given-the-order"),
+         "Bond exchange uses the play Action and boosts only Named formations")
 
     # All four example decks are 48 cards, and neither their published content
     # nor the executable source were mutated by the print-only revisions.
