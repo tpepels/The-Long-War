@@ -106,11 +106,11 @@ def run() -> None:
          "Crows should do something when played and reward the later Action")
 
     # Phase 4 gives Seers a useful nearby Named-formation Strength payoff.
-    case("B2: Seer rewards real Named formations",
+    case("B2: Seer rewards mobility and protection",
          cost("they-knew-the-ground") == 1
-         and has("they-knew-the-ground", "Seer", "Named Formations",
-                 "adjacent active Front", "+1 Strength"),
-         "A Seer supplies Strength near an actual Named formation, not free geography")
+         and has("they-knew-the-ground", "Seer", "Move", "Guarded")
+         and len(cards["they-knew-the-ground"]["effects"]) == 1,
+         "A Seer protects a repositioned formation, not all nearby Named Forces")
 
     # Defensive Guard support now differs from aggressive Rider support;
     # both give immediate, useful Battle consequences before optional movement.
@@ -129,12 +129,12 @@ def run() -> None:
 
     # Delayed plan versus direct Tactic; Stratagem can wait but costs an Action
     # to set, and its chosen Front and existence are public.
-    case("B3: delayed Strength must be cheaper than a fresh Force",
+    case("B3: hidden plans reposition before Front scoring",
          cost("the-center-must-hold") == 1
          and cost("the-lines-held") == 1
-         and has("the-center-must-hold", "King or Captain", "two other")
-         and has("the-lines-held", "Frontline", "Middle", "+2 Strength"),
-         "Conditional temporary gains should not cost as much as permanent 2C bodies")
+         and has("the-center-must-hold", "King or Captain", "Move", "+2 Strength")
+         and has("the-lines-held", "Move", "If it moved", "+2 Strength"),
+         "Hidden plans can move a Force and change Front scoring without new phases")
 
     # Taxing an opponent's next card in a Front is avoidable: the card can be
     # played in another Front or the player can choose other Actions.
@@ -175,13 +175,13 @@ def run() -> None:
          and "Opposing **flanked** Frontline Force" in rulebook,
          "Rear Riders retain Strength, but cannot make their basic Attack")
 
-    case("B3: Banner is not dominated by Center",
+    case("B3: Banner buffs an army while Center maneuvers",
          cost("every-banner-turned-toward-them") == 2
          and cost("the-center-must-hold") == 1
          and has("every-banner-turned-toward-them", "adjacent active Front",
                  "three other", "Human")
-         and has("the-center-must-hold", "two other"),
-         "Costlier leadership has cross-Front reach and larger ceiling")
+         and has("the-center-must-hold", "Move", "King or Captain"),
+         "Mass leadership across Fronts differs from one hidden Move")
 
     case("B2: Rider plan changes position, not just Strength",
          cost("the-battle-turned-east") == 1
@@ -238,13 +238,11 @@ def run() -> None:
                  "all its temporary negative markers", "Guarded"),
          "Recovery must change an actual condition or prevent the next affliction")
 
-    case("B1: Seer Narrative has an immediate Strength floor",
+    case("B1: Terrain rewards a Seer's protected movement",
          cost("they-knew-the-ground") == 1
-         and any(e["timing"] == "play"
-                 for e in cards["they-knew-the-ground"]["effects"])
-         and has("they-knew-the-ground", "Choose a friendly formation",
-                 "+1 Strength", "may Move", "Seer"),
-         "A support spell changes the Front even if no Move is legal")
+         and any(e["timing"] == "play" for e in cards["they-knew-the-ground"]["effects"])
+         and has("they-knew-the-ground", "Move", "Guarded", "Seer"),
+         "Terrain provides one immediate Move, and a Seer rewards it with protection")
 
     case("B4: sacrifice releases a persistent position",
          cost("re-form-the-line") == 0
@@ -263,13 +261,12 @@ def run() -> None:
                  "Stratagem", "look", "+2 Strength"),
          "Scouting matters directly to the Front result, not a free Move")
 
-    case("B1: Raider Narrative has on-play filtering",
+    case("B1: Raider Narrative creates a rapid redeployment",
          cost("the-raiders-came-home-loaded") == 1
-         and any(e["timing"] == "play" and "Draw 1 card" in e["text"]
-                 for e in cards["the-raiders-came-home-loaded"]["effects"])
-         and has("the-raiders-came-home-loaded", "Tactic",
-                 "1 less Command", "Move"),
-         "Narrative still does something before drawing its synergies")
+         and len(cards["the-raiders-came-home-loaded"]["effects"]) == 1
+         and has("the-raiders-came-home-loaded", "up to two", "Raider",
+                 "Skirmisher", "adjacent legal position"),
+         "One on-PLAY redeployment replaces recurring Tactic discount/movement chains")
 
     case("B2: completion plan offers two tactical payoffs",
          cost("there-was-no-road-back") == 1
@@ -428,12 +425,12 @@ def run() -> None:
          and cards["stayed-behind-for"]["effects"][0]["timing"] == "play",
          "One PLAY effect supports attaching another prepared Name")
 
-    case("P3: card flow works with nearby enabling classes",
-         has("kept-pace-with", "control a Rider or Scout", "this Front",
-             "draw 1 card", "discard 1 card")
-         and has("carried-messages-for", "control a Captain or Scout",
-                 "this Front", "draw 1 card", "discard 1 card"),
-         "These conditional Bonds function even when played prepared")
+    case("P3: scouting Bonds grant positioning or actionable intelligence",
+         has("kept-pace-with", "Rider or Scout", "Move", "adjacent legal position")
+         and has("carried-messages-for", "Scout or Captain", "Stratagem",
+                 "Move", "legal position")
+         and has("watched-the-skies-for", "Stratagem", "Draw 1 card", "discard 1 card"),
+         "Support Bonds respond to enemy plans or create immediate repositioning")
 
     case("P3: Shaken Raider Bond trades raw Strength for repositioning",
          cost("shared-the-spoils-with") == 1
@@ -512,11 +509,10 @@ def run() -> None:
          and "cannot be made partially" in rulebook,
          "Wild exchange no longer consumes a second Action or breaks rank rules")
 
-    case("P4: Seer geography gives Name a tactical payoff",
+    case("P4: Seer geography offers a clear one-shot advantage",
          cost("they-knew-the-ground") == 1
-         and has("they-knew-the-ground", "Seer", "Named Formations",
-                 "+1 Strength", "Move"),
-         "A Seer matters without changing generic Attack or flank geometry")
+         and has("they-knew-the-ground", "Seer", "Guarded", "Move"),
+         "A Seer protects the moved ally, not an invisible cross-Front aura")
 
     case("P4: Scout exhaustion converts into Shaken at a threshold",
          cost("they-were-gathering-there") == 1
