@@ -29,6 +29,11 @@ and the card illustration itself remain unfiltered.
   is filled in that single glyph, so a Middle/Rear Force shows the middle and rear
   bars filled rather than two separate row icons. The glyph is only a summary:
   the rules body repeats the legal-row restriction in words.
+- The **full rules** use icons only for an explicit reference to another
+  card family or classification, at most two distinct referents per effect.
+  Strength, Command, outcomes, timing labels, and Force/Name Hero mode labels
+  remain prose. All other structural icons stay on the exposed edge,
+  footer, Command seal and legal-position strip.
 - Nothing on the exposed top row may be rules-exclusive. Positional/state reminders
   are repeated in self-contained body prose using "While...", "If...", or "When..."
   rather than relying on terse labels alone.
@@ -41,10 +46,8 @@ and the card illustration itself remain unfiltered.
   Every card begins that row with its family symbol and written family name, then
   a centred dot before any classifications the card itself has. No card family
   prints reference metadata as an "Involves" footer. Referenced classes belong
-  in the rule text when relevant, **as words rather than repeated inline symbols**.
-  Effect prose reserves at most two inline symbols for conditions and explicitly
-  quantified Strength/Command impacts. Card types, classifications, ranks,
-  movement verbs and ordinary references remain plain text.
+  in rule text when relevant, using selective card-family or classification
+  symbols only when another card is referenced. Do not iconize routine words.
 - The footer reserves **15 mm** for the ID, revision, family identity,
   authored classifications, Unique label when applicable, and a **12.5 mm**
   raster Command seal.

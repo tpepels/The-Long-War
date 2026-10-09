@@ -32,20 +32,17 @@ The full face always spells these names out under the title. Only the exposed ba
 
 ## Symbols inside the rules text
 
-**The card must read as normal prose, not as a chain of picture-words.**
-Reserve symbols for significant outcomes, not for every familiar game noun.
+The rules must read like **ordinary sentences**, with very few inline icons.
 
-- **Keep structural symbols** in the exposed edge, card family, classification line, Hero Force/Name price, legal-row mark, and PLAY/ACTION/REACTION or other effect headings.
-- **Within an individual effect**, optionally add an icon for a condition/boon (Exhausted, Shaken, Depleted, Guarded, Inspired, Empowered), an explicit numerical **Strength** change, or an explicit numerical **Command** amount.
-- Use **at most two inline icons per effect**, and show each *kind* of icon only once in that effect. Subsequent mentions remain plain words. Explanatory reminder text gets no extra symbols.
-- **No inline icons** for card types (Force/Bond/Name/Hero/Tactic...), classifications (Archer, Guard, Scout...), battlefield locations (Front, Middle, Rear), routine verbs (Move, Attack, Maneuver), or ordinary references (hand, deck, marker).
-- Do not use icons as grammar or leave any rule dependent on pictograms. Always spell out the term; remove the symbol without changing meaning.
+- **Use inline icons only for explicit references to another card family or classification**, such as “an opposing Force,” “play a Bond,” “your Human formations,” or “an enemy Archer.” Those icons help locate and recognize the referenced cards. Use the existing Force/Bond/Name/etc. and class symbols.
+- **No icons** for Strength, Command, outcomes (Shaken, Guarded, Exhausted, etc.), movement, ranks, Fronts, durations, deck/hand references or generic gameplay words. “This Force” is a self-reference and remains plain.
+- **At most two inline icons per effect**, and at most one per referenced family/class, even if mentioned again. Later occurrences stay plain words. Icons never replace text.
+- **Timing headings** (PLAY, ACTION, BECOMES NAMED, etc.) and **Hero mode headings** (FORCE / NAME) are text only, without duplicate pictograms. Once-per-Battle retains its functional use socket.
+- **Keep structural icons outside the rules**: the exposed card edge, classification footer, placement strip and diagonal Hero Command seal. Those have different scanning purposes.
 
-**Example:** “Choose an opposing Force. Give it Shaken and −2 Strength this Battle.”
-Only **Shaken** and **Strength** may carry small inline icons.
-“Move one friendly Archer to an adjacent Front.” carries **no inline icons**; the ACTION/PLAY heading already identifies the effect.
+Example: “Choose an opposing Force. Give it Shaken and −2 Strength.” Only **Force** receives an inline shield. “Your Human Archers get +1 Strength” may display Human and Archer symbols once each. “Regain 2 Command” has no inline icon.
 
-The same rule applies to event cards, Heroes, Bonds and Names. The optional impact glyphs use the established symbol set, never custom per-card pictograms.
+This policy applies to Heroes, ordinary formation layers, Tactics, Stratagems, Narratives and Orders alike. Printed effect meanings and phrasing remain authoritative.
 
 ## Live buried reminders
 
