@@ -182,7 +182,7 @@
       "role": "intrigue",
       "decision": "revised",
       "reason": "Revealed-order feint now retargets a previously declared Strike instead of duplicating Scout or Stratagem reconnaissance.",
-      "effect_length_max": 131
+      "effect_length_max": 142
     },
     {
       "id": "oren",
