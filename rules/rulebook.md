@@ -19,7 +19,7 @@ An inactive Front is unavailable for playing cards, movement, attacks, or card e
 
 Players take turns committing formations, attacking, repositioning troops and using other cards. A player may **Pass** instead of taking a normal turn to begin the Battle's closing sequence. Their opponent then takes a final full turn, followed by one final full turn for the passer. After those two turns, resolve each active Front separately.
 
-A lost Front costs 1 Command. You choose one of your Forces there to become Exhausted for the following Battle; Guarded can protect it. Cards already on the battlefield normally remain. This is a war of accumulating commitments, not a series of independent rounds.
+A lost Front costs Command equal to its **Strength deficit**. You choose one of your Forces there to become Exhausted for the following Battle; Guarded can protect it. Cards already on the battlefield normally remain. This is a war of accumulating commitments, not a series of independent rounds.
 
 ## The battlefield {#battlefield}
 
@@ -48,6 +48,19 @@ You can play without a dedicated playmat. Set out four Front columns with three 
 4. Activate Fronts **2 and 3** for Battle I; the outside Fronts remain unavailable.
 
 Hands and decks are hidden. The battlefield, discard piles, each hand and deck size, Command totals, face-up Narratives, and the existence and **assigned Front** of a face-down Stratagem are public. A face-down Stratagem's identity is hidden.
+
+## Opening Orders {#opening-orders}
+
+Each player secretly records **two Opening Orders**, numbered **1** and **2**, choosing freely from the four types below; repeating a type is allowed. Record the chosen Force or formation, destination, target or Front as appropriate.
+
+- **Maneuver:** Maneuver a friendly formation one orthogonally adjacent legal position, **even without a Name**, for **no Action and no Command**. Other Maneuver rules still apply: an Exhausted Force cannot initiate without an exception, movement respects active Fronts and row restrictions, and a legal friendly swap is possible.
+- **Commit:** Select an **active Front where you currently have at least one Force**. Pay **1 Command** for **+2 to your total Strength in that Front this Battle**. This is not a bonus to any individual formation and does **not** help a Raider outmatch a Frontline defender for an Incursion. The bonus only counts while you still have a Force in that Front. Two Commits may target the same Front and their bonuses add. You must be able to pay for all chosen Commits.
+- **Strike:** Select one of your Forces and a basic Attack target. After the Maneuvers have resolved, make the Attack **if its target is still legal**. It uses the Force's **one Attack per Battle**, with the usual row, screening, Incursion, flanking and Depleted restrictions. An unsuccessful attempt to find a legal target does not use its Attack.
+- **Hold:** No effect.
+
+Both players **reveal all four orders simultaneously**. Check that committed Fronts contained a friendly Force when orders were revealed and pay all valid Commit costs; record their Battle-only Front bonus. Then execute the **Maneuvers**, numbered **1 before 2**, with matching opposing steps simultaneous. Finally execute the **Strikes**, also **1 before 2**, with matching opposing steps simultaneous. Check legality immediately before each step, on the board after earlier steps. Simultaneous Strikes check legal attackers and targets before either Strike's effects are applied. A failed order has no effect; it does not become a different order. If both Strikes use the same Force, the second cannot Attack again. All Opening Orders use **no normal-turn Actions**; Commit costs Command as stated.
+
+**Battle I:** As setup currently places no Force on the battlefield, the players first take **one normal turn each**. Then issue Opening Orders before the first player's second turn, unless a Pass has already started the closing sequence (in which case skip them). For **Battle II onward**, issue Opening Orders after opening the new Front and resetting Battle uses, **before the first turn**. Opening Orders are not a second reveal window for Stratagems, and they do not alter the Pass closing sequence.
 
 ## Your turn {#turn}
 
@@ -92,7 +105,7 @@ Each Force's printed row icons tell you where it can stand throughout the game. 
 
 A Force supplies its printed Strength. A Bond and Name contribute their printed **Strength modifiers** to the same formation. A Hero played as a Force uses its Force Strength; a Hero played as a Name contributes its printed Name modifier instead. Add active bonuses and penalties, including **−1 Strength for Exhausted**, **−1 for Depleted**, **−2 for Shaken**, and **−1 for flanking**. These are separate effects and can apply together; duplicate markers of the same condition do not stack. Apply a **minimum of 0 Strength to each individual formation**. Prepared Bonds and Names without a Force contribute no Strength.
 
-At Battle resolution, add the Strength of every formation across all three ranks of one Front. Compare that total to the opponent's total in the same Front. Higher Strength wins; a tie means neither side wins or loses that Front. The winning margin does not matter unless a card says otherwise. There is **no overall winner of a Battle**: each active Front is settled separately.
+At Battle resolution, add the Strength of every formation across all three ranks of one Front, plus any active Opening Order **Commit** bonus for that Front. Compare the totals. Higher Strength wins; a tie means neither side wins or loses that Front. **The losing player loses Command equal to the winning margin.** There is **no overall winner of a Battle**: each active Front is settled separately.
 
 > **Strength example:** A Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Exhausted (−1) and Depleted (−1), it contributes 3. If also Shaken (−2), it contributes 1; flanking (−1) reduces it to 0. Penalties never reduce a formation below 0 or weaken another friendly formation.
 
@@ -190,7 +203,7 @@ Playing a card and Maneuvering can cost Command. You begin at **20**, never exce
 
 Some cards cause the opponent to lose Command and let you regain the amount actually lost. Unless explicitly stated otherwise, that kind of effect cannot reduce an opponent below **1 Command during a Battle**. It does not itself trigger Command Collapse, which is checked during Battle resolution.
 
-Because lost Fronts cost Command and Exhaust one chosen surviving defender, it may be better to conserve Command and reinforce elsewhere than to win one Front at any cost.
+Because a lost Front costs the **full Strength deficit** in Command and Exhausts one chosen surviving defender, even a partial defence or a basic Attack that reduces the margin may be worth making.
 
 ## Passing and ending a Battle {#passing}
 
@@ -216,11 +229,11 @@ Use the board state and provisional Strength **as they stand before reveals** to
 
 ### 2. Settle every active Front
 
-Calculate the final Strength of each formation and add each player's totals for each active Front. Higher total wins; an equal total ties. Record the Fronts lost by each player. A tie costs neither player Command. Losing does **not** Retreat, discard or move a formation.
+Calculate final formation Strength and add any active **Commit** bonus to the corresponding Front total. Compare each active Front separately. Higher total wins; equal totals tie. Record the **Strength difference** for each lost Front. Ties cost neither player Command. Losing does **not** Retreat, discard or move a formation.
 
 ### 3. Resolve Battle-end effects and lose Command
 
-Resolve effects explicitly triggered by Battle-end results while those results remain known. Then each player loses **1 Command per lost Front**, unless a card explicitly prevents that Command loss. Apply these losses in full, even if they reduce Command to 0 or below.
+Resolve effects explicitly triggered by Battle-end results while those results remain known. Then **for each lost Front, lose Command equal to the winning Strength minus your Strength**, unless a card explicitly prevents that loss. Add all lost-Front deficits (for example, losing 8–5 and 7–6 costs **3 + 1 = 4 Command**). Apply these losses in full, even if they take Command to 0 or below. Winning a Front and a tie cost no Command.
 
 ### 4. Check Command Collapse
 

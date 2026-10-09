@@ -12,7 +12,7 @@ During Battle I, leave both players with several playable cards. At the **start 
 
 ## 2. Front loss causes one future Battle of Exhaustion
 
-After comparing Fronts, A loses Front 2 with three Forces in Frontline, Middle and Rear. The Middle Force is **Guarded**. Deduct 1 Command and check Collapse. A selects **Frontline** for defeat-caused Exhaustion. Clear all old conditions and Boons, then give **only that Force** one new Exhaustion token; Middle and Rear do not receive new tokens. Frontline has **−1 Strength** and cannot initiate ordinary Maneuvers next Battle, but may still Attack if not Depleted.
+After comparing Fronts, A loses Front 2 with three Forces in Frontline, Middle and Rear. The Middle Force is **Guarded**. If B has 8 total Strength and A has 5, deduct **3 Command** (the defeat margin), then check Collapse. A selects **Frontline** for defeat-caused Exhaustion. Clear all old conditions and Boons, then give **only that Force** one new Exhaustion token; Middle and Rear do not receive new tokens. Frontline has **−1 Strength** and cannot initiate ordinary Maneuvers next Battle, but may still Attack if not Depleted.
 
 Repeat by selecting the **Guarded Middle Force** instead. Guarded prevents its Exhaustion and is consumed; do not select a replacement. Repeat with an empty lost Front: no Exhaustion occurs. At the following Battle end, clear any old Exhaustion; another loss permits choosing just one Force again.
 
@@ -326,7 +326,7 @@ Guards, targeted Stratagems, and how often cards become unplayable.
 
 Under the **current physical rule**, after losing a Front with three unprotected friendly Forces, the loser chooses **one Force** for the new Exhaustion. It gives at most **−1 Strength** in the next Battle. A chosen Guarded Force prevents the affliction instead; no replacement is selected.
 
-For a separately labelled **historical comparison only**, apply the old all-unprotected-Forces rule: the same Front would lose up to **−3 Strength** next Battle. Keep the identical −1 Command penalty, Collapse timing, draw and recovery schedule to isolate the change.
+For a separately labelled **historical comparison only**, apply the old all-unprotected-Forces rule: the same Front would lose up to **−3 Strength** next Battle. Keep the same full Strength-margin Command loss, Collapse timing, draw and recovery schedule in both trials to isolate the Exhaustion change.
 
 **Record:** repeated Front losses, comeback opportunities and the impact of recovery or Guarded. Do not mix historical-variant results into normal games.
 
@@ -481,3 +481,66 @@ PLAY/ACTION/HIDDEN window; none modifies the universal Action menu.
 These tests must record the **actual change of Attack legality,
 flanking, Front winner or informed defensive response**, not
 only whether an effect's printed text could execute.
+
+## Two secret Opening Orders and full Strength-margin losses
+
+**Battle I timing:** Both players play one normal turn (first player,
+then second), placing any legal Forces normally. If nobody has Passed,
+both secretly write **two numbered Opening Orders**. Reveal all four
+together; continue with the first player's second turn. If a Pass
+already began the closing sequence, skip Opening Orders entirely.
+Battle II onward uses the same two orders **before its first turn**.
+
+1. **Double Commit:** A has a Force with 5 Strength in Front 2.
+   A secretly records **Commit Front 2 twice**. Reveal; pay 2 Command,
+   gain **+4 Front Strength** while any friendly Force remains in that
+   Front. This does **not** change the individual 5-Strength Force's
+   Incursion eligibility. Move the only friendly Force away: the
+   bonus no longer counts. Put another Force in the Front later:
+   both Commit bonuses count again until Battle end.
+2. **Maneuver + Strike:** A records opening Maneuver into Frontline
+   (slot 1), and Strike with that same Raider against B's Middle
+   Force (slot 2). B records Maneuver of its Frontline blocker
+   (slot 1) and Hold (slot 2). Commit, if any, resolves first;
+   simultaneously resolve slot-1 Maneuvers, then slot-2 Strike.
+   Check the Raider's current Formation Strength against B's
+   post-Maneuver Frontline. If greater or empty, Attack is legal;
+   otherwise the Strike fails and **does not consume** the Attack.
+3. **Strike + Strike:** A writes two Strikes with the same Archer.
+   On reveal, both target an eligible Rear Force. The first
+   Attack resolves and marks used. The second does nothing: one
+   Force still gets at most **one basic Attack per Battle**.
+   Repeat using two different legal Archers: both may Attack.
+4. **Opposing simultaneous Strikes:** Both choose Strike in the
+   same numbered slot against legal targets. Check both Attacks
+   **before applying either**. If one inflicts Depleted on the
+   other attacking Force, this does not retroactively cancel
+   the simultaneous legal Attack. Normal Guarded prevention and
+   reactive Stratagem timing still apply.
+5. **Two Maneuvers:** A records the same legal formation moving
+   one step twice. Execute the first Move, then recheck whether
+   the second step remains legal. An initially invalid second
+   step does nothing, never teleports or bypasses restricted
+   rows. Simultaneous opposite-side movement may create or
+   remove a flank before Strikes.
+6. **No legal orders:** With no Forces available, a player may
+   secretly choose Hold twice. Attempting to Commit to an empty
+   Front is not legal; an Exhausted Force cannot initiate the
+   opening Maneuver solely by being Unnamed-exempt.
+7. **Command economy:** Resolve Fronts of 8 vs 5, 7 vs 6, and
+   4 vs 4. The losing sides lose **3**, **1**, and **0**
+   Command, respectively; losses add across Fronts before
+   Collapse, even if they reduce Command below 0.
+8. **A beneficial sacrifice:** At 5 against an 8-Strength enemy
+   Front, a Commit costs 1 Command, increases the Front to 7,
+   and reduces defeat loss from 3 to 1. The net Command saving
+   is 1; both commanders committing to the same Front changes
+   that calculation again. This is an economic example, not
+   a demonstrated optimal strategy.
+
+**Observe:** Does the four-order simultaneous reveal produce
+new tactical commitments, or do double Commits routinely dominate
+Maneuver and Strike? How rapidly does uncapped Strength-margin loss
+cause Collapse on undefended Fronts? Keep the previous 12/9/6/3/1
+recovery sequence for these initial tests; do not silently
+compensate it without matched tabletop results.

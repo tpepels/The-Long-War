@@ -6,9 +6,13 @@
 
 Before drawing, either **Pass** (a complete turn with no draw and no Actions) or draw **1** and take up to **2 Actions**: play a card, use a printed ACTION ability, Maneuver (1 Command), Attack, or cycle two cards into one. Passing voluntarily starts exactly two closing turns: opponent (draw, up to 2 Actions), then passer (draw, up to 2 Actions), then Battle resolution.
 
+## Opening Orders
+
+Both players secretly choose **two orders** (same type allowed), number them 1–2, then reveal all together. **Maneuver:** one legal Maneuver, even if Unnamed, free of Action/Command (Exhausted cannot initiate). **Commit:** pay 1 Command for +2 to an occupied active Front's **total** Strength this Battle (not a Force); bonus remains only while a friendly Force is there. **Strike:** make an unused legal basic Attack after Maneuvers; it uses the normal Attack allowance. **Hold:** nothing. Pay Commits, resolve Maneuvers then Strikes, each numbered 1 before 2 and corresponding opposing steps simultaneously. Repeat orders are allowed. Battle I: after both players' first turns, unless someone already Passed; later Battles: before the first turn.
+
 ## Formation Strength and classifications
 
-Force Strength + printed Bond modifier + printed Name modifier (including Hero-as-Name) + applicable effects, then subtract **1 for Exhausted**, **1 for Depleted**, **2 for Shaken**, and **1 if flanked**. Apply a minimum of **0 per formation**. Separate conditions stack; duplicate markers of one type do not. Add all formations across a Front. Attachments contribute no Strength without a Force. An attached Name contributes all its classifications to the Force; multiple Attack types still allow **one Attack per Force per Battle**. Separate card effects stack; one effect is applied only once per formation.
+Force Strength + printed Bond modifier + printed Name modifier (including Hero-as-Name) + applicable effects, then subtract **1 for Exhausted**, **1 for Depleted**, **2 for Shaken**, and **1 if flanked**. Apply a minimum of **0 per formation**. Separate conditions stack; duplicate markers of one type do not. Add all formations across a Front, then any occupied-Front Commit bonus. Attachments contribute no Strength without a Force. An attached Name contributes all its classifications to the Force; multiple Attack types still allow **one Attack per Force per Battle**. Separate card effects stack; one effect is applied only once per formation.
 
 | Classification | Basic Attack target | Result |
 | --- | --- | --- |
@@ -38,7 +42,7 @@ A Frontline Force is flanked when its opponent has a Frontline Force in an adjac
 
 1. Eligible pre-comparison, tie and down-by-one-related Stratagems are chosen **secretly and revealed simultaneously** in a single window, checked against the state before reveals.
 2. Resolve independent effects, prevent prevented actions, cancel contradictory movement, then compare each Front.
-3. Resolve Battle-end effects, lose 1 Command per lost Front, and check Collapse at 0 or less **before** recovery.
+3. Resolve Battle-end effects, lose Command equal to the **Strength difference** in each lost Front (ties cost nothing), and check Collapse at 0 or less **before** recovery.
 4. After Collapse, the loser chooses **one Force per lost Front**, if any. Guarded on the chosen Force prevents its new Exhaustion (do not choose a replacement). Clear old afflictions and Boons; apply **one new Exhaustion token** only to an unprotected chosen Force. It lasts **through the next Battle**, unless removed early.
 5. Discard Battle-duration Narratives and unused Stratagems, clear used Attack/once-per-Battle markers, recover Command, refill hands to 10, open the next Front, and let the non-passer start.
 
