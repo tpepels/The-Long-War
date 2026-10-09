@@ -96,7 +96,7 @@ jobs:
       - name: Build native algorithms with current adapter
         run: make native-build WORKERS=2
       - name: Compare native and reference search and information contracts
-        run: python -m pytest -q --tb=short tests/test_native_search_parity.py
+        run: python -m pytest -q --tb=short tests/test_native_search_parity.py tests/test_search_engine_integration.py
 
   sanity:
     name: Repository sanity
