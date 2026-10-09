@@ -2,7 +2,7 @@
 
 *Fight now. Live with it later.*
 
-**The Long War** is a two-player card game about a war that keeps its scars. You fight a series of Battles over a battlefield that grows as the war develops. Formations you commit to the field usually stay there. Losing a Front costs Command and leaves its defenders Exhausted for the next Battle; it does not sweep them away.
+**The Long War** is a two-player card game about a war that keeps its scars. You fight a series of Battles over a battlefield that grows as the war develops. Formations you commit to the field usually stay there. Losing a Front costs Command and leaves one of its surviving defenders Exhausted for the next Battle; it does not sweep them away.
 
 This creates the central choice of the game: what are you willing to commit now, knowing that your position and remaining Command will matter later? The war ends when a player suffers **Command Collapse**.
 
@@ -19,7 +19,7 @@ An inactive Front is unavailable for playing cards, movement, attacks, or card e
 
 Players take turns committing formations, attacking, repositioning troops and using other cards. A player may **Pass** instead of taking a normal turn to begin the Battle's closing sequence. Their opponent then takes a final full turn, followed by one final full turn for the passer. After those two turns, resolve each active Front separately.
 
-A lost Front costs 1 Command and Exhausts the Forces you had there for the following Battle. Cards already on the battlefield normally remain. This is a war of accumulating commitments, not a series of independent rounds.
+A lost Front costs 1 Command. You choose one of your Forces there to become Exhausted for the following Battle; Guarded can protect it. Cards already on the battlefield normally remain. This is a war of accumulating commitments, not a series of independent rounds.
 
 ## The battlefield {#battlefield}
 
@@ -156,7 +156,7 @@ Card effects can remove or prevent conditions. There is no generic recovery Acti
 
 Boons are temporary beneficial conditions. They do not stack with themselves and normally clear at Battle end.
 
-- **Guarded:** prevent the **next affliction** that would affect this Force, then remove Guarded. Guarded **can prevent Exhaustion caused by losing a Front**. It does not prevent displacement, attachment loss or Command loss.
+- **Guarded:** prevent the **next affliction** that would affect this Force, then remove Guarded. Guarded **can prevent Exhaustion caused by losing a Front** if its owner chooses that Guarded Force for the loss penalty. It does not prevent displacement, attachment loss or Command loss.
 - **Inspired:** remove Shaken and prevent Shaken while Inspired.
 - **Empowered:** the next Attack by this Force ignores **screening**. Remove Empowered after that Attack. It does not ignore target range, flanking or the once-per-Battle Attack limit.
 
@@ -188,7 +188,7 @@ Playing a card and Maneuvering can cost Command. You begin at **20**, never exce
 
 Some cards cause the opponent to lose Command and let you regain the amount actually lost. Unless explicitly stated otherwise, that kind of effect cannot reduce an opponent below **1 Command during a Battle**. It does not itself trigger Command Collapse, which is checked during Battle resolution.
 
-Because lost Fronts cost Command in addition to Exhausting surviving defenders, it may be better to conserve Command and reinforce elsewhere than to win one Front at any cost.
+Because lost Fronts cost Command and Exhaust one chosen surviving defender, it may be better to conserve Command and reinforce elsewhere than to win one Front at any cost.
 
 ## Passing and ending a Battle {#passing}
 
@@ -226,15 +226,15 @@ Check Command **before recovery**. If only one player has **0 or less Command**,
 
 ### 5. Protect, clean up and Exhaust defeated Forces
 
-Before removing Boons, check **Guarded** on Forces in each lost Front: a Guarded Force uses up Guarded to prevent that Front-loss Exhaustion. Remember which Forces it protected for this resolution.
+After checking Collapse, **the losing player chooses one of their Forces in each lost Front**, if any. That Force is the only one threatened with next-Battle Exhaustion by that Front's defeat. You may choose a **Guarded** Force: its Guarded prevents the Exhaustion and is consumed. **Do not choose another Force** after it is prevented. A lost Front with no friendly Force gives no Exhaustion.
 
-After checking Guarded, follow this cleanup order:
+Then follow this cleanup order:
 
 1. Clear all old Exhausted, Shaken and Depleted markers, all remaining Boons, used-Attack markers, temporary Strength and suppression effects, and other Battle-only effects.
 2. Discard Narratives and unrevealed Stratagems.
-3. **Place one new Exhaustion token on each unprotected Force in every Front its player lost** (maximum one per Force).
+3. **Place one new Exhaustion token on each chosen, unprotected Force** (maximum one per lost Front, maximum one per Force).
 
-This new Exhaustion **persists throughout the next Battle**, imposing **−1 Strength** and restricting ordinary Maneuvers unless a card removes it earlier. At the end of that next Battle it clears during cleanup; losing a Front again gives a new token afterward.
+This new Exhaustion **persists throughout the next Battle**, imposing **−1 Strength** and restricting ordinary Maneuvers unless a card removes it earlier. Other surviving Forces in that lost Front do not gain Exhaustion solely from losing it. At the end of that next Battle it clears during cleanup; losing a Front again gives a new token afterward.
 
 This sequence distinguishes Exhaustion caused by Attacks **during** a Battle from Exhaustion caused by **losing** it. The same type of token is used for both; no second Exhaustion marker is required. In either case the formation loses **1 Strength** while Exhausted. Its Force may still Attack if not also Depleted, but normally cannot initiate Maneuvers.
 
