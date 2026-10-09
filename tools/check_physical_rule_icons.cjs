@@ -107,7 +107,7 @@ assert.doesNotMatch(css,/\.physical-card\s*\{[^}]*filter:/s,
 
 // Independent numeric tuning, but a single horizontal centre axis.
 const controls=[
-  "inset","force-top","name-bottom",
+  "seal-size","inset","force-top","name-bottom",
   "force-number-size","name-number-size",
   "force-number-x","force-number-y","name-number-x","name-number-y",
   "divider-width","divider-thickness","divider-y","divider-opacity"
