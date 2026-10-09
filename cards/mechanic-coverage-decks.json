@@ -1,0 +1,373 @@
+{
+  "schema_version": 1,
+  "status": "physical-mechanic-coverage-only",
+  "deck_size": 48,
+  "not_standard_playtest_decks": true,
+  "decks": [
+    {
+      "id": "rider-flank-lab",
+      "title": "Rider & Flank Lab",
+      "focus": "Rider Attacks, exposed Frontline, and whether +1 Strength and forced placement reward worthwhile positioning.",
+      "setup": "Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's +1 Strength payoff to repeated Maneuvers.",
+      "observations": [
+        "Rider Attack can only start in Frontline/Middle and needs an opposing flanked Frontline target",
+        "New Rider Stratagem changes an actual Front result versus one more Force",
+        "0-Command Maneuver does not eclipse the raw Strength plan"
+      ],
+      "cards": [
+        {
+          "id": "the-grey-riders",
+          "copies": 3
+        },
+        {
+          "id": "the-dust-riders",
+          "copies": 3
+        },
+        {
+          "id": "the-vardai",
+          "copies": 3
+        },
+        {
+          "id": "the-red-duelists",
+          "copies": 2
+        },
+        {
+          "id": "the-first-spear",
+          "copies": 2
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 2
+        },
+        {
+          "id": "the-old-guard",
+          "copies": 1
+        },
+        {
+          "id": "kept-pace-with",
+          "copies": 3
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 2
+        },
+        {
+          "id": "marched-with",
+          "copies": 2
+        },
+        {
+          "id": "followed",
+          "copies": 2
+        },
+        {
+          "id": "elian",
+          "copies": 1
+        },
+        {
+          "id": "sela",
+          "copies": 1
+        },
+        {
+          "id": "mara",
+          "copies": 1
+        },
+        {
+          "id": "lysa-the-listener",
+          "copies": 1
+        },
+        {
+          "id": "arel",
+          "copies": 1
+        },
+        {
+          "id": "teren",
+          "copies": 1
+        },
+        {
+          "id": "neris-the-ferryman",
+          "copies": 1
+        },
+        {
+          "id": "kael-the-roadless",
+          "copies": 1
+        },
+        {
+          "id": "avaros-the-bronze-king",
+          "copies": 1
+        },
+        {
+          "id": "they-had-gone-too-far",
+          "copies": 2
+        },
+        {
+          "id": "the-line-was-baited",
+          "copies": 2
+        },
+        {
+          "id": "the-battle-turned-east",
+          "copies": 2
+        },
+        {
+          "id": "the-flank-was-refused",
+          "copies": 2
+        },
+        {
+          "id": "the-long-march",
+          "copies": 2
+        },
+        {
+          "id": "they-knew-the-ground",
+          "copies": 2
+        },
+        {
+          "id": "fresh-orders",
+          "copies": 2
+        }
+      ]
+    },
+    {
+      "id": "seer-hidden-lab",
+      "title": "Seer & Hidden Plans Lab",
+      "focus": "Seer and Scout classification support, hidden-plan responses, and meaningful counterplay after viewing a plan.",
+      "setup": "Use Scouts or Seers to trigger a hostile Stratagem, compare Guarded versus +2 temporary Strength responses, and test Ground Was Held from both tied and down-by-one provisional totals.",
+      "observations": [
+        "At least one Scout and one Seer can be deployed and completed",
+        "Scouts Had Warned Them prevents an actual targeted affliction",
+        "Before Sunset has a same/adjacent Front trigger and changes Strength",
+        "Ground Was Held reveals only from an eligible pre-reveal total"
+      ],
+      "cards": [
+        {
+          "id": "the-lantern-scouts",
+          "copies": 3
+        },
+        {
+          "id": "the-watchtowers-of-eren",
+          "copies": 3
+        },
+        {
+          "id": "the-thornbow-hunters",
+          "copies": 3
+        },
+        {
+          "id": "the-signal-company",
+          "copies": 2
+        },
+        {
+          "id": "the-red-shields",
+          "copies": 2
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 3
+        },
+        {
+          "id": "carried-messages-for",
+          "copies": 3
+        },
+        {
+          "id": "kept-pace-with",
+          "copies": 2
+        },
+        {
+          "id": "watched-the-skies-for",
+          "copies": 2
+        },
+        {
+          "id": "guarded",
+          "copies": 2
+        },
+        {
+          "id": "iria",
+          "copies": 1
+        },
+        {
+          "id": "lysa-the-listener",
+          "copies": 1
+        },
+        {
+          "id": "mara",
+          "copies": 1
+        },
+        {
+          "id": "teren",
+          "copies": 1
+        },
+        {
+          "id": "oren",
+          "copies": 1
+        },
+        {
+          "id": "corin-of-the-high-wall",
+          "copies": 1
+        },
+        {
+          "id": "yara-the-chronicler",
+          "copies": 1
+        },
+        {
+          "id": "kael-the-roadless",
+          "copies": 1
+        },
+        {
+          "id": "alda-keeper-of-the-ford",
+          "copies": 1
+        },
+        {
+          "id": "the-scouts-found-the-gap",
+          "copies": 2
+        },
+        {
+          "id": "the-muster-was-false",
+          "copies": 1
+        },
+        {
+          "id": "they-let-them-through",
+          "copies": 1
+        },
+        {
+          "id": "the-scouts-had-warned-them",
+          "copies": 2
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 2
+        },
+        {
+          "id": "before-sunset-the-ford-would-be-ours",
+          "copies": 2
+        },
+        {
+          "id": "they-knew-the-ground",
+          "copies": 2
+        },
+        {
+          "id": "send-a-runner",
+          "copies": 2
+        }
+      ]
+    },
+    {
+      "id": "front-exchange-lab",
+      "title": "Front Exchange & Preparation Lab",
+      "focus": "Prepared layers, Bond/Name exchanges, sudden Front shifts and one-time PLAY effects.",
+      "setup": "Build a Named stack in adjacent Fronts with support Forces. Play No Road Was Too Long to exchange columns legally, then verify Named Strength and all token transfer details.",
+      "observations": [
+        "Two prepared layers can attach without replaying PLAY or exceeding slot capacity",
+        "A swapped Front retains each card's matching row and marker ownership",
+        "No Road Was Too Long costs 3 Command and only one Action",
+        "Line Held reveal requires an empty friendly Frontline"
+      ],
+      "cards": [
+        {
+          "id": "the-house-of-reed",
+          "copies": 3
+        },
+        {
+          "id": "the-field-train",
+          "copies": 3
+        },
+        {
+          "id": "the-late-banner",
+          "copies": 2
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 2
+        },
+        {
+          "id": "the-red-shields",
+          "copies": 2
+        },
+        {
+          "id": "the-watchtowers-of-eren",
+          "copies": 2
+        },
+        {
+          "id": "the-kings-spears",
+          "copies": 2
+        },
+        {
+          "id": "swore-again-to",
+          "copies": 3
+        },
+        {
+          "id": "stayed-behind-for",
+          "copies": 2
+        },
+        {
+          "id": "supplied-by",
+          "copies": 2
+        },
+        {
+          "id": "followed",
+          "copies": 2
+        },
+        {
+          "id": "oren",
+          "copies": 1
+        },
+        {
+          "id": "torren",
+          "copies": 1
+        },
+        {
+          "id": "namar",
+          "copies": 1
+        },
+        {
+          "id": "eira",
+          "copies": 1
+        },
+        {
+          "id": "meren",
+          "copies": 1
+        },
+        {
+          "id": "asha-the-shield-bearer",
+          "copies": 1
+        },
+        {
+          "id": "nara-builder-of-walls",
+          "copies": 1
+        },
+        {
+          "id": "yara-the-chronicler",
+          "copies": 1
+        },
+        {
+          "id": "tovan-the-quartermaster",
+          "copies": 1
+        },
+        {
+          "id": "the-muster-was-false",
+          "copies": 2
+        },
+        {
+          "id": "all-reserves-forward",
+          "copies": 2
+        },
+        {
+          "id": "there-was-no-road-back",
+          "copies": 2
+        },
+        {
+          "id": "the-lines-held",
+          "copies": 2
+        },
+        {
+          "id": "no-road-was-too-long",
+          "copies": 2
+        },
+        {
+          "id": "the-king-had-given-the-order",
+          "copies": 2
+        },
+        {
+          "id": "take-stock",
+          "copies": 2
+        }
+      ]
+    }
+  ]
+}
