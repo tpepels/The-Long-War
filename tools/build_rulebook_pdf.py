@@ -22,7 +22,7 @@ from longwar.rules import GameRules
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RULEBOOK = ROOT / "rules" / "rulebook.md"
+RULEBOOK = ROOT / "rules" / "player-rulebook.md"
 DIST = ROOT / "dist"
 TYPST_SOURCE = DIST / "rulebook.typ"
 OUTPUT = DIST / "rulebook.pdf"
@@ -474,6 +474,18 @@ def markdown_to_typst(source: str, version: str) -> str:
     finish_table()
     close_resolution()
     close_columns()
+
+    # A clickable companion for advanced interactions, rather than several
+    # extra PDF pages of situational rulings.
+    out.append(
+        '#v(4pt)'
+        '#block(fill: rgb("#e9eeec"), inset: (x: 8pt, y: 6pt),'
+        ' stroke: (left: 2pt + rgb("#293c47")))['
+        '#text(size: 9pt)[More detailed rulings and card examples:] '
+        '#link("https://tpepels.github.io/The-Long-War/advanced-reference.html")'
+        '[Open the Detailed Reference]'
+        ']'
+    )
 
     return "\n".join(out).rstrip() + "\n"
 
