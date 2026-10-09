@@ -102,7 +102,15 @@ def markdown_to_typst(source: str, version: str) -> str:
   margin: (top: 14mm, bottom: 15mm, x: 14mm),
   fill: rgb("#faf7ef"),
   header: [
-    #text(size: 7pt, weight: "bold", fill: rgb("#53636a"))[THE LONG WAR   /   FIELD MANUAL]
+    #grid(
+      columns: (1fr, auto),
+      [#text(size: 7pt, weight: "bold", fill: rgb("#53636a"))[THE LONG WAR / FIELD MANUAL]],
+      align(right)[
+        #text(size: 7pt)[
+          #link("https://tpepels.github.io/The-Long-War/advanced-reference.html")[Full rules ↗]
+        ]
+      ],
+    )
     #v(3pt)
     #line(length: 100%, stroke: .55pt + rgb("#c5b9a4"))
   ],
@@ -443,18 +451,6 @@ def markdown_to_typst(source: str, version: str) -> str:
     finish_table()
     close_resolution()
     close_columns()
-
-    # A clickable companion for advanced interactions, rather than several
-    # extra PDF pages of situational rulings.
-    out.append(
-        '#v(4pt)'
-        '#block(fill: rgb("#e9eeec"), inset: (x: 8pt, y: 6pt),'
-        ' stroke: (left: 2pt + rgb("#293c47")))['
-        '#text(size: 9pt)[More detailed rulings and card examples:] '
-        '#link("https://tpepels.github.io/The-Long-War/advanced-reference.html")'
-        '[Open the Detailed Reference]'
-        ']'
-    )
 
     return "\n".join(out).rstrip() + "\n"
 
