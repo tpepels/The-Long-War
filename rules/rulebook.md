@@ -25,7 +25,7 @@ A lost Front costs Command equal to its **Strength deficit**. You choose one of 
 
 The battlefield has four Fronts. On **each player's side** of each Front are three positions, arranged from the centre of the battlefield outward: **Frontline**, **Middle/Support**, and **Rear**. The same rows across the four Fronts form three ranks. Frontline is nearest the opposing Frontline. A position can hold up to **one Force, one Bond and one Name**.
 
-The player controls the cards on their own side. Each Force and any attached Bond and Name occupy **one position together**, called a **formation**. A stack containing all three layers is a **Named Formation**. The distinction matters: a formation can be effective without being Named, but ordinary Maneuvers require a Named Formation.
+The player controls the cards on their own side. Each Force and any attached Bond and Name occupy **one position together**, called a **formation**. A stack containing all three layers is a **Named Formation**. The distinction matters: a formation can be effective without being Named, but **both Named and Unnamed formations may Maneuver**.
 
 Physical cards are stacked **Force on the bottom, Bond above it, Name on top**, staggered by **10.5 mm** so the relevant numbers, classifications and ongoing reminders on the buried cards stay visible. Read the whole card when you first play it. A one-time PLAY effect need not remain visible, but an ongoing effect still applies while its condition is met.
 
@@ -106,7 +106,7 @@ An effect referring to your *Archers*, *Kings*, or *Captains* means friendly for
 
 ## Maneuver and card movement {#maneuver}
 
-A **Named Formation** may initiate an ordinary **Maneuver** for one Action and **1 Command**. Move it one **orthogonally adjacent** active position: one rank forward or back in the same Front, or one Front left or right in the same rank. Cards can extend Maneuver eligibility to some unnamed formations. Diagonal positions are outside the Maneuver's one-step reach.
+**Any formation** may initiate an ordinary **Maneuver** for one Action and **1 Command**. Move it one **orthogonally adjacent** active position: one rank forward or back in the same Front, or one Front left or right in the same rank. Diagonal positions are outside the Maneuver's one-step reach.
 
 If the destination has no Force, move the whole formation there, taking any compatible prepared cards into the stack. If it contains a friendly formation, you may **swap** the complete formations, provided both resulting positions are legal. Only the initiating formation needs to qualify for Maneuver. You may not Maneuver into an inactive Front or violate a Force's row restriction.
 
@@ -116,7 +116,7 @@ An **Exhausted** Force contributes **1 less Strength** while its Exhaustion rema
 
 **Move** and **swap** printed on cards are not ordinary Maneuvers. The distinction matters:
 
-- **Move:** Unless a card explicitly says *Maneuver*, Move normally means repositioning the complete formation to an adjacent active position that is empty or contains only compatible prepared layers. It costs no Maneuver Command, needs no Name, and is not prevented by Exhaustion.
+- **Move:** Unless a card explicitly says *Maneuver*, Move normally means repositioning the complete formation to an adjacent active position that is empty or contains only compatible prepared layers. It costs no Maneuver Command and is not prevented by Exhaustion.
 - **Swap:** A printed **swap** exchanges the full contents of the specified positions and their markers, checking legality for both.
 - **Moving farther:** To move up to two positions, take up to two legal adjacent steps, never jumping over an occupied or inactive space.
 - **Free Maneuver:** A card may give a free **Maneuver**, in which case all Maneuver restrictions still apply except those it explicitly waives.
@@ -172,7 +172,7 @@ Middle Guards provide their usual screening. Other roles—Strongholds, Ships, H
 
 A **Narrative** is a face-up effect that lasts **until the end of the current Battle**. You may have up to **4 Narratives in play** at once. Any PLAY text resolves immediately; it costs no further Action beyond playing the Narrative. CONTINUOUS abilities operate while they remain face-up; ACTION abilities can be used on your normal turns (respecting printed limits). A Narrative with only PLAY text still remains face-up and occupies a Narrative slot until Battle end. All Narratives leave play at Battle end. There is no separate player-facing Ongoing subtype or automatic rule for a Narrative's literary theme.
 
-A **Stratagem** is a hidden plan. Playing one costs one Action and its printed Command, and you may play **at most 1 Stratagem from hand per Battle**. When you play it, **publicly choose one active Front and set it face-down beside that Front**. Its location and existence are public; its identity is hidden. An effect on that Stratagem applies to its chosen Front unless its printed wording explicitly allows another Front.
+A **Stratagem** is a hidden plan. Playing one costs one Action and its printed Command, and each player may **set only one Stratagem card total per Battle**, including those set through card effects. When you set it, **publicly choose one active Front and place it face-down beside that Front**. Revealing or returning it does not refresh the allowance. An effect may explicitly reset the **same** Stratagem, but no second Stratagem card can be set this Battle. Its location and existence are public; its identity is hidden. An effect on that Stratagem applies to its chosen Front unless its printed wording explicitly allows another Front.
 
 Every printed **REVEAL** ability belongs to the Stratagem's assigned Front. Its card text may omit the words *in this Front* for local units, formations, and conditions; **here**, **your** and **opposing** in that ability mean in its assigned Front unless the card explicitly refers to another Front. **At resolution** means the one simultaneous Stratagem reveal window, using eligibility and provisional Strength from before any reveal. The owner may reveal only while its printed condition is satisfied. A Stratagem does not need to repeat the reveal procedure or local-target language on its face.
 
@@ -210,7 +210,7 @@ There is no second Pass during these closing turns and neither player can extend
 
 After the first Pass and the **two closing turns**, but **before** the Stratagem reveal window and Front comparison, each player secretly records **two Opening Orders**, numbered **1** and **2**. Choose freely from the four types below; repeating a type is allowed. Record the chosen Force or formation, destination, target or Front as appropriate.
 
-- **Maneuver:** Maneuver a friendly formation one orthogonally adjacent legal position, **even without a Name**, for **no Action and no Command**. Other Maneuver rules still apply: an Exhausted Force cannot initiate without an exception, movement respects active Fronts and row restrictions, and a legal friendly swap is possible.
+- **Maneuver:** Maneuver a friendly formation one orthogonally adjacent legal position, for **no Action and no Command**. Other Maneuver rules still apply: an Exhausted Force cannot initiate without an exception, movement respects active Fronts and row restrictions, and a legal friendly swap is possible.
 - **Commit:** Select an **active Front where you currently have at least one Force**. Pay **1 Command** for **+2 to your total Strength in that Front this Battle**. This is not a bonus to any individual formation and does **not** help a Raider outmatch a Frontline defender for an Incursion. The bonus only counts while you still have a Force in that Front. Two Commits may target the same Front and their bonuses add. You must be able to pay for all chosen Commits.
 - **Strike:** Select one of your Forces and a basic Attack target. After the Maneuvers have resolved, make the Attack **if its target is still legal**. It uses the Force's **one Attack per Battle**, with the usual row, screening, Incursion, flanking and Depleted restrictions. An unsuccessful attempt to find a legal target does not use its Attack.
 - **Hold:** No effect.
