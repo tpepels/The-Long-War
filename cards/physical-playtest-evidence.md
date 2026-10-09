@@ -101,3 +101,35 @@ Use the manual scenarios in
 catch timing errors. The existing JSONL analyzer does **not** automatically
 infer which card caused a Front to change hands: this requires observed logs
 or a future physical rules-compatible simulator.
+
+## Phase 4–5 experiments: hidden plans and combo reliability
+
+- **Stratagem activation:** for each set plan log whether its printed
+  trigger occurred, whether its controller could legally reveal it, whether
+  it was actually revealed, and whether it changed an eventual Front winner.
+  An unrevealed plan is **not automatically useless** if its credible threat
+  influenced an opponent, but record that separately as qualitative evidence.
+- **Single-window result flips:** distinguish initial ties, initial one-point
+  deficits, and ties created *only after another reveal*. The latter must
+  not activate Ground Was Held retroactively.
+- **Narrative efficiency:** record the immediate PLAY effect, any separately
+  paid ACTION, total Command/Actions spent, and effective Strength or
+  protective advantage. Include No Road Was Too Long's full-column
+  exchange as one PLAY Action.
+- **Combo assembly:** use the enabler/payoff sets in
+  [playtest-decks.json](playtest-decks.json) for consistent category naming.
+  Measure *cards seen*, *both categories actually useful*, *legal combo
+  actions*, and *Front results changed*. Do not compare observed activation
+  rates directly to the hypergeometric draw baselines as if they measured
+  the same event.
+- **Diagnostic coverage:** three 48-card lists in
+  [mechanic-coverage-decks.json](mechanic-coverage-decks.json)
+  test Rider/flank, Scout/Seer/secret plans, and prepared/full-Front
+  exchange separately from the four main decks.
+- **32–36 to 10–14 singleton reduction:** verify whether having more
+  repeated enablers actually increases the number of meaningful decisions.
+  More consistency does not by itself imply greater fun or healthy balance.
+
+Test the unusual effects against active-Front schedules and rank restrictions,
+with mirrored turns. The static contracts and probability checker do **not**
+provide victory probabilities or demonstrated playtest win rates.
