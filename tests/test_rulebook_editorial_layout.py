@@ -57,11 +57,12 @@ def test_print_rulebook_uses_player_handbook_layout() -> None:
     rendered = markdown_to_typst(md, "test")
     # Keep ONE continuous two-column region. Reopening columns after panels
     # forces page/column breaks and creates half-empty trailing pages.
-    assert rendered.count("#columns(2, gutter: 8mm)[") == 1
+    assert rendered.count("#columns(2, gutter: 7mm)[") == 1
     assert "Use these position terms literally:" in rendered
     assert "After checking Guarded, follow this cleanup order:" in rendered
-    assert "PRINTED LABEL:" in rendered
-    assert "RESULT:" in rendered
+    assert "PRINTED LABEL" in rendered
+    assert "RESULT" in rendered
+    assert "#table(columns:" in rendered
     assert "FIELD MANUAL" in rendered
     assert "FORMATION LAYERS" in rendered
     assert rendered.count("CLOSING TURN") >= 3
@@ -69,3 +70,7 @@ def test_print_rulebook_uses_player_handbook_layout() -> None:
     assert rendered.count('stroke: (left: 3pt + rgb(') >= 6
     assert "The shape of the war" in rendered
     assert "Strength example:" in rendered
+    # Key technical reference entries must survive print-only compaction.
+    for term in ("BECOMES NAMED", "HIDDEN / REVEAL", "Bond discarded",
+                 "Force moves", "Frontline", "Command Collapse"):
+        assert term in rendered
