@@ -409,7 +409,7 @@ def run() -> None:
          "A Bond provides immediate defensive tempo without free Maneuvers")
 
     case("P3: prepared layers remain face-up without replaying PLAY",
-         "Prepared cards have no Strength and are not formations" in rulebook
+         "Prepared layers have no Strength and are not formations" in rulebook
          and "does **not** replay its earlier PLAY effect" in rulebook
          and "Resolve the attachments **one at a time**" in rulebook,
          "No global repeatable PLAY trigger or infinite attachment loop")
