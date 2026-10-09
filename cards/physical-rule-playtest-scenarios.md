@@ -82,7 +82,7 @@ Put **Avaros**, **Tovan** and **Doros** on the table. Avaros costs 5 Command whe
 
 ## 13. Physical print integrity
 
-Print one Force+Bond+Name stack and one Hero+Bond+Name stack at **actual size**, leaving the bottom card and middle card's **10.5 mm top strips** exposed. Confirm that every **ongoing** buried effect can be read without lifting the Name, including Grey Riders' two movement permissions. Confirm that PLAY-only text may be covered. Read the updated Reference next to the cards and flag any different rule.
+Print one Force+Bond+Name stack and one Hero+Bond+Name stack at **actual size**, leaving the bottom card and middle card's **10.5 mm top strips** exposed. Confirm that every **ongoing** buried effect can be read without lifting the Name, including Grey Riders' single compact ongoing mobility-and-Attack rule. Confirm that PLAY-only text may be covered. Read the updated Reference next to the cards and flag any different rule.
 
 ## Pre-playtest usefulness and dominance checks
 
@@ -297,8 +297,8 @@ Put The Red Shields, The Serekh, Supported By, Alda and The Banner Singers
 side by side. Each Tactic surcharge should clearly identify *whose* Tactic
 is affected and *which* friendly target is protected; do not apply a
 self-protection ability to adjacent formations automatically. Compare
-The River Raiders and Seven Black Ships for the same open-Frontline
-attachment return instruction at different timings. Compare The
+The River Raiders and Seven Black Ships for the same Strength-gated Raider
+attachment removal at different timings. Compare The
 Field Train's extra **card played from hand** with The House of Reed's
 **transfer of already-prepared layers**, checking Command and Action
 payments and the Named completion reward.
@@ -329,3 +329,71 @@ Under the **current physical rule**, after losing a Front with three unprotected
 For a separately labelled **historical comparison only**, apply the old all-unprotected-Forces rule: the same Front would lose up to **−3 Strength** next Battle. Keep the identical −1 Command penalty, Collapse timing, draw and recovery schedule to isolate the change.
 
 **Record:** repeated Front losses, comeback opportunities and the impact of recovery or Guarded. Do not mix historical-variant results into normal games.
+
+## Tactical-combat prototype: immediate Incursions, not missions
+
+These scenarios use the **printed paper pool**, not the native game engine.
+Each Incursion is a basic Raider Attack: one Action, once per Force per Battle.
+It is not movement into the opponent's positions and uses no marker.
+
+### A locally weaker line can be penetrated
+
+Put A's 4-Strength Raider in Frontline opposite B's 5-Strength Frontline
+Force. Put a B Force in Rear. The Raider cannot Attack Rear: 4 is not greater
+than 5. Apply Shaken to B's Frontline, reducing its current Strength to 3.
+Now A's Raider can Attack B's Rear and give it Depleted, marking A's Attack
+used. Resolve the same test with 4 versus 4: **tie blocks Incursion**.
+If B has no Frontline Force, the Raider succeeds with any positive Strength,
+provided an opposing Middle or Rear Force can be targeted.
+
+**Check:** current formation Strength (including Bond, Name, penalties,
+flanking), not just printed Force Strength. This Attack consumes the ordinary
+Attack Action; it does not relocate the Raider or remove either Force.
+
+### Archer pressure differs from post-defeat Exhaustion
+
+Let A Archer target B Rear with no screening Guard. Its basic Attack
+gives **Shaken (−2 Strength)**, not Exhaustion. Add B Guard in Middle:
+the same basic Archer Attack is screened until Guard is Shaken or Depleted
+(or a card grants a screening exception). At Battle resolution, choose
+**one** B Force in each lost Front for next-Battle Exhaustion.
+B may choose a Guarded Force to prevent it, with no replacement choice.
+
+**Check:** no automatic multi-Force Exhaustion and no extra Command tax
+from Archers or Incursions.
+
+### A card may grant the combined Action; the rules never do
+
+Place a Grey Rider where a legal Maneuver creates a new flanked enemy
+Frontline target. Its printed ability grants its unused basic Rider Attack
+without another Action after the Maneuver. If it has already Attacked,
+it cannot Attack again. Now use an ordinary Named Rider without that printed
+ability: it must spend **separate Actions** to Maneuver and Attack.
+
+Place a Vardai in a legal position. Its once-per-Battle ACTION pays 1 Command
+to Move and then make an unused Rider Attack if legal. An inactive Front,
+an occupied destination, Depleted, or spent Attack still prevents the
+corresponding part of the effect. The next turn cannot refresh Vardai's
+once-per-Battle ACTION.
+
+Finally play Damar while another Raider can Move forward into a legal
+Frontline position. If this **newly creates** a legal basic Raid target, the
+Raider may make its unused Attack as part of Damar's PLAY. An Attack target
+that was legal before the Move does not satisfy Damar's bonus.
+
+**Check:** one Action is saved only on the printed cards; no free
+Maneuver, no infinite Attack chains and no unused-Attack refresh.
+
+### Deploying Raider specialists is no longer empty-Frontline only
+
+Try Seven Black Ships and River Raiders in Frontline opposite a weaker,
+occupied opposing Frontline. Each may choose a basic Raider Attack target
+for its attachment-return effect. The Ship does this immediately on PLAY;
+the River Raider spends its separate ACTION and 1 Command. Neither effect
+itself consumes the Force's Attack (the card did not say to Attack), but
+their target still must pass the basic Raider's legal-target check.
+When the opposing Frontline is stronger, neither may remove an attachment
+through that ability.
+
+**Watch for:** whether changing the local check creates a response window,
+rather than allowing strong Raider Forces to overwhelm every other archetype.
