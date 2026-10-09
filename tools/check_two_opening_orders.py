@@ -39,9 +39,10 @@ def run() -> None:
         for choice in ("Maneuver", "Commit", "Strike", "Hold"):
             assert choice in opening
         assert "simultaneous" in opening.lower()
-        assert "Battle I" in opening and "first turn" in opening
-        assert "Battle II" in opening
+        assert "Battle I" in opening
+        assert "closing turns" in opening
         assert "Pass" in opening
+        assert "before" in opening.lower() and "Stratagem" in opening
         assert "Unnamed" in opening or "without a Name" in opening
         assert "Exhausted" in opening
         assert "once-per-Battle" in opening or "one Attack per Battle" in opening
@@ -55,8 +56,15 @@ def run() -> None:
     assert "Simultaneous Strikes check legal attackers and targets before either Strike" in DETAILED
     assert "If both Strikes use the same Force, the second cannot Attack again" in DETAILED
     assert "does **not** help a Raider" in DETAILED
-    assert "If someone has already Passed, skip Opening Orders" in SHORT
-    assert "As setup currently places no Force on the battlefield" in DETAILED
+    assert "identical in every Battle, including Battle I" in SHORT
+    assert "The same sequence applies to every Battle, including Battle I" in DETAILED
+    assert "No initial deployment turn, skipped order phase, or Battle I exception" in DETAILED
+    assert "after both closing turns" in DETAILED
+    assert "before the single Stratagem reveal window" in DETAILED
+    assert SHORT.index("## Passing and ending a Battle") < SHORT.index("## Opening Orders") < SHORT.index("## Resolving a Battle")
+    assert DETAILED.index("## Passing and ending a Battle") < DETAILED.index("## Opening Orders") < DETAILED.index("## Resolving a Battle")
+    assert "Both players reveal their **Opening Orders**, then **resolve the Battle**" in SHORT
+    assert "**Opening Orders** are revealed and resolved; then resolve the Battle's Stratagems" in DETAILED
 
     # Loss is a per-Front margin, not a winning score, 1/Front, per-row,
     # count of weaker cards or special threshold. Command collapse still
@@ -87,7 +95,7 @@ def run() -> None:
     assert "two Commits" in SHORT or "Two Commits" in SHORT
     assert "followed by Strikes" in SHORT
     print("PASS: two secret Opening Orders/player, repeated types and simultaneous steps")
-    print("PASS: Battle I first-turn placement; Commit fronts and normal Attack-use legality")
+    print("PASS: identical post-Pass/post-closing-turn timing for every Battle; Commit and Attack limits")
     print("PASS: independent full-margin Command loss, tie=0, Collapse-before-recovery")
     print("LIMIT: tabletop balance and native AI are not verified by this static contract")
 
