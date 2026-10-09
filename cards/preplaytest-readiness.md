@@ -216,3 +216,7 @@ equal to the complete **Strength difference**; the single selected
 Force for next-Battle Exhaustion and the recovery sequence remain
 unchanged. See [Opening Order scenarios](physical-rule-playtest-scenarios.md).
 Static checks do not establish reasonable game length or balance.
+
+## Post-Opening simplification and 131-card coherence
+
+Normal Maneuver requires **no Name**, but still costs 1 Action and 1 Command and cannot be initiated while Exhausted. Three existing effects now focus on the simultaneous Opening Orders: Had Been Ordered Forward, The Long March, and Iria. The Dust Riders and Grey Riders retain economically meaningful, non-redundant mobility effects. Each player may set **only one Stratagem per Battle**, counting Teren's free set; no second card can be set after the first is revealed or returned. Narratives remain capped at four. See [all 131 audited printed identities](whole-pool-opening-audit.json), [human audit](opening-order-stratagem-review.md) and the targeted [physical scenarios](physical-rule-playtest-scenarios.md).
