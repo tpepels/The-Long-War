@@ -44,7 +44,8 @@ def test_print_rulebook_handles_lists_quotes_and_tables() -> None:
     typst = markdown_to_typst(md, "test")
     assert "STARTING COMMAND" in typst
     assert "Strength example:" in typst
-    assert "#table(" in typst
+    assert "LEGAL TARGET:" in typst
+    assert "BASIC ATTACK RESULT:" in typst
     assert "Gather these things" in typst
     assert "Command" in typst
 
@@ -54,15 +55,17 @@ def test_print_rulebook_uses_player_handbook_layout() -> None:
 
     md = (ROOT / "rules" / "rulebook.md").read_text(encoding="utf-8")
     rendered = markdown_to_typst(md, "test")
-    # The normal narrative remains two-column, but tables and graphic guides
-    # deliberately close and reopen columns to use the full page width.
-    assert rendered.count("#columns(2, gutter: 8mm)[") >= 8
+    # Keep ONE continuous two-column region. Reopening columns after panels
+    # forces page/column breaks and creates half-empty trailing pages.
+    assert rendered.count("#columns(2, gutter: 8mm)[") == 1
     assert "Use these position terms literally:" in rendered
     assert "After checking Guarded, follow this cleanup order:" in rendered
-    assert "#table(columns:" in rendered
+    assert "PRINTED LABEL:" in rendered
+    assert "RESULT:" in rendered
     assert "FIELD MANUAL" in rendered
     assert "FORMATION LAYERS" in rendered
-    assert rendered.count("#grid(") >= 6
+    assert rendered.count("CLOSING TURN") >= 3
+    assert rendered.count("ACTION ") >= 5
     assert rendered.count('stroke: (left: 3pt + rgb(') >= 6
     assert "The shape of the war" in rendered
     assert "Strength example:" in rendered
