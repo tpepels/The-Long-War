@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "scope": "design-only; no new printed role icons, classes, keywords or rules",
+  "roles": [
+    {
+      "id": "the-fifty-men",
+      "role": "line",
+      "purpose": "Reliable permanent Strength without an additional rule."
+    },
+    {
+      "id": "seven-black-ships",
+      "role": "raider",
+      "purpose": "Deploy into a legal incursion to disrupt an enemy attachment immediately."
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "role": "support",
+      "purpose": "Remove conditions so a threatened formation can act again."
+    },
+    {
+      "id": "the-red-shields",
+      "role": "guard",
+      "purpose": "Hold the line and tax hostile targeting."
+    },
+    {
+      "id": "the-crow-archers",
+      "role": "archer",
+      "purpose": "Shake Rear threats, bypass screening, or reach Middle through a gap."
+    },
+    {
+      "id": "the-house-of-reed",
+      "role": "support",
+      "purpose": "Complete prepared formations rather than simply add Strength."
+    },
+    {
+      "id": "the-grey-riders",
+      "role": "rider",
+      "purpose": "Maneuver flexibly and exploit a newly reachable flanked target."
+    },
+    {
+      "id": "the-dust-riders",
+      "role": "rider",
+      "purpose": "Choose Rider or Skirmisher pressure while Bonded."
+    },
+    {
+      "id": "the-black-company",
+      "role": "skirmisher",
+      "purpose": "Exploit a Shaken target by removing a valuable attachment."
+    },
+    {
+      "id": "the-red-duelists",
+      "role": "skirmisher",
+      "purpose": "Shake an opposing Frontline to prepare a breach."
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "role": "archer",
+      "purpose": "Strengthen nearby friendly Archers while pressuring Rear."
+    },
+    {
+      "id": "the-iron-boars",
+      "role": "raider",
+      "purpose": "Break weaker Frontlines and create incursion opportunities."
+    },
+    {
+      "id": "the-first-spear",
+      "role": "guard",
+      "purpose": "Protect friendly formations from incoming afflictions."
+    },
+    {
+      "id": "the-old-guard",
+      "role": "guard",
+      "purpose": "Continue screening an Archer target even while Shaken."
+    },
+    {
+      "id": "the-unnamed-host",
+      "role": "raider",
+      "purpose": "Exploit a Shaken target with Depleted without Command theft."
+    },
+    {
+      "id": "the-late-banner",
+      "role": "command",
+      "purpose": "Accelerate building a Named formation."
+    },
+    {
+      "id": "the-banner-singers",
+      "role": "command",
+      "purpose": "Protect other formations from costly hostile Tactics."
+    },
+    {
+      "id": "thirty-spears",
+      "role": "line",
+      "purpose": "Low-cost Strength and a flexible deployment position."
+    },
+    {
+      "id": "a-hundred-shields",
+      "role": "guard",
+      "purpose": "Provide a durable line and basic Guard screening."
+    },
+    {
+      "id": "the-vardai",
+      "role": "rider",
+      "purpose": "Spend one Action to Move and make an unused Rider Attack."
+    },
+    {
+      "id": "the-aradai",
+      "role": "raider",
+      "purpose": "Contribute cheap strength with an eventual Raider incursion."
+    },
+    {
+      "id": "the-ilyri",
+      "role": "skirmisher",
+      "purpose": "Swap occupied ranks to protect and reposition defenders."
+    },
+    {
+      "id": "the-damar",
+      "role": "command",
+      "purpose": "Advance another formation to unlock its basic Attack."
+    },
+    {
+      "id": "the-serekh",
+      "role": "guard",
+      "purpose": "Protect a formation behind against hostile Tactics."
+    },
+    {
+      "id": "the-relief-column",
+      "role": "support",
+      "purpose": "Restore a Force and make it Guarded."
+    },
+    {
+      "id": "the-field-train",
+      "role": "support",
+      "purpose": "Play a Bond or Name from hand without another Action."
+    },
+    {
+      "id": "the-signal-company",
+      "role": "command",
+      "purpose": "Reposition an ally and earn a draw on a flank swing."
+    },
+    {
+      "id": "the-ash-bowmen",
+      "role": "skirmisher",
+      "purpose": "Push an opposing Frontline out of position."
+    },
+    {
+      "id": "the-lantern-scouts",
+      "role": "scout",
+      "purpose": "Inspect hidden Stratagems and choose safer commitments."
+    },
+    {
+      "id": "the-river-raiders",
+      "role": "raider",
+      "purpose": "Spend additional Actions to remove enemy attachments after winning an incursion check."
+    },
+    {
+      "id": "the-kings-spears",
+      "role": "guard",
+      "purpose": "Rearrange existing defense at Frontline deployment."
+    },
+    {
+      "id": "the-salt-road-fleet",
+      "role": "raider",
+      "purpose": "Move friendly formations back to escape pressure or open a rank."
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "role": "scout",
+      "purpose": "Inspect enemy plans and filter available next moves."
+    }
+  ]
+}
