@@ -143,11 +143,11 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, it may Maneuver without being Named.",
-          "exposed": "May Maneuver without being Named"
+          "text": "An Opening Maneuver with this formation may move it up to two legal steps instead of one.",
+          "exposed": "Opening Maneuver: up to 2 steps"
         }
       ],
-      "design_note": "Exposed Bond mobility."
+      "design_note": "The Bond's 0 Strength/1C now buys distinct surprise repositioning, not permission that every Force already has."
     },
     {
       "id": "watched-the-skies-for",
@@ -215,10 +215,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if you have a King or Captain here, choose another friendly formation here. You may Move it one legal position. Give it +2 Strength this Battle."
+          "text": "At resolution, if you have a King or Captain here, swap one friendly formation here with one in an adjacent active Front in the same rank, if legal."
         }
       ],
-      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules.",
+      "design_note": "Leadership now surprises by reallocating a pair across adjacent Fronts at final resolution; unlike Opening Orders it makes an otherwise unavailable cross-Front swap.",
       "command_cost": 1
     },
     {
@@ -226,10 +226,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution in an outer Front, choose a friendly Archer, Guard or Stronghold here. You may Move it one legal position. It gets +2 Strength this Battle."
+          "text": "At resolution in an outer Front, a friendly flanked Frontline Force here ignores its flank penalty and gets +2 Strength this Battle."
         }
       ],
-      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+      "design_note": "Outer-Front defensive counterflank with no movement; no longer duplicates Opening Maneuver/Commit or Lines Held."
     },
     {
       "id": "the-trap-closed",
@@ -307,11 +307,11 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "This Force may Maneuver while Unnamed or Exhausted. After it Maneuvers, it may make its unused basic Rider Attack without another Action.",
-          "exposed": "May Maneuver Unnamed/Exhausted; then Rider Attack"
+          "text": "This Force may Maneuver while Exhausted. After it Maneuvers, it may make its unused basic Rider Attack without another Action.",
+          "exposed": "Exhausted Maneuver; then Rider Attack"
         }
       ],
-      "design_note": "Fast cavalry combines legal Maneuver and an unused basic Rider Attack in one Action; retains both prior mobility exceptions.",
+      "design_note": "4C premium continues to price an Exhaustion exception plus a bounded unused Rider Attack, with the redundant Unnamed exception removed.",
       "command_cost": 4
     },
     {
@@ -415,10 +415,10 @@
         },
         {
           "timing": "continuous",
-          "text": "Your Riders may Maneuver without being Named and pay 0 Command to Maneuver this Battle."
+          "text": "One of your Opening Maneuver orders may move two different friendly Riders one legal step each instead of one formation."
         }
       ],
-      "design_note": "Riders gain a tangible 1–2 Strength payoff alongside optional zero-Command unnamed mobility."
+      "design_note": "2C Rider doctrine retains its immediate Strength floor and adds a single two-unit opening redeployment, with no recurring zero-Command economy or Named exemption."
     },
     {
       "id": "the-wall-did-not-break",
@@ -1053,11 +1053,11 @@
       "id": "iria",
       "effects": [
         {
-          "timing": "play",
-          "text": "Look at an opposing face-down Stratagem in this or an adjacent Front, if any. You may Move one friendly formation here one legal position."
+          "timing": "trigger",
+          "text": "After Opening Orders are revealed, you may change the target of one of your Strikes in this Front. Check legality when it resolves."
         }
       ],
-      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+      "design_note": "1C +1 Name: a deliberately distinct post-reveal target feint, no additional Strike or general Scout/Stratagem overlap."
     },
     {
       "id": "lysa-the-listener",
@@ -1092,6 +1092,26 @@
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+    },
+    {
+      "id": "the-dust-riders",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While Bonded, this formation's first Maneuver each Battle costs 0 Command."
+        }
+      ],
+      "design_note": "3C odd-Strength Rider retains a modest conditional mobility saving without a now-meaningless Named exception."
+    },
+    {
+      "id": "teren",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "If you have not set a Stratagem this Battle, set one from your hand here without another Action. Pay its Command cost."
+        }
+      ],
+      "design_note": "No bonus Stratagem: this Name saves one Action on the same one-Stratagem-per-player Battle allowance."
     }
   ],
   "once_per_battle_text_fixes": [],
