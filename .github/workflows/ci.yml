@@ -107,3 +107,11 @@ jobs:
         run: python tools/check_web_static.py --dist dist
       - name: Build printable rulebook PDF
         run: python tools/build_rulebook_pdf.py
+      - name: Upload rulebook preview for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rulebook-pdf-preview
+          path: dist/rulebook.pdf
+          if-no-files-found: ignore
+          retention-days: 2
