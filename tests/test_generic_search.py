@@ -306,3 +306,15 @@ def test_generic_alpha_beta_matches_exhaustive_minimax_oracle() -> None:
             budget=SearchBudget(10000), transposition={}, scratch=[],
         )
         assert result == expected
+
+
+def test_ismcts_rejects_hidden_dependent_legal_root_actions() -> None:
+    class BrokenInformationSetGame(ToyGame):
+        def legal_actions(self, state):
+            return ["L", "R"] if state.payoff == 0 else ["L"]
+
+    game = BrokenInformationSetGame()
+    with pytest.raises(ValueError, match="legal root actions"):
+        GenericISMCTS(game).search(
+            [ToyState(payoff=0.0), ToyState(payoff=1.0)], iterations=3
+        )
