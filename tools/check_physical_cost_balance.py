@@ -277,16 +277,23 @@ def run() -> None:
                  "two adjacent legal", "opposing attached Bond"),
          "Completion plan offers reposition or attachment disruption")
 
-    # Phase 1 keeps pure baseline bodies simple but differentiates absolute
-    # per-position Strength against specialist protection and Attack classes.
-    case("P1: Fifty Men trades strength for same-cost Guard protection",
+    # Odd baseline Forces must earn their half-Strength rounding margin.
+    case("P1: Fifty Men compensates odd Strength without Guard screening",
          cost("the-fifty-men") == cost("the-red-shields") == 4
          and cards["the-fifty-men"]["strength"] == 5
          and cards["the-red-shields"]["strength"] == 4
-         and cards["the-fifty-men"]["effects"] == []
+         and has("the-fifty-men", "another friendly Human", "+1 Strength this Battle")
          and "guard" not in cards["the-fifty-men"]["classes"]
          and "guard" in cards["the-red-shields"]["classes"],
-         "A plain body is stronger but cannot screen Rear or tax hostile Tactics")
+         "Conditional one-Battle Strength compensates odd tariff rounding without long-term screening")
+    case("P1: Damar pays premium for immediate attack tempo",
+         cost("the-damar") == 4
+         and cards["the-damar"]["strength"] == 3
+         and has("the-damar", "Move another friendly formation",
+                 "newly legal", "Attack without another Action")
+         and cost("the-aradai") == 3
+         and has("the-aradai", "Frontline", "−1 Strength"),
+         "Free Attack timing costs one Command premium while minor Raider entry pressure fits odd rounding")
 
     case("P1: Stood Fast and Followed trade different payoffs",
          cost("stood-fast-with") == cost("followed") == 1
@@ -421,11 +428,13 @@ def run() -> None:
                  "this Front", "draw 1 card", "discard 1 card"),
          "These conditional Bonds function even when played prepared")
 
-    case("P3: exhausted Raiders convert into Command without own attachment",
-         has("shared-the-spoils-with", "control a Raider or Skirmisher",
-             "opposing Force", "Exhausted", "1 Command",
-             "amount actually lost"),
-         "Exhaustion now matters both for Strength and targeted Command transfer")
+    case("P3: Shaken Raider Bond trades raw Strength for repositioning",
+         cost("shared-the-spoils-with") == 1
+         and cards["shared-the-spoils-with"]["strength_modifier"] == 0
+         and has("shared-the-spoils-with", "Shaken", "Raider or Skirmisher",
+                 "Move", "adjacent legal position")
+         and "opponent loses" not in cards["shared-the-spoils-with"]["text"],
+         "Battle pressure should produce a temporary positioning decision, not extra Command attrition")
 
     case("P3: simple tempo Bond boosts Strength when prepared",
          cost("marched-with") == 1
