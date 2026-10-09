@@ -2,7 +2,7 @@
 
 **Hero pricing (current):** each Hero has a separate Force and Name Command price; the totals below are ranges from choosing either mode for each Hero card, not a price to pay at setup. See [Hero valuation](hero-pricing.md).
 
-**Force pricing (current):** Forces use 1 + ceil(Strength/2) Command plus an assessed 0–1 ability premium. The completely plain 3-Strength Thirty Spears instead costs 2, using its otherwise unused half-point as a discount. Deck Command totals below include the [Force pricing ledger](force-pricing.json); Bonds, Names, Tactics and other cards retain their previous prices. These are deck-wide card-cost sums, not simultaneous deployment requirements.
+**Force pricing (current):** Forces use 1 + ceil(Strength/2) Command plus an assessed 0–1 ability premium. There are no below-formula Force prices: all odd-Strength Forces instead have a concise compensating ability, including Thirty Spears. Deck Command totals below include the [Force pricing ledger](force-pricing.json); Bonds, Names, Tactics and other cards retain their previous prices. These are deck-wide card-cost sums, not simultaneous deployment requirements.
 
 **Six 48-card decks:** four repeatable core combinations and two supplementary archetype-coverage/combo exercises. All are **physical-print only**; the native/Webgame uses different rules. Together with the [four diagnostic decks](mechanic-coverage-decks.md), they represent **all 131 printed card identities**.
 
@@ -236,7 +236,7 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 
 **Test question:** Can layered Guards and Healers recover the −1 Strength of old Exhaustion efficiently enough to hold a Front without depending on a single Hero?
 
-48 cards · 17 Forces · 35 titles · 25 one-copy titles · 91–95 total printed Command (Hero mode-dependent) · 47 sum printed Force Strength (not a Front total)
+48 cards · 17 Forces · 35 titles · 25 one-copy titles · 96–100 total printed Command (Hero mode-dependent) · 47 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
