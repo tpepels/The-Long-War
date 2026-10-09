@@ -291,7 +291,7 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "Each friendly Hero or Named Formation gets +1 Strength this Battle, once per formation even if it qualifies as both."
+          "text": "Each friendly Hero formation or Named Formation gets +1 Strength this Battle, once per formation even if both."
         }
       ],
       "design_note": "One application per formation, other card effects still stack."
@@ -533,7 +533,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Attach a prepared Bond or Name from here or an adjacent active Front to the friendly formation directly ahead, if legal. If this makes it Named, give that formation +2 Strength this Battle."
+          "text": "Attach a prepared Bond or Name from here or an adjacent active Front to the friendly formation directly ahead, if legal. If that completes a Named Formation, give it +2 Strength this Battle."
         }
       ],
       "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
@@ -597,7 +597,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Exchange the Bonds of two friendly Bonded Formations in any active Fronts. Give each that remains Named afterward +1 Strength this Battle."
+          "text": "Exchange the Bonds of two friendly Bonded Formations in any active Fronts. Each of those formations that remains Named gets +1 Strength this Battle."
         }
       ],
       "design_note": "One Action and 2 Command for an immediate formation exchange and up to two temporary Strength; no repeatable two-Action setup."
