@@ -402,7 +402,7 @@
         },
         {
           "timing": "continuous",
-          "text": "When you play a Tactic targeting a card or formation in a Front containing your Raider or Skirmisher, it costs 1 less Command (minimum 0). Afterward, you may Move one of your Raiders or Skirmishers there once."
+          "text": "Your Tactics targeting cards or formations in a Front with your Raider or Skirmisher cost 1 less Command (minimum 0). After each, you may Move one Raider or Skirmisher there one legal position."
         }
       ],
       "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
@@ -531,7 +531,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Attach a prepared Bond or Name from this or an adjacent active Front to the friendly formation directly ahead, if legal. If the attachment completes a Named Formation, it gets +2 Strength this Battle."
+          "text": "Attach a prepared Bond or Name from here or an adjacent active Front to the friendly formation directly ahead, if legal. If this makes it Named, give that formation +2 Strength this Battle."
         }
       ],
       "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
@@ -672,7 +672,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Exchange your battlefield cards in two adjacent active Fronts rank for rank, if every placement is legal. Move attached layers and markers with their Force. Give one moved Named Formation +2 Strength this Battle."
+          "text": "Exchange your cards between two adjacent active Fronts, rank for rank, if legal. Prepared layers and markers move with them. Give one moved Named Formation +2 Strength this Battle."
         }
       ],
       "design_note": "Strange full-Front transformation resolves on PLAY rather than requiring another ACTION; rank restrictions respected, +2 rewards committed Named stacks."
