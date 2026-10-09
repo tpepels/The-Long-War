@@ -1,9 +1,6 @@
 # Simple Strength, combo value and lost-Front snowball audit
 
-**Status:** design analysis and **proposed** rules experiments. The current
-131-card physical rules and Exhaustion procedure are **unchanged** in this
-commit. The native/Webgame does not implement the complete physical rules,
-so there are no simulated or measured physical win rates.
+**Status:** physical-print loss rule approved and implemented: **one chosen Exhausted Force per lost Front**. The raw-Strength and combo discussion is still a design audit, not measured win rates. The native/Webgame does not implement the complete physical rules.
 
 ## Does playing only the biggest straightforward Forces win?
 
@@ -64,40 +61,25 @@ If raw Strength repeatedly dominates, first strengthen **decisions and
 reliable payoffs** in the losing deck, or improve counterplay. Do not just
 inflate all costs or add another keyword without knowing the cause.
 
-## Why losing Fronts now risks snowballing
+## The updated loss rule reduces the attrition feedback loop
 
-After a lost Front, the current rule Exhausts **every unprotected Force in
-that Front** for the following Battle. Exhausted means **−1 Strength
-and restricted Maneuver**. A Front lost with three unprotected Forces
-therefore starts the next Battle **3 Strength behind its former total**.
-The opponent need not spend a card or Action to create that gap, and the
-loser also loses **1 Command per Front** before Collapse/recovery.
-With two full lost Fronts this can mean six weakened Forces next Battle,
-even if the winning opponent's board persists unchanged.
+**Current, approved rule:** after losing a Front and paying the normal 1 Command (with Collapse checked before recovery), the losing player chooses **one Force** in that lost Front, if any, to become Exhausted for the next Battle. Exhaustion gives **−1 Strength** and restricts ordinary Maneuvers. If the chosen Force has Guarded, that Guarded prevents the Exhaustion and is consumed; the loser does not choose a substitute. A Front with no surviving Force causes no loss-based Exhaustion. Old afflictions/Boons clear before the unprevented new token is applied.
 
-This is positive feedback: the greater the defeat, the harder it may be
-to contest the same Front again. Between-Battle recovery refills Command,
-especially early, but does not restore that Strength disadvantage.
+The old rule Exhausted **every unprotected Force** in the lost Front. Three surviving unprotected Forces could therefore produce **−3 next-Battle Strength**, and two lost Fronts could weaken six separate Forces. The new rule limits the same loss to **at most −1 per Front**, rather than −1 per surviving Force. Card- and Attack-inflicted Exhaustion still operates normally.
 
-## Candidate interventions (not yet canonical)
+This change reduces a positive feedback loop without changing printed Force Strength, the −1 Command penalty, Command recovery, or the one-Battle lifetime of loss-based Exhaustion. A player who continually loses still faces real danger; **no measured comeback or win rates exist** to show how large the improvement will be.
 
-| Variant | Procedure | Main tradeoff |
+### Historical comparison and remaining watchpoints
+
+| Situation | Historical all-Forces rule | Current one-chosen-Force rule |
 | --- | --- | --- |
-| **A — one casualty per lost Front (recommended)** | For each lost Front, losing player chooses one *unguarded* friendly Force there to become Exhausted; if none are unguarded, choose a Guarded one, whose Guarded is consumed instead | Keeps a scar, but limits the new penalty to at most −1 Strength per lost Front; requires one small choice |
-| **B — no automatic Exhaustion for Front loss** | Only Attacks/card effects Exhaust; losing a Front still costs its Command | Strongest anti-snowball simplification, but loses a persistent scar from defeat |
-| **C — one free Rally per player next Battle** | Before the first turn, remove one existing Exhaustion without Command or Action | Gives meaningful recovery, but adds a new phase, and may erase small pressure entirely |
-| **D — extra Command to the loser** | Give comeback Command for each lost Front next Battle | Less effective while recovery already returns players to the 20 Command cap; increases economy rules |
+| Lost Front with 3 unguarded Forces | 3 exhausted; −3 next-Battle Strength | 1 exhausted; −1 next-Battle Strength |
+| Lost Front with 1 unguarded Force | 1 exhausted; −1 | 1 exhausted; −1 |
+| Lost Front with 1 Guarded + 2 unguarded | Both unguarded Exhausted; −2 | Losing player may choose Guarded to prevent all loss-based Exhaustion |
+| Lost Front with no surviving Force | None | None |
+| Command loss | −1 before Collapse | Unchanged |
 
-**Proposed trial order:** A versus current all-Forces Exhaustion, then B
-if repeated defeats remain decisive. Keep the Command loss, collapse
-timing, Attack-created Exhaustion, Guarded prevention, and temporary
-condition cleanup unchanged during that comparison. Evaluate at one/two/
-three Forces per lost Front and Battles I–IV; separately track whether
-Shaken/Depleted combinations amplify the disadvantage.
-
-This audit deliberately does **not** change the rulebook to Variant A.
-Changing the system now would invalidate the current deck comparison
-baseline before the match data is collected.
+Use matched hands and the same board state to compare repeated Front losses and opportunities to recover. Track selection choices and Guarded prevention separately from other sources of Exhaustion. If one lost Front still repeats too reliably, investigate the persistent board disparity and direct temporary combat penalties before adding an automatic consolation bonus.
 
 ## Do the decks contain combinations instead of vague play-styles?
 
