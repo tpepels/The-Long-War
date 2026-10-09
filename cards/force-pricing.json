@@ -1,7 +1,7 @@
 {
   "version": 1,
   "scope": "physical-print-forces-only",
-  "formula": "1 + ceil(printed Strength / 2) + ability premium",
+  "formula": "1 + ceil(printed Strength / 2) + ability premium - unused half-point credit (only for a basic odd-Strength Force with no extra function)",
   "premium_scale": "0 for modest odd-Strength utility or no ability; 1 for significant specialist or even-Strength ability, including basic Guard screening where it materially differentiates 6 Strength",
   "policies": [
     "Preserve all printed abilities, classifications, and placement limits.",
@@ -9,7 +9,8 @@
     "The rounded-up odd-Strength half point supports a modest utility effect; a stronger effect may require +1.",
     "Even-Strength special abilities are normally assessed +1, including meaningful class-native screening.",
     "Keep Bond, Name, Hero, Tactic, Stratagem, Narrative and Order costs unchanged.",
-    "Treat these as first-pass physical prices, not measured win-rate balance."
+    "Treat these as first-pass physical prices, not measured win-rate balance.",
+    "For a completely ability-free odd-Strength basic Force, a 1-Command unused-half-point credit may replace inventing an ability; currently only Thirty Spears."
   ],
   "forces": [
     {
@@ -117,8 +118,9 @@
     {
       "id": "thirty-spears",
       "premium": 0,
-      "rationale": "Basic 3-Strength body without printed ability.",
-      "previous_printed_command": 1
+      "rationale": "Plain 3-Strength Human with no class combat ability or printed effect. Round the unused half-point down to preserve an inexpensive basic deployment.",
+      "previous_printed_command": 1,
+      "unused_half_point_credit": 1
     },
     {
       "id": "a-hundred-shields",
