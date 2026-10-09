@@ -163,8 +163,8 @@
       "type": "bond",
       "role": "maneuver",
       "decision": "keep",
-      "reason": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "effect_length_max": 68
+      "reason": "New opening-specific Bond: extends its own formation's secret Maneuver to two legal steps, without generic Named-access text.",
+      "effect_length_max": 89
     },
     {
       "id": "namar",
@@ -181,8 +181,8 @@
       "type": "name",
       "role": "intrigue",
       "decision": "revised",
-      "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 138
+      "reason": "Revealed-order feint now retargets a previously declared Strike instead of duplicating Scout or Stratagem reconnaissance.",
+      "effect_length_max": 131
     },
     {
       "id": "oren",
@@ -208,8 +208,8 @@
       "type": "name",
       "role": "logistics",
       "decision": "keep",
-      "reason": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "effect_length_max": 99
+      "reason": "Named-completion tempo saver uses the one total Stratagem allowance; never grants a second one.",
+      "effect_length_max": 118
     },
     {
       "id": "mara",
@@ -514,17 +514,17 @@
       "type": "stratagem",
       "role": "maneuver",
       "decision": "revised",
-      "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 159
+      "reason": "Captain/King late swap across active Fronts, different from the public single-formation Opening Maneuver.",
+      "effect_length_max": 148
     },
     {
       "id": "the-flank-was-refused",
       "title": "The Flank Was Refused",
       "type": "stratagem",
-      "role": "maneuver",
+      "role": "defence",
       "decision": "revised",
-      "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 153
+      "reason": "Conditional outer-Front flanking prevention and temporary Strength; no duplicate move-and-Strength package.",
+      "effect_length_max": 132
     },
     {
       "id": "the-trap-closed",
@@ -568,8 +568,8 @@
       "type": "narrative",
       "role": "maneuver",
       "decision": "watch",
-      "reason": "Global free Rider Maneuvers can overshadow class-specific movement cards.",
-      "effect_length_max": 95
+      "reason": "Rider opening plan now shifts two different Riders with one opening Maneuver; the PLAY Strength floor remains.",
+      "effect_length_max": 120
     },
     {
       "id": "the-wall-did-not-break",
