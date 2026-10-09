@@ -1,212 +1,30 @@
 {
   "schema_version": 1,
-  "status": "exploratory-combo-playtest-decks",
+  "status": "combo-driven-physical-playtest-decks",
   "deck_size": 48,
   "decks": [
     {
-      "id": "reposition-reuse",
-      "title": "Maneuver & Relief",
-      "playstyle": "Use row changes, unnamed and Exhausted movement exceptions, local support and information to keep reshaping a Front after both players have committed.",
-      "hypothesis": "Do movement and relief effects create a real positional puzzle when the deck has enough Riders, Scouts and rank-sensitive support to make rearranging the line worth an Action?",
+      "id": "banner-and-blood",
+      "title": "Banner & Blood",
+      "playstyle": "Complete commanding formations, then turn Kings, Captains and Named units into permanent Strength backed by a few decisive hidden bonuses.",
+      "hypothesis": "Can clustered leadership and completed formations win Fronts by 1–3 Strength while staying resilient when individual Names or Bonds are removed?",
       "combo_notes": [
-        "Signal Company sits only in Middle and lets the Force directly ahead Maneuver without being Named, so a front-line Force can reposition before becoming Named.",
-        "Grey Riders + The Long March gives cheap early movement; Signal Company adds a different route to mobility by coordinating the line from behind.",
-        "Re-form the Line can swap two adjacent formations or sacrifice one Force and its layers for 2 Command, creating space in a crowded Front; Neris, Kael, Elian and Sela provide alternative repositioning.",
-        "The Salt-Road Fleet moves an ally toward Rear, enabling a Ship alongside Before Sunset's Ship-or-Scout information effect; Banner Singers and Supported By now protect the second line by taxing opposing Tactics."
+        "Late Banner + Marched Beneath the Banner of + Namar or Arel turns a cheaper Name into a Named leadership formation with an additional Bond Strength bonus; Namar restores Command for the next attachment.",
+        "Avaros, the Bronze King + The Center Must Hold or Every Banner Turned Toward Them creates a concentrated final Strength swing; the Banner Stratagem can also reinforce an adjacent active Front.",
+        "Doros, the Last Spear or A Hundred Shields + Followed + a Name forms a large persistent stack; The Battle Had Chosen Them adds a further +1 to Named formations.",
+        "First Spear protects the Force behind it with Guarded, while Red Shields, Serekh and Alda deter hostile Tactics. Re-form the Line can sacrifice an obsolete Force when the field fills."
       ],
       "cards": [
         {
-          "id": "the-grey-riders",
+          "id": "the-red-shields",
           "copies": 2
         },
         {
-          "id": "the-dust-riders",
+          "id": "a-hundred-shields",
           "copies": 2
-        },
-        {
-          "id": "the-vardai",
-          "copies": 2
-        },
-        {
-          "id": "the-thornbow-hunters",
-          "copies": 1
-        },
-        {
-          "id": "the-lantern-scouts",
-          "copies": 1
-        },
-        {
-          "id": "the-watchtowers-of-eren",
-          "copies": 1
         },
         {
           "id": "the-first-spear",
-          "copies": 1
-        },
-        {
-          "id": "the-salt-road-fleet",
-          "copies": 1
-        },
-        {
-          "id": "the-banner-singers",
-          "copies": 1
-        },
-        {
-          "id": "the-white-hands-of-elara",
-          "copies": 1
-        },
-        {
-          "id": "the-signal-company",
-          "copies": 2
-        },
-        {
-          "id": "the-late-banner",
-          "copies": 1
-        },
-        {
-          "id": "marched-with",
-          "copies": 2
-        },
-        {
-          "id": "kept-pace-with",
-          "copies": 1
-        },
-        {
-          "id": "covered-the-withdrawal-of",
-          "copies": 1
-        },
-        {
-          "id": "supported-by",
-          "copies": 1
-        },
-        {
-          "id": "carried-messages-for",
-          "copies": 1
-        },
-        {
-          "id": "trusted",
-          "copies": 1
-        },
-        {
-          "id": "watched-the-skies-for",
-          "copies": 1
-        },
-        {
-          "id": "elian",
-          "copies": 1
-        },
-        {
-          "id": "sela",
-          "copies": 1
-        },
-        {
-          "id": "mara",
-          "copies": 1
-        },
-        {
-          "id": "iria",
-          "copies": 1
-        },
-        {
-          "id": "oren",
-          "copies": 1
-        },
-        {
-          "id": "arel",
-          "copies": 1
-        },
-        {
-          "id": "neris-the-ferryman",
-          "copies": 1
-        },
-        {
-          "id": "kael-the-roadless",
-          "copies": 1
-        },
-        {
-          "id": "yara-the-chronicler",
-          "copies": 1
-        },
-        {
-          "id": "they-had-gone-too-far",
-          "copies": 1
-        },
-        {
-          "id": "the-scouts-found-the-gap",
-          "copies": 1
-        },
-        {
-          "id": "they-were-gathering-there",
-          "copies": 1
-        },
-        {
-          "id": "the-line-wheeled",
-          "copies": 1
-        },
-        {
-          "id": "the-battle-turned-east",
-          "copies": 1
-        },
-        {
-          "id": "the-scouts-had-warned-them",
-          "copies": 1
-        },
-        {
-          "id": "the-ground-was-held",
-          "copies": 1
-        },
-        {
-          "id": "no-step-back",
-          "copies": 1
-        },
-        {
-          "id": "the-long-march",
-          "copies": 1
-        },
-        {
-          "id": "before-sunset-the-ford-would-be-ours",
-          "copies": 1
-        },
-        {
-          "id": "they-knew-the-ground",
-          "copies": 1
-        },
-        {
-          "id": "the-battle-had-chosen-them",
-          "copies": 1
-        },
-        {
-          "id": "re-form-the-line",
-          "copies": 1
-        },
-        {
-          "id": "send-a-runner",
-          "copies": 1
-        },
-        {
-          "id": "catch-your-breath",
-          "copies": 1
-        }
-      ]
-    },
-    {
-      "id": "prepare-chain",
-      "title": "Build & Chain",
-      "playstyle": "Prepare pieces, reduce attachment costs, complete formations in bursts and turn naming/attachment events into card and Command flow.",
-      "hypothesis": "Can a player plan one or two turns ahead and then cash prepared Bonds, Names and discounts into satisfying multi-card sequences without the deck becoming a pure efficiency engine?",
-      "combo_notes": [
-        "Field Train is Middle-only and on PLAY moves a prepared Bond or Name from its Front or an adjacent active Front to the formation directly ahead. House of Reed instead offers repeatable local attachment ACTIONs.",
-        "House of Reed, Supplied By and Tovan can take Bonds to 0 Command, while Late Banner, Swore Again To and the King package make Names easier to finish.",
-        "Stayed Behind For, Nara, Torren and Oren convert prepared or unbonded positions into completed formations without requiring every piece to arrive in order.",
-        "Teren, There Was No Road Back and Fresh Orders reward the moment formations become Named and help the chain keep moving."
-      ],
-      "cards": [
-        {
-          "id": "the-house-of-reed",
-          "copies": 2
-        },
-        {
-          "id": "the-field-train",
           "copies": 2
         },
         {
@@ -219,30 +37,188 @@
         },
         {
           "id": "the-kings-spears",
+          "copies": 1
+        },
+        {
+          "id": "thirty-spears",
+          "copies": 2
+        },
+        {
+          "id": "the-serekh",
+          "copies": 1
+        },
+        {
+          "id": "the-damar",
+          "copies": 1
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 1
+        },
+        {
+          "id": "the-house-of-reed",
+          "copies": 1
+        },
+        {
+          "id": "marched-beneath-the-banner-of",
+          "copies": 2
+        },
+        {
+          "id": "followed",
+          "copies": 2
+        },
+        {
+          "id": "guarded",
+          "copies": 1
+        },
+        {
+          "id": "held-the-line-for",
+          "copies": 1
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 1
+        },
+        {
+          "id": "rallied-behind",
+          "copies": 1
+        },
+        {
+          "id": "namar",
+          "copies": 1
+        },
+        {
+          "id": "arel",
+          "copies": 1
+        },
+        {
+          "id": "oren",
+          "copies": 1
+        },
+        {
+          "id": "teren",
+          "copies": 1
+        },
+        {
+          "id": "meren",
+          "copies": 1
+        },
+        {
+          "id": "edrin",
+          "copies": 1
+        },
+        {
+          "id": "avaros-the-bronze-king",
+          "copies": 1
+        },
+        {
+          "id": "doros-the-last-spear",
+          "copies": 1
+        },
+        {
+          "id": "alda-keeper-of-the-ford",
+          "copies": 1
+        },
+        {
+          "id": "all-reserves-forward",
+          "copies": 1
+        },
+        {
+          "id": "the-line-wheeled",
+          "copies": 1
+        },
+        {
+          "id": "all-banners-forward",
+          "copies": 1
+        },
+        {
+          "id": "they-returned-with-names",
+          "copies": 1
+        },
+        {
+          "id": "the-center-must-hold",
+          "copies": 1
+        },
+        {
+          "id": "every-banner-turned-toward-them",
+          "copies": 1
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 1
+        },
+        {
+          "id": "no-step-back",
+          "copies": 1
+        },
+        {
+          "id": "the-battle-had-chosen-them",
+          "copies": 1
+        },
+        {
+          "id": "they-lived-to-tell-it",
+          "copies": 1
+        },
+        {
+          "id": "the-king-had-given-the-order",
+          "copies": 1
+        },
+        {
+          "id": "no-one-would-be-first-to-leave",
+          "copies": 1
+        },
+        {
+          "id": "re-form-the-line",
+          "copies": 1
+        },
+        {
+          "id": "fresh-orders",
+          "copies": 1
+        },
+        {
+          "id": "take-stock",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "crown-of-crows",
+      "title": "Crown of Crows",
+      "playstyle": "Hide durable Archer formations behind Guards, stack their Strength with completed Names, and punish attackers with delayed Archer responses.",
+      "hypothesis": "Can a guarded Archer line convert its setup into a decisive Strength advantage without relying on surveillance or repeated relocation?",
+      "combo_notes": [
+        "Crow Archers + a Bond + Corin of the High Wall or Serai, Queen of Crows combines Empowered pressure, Archer classifications, and multiple +1 Strength effects; Every Bow Was Strung rewards bonded Archers.",
+        "Old Guard in Middle protects a Rear Archer from basic Archer Attacks; First Spear can place Guarded on the Middle Force, protecting the screen while the Archer accumulates Strength.",
+        "The Archers Were Ready lets an unspent Archer fire as a reaction to an opposing Attack; The Crows Came Down Exhausts on PLAY and can Shake a target later for a -2 Strength swing.",
+        "Serai + other Archers + The Battle Had Chosen Them pushes Strength, while Asha, Alda, Veyra, No Step Back and Guarded protect crucial formations from hostile effects."
+      ],
+      "cards": [
+        {
+          "id": "the-crow-archers",
+          "copies": 3
+        },
+        {
+          "id": "the-thornbow-hunters",
+          "copies": 2
+        },
+        {
+          "id": "the-old-guard",
+          "copies": 2
+        },
+        {
+          "id": "the-red-shields",
           "copies": 2
         },
         {
           "id": "the-first-spear",
+          "copies": 2
+        },
+        {
+          "id": "the-banner-singers",
           "copies": 1
         },
         {
-          "id": "the-red-shields",
-          "copies": 1
-        },
-        {
-          "id": "the-ash-bowmen",
-          "copies": 1
-        },
-        {
-          "id": "the-unnamed-host",
-          "copies": 1
-        },
-        {
-          "id": "the-watchtowers-of-eren",
-          "copies": 1
-        },
-        {
-          "id": "the-salt-road-fleet",
+          "id": "the-fifty-men",
           "copies": 1
         },
         {
@@ -250,11 +226,27 @@
           "copies": 1
         },
         {
-          "id": "supplied-by",
+          "id": "the-serekh",
+          "copies": 1
+        },
+        {
+          "id": "the-house-of-reed",
+          "copies": 1
+        },
+        {
+          "id": "followed",
           "copies": 2
         },
         {
-          "id": "swore-again-to",
+          "id": "guarded",
+          "copies": 2
+        },
+        {
+          "id": "endured-with",
+          "copies": 1
+        },
+        {
+          "id": "held-the-line-for",
           "copies": 1
         },
         {
@@ -262,11 +254,185 @@
           "copies": 1
         },
         {
-          "id": "followed",
+          "id": "stood-fast-with",
           "copies": 1
         },
         {
-          "id": "carried-messages-for",
+          "id": "corin-of-the-high-wall",
+          "copies": 1
+        },
+        {
+          "id": "asha-the-shield-bearer",
+          "copies": 1
+        },
+        {
+          "id": "tala",
+          "copies": 1
+        },
+        {
+          "id": "maelin",
+          "copies": 1
+        },
+        {
+          "id": "eira",
+          "copies": 1
+        },
+        {
+          "id": "oren",
+          "copies": 1
+        },
+        {
+          "id": "serai-queen-of-crows",
+          "copies": 1
+        },
+        {
+          "id": "veyra-keeper-of-oaths",
+          "copies": 1
+        },
+        {
+          "id": "alda-keeper-of-the-ford",
+          "copies": 1
+        },
+        {
+          "id": "a-volley-before-dawn",
+          "copies": 1
+        },
+        {
+          "id": "the-baggage-was-abandoned",
+          "copies": 1
+        },
+        {
+          "id": "all-reserves-forward",
+          "copies": 1
+        },
+        {
+          "id": "the-line-wheeled",
+          "copies": 1
+        },
+        {
+          "id": "the-archers-were-ready",
+          "copies": 1
+        },
+        {
+          "id": "the-flank-was-refused",
+          "copies": 1
+        },
+        {
+          "id": "no-step-back",
+          "copies": 1
+        },
+        {
+          "id": "the-ground-was-held",
+          "copies": 1
+        },
+        {
+          "id": "every-bow-was-strung",
+          "copies": 1
+        },
+        {
+          "id": "the-crows-came-down",
+          "copies": 1
+        },
+        {
+          "id": "the-battle-had-chosen-them",
+          "copies": 1
+        },
+        {
+          "id": "they-lived-to-tell-it",
+          "copies": 1
+        },
+        {
+          "id": "bind-the-wound",
+          "copies": 1
+        },
+        {
+          "id": "catch-your-breath",
+          "copies": 1
+        },
+        {
+          "id": "take-stock",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "oathforge",
+      "title": "Oathforge",
+      "playstyle": "Build high-Strength Named Formations through Bond discounts, prepared layers and completion rewards, then protect the finished stacks.",
+      "hypothesis": "Do the attachment chains create enough persistent Strength and defensive redundancy to justify setup Actions against ordinary Force deployment?",
+      "combo_notes": [
+        "Late Banner + Followed + a Name yields a cheaper Named stack with an extra Bond Strength bonus; The Battle Had Chosen Them rewards that same Named state.",
+        "Tovan, the Quartermaster as Name discounts Bonds and Names; Torren and Oren supply extra attachments, while Namar reimburses Command and discounts a subsequent attachment.",
+        "Field Train and House of Reed attach prepared layers into a supported formation; Nara, Builder of Walls and Stayed Behind For complete otherwise stranded stacks.",
+        "Teren turns Named completion into a free Stratagem setting Action; There Was No Road Back can then punish an enemy Bond or reposition a completed stack. Avaros and the Banner Stratagem convert prepared strength into a winning Front."
+      ],
+      "cards": [
+        {
+          "id": "the-late-banner",
+          "copies": 2
+        },
+        {
+          "id": "the-house-of-reed",
+          "copies": 2
+        },
+        {
+          "id": "the-field-train",
+          "copies": 2
+        },
+        {
+          "id": "the-kings-spears",
+          "copies": 2
+        },
+        {
+          "id": "the-red-shields",
+          "copies": 2
+        },
+        {
+          "id": "a-hundred-shields",
+          "copies": 1
+        },
+        {
+          "id": "the-banner-singers",
+          "copies": 1
+        },
+        {
+          "id": "the-crow-archers",
+          "copies": 1
+        },
+        {
+          "id": "thirty-spears",
+          "copies": 1
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 1
+        },
+        {
+          "id": "the-damar",
+          "copies": 1
+        },
+        {
+          "id": "followed",
+          "copies": 2
+        },
+        {
+          "id": "marched-beneath-the-banner-of",
+          "copies": 1
+        },
+        {
+          "id": "stood-fast-with",
+          "copies": 1
+        },
+        {
+          "id": "stayed-behind-for",
+          "copies": 1
+        },
+        {
+          "id": "supplied-by",
+          "copies": 1
+        },
+        {
+          "id": "guarded",
           "copies": 1
         },
         {
@@ -282,11 +448,7 @@
           "copies": 1
         },
         {
-          "id": "teren",
-          "copies": 1
-        },
-        {
-          "id": "meren",
+          "id": "oren",
           "copies": 1
         },
         {
@@ -302,6 +464,14 @@
           "copies": 1
         },
         {
+          "id": "teren",
+          "copies": 1
+        },
+        {
+          "id": "meren",
+          "copies": 1
+        },
+        {
           "id": "tovan-the-quartermaster",
           "copies": 1
         },
@@ -314,7 +484,11 @@
           "copies": 1
         },
         {
-          "id": "the-muster-was-false",
+          "id": "all-reserves-forward",
+          "copies": 1
+        },
+        {
+          "id": "the-line-wheeled",
           "copies": 1
         },
         {
@@ -326,7 +500,7 @@
           "copies": 1
         },
         {
-          "id": "the-line-had-begun-to-move",
+          "id": "there-was-no-road-back",
           "copies": 1
         },
         {
@@ -338,11 +512,7 @@
           "copies": 1
         },
         {
-          "id": "there-was-no-road-back",
-          "copies": 1
-        },
-        {
-          "id": "the-lines-held",
+          "id": "the-battle-had-chosen-them",
           "copies": 1
         },
         {
@@ -354,33 +524,29 @@
           "copies": 1
         },
         {
-          "id": "the-battle-had-chosen-them",
+          "id": "they-lived-to-tell-it",
           "copies": 1
-        },
-        {
-          "id": "the-wall-did-not-break",
-          "copies": 1
-        },
-        {
-          "id": "fresh-orders",
-          "copies": 2
         },
         {
           "id": "take-stock",
+          "copies": 1
+        },
+        {
+          "id": "re-form-the-line",
           "copies": 1
         }
       ]
     },
     {
-      "id": "tax-fork",
-      "title": "Pressure & Intelligence",
-      "playstyle": "Use Raiders, Skirmishers, Scouts and Archers to make several different kinds of pressure visible at once: taxes, suppression, prepared-card attacks and hidden-information leverage.",
-      "hypothesis": "Does denial stay interactive when the opponent is choosing among several small problems rather than repeatedly hitting one lock effect?",
+      "id": "blood-and-spoils",
+      "title": "Blood & Spoils",
+      "playstyle": "Combine persistent high-Strength Raiders with Archer Exhaustion, Skirmisher Shaken penalties, Command transfers and attachment raids.",
+      "hypothesis": "Can Exhaustion and Shaken turn into genuine Strength and Command advantages without leaving the deck unable to defend or finish a Front?",
       "combo_notes": [
-        "Iron Boars and Aradai attack future attachment costs, while Red Duelists and Ilyri care about the opposing formation directly across from them.",
-        "River Raiders turn existing Exhaustion into pressure instead of requiring a one-shot trigger; Seven Black Ships and Salt-Road Fleet give the Raider package other plans when nothing is Exhausted.",
-        "Thornbow Hunters, Lantern Scouts, Lysa and The Scouts Had Warned Them make hidden Stratagem information actionable.",
-        "Serai plus the Archer Narratives and A Volley Before Dawn creates a parallel Strength-control line, so the deck is not forced to win only through taxation."
+        "Crow Archers or The Baggage Was Abandoned Exhaust an enemy; The Unnamed Host + Shared the Spoils With can then transfer Command, while Brannoc or Black Company strips an attached component from the exhausted formation.",
+        "Red Duelists and Tala apply Shaken or -2 Strength at a contested Front; Iron Boars punish an exposed support rank with Depleted, enabling The Stores Were Taken to threaten a Bond.",
+        "Raider or Skirmisher affliction can activate The Trap Closed, returning an attached Bond/Name; All Reserves Forward and Seized the Standard of offer additional layer removal instead of relying on movement.",
+        "Rovan, Doros and Red Shields provide durable raw Strength, while Serai + Crow Archers + The Archers Were Ready gives an independent defensive counterattack and Strength line."
       ],
       "cards": [
         {
@@ -388,15 +554,7 @@
           "copies": 2
         },
         {
-          "id": "the-aradai",
-          "copies": 2
-        },
-        {
-          "id": "the-ilyri",
-          "copies": 2
-        },
-        {
-          "id": "the-river-raiders",
+          "id": "the-unnamed-host",
           "copies": 2
         },
         {
@@ -404,11 +562,31 @@
           "copies": 2
         },
         {
-          "id": "the-salt-road-fleet",
-          "copies": 1
+          "id": "the-black-company",
+          "copies": 2
+        },
+        {
+          "id": "the-aradai",
+          "copies": 2
+        },
+        {
+          "id": "the-river-raiders",
+          "copies": 2
         },
         {
           "id": "seven-black-ships",
+          "copies": 1
+        },
+        {
+          "id": "the-crow-archers",
+          "copies": 1
+        },
+        {
+          "id": "the-red-shields",
+          "copies": 1
+        },
+        {
+          "id": "the-salt-road-fleet",
           "copies": 1
         },
         {
@@ -416,47 +594,27 @@
           "copies": 1
         },
         {
-          "id": "the-lantern-scouts",
-          "copies": 1
-        },
-        {
-          "id": "the-watchtowers-of-eren",
-          "copies": 1
-        },
-        {
-          "id": "the-dust-riders",
-          "copies": 1
-        },
-        {
-          "id": "blocked-the-road-for",
+          "id": "shared-the-spoils-with",
           "copies": 2
         },
         {
           "id": "seized-the-standard-of",
+          "copies": 2
+        },
+        {
+          "id": "followed",
           "copies": 1
         },
         {
-          "id": "shared-the-spoils-with",
+          "id": "guarded",
           "copies": 1
         },
         {
-          "id": "watched-the-skies-for",
+          "id": "rallied-behind",
           "copies": 1
         },
         {
-          "id": "carried-messages-for",
-          "copies": 1
-        },
-        {
-          "id": "kept-pace-with",
-          "copies": 1
-        },
-        {
-          "id": "stood-fast-with",
-          "copies": 1
-        },
-        {
-          "id": "tala",
+          "id": "held-the-line-for",
           "copies": 1
         },
         {
@@ -464,11 +622,7 @@
           "copies": 1
         },
         {
-          "id": "lysa-the-listener",
-          "copies": 1
-        },
-        {
-          "id": "mara",
+          "id": "tala",
           "copies": 1
         },
         {
@@ -480,6 +634,14 @@
           "copies": 1
         },
         {
+          "id": "asha-the-shield-bearer",
+          "copies": 1
+        },
+        {
+          "id": "oren",
+          "copies": 1
+        },
+        {
           "id": "rovan-the-gatebreaker",
           "copies": 1
         },
@@ -488,7 +650,11 @@
           "copies": 1
         },
         {
-          "id": "veyra-keeper-of-oaths",
+          "id": "doros-the-last-spear",
+          "copies": 1
+        },
+        {
+          "id": "the-baggage-was-abandoned",
           "copies": 1
         },
         {
@@ -496,15 +662,11 @@
           "copies": 1
         },
         {
-          "id": "the-line-was-baited",
-          "copies": 1
-        },
-        {
           "id": "a-volley-before-dawn",
           "copies": 1
         },
         {
-          "id": "the-line-had-begun-to-move",
+          "id": "all-reserves-forward",
           "copies": 1
         },
         {
@@ -520,11 +682,7 @@
           "copies": 1
         },
         {
-          "id": "the-scouts-had-warned-them",
-          "copies": 1
-        },
-        {
-          "id": "no-road-was-too-long",
+          "id": "no-step-back",
           "copies": 1
         },
         {
@@ -536,201 +694,11 @@
           "copies": 1
         },
         {
-          "id": "every-bow-was-strung",
-          "copies": 1
-        },
-        {
-          "id": "send-a-runner",
-          "copies": 1
-        },
-        {
-          "id": "fresh-orders",
-          "copies": 1
-        },
-        {
-          "id": "take-stock",
-          "copies": 1
-        }
-      ]
-    },
-    {
-      "id": "protect-counter",
-      "title": "Hold & Counter",
-      "playstyle": "Build resilient columns, let the opponent commit into them, then turn Exhaustion, Reserve, protection and second-line support into the counter-push.",
-      "hypothesis": "Can a defensive deck remain active and positional when its payoff is rotating and reinforcing damaged lines rather than simply preventing interaction?",
-      "combo_notes": [
-        "Relief Column is Middle-only and lets the Force directly ahead Maneuver while Exhausted, so an Exhausted front line can still Maneuver rather than becoming fixed in place.",
-        "Old Guard, Held the Line For, First Spear and Supported By make the Middle/Rear formations matter to the line ahead.",
-        "Damar becomes dangerous after Exhaustion, while Relief Column, Maelin and Catch Your Breath offer different choices between exploiting Exhaustion and restoring mobility.",
-        "Serekh, Red Shields, Alda, Veyra and No Step Back create overlapping but non-identical protection, forcing timing decisions rather than one blanket shield."
-      ],
-      "cards": [
-        {
-          "id": "the-red-shields",
-          "copies": 2
-        },
-        {
-          "id": "the-old-guard",
-          "copies": 2
-        },
-        {
-          "id": "the-damar",
-          "copies": 2
-        },
-        {
-          "id": "the-serekh",
-          "copies": 1
-        },
-        {
-          "id": "the-black-company",
-          "copies": 1
-        },
-        {
-          "id": "a-hundred-shields",
-          "copies": 1
-        },
-        {
-          "id": "the-kings-spears",
-          "copies": 1
-        },
-        {
-          "id": "the-first-spear",
-          "copies": 1
-        },
-        {
-          "id": "the-white-hands-of-elara",
-          "copies": 1
-        },
-        {
-          "id": "the-relief-column",
-          "copies": 2
-        },
-        {
-          "id": "the-unnamed-host",
-          "copies": 1
-        },
-        {
-          "id": "the-crow-archers",
-          "copies": 1
-        },
-        {
-          "id": "guarded",
-          "copies": 1
-        },
-        {
-          "id": "held-the-line-for",
-          "copies": 1
-        },
-        {
-          "id": "endured-with",
-          "copies": 1
-        },
-        {
-          "id": "marched-beneath-the-banner-of",
-          "copies": 1
-        },
-        {
-          "id": "carried-the-oath-of",
-          "copies": 1
-        },
-        {
-          "id": "had-been-ordered-forward",
-          "copies": 1
-        },
-        {
-          "id": "kept-the-gate-for",
-          "copies": 1
-        },
-        {
-          "id": "supported-by",
-          "copies": 1
-        },
-        {
-          "id": "asha-the-shield-bearer",
-          "copies": 1
-        },
-        {
-          "id": "edrin",
-          "copies": 1
-        },
-        {
-          "id": "maelin",
-          "copies": 1
-        },
-        {
-          "id": "arel",
-          "copies": 1
-        },
-        {
-          "id": "oren",
-          "copies": 1
-        },
-        {
-          "id": "iria",
-          "copies": 1
-        },
-        {
-          "id": "alda-keeper-of-the-ford",
-          "copies": 1
-        },
-        {
-          "id": "doros-the-last-spear",
-          "copies": 1
-        },
-        {
-          "id": "veyra-keeper-of-oaths",
-          "copies": 1
-        },
-        {
-          "id": "the-baggage-was-abandoned",
-          "copies": 1
-        },
-        {
-          "id": "they-let-them-through",
-          "copies": 1
-        },
-        {
-          "id": "all-reserves-forward",
-          "copies": 1
-        },
-        {
-          "id": "the-line-wheeled",
-          "copies": 1
-        },
-        {
-          "id": "no-step-back",
-          "copies": 1
-        },
-        {
-          "id": "the-lines-held",
-          "copies": 1
-        },
-        {
-          "id": "the-ground-was-held",
-          "copies": 1
-        },
-        {
-          "id": "the-flank-was-refused",
-          "copies": 1
-        },
-        {
-          "id": "the-wall-did-not-break",
-          "copies": 1
-        },
-        {
-          "id": "they-lived-to-tell-it",
-          "copies": 1
-        },
-        {
           "id": "the-battle-had-chosen-them",
           "copies": 1
         },
         {
-          "id": "no-one-would-be-first-to-leave",
-          "copies": 1
-        },
-        {
-          "id": "bind-the-wound",
+          "id": "re-form-the-line",
           "copies": 1
         },
         {
@@ -738,7 +706,7 @@
           "copies": 1
         },
         {
-          "id": "re-form-the-line",
+          "id": "fresh-orders",
           "copies": 1
         }
       ]
