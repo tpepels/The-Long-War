@@ -11,7 +11,8 @@
           "text": "You may move another friendly formation in this Front one row toward its Frontline into an empty legal position."
         }
       ],
-      "design_note": "Immediate Frontline reinforcement."
+      "design_note": "Immediate Frontline reinforcement.",
+      "command_cost": 3
     },
     {
       "id": "the-crow-archers",
@@ -26,7 +27,8 @@
           "exposed": "ARCHER · May target Middle through gap"
         }
       ],
-      "design_note": "Archer entry boon lets one Attack ignore Guard screening; keeps special Middle targeting."
+      "design_note": "Archer entry boon lets one Attack ignore Guard screening; keeps special Middle targeting.",
+      "command_cost": 4
     },
     {
       "id": "the-ilyri",
@@ -37,7 +39,8 @@
           "text": "You may move this formation one position into an adjacent active empty position, if legal."
         }
       ],
-      "design_note": "Deployment tempo for reduced Strength."
+      "design_note": "Deployment tempo for reduced Strength.",
+      "command_cost": 3
     },
     {
       "id": "the-old-guard",
@@ -48,7 +51,8 @@
           "exposed": "Screens Rear even if Shaken; not Depleted"
         }
       ],
-      "design_note": "Screening resilience with Depleted counterplay."
+      "design_note": "Screening resilience with Depleted counterplay.",
+      "command_cost": 3
     },
     {
       "id": "the-kings-spears",
@@ -59,7 +63,8 @@
           "text": "If played into an empty Middle position, you may swap this formation with the friendly Frontline formation here, if both placements are legal."
         }
       ],
-      "design_note": "One-time frontline relief; still obey occupancy restrictions."
+      "design_note": "One-time frontline relief; still obey occupancy restrictions.",
+      "command_cost": 3
     },
     {
       "id": "the-ash-bowmen",
@@ -72,7 +77,8 @@
           "memory": []
         }
       ],
-      "design_note": "Wolf Skirmishers no longer depend on an Archer. Standardized phrasing; intended mechanics unchanged."
+      "design_note": "Wolf Skirmishers no longer depend on an Archer. Standardized phrasing; intended mechanics unchanged.",
+      "command_cost": 4
     },
     {
       "id": "blocked-the-road-for",
@@ -310,7 +316,8 @@
           "exposed": "May Maneuver while Exhausted"
         }
       ],
-      "design_note": "Retire the player-facing MOBILE and TIRELESS headers without altering movement permissions."
+      "design_note": "Retire the player-facing MOBILE and TIRELESS headers without altering movement permissions.",
+      "command_cost": 4
     },
     {
       "id": "the-first-spear",
@@ -323,7 +330,8 @@
           "text": "If you play this Force into Frontline, give the friendly Force directly behind it Guarded, if there is one."
         }
       ],
-      "design_note": "A committed Frontline spear protecting a supporting rank; 2C/4S Guard retains a tradeoff against unrestricted Red Shields."
+      "design_note": "A committed Frontline spear protecting a supporting rank; 2C/4S Guard retains a tradeoff against unrestricted Red Shields.",
+      "command_cost": 4
     },
     {
       "id": "the-iron-boars",
@@ -336,7 +344,8 @@
           "text": "If the opposing Frontline here is empty, choose an opposing Middle or Rear Force here and give it Depleted."
         }
       ],
-      "design_note": "Frontline-only breakthrough; only useful when a gap is already open, unlike persistent Command-stealing Reavers."
+      "design_note": "Frontline-only breakthrough; only useful when a gap is already open, unlike persistent Command-stealing Reavers.",
+      "command_cost": 5
     },
     {
       "id": "the-red-duelists",
@@ -349,7 +358,8 @@
           "text": "If an opposing Frontline Force is in this Front, give it Shaken."
         }
       ],
-      "design_note": "Frontline-only entry shock; different from unrestricted Rider/Skirmisher Dust Riders."
+      "design_note": "Frontline-only entry shock; different from unrestricted Rider/Skirmisher Dust Riders.",
+      "command_cost": 4
     },
     {
       "id": "no-one-would-be-first-to-leave",
@@ -468,7 +478,8 @@
           "exposed": "ACTION · 1/B · Look + sift any Front"
         }
       ],
-      "design_note": "Replace permanent global hidden-plan surveillance with a paid Action and one useful sift per Battle."
+      "design_note": "Replace permanent global hidden-plan surveillance with a paid Action and one useful sift per Battle.",
+      "command_cost": 3
     },
     {
       "id": "the-thornbow-hunters",
@@ -479,7 +490,8 @@
           "exposed": "REAR · Other Archers in this Front +1 Strength"
         }
       ],
-      "design_note": "Rear Archer/Scout promotes another Archer's persistent Front Strength rather than only inspecting hidden Stratagems. Requires a second Archer in the same Front."
+      "design_note": "Rear Archer/Scout promotes another Archer's persistent Front Strength rather than only inspecting hidden Stratagems. Requires a second Archer in the same Front.",
+      "command_cost": 4
     },
     {
       "id": "the-lantern-scouts",
@@ -491,7 +503,8 @@
           "exposed": "MIDDLE/REAR · New plan → peek+sift"
         }
       ],
-      "design_note": "Cheap local scouting provides card filtering, not repeatable omniscient inspection."
+      "design_note": "Cheap local scouting provides card filtering, not repeatable omniscient inspection.",
+      "command_cost": 3
     },
     {
       "id": "namar",
@@ -536,7 +549,8 @@
           "text": "Attach a prepared Bond or Name from here or an adjacent active Front to the formation directly ahead, if legal. If it becomes Named, it gets +2 Strength this Battle."
         }
       ],
-      "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
+      "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength.",
+      "command_cost": 3
     },
     {
       "id": "re-form-the-line",
@@ -563,7 +577,8 @@
       "id": "the-fifty-men",
       "strength_value": 5,
       "effects": [],
-      "design_note": "5 Strength at 2 Command and no ability: high per-position baseline versus specialist Guards/Raiders. Flag for playtest; no class/combat tricks."
+      "design_note": "5 Strength at 2 Command and no ability: high per-position baseline versus specialist Guards/Raiders. Flag for playtest; no class/combat tricks.",
+      "command_cost": 4
     },
     {
       "id": "stood-fast-with",
@@ -616,7 +631,8 @@
           "exposed": "ACTION · 1/B: attach up to 2 prepared; newly Named Guarded"
         }
       ],
-      "design_note": "Phase 3: a useful on-play attachment plus one major once-per-Battle two-layer commitment and Guarded completion reward."
+      "design_note": "Phase 3: a useful on-play attachment plus one major once-per-Battle two-layer commitment and Guarded completion reward.",
+      "command_cost": 4
     },
     {
       "id": "stayed-behind-for",
@@ -740,7 +756,8 @@
           "memory": []
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged."
+      "design_note": "Standardized phrasing; intended mechanics unchanged.",
+      "command_cost": 5
     },
     {
       "id": "seven-black-ships",
@@ -752,7 +769,8 @@
           "memory": []
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged."
+      "design_note": "Standardized phrasing; intended mechanics unchanged.",
+      "command_cost": 4
     },
     {
       "id": "the-salt-road-fleet",
@@ -764,7 +782,8 @@
           "memory": []
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged."
+      "design_note": "Standardized phrasing; intended mechanics unchanged.",
+      "command_cost": 3
     },
     {
       "id": "the-river-raiders",
@@ -777,7 +796,8 @@
           "memory": []
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged."
+      "design_note": "Standardized phrasing; intended mechanics unchanged.",
+      "command_cost": 4
     },
     {
       "id": "supplied-by",
@@ -852,7 +872,8 @@
           "memory": []
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+      "design_note": "Wording harmonization only; retain existing effect timing and costs.",
+      "command_cost": 4
     },
     {
       "id": "the-banner-singers",
@@ -865,7 +886,8 @@
           "memory": []
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+      "design_note": "Wording harmonization only; retain existing effect timing and costs.",
+      "command_cost": 3
     },
     {
       "id": "the-serekh",
@@ -878,7 +900,8 @@
           "memory": []
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+      "design_note": "Wording harmonization only; retain existing effect timing and costs.",
+      "command_cost": 3
     },
     {
       "id": "the-relief-column",
@@ -891,7 +914,8 @@
           "memory": []
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+      "design_note": "Wording harmonization only; retain existing effect timing and costs.",
+      "command_cost": 3
     },
     {
       "id": "the-signal-company",
@@ -904,7 +928,8 @@
           "memory": []
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+      "design_note": "Wording harmonization only; retain existing effect timing and costs.",
+      "command_cost": 3
     },
     {
       "id": "supported-by",
@@ -1026,11 +1051,6 @@
   ],
   "cost_adjustments": [
     {
-      "id": "the-black-company",
-      "command_cost": 3,
-      "reason": "4C body plus 1C Action made attachment raid unattractive."
-    },
-    {
       "id": "all-banners-forward",
       "command_cost": 1,
       "reason": "Stops only printed ACTION abilities on a King/Captain for current Battle."
@@ -1044,6 +1064,41 @@
       "id": "iven",
       "command_cost": 3,
       "reason": "4C Name needs several subsequent discounted Tactics to recover initial cost."
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "command_cost": 3,
+      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
+    },
+    {
+      "id": "the-dust-riders",
+      "command_cost": 3,
+      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
+    },
+    {
+      "id": "the-late-banner",
+      "command_cost": 3,
+      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
+    },
+    {
+      "id": "thirty-spears",
+      "command_cost": 2,
+      "reason": "Unadorned odd-Strength exception: no utility ability uses the half-point; preserve cheapest plain reinforcement."
+    },
+    {
+      "id": "a-hundred-shields",
+      "command_cost": 5,
+      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
+    },
+    {
+      "id": "the-vardai",
+      "command_cost": 3,
+      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
+    },
+    {
+      "id": "the-aradai",
+      "command_cost": 3,
+      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     }
   ],
   "hero_mode_wording": [

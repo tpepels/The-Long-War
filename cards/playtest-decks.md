@@ -1,5 +1,7 @@
 # Physical combo playtest decks
 
+**Force pricing (current):** Forces use 1 + ceil(Strength/2) Command plus an assessed 0–1 ability premium. The completely plain 3-Strength Thirty Spears instead costs 2, using its otherwise unused half-point as a discount. Deck Command totals below include the [Force pricing ledger](force-pricing.json); Bonds, Names, Tactics and other cards retain their previous prices. These are deck-wide card-cost sums, not simultaneous deployment requirements.
+
 **Six 48-card decks:** four repeatable core combinations and two supplementary archetype-coverage/combo exercises. All are **physical-print only**; the native/Webgame uses different rules. Together with the [four diagnostic decks](mechanic-coverage-decks.md), they represent **all 131 printed card identities**.
 
 The supplemental decks deliberately include more singletons to test uncommon cards. Do not confuse those with the four core decks, whose repeatable enablers are tuned for consistency. The enabler/payoff probabilities below describe **seeing at least one card from each specified group** after 10 or 20 draws from 48, not whether the combination can be legally played or win a Front.
@@ -10,7 +12,7 @@ Reliable leadership and permanent Strength: Captain/King formations amplify Bond
 
 **Test question:** With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?
 
-48 cards · 16 Forces · 27 titles · 12 one-copy titles · 80 total printed Command · 64 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 27 titles · 12 one-copy titles · 109 total printed Command · 64 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -65,7 +67,7 @@ Archer pressure reinforced by real Guard screening and repeatable conditional de
 
 **Test question:** Do repeated Archer/Guard packages win Fronts often enough to justify lower raw starting Strength and the limited Rear positions?
 
-48 cards · 16 Forces · 27 titles · 10 one-copy titles · 78 total printed Command · 50 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 27 titles · 10 one-copy titles · 107 total printed Command · 50 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -120,7 +122,7 @@ Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed
 
 **Test question:** Can repeated support Forces and prepared Bonds assemble multiple Named Formations without consuming more Actions than a direct Force deployment?
 
-48 cards · 16 Forces · 27 titles · 11 one-copy titles · 81 total printed Command · 53 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 27 titles · 11 one-copy titles · 105 total printed Command · 53 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -175,7 +177,7 @@ Exhaust or Deplete opposing Forces, then convert their negative conditions into 
 
 **Test question:** Can repeated Raiders and Shaken/Depleted enablers generate more sustainable Command and effective Strength than direct King/Captain stacking?
 
-48 cards · 17 Forces · 29 titles · 14 one-copy titles · 91 total printed Command · 67 sum printed Force Strength (not a Front total)
+48 cards · 17 Forces · 29 titles · 14 one-copy titles · 119 total printed Command · 67 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -232,7 +234,7 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 
 **Test question:** Can layered Guards and Healers recover the −1 Strength of old Exhaustion efficiently enough to hold a Front without depending on a single Hero?
 
-48 cards · 17 Forces · 35 titles · 25 one-copy titles · 69 total printed Command · 47 sum printed Force Strength (not a Front total)
+48 cards · 17 Forces · 35 titles · 25 one-copy titles · 91 total printed Command · 47 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -295,7 +297,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 
 **Test question:** Can a Scout/Skirmisher/Raider setup create meaningful Strength denial and attached-layer theft, or does plain Force Strength still win?
 
-48 cards · 18 Forces · 32 titles · 18 one-copy titles · 82 total printed Command · 57 sum printed Force Strength (not a Front total)
+48 cards · 18 Forces · 32 titles · 18 one-copy titles · 105 total printed Command · 57 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 

@@ -2,104 +2,75 @@
 
 **Status:** physical-print loss rule approved and implemented: **one chosen Exhausted Force per lost Front**. The raw-Strength and combo discussion is still a design audit, not measured win rates. The native/Webgame does not implement the complete physical rules.
 
-## Does playing only the biggest straightforward Forces win?
+## Force Command tariff (current physical cards)
 
-The [Raw Strength Control](mechanic-coverage-decks.md#raw-strength-control)
-uses the only four Force identities in its list, four copies each:
+All **33 physical Forces** now pay a fixed 1 Command for the core function
+of persistent Strength, occupying a rank and participating in combat. Their
+base is `1 + ceil(printed Strength / 2)`; a documented **0–1 Command
+ability premium** distinguishes a minor odd-Strength perk from a more
+substantial ability, including worthwhile even-Strength class effects.
+The individual decisions are in [force-pricing.json](force-pricing.json).
+This is **price balancing only**: Force Strength and printed abilities,
+Bonds, Names, Heroes and all other card types remain unchanged.
 
-| Force | Printed cost | Printed Strength | Printed special ability |
+| Printed Strength | Base Force cost | Typical price with meaningful ability |
+| ---: | ---: | ---: |
+| 2 | 2 | 3 |
+| 3 | 3 | 4 (for a strong ability) |
+| 4 | 3 | 4 |
+| 5 | 4 | 5 |
+| 6 | 4 | 5 |
+
+The current **Raw Strength Control** has four copies each of the following
+simple Forces:
+
+| Force | Current Command | Strength | Source of ability value |
 | --- | ---: | ---: | --- |
-| Thirty Spears | 1 | 3 | None |
-| The Fifty Men | 2 | 5 | None |
-| A Hundred Shields | 3 | 6 | None |
-| The Aradai | 2 | 3 | None; Raider classification still grants a basic Attack |
+| Thirty Spears | 2 | 3 | No special ability; unused half-point discount |
+| The Fifty Men | 4 | 5 | No special ability |
+| A Hundred Shields | 5 | 6 | Guard classification screens Rear from Middle |
+| The Aradai | 3 | 3 | Raider classification permits basic Attack |
 
-Those **16** Force cards sum to **68 Strength for 32 Command**, giving an
-arithmetic average of **4.25 printed Strength per Force play/Action** and
-**2.125 Strength per Command** across the Force subset. These totals are
-**not** expected Battle Strength: only deployed units count, each player
-has twelve battlefield positions after Front expansion, and draws,
-Command, active Fronts, restrictions and opponents limit deployment.
+The **16** Forces provide 68 printed Strength for **56 Command** in all
+(four copies of each); this is a whole-deck number, **not** the cost of
+deploying every Force in one Battle. Their average is 4.25 printed
+Strength per Force-play Action but only about **1.21 Strength per Force
+Command**, compared with 68 Strength for 32 Command before repricing.
 
-**A simple opening can be efficient:** three Thirty Spears, if drawn and
-legally placed, produce 9 persistent Strength for 3 Command, 3 Actions,
-and 3 occupied positions. A Hundred Shields offers 6 persistent Strength
-for 3 Command and only 1 Action/position. A Fifty Men offers 5 for 2.
+**Action efficiency still matters.** Three Thirty Spears provide
+9 persistent Strength for 6 Command and three Actions across three
+positions, while A Hundred Shields gives 6 Strength for 5 Command and
+one Action/position. A Fifty Men (5S, 4C) with Followed (+1S and +1S
+while Named, 1C) and a +1 Name (1C) produces **8 persistent Strength
+in one position for 6 Command and three card plays**. A Hundred
+Shields plus Thirty Spears produce **9 Strength in two positions for
+7 Command and two Actions**. The extra Action invested in a Named
+stack now saves Command, while its superior position density helps on
+a full board.
 
-**A Named combination improves density instead:** The Fifty Men (5,
-cost 2) + Followed (+1, cost 1) + a +1 Name (cost 1) triggers Followed's
-additional +1 while Named: **8 persistent Strength in one position for
-4 Command and 3 card-play Actions**. A Hundred Shields plus Thirty
-Spears offer 9 Strength for 4 Command and 2 Actions, **but occupy two
-positions**. Early empty slots may favor plain bodies; late saturated
-Fronts may favor attachments, protection and precise denial.
+The new tariff deliberately changes the economics, **not** the
+two-Action turn limit. At 20 starting Command, four 5C Forces could
+spend the entire reserve even before Bonds or Tactics. Early Command
+recovery is 12/9 but falls to 3 then 1; heavier Force prices may
+therefore make late deployment difficult or amplify a Command
+disadvantage. Check this before adding any other systemic bonuses.
 
-The strongest plain-Force decks might dominate if early Battles are
-mostly decided before Named combinations assemble, or if repeated +1
-effects and information/movement tools fail to change Front results.
-Conversely, a big unit without Guarded, recovery or tactical
-protection may suffer −2 Shaken, −1 Exhausted and attachment/condition
-pressure. **Neither outcome is proven.**
+### What to measure next
 
-### Acceptance test (physical, mirrored)
+Compare the Raw Strength Control against **all six combo/supplementary
+decks** with mirrored openings and starting player. Record paid
+Command and Actions per deployed persistent Strength, early legal
+play counts, stranded Forces in hand, rank saturation, Named
+completions, temporary/positional effects that flipped Fronts,
+Command after every recovery, and late-Battle recovery opportunities.
+Use actual physical game results; these static prices do not prove
+win rates.
 
-Compare the Raw Strength Control against **each of the six combo decks**
-with same opening card deals as far as practical, mirrored starting player,
-and a record of cards seen/drawn, Commands and Actions spent, each Front's
-before/after Strength, and winners of individual Fronts. Track:
-
-1. Strength added **per played Action**, per Command, and per occupied slot
-   for both sides. Distinguish permanent from Battle-only Strength.
-2. Percent of Battles where each deck's declared enabler/payoff package
-   was not merely in hand but *legally and usefully activated*.
-3. Board saturation, unplayable late Force draws, used Attacks, harmful
-   markers, recovery and Stratagem opportunities that never triggered.
-4. Win/Collapse rate over mirrored games, with confidence intervals,
-   not impressions from 2–3 games.
-
-If raw Strength repeatedly dominates, first strengthen **decisions and
-reliable payoffs** in the losing deck, or improve counterplay. Do not just
-inflate all costs or add another keyword without knowing the cause.
-
-## Keeping simple high-Strength Forces from dominating without Attack/Defence stats
-
-**These are noncanonical balance experiments**. We should not introduce an
-Attack and Defence number for every card before establishing whether the
-existing Strength, ranks, Guard screening, basic Attacks and named-layer
-interactions can create enough distinct strategic value.
-
-| Candidate | One-line rule or adjustment | Benefit | Main risk |
-| --- | --- | --- | --- |
-| **A — Named formation bonus** | Every completed Named Formation gets **+1 persistent Strength** while Named; test +2 separately | Rewards investing an extra Action and occupying just one position | High-Strength plain bodies may become the best chassis for Names; increases runaway persistent Strength |
-| **B — improved specialist Force abilities** | Selectively replace weak Move/peek effects with useful Guarded, Exhausted, Shaken, attached-card interaction or +Strength conditional on position | Encourages a specialist even at 2–3 less raw Strength, with meaningful counterplay | Ability text density, and some specialists may become efficient regardless of setup |
-| **C — adjust over-efficient vanilla bodies** | Test The Fifty Men at **5 Strength / 3 Command** rather than 5 / 2; leave its one-Action Strength unchanged | Reduces cost efficiency without adding a stat | Command frequently recovers early; does not address Force-play Action advantage |
-| **D — speed up assembly (experimental)** | Allow one Bond to be played together with a Force for the same Action, still paying both Command costs | Lets formations compete with extra Force plays in the first two Battles | Changes Action economy widely and may strengthen large vanilla Forces even more |
-
-**Suggested order:** First benchmark the **current** Raw Strength Control
-against the four core decks with mirrored deals. If it dominates, test
-*A at +1* and *B through targeted card changes* **separately**. Only if
-those fail should we consider a cost change or the much more disruptive
-one-Action Bond attachment. Do not apply A/B/C/D simultaneously. Pay
-attention to the fact that the biggest Force also benefits from a Named
-bonus: the goal is **meaningful strategic decisions** and worthwhile
-classifications, not simply making the largest number even larger.
-
-### One concrete Action-equivalence example
-
-Current printed cards: The Fifty Men (5 Strength, 2 Command), Followed
-(+1 Strength and another +1 when Named, 1 Command), and an eligible
-+1 Name (often 1 Command). In three plays the resulting formation has
-**8 permanent Strength in one position for 4 Command**. Add candidate A:
-with +1 universal Named, it would have 9; with +2, it would have 10.
-In comparison A Hundred Shields (6 Strength, 3 Command) plus Thirty
-Spears (3 Strength, 1 Command) supplies **9 Strength in two positions
-for 4 Command and only two Actions**. Which is preferable depends on
-Front occupancy, access to Named-completion triggers, Attack screening
-and the cost of another Force in hand.
-
-This contrast is why Attack/Defence is not the first required mechanism.
-First establish whether the **third Action** spent building a Name
-produces a fair, lasting payoff or a hard tactical choice.
+**Do not simultaneously add Attack/Defence statistics, a blanket
+Named Strength bonus, faster Bond attachment, or blanket recovery.
+Those are separate design experiments.** If simple bodies still
+dominate, first inspect whether specialist decisions reliably win
+Fronts and whether the new costs create unplayable hands.
 
 ## The updated loss rule reduces the attrition feedback loop
 
