@@ -1407,6 +1407,40 @@ EXPOSED TOP ROW - TUNING PANEL
   font-variant-numeric: lining-nums;
 }
 
+/* One physical Hero has two mutually exclusive prices, not a blended price.
+   The existing Command seal carries both, while the two rule-panel headings
+   spell out which price to pay. Keep these values configurable for print. */
+.cost-gem-hero {
+  padding-bottom: 0;
+}
+.hero-cost-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15mm;
+  line-height: 1;
+}
+.hero-cost-stack > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45mm;
+}
+.hero-cost-stack small {
+  font: 700 1.85mm/1 var(--card-label-font-family);
+  text-transform: uppercase;
+}
+.cost-gem .hero-cost-stack b {
+  font: 700 3mm/1 var(--card-cost-font-family);
+}
+.card-hero .mode-command-cost {
+  margin-left: 0.7mm;
+  font-size: var(--card-hero-mode-heading-font-size);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* Give the prose room before reducing its type size. */
 .dense,
 .very-dense {
