@@ -91,7 +91,7 @@ def check() -> None:
         )
         for effect in effects:
             if (effect["timing"] == "action"
-                    and re.search(r"\\+\\d+ Strength this Battle", effect["text"])
+                    and re.search(r"\+\d+ Strength this Battle", effect["text"])
                     and "Pay " not in effect["text"]):
                 assert effect.get("limit") == "once_per_battle", card["id"]
 
