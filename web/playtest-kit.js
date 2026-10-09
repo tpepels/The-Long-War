@@ -46,7 +46,8 @@ async function main(){
   if(reference){
     const rows=[
       ["TURN / PASS","Before drawing, either Pass (whole turn, no draw) or draw 1 and take up to 2 Actions: play, ACTION, Maneuver, Attack, Cycle. After Pass: opponent full turn, passer full turn, resolve."],
-      ["STRENGTH","Force plus Bond and Name modifiers plus effects, minimum 0 per formation. Sum across all 3 ranks in each Front. Attached Name classifications combine with Force classes."],
+      ["OPENING ORDERS","Secretly choose two orders per player, 1 then 2 (duplicates allowed): Maneuver one formation even if Unnamed, free; Commit 1 Command for +2 to an active occupied Front's total Strength; Strike with an unused basic Attack; or Hold. Reveal together: Commit, then numbered Maneuvers, then numbered Strikes. Battle I after each player's first turn unless Pass already began; later Battles before turns."],
+      ["STRENGTH","Force plus Bond and Name modifiers plus effects, minimum 0 per formation. Sum across all 3 ranks in each Front, plus its Commit bonus while occupied. Attached Name classifications combine with Force classes."],
       ["STACKING","Force below Bond below Name, exposing the buried 10.5 mm strips. PLAY resolves when played; BECOMES NAMED can retrigger after rebuilding."],
       ["PREPARED","Compatible prepared layers attach to legal formations. PLAY resolves when prepared, never replays on later attachment; House of Reed and Field Train reward completing Named formations."],
       ["MANEUVER","One Action and 1 Command; Named formation moves one orthogonally adjacent active position, or swaps with another friendly formation. Exhausted cannot initiate unless exempt."],
@@ -63,7 +64,7 @@ async function main(){
       ["HERO","Choose Force or Name when playing a Hero and pay the price printed for that mode. Only that mode contributes Strength and effects; a prepared Hero Name costs its Name price. Limit one Hero as Force and one as Name from hand per Battle."],
       ["NARRATIVE","Up to 4 face-up per player; all last through the current Battle, then discard."],
       ["STRATAGEM","Assign an active Front publicly; identity hidden. Reveal on an eligible trigger. One pre-comparison simultaneous window; a tie or one-point deficit must exist before reveals, not arise during them."],
-      ["RESOLUTION","Compare Fronts; lose 1 Command per lost Front, then check Collapse. The loser chooses one Force per lost Front to Exhaust next Battle; Guarded on it prevents this. Clear old effects, apply new Exhaustion, then recover."],
+      ["RESOLUTION","Compare Fronts; lose Command equal to the Strength difference in each lost Front, then check Collapse. The loser chooses one Force per lost Front to Exhaust next Battle; Guarded on it prevents this. Clear old effects, apply new Exhaustion, then recover."],
     ].filter(([,value])=>value);
     reference.innerHTML='<h1>Card mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
