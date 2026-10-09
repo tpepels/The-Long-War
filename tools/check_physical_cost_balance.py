@@ -382,14 +382,14 @@ def run() -> None:
                  for e in cards["the-house-of-reed"]["effects"]),
          "One-shot attachment and a guarded two-layer once-per-Battle Action")
 
-    case("P3: Field Train rewards legal cross-Front completion",
+    case("P3: Field Train plays a card from hand without another Action",
          row("the-field-train") == ["middle"]
          and cost("the-field-train") == 3
-         and has("the-field-train", "adjacent active Front",
-                 "directly ahead", "becomes Named",
-                 "+2 Strength this Battle")
+         and has("the-field-train", "from hand", "adjacent active Front",
+                 "paying its Command cost", "without another Action",
+                 "becomes Named", "Guarded")
          and cards["the-field-train"]["effects"][0]["timing"] == "play",
-         "Cross-Front delivery yields +2 only when completing Named")
+         "Cross-Front Bond/Name play saves an Action, not its Command cost")
 
     case("P3: Swore Again To works prepared but rewards immediate completion",
          cost("swore-again-to") == 1
