@@ -1227,7 +1227,9 @@ EXPOSED TOP ROW - TUNING PANEL
   display: inline-flex;
   align-items: baseline;
   gap: 0.13em;
-  vertical-align: -0.12em;
+  /* Align the label to the surrounding text baseline instead of dropping
+     every iconized class name below the rest of the sentence. */
+  vertical-align: baseline;
   white-space: nowrap;
   max-width: 100%;
 }
