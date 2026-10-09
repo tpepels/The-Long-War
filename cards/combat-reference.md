@@ -4,11 +4,11 @@
 
 ## Turn and Pass
 
-Before drawing, either **Pass** (a complete turn with no draw and no Actions) or draw **1** and take up to **2 Actions**: play a card, use a printed ACTION ability, Maneuver (1 Command), Attack, or cycle two cards into one. Passing voluntarily starts exactly two closing turns: opponent (draw, up to 2 Actions), then passer (draw, up to 2 Actions), then Battle resolution.
+Before drawing, either **Pass** (a complete turn with no draw and no Actions) or draw **1** and take up to **2 Actions**: play a card, use a printed ACTION ability, Maneuver (1 Command), Attack, or cycle two cards into one. Passing voluntarily starts exactly two closing turns: opponent (draw, up to 2 Actions), then passer (draw, up to 2 Actions), then two secret Opening Orders per player, then Stratagems and Front resolution.
 
 ## Opening Orders
 
-Both players secretly choose **two orders** (same type allowed), number them 1–2, then reveal all together. **Maneuver:** one legal Maneuver, even if Unnamed, free of Action/Command (Exhausted cannot initiate). **Commit:** pay 1 Command for +2 to an occupied active Front's **total** Strength this Battle (not a Force); bonus remains only while a friendly Force is there. **Strike:** make an unused legal basic Attack after Maneuvers; it uses the normal Attack allowance. **Hold:** nothing. Pay Commits, resolve Maneuvers then Strikes, each numbered 1 before 2 and corresponding opposing steps simultaneously. Repeat orders are allowed. Battle I: after both players' first turns, unless someone already Passed; later Battles: before the first turn.
+Both players secretly choose **two orders** (same type allowed), number them 1–2, then reveal all together. **Maneuver:** one legal Maneuver, even if Unnamed, free of Action/Command (Exhausted cannot initiate). **Commit:** pay 1 Command for +2 to an occupied active Front's **total** Strength this Battle (not a Force); bonus remains only while a friendly Force is there. **Strike:** make an unused legal basic Attack after Maneuvers; it uses the normal Attack allowance. **Hold:** nothing. Pay Commits, resolve Maneuvers then Strikes, each numbered 1 before 2 and corresponding opposing steps simultaneously. Repeat orders are allowed. In every Battle, including Battle I: after the first Pass and two closing turns, before Stratagem reveals and Front comparison.
 
 ## Formation Strength and classifications
 
