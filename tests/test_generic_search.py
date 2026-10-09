@@ -157,3 +157,84 @@ def test_algorithm_sources_do_not_encode_long_war_rules() -> None:
     for name in ("_alpha_beta_core.pxi", "_mccfr_core.pxi", "_ismcts_core.pxi"):
         source = (root / "src" / "longwar" / name).read_text()
         assert "_fe_" not in source, name
+
+
+@dataclass
+class CoinState:
+    stage: int = 0
+    first_choice: str | None = None
+    actor: int = 0
+    turns: int = 0
+    payoff: float = 0.0
+
+    def clone(self):
+        return CoinState(
+            self.stage, self.first_choice, self.actor,
+            self.turns, self.payoff
+        )
+
+    def copy_from(self, other):
+        self.stage = other.stage
+        self.first_choice = other.first_choice
+        self.actor = other.actor
+        self.turns = other.turns
+        self.payoff = other.payoff
+
+
+class HiddenMatchingPennies(ToyGame):
+    """Known zero-sum equilibrium: both players choose H with probability 1/2.
+
+    Player 1 never observes player 0's coin, despite the sequential engine
+    storing it in the determinized state.
+    """
+
+    def is_terminal(self, state):
+        return state.stage == 2
+
+    def legal_actions(self, state):
+        return [] if self.is_terminal(state) else ["H", "T"]
+
+    def apply(self, state, action):
+        if state.stage == 0:
+            state.first_choice = action
+            state.actor = 1
+            state.stage = 1
+        elif state.stage == 1:
+            state.payoff = 1.0 if action == state.first_choice else -1.0
+            state.actor = 0
+            state.stage = 2
+        else:
+            raise AssertionError("terminal action")
+        state.turns += 1
+
+    def state_key(self, state):
+        return (state.stage, state.actor, state.first_choice, state.payoff)
+
+    def information_set_id(self, state, player):
+        return (player, state.stage)
+
+
+def test_hidden_observation_does_not_leak_opponent_choice() -> None:
+    game = HiddenMatchingPennies()
+    heads = CoinState(stage=1, first_choice="H", actor=1)
+    tails = CoinState(stage=1, first_choice="T", actor=1)
+    assert game.state_key(heads) != game.state_key(tails)
+    assert game.information_set_id(heads, 1) == game.information_set_id(tails, 1)
+
+
+def test_generic_mccfr_learns_known_matching_pennies_equilibrium() -> None:
+    game = HiddenMatchingPennies()
+    nodes = {}
+    rng = random.Random(20261009)
+    for _ in range(6000):
+        for traverser in (0, 1):
+            traverse_game(
+                game, CoinState(), traverser, depth=0, max_turn_depth=2,
+                nodes=nodes, rng=rng,
+                frontier_value=lambda state, player: game.evaluate(state, player),
+            )
+    assert set(nodes) == {(0, 0), (1, 1)}
+    for node in nodes.values():
+        strategy = node.average_strategy(["H", "T"])
+        assert sum(strategy.values()) == pytest.approx(1.0)
+        assert abs(strategy["H"] - 0.5) < 0.20
