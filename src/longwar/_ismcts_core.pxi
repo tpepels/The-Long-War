@@ -501,11 +501,8 @@ cdef uint64_t _ismcts_rollout_action(
     # safety filter is limited to actions that immediately finish the final
     # closing turn and resolve the war as a loss.
     for i in range(n):
-        if not evaluator.rollout_action_exhausts_command_fast(
-            state,
-            actor,
-            actions[i],
-            score_scratch,
+        if not _sg_rollout_reject_action(
+            evaluator, state, actor, actions[i], score_scratch
         ):
             safe_indices[safe_n] = i
             safe_n += 1
@@ -542,11 +539,7 @@ cdef uint64_t _ismcts_rollout_action(
             weights[i] = 0.0
         for pick in range(safe_n):
             i = safe_indices[pick]
-            weights[i] = evaluator.rollout_prior_fast(
-                state,
-                actor,
-                actions[i],
-            )
+            weights[i] = _sg_rollout_prior(evaluator, state, actor, actions[i])
             if weights[i] < ISMCTS_MIN_ROLLOUT_WEIGHT:
                 weights[i] = ISMCTS_MIN_ROLLOUT_WEIGHT
             total += weights[i]
@@ -561,12 +554,7 @@ cdef uint64_t _ismcts_rollout_action(
     best_ix = safe_indices[0]
     for pick in range(safe_n):
         i = safe_indices[pick]
-        value = evaluator.action_order_score_fast(
-            state,
-            actor,
-            actions[i],
-            score_scratch,
-        )
+        value = _sg_order_score(evaluator, state, actor, actions[i], score_scratch)
         if value > best:
             best = value
             best_ix = i
@@ -785,7 +773,7 @@ def ismcts_search(
             action = tree.nodes[node_index].edges[ix].action
             path_nodes[path_length] = node_index
             path_indices[path_length] = <uint16_t>ix
-            action_battle = _sg_battle(state)
+            action_battle = _sg_round_epoch(state)
             action_turn = _sg_turn_serial(state)
             action_count_before = _sg_actions_in_turn(state)
             action_kind_code = _sg_action_kind(action)
@@ -801,7 +789,7 @@ def ismcts_search(
                 tree_turn_depth += 1
             if (
                 not _sg_terminal(state)
-                and _sg_battle(state) != action_battle
+                and _sg_round_epoch(state) != action_battle
             ):
                 rollout_boundary = True
 
@@ -816,7 +804,7 @@ def ismcts_search(
         rollout_steps = 0
         rollout_post_battle_steps = 0
         rollout_raw_steps = 0
-        rollout_battle = _sg_battle(state)
+        rollout_battle = _sg_round_epoch(state)
         rollout_in_post_battle = False
 
         # If tree expansion itself just crossed a Battle boundary, use the
@@ -876,7 +864,7 @@ def ismcts_search(
                     rollout_steps += 1
             if (
                 not _sg_terminal(state)
-                and _sg_battle(state) != rollout_battle
+                and _sg_round_epoch(state) != rollout_battle
             ):
                 if rollout_in_post_battle or post_battle_rollout_depth <= 0:
                     rollout_boundary = True
@@ -886,30 +874,18 @@ def ismcts_search(
                 # formations, fresh draws and actual next-Battle options.
                 rollout_in_post_battle = True
                 rollout_battle_continuations += 1
-                rollout_battle = _sg_battle(state)
+                rollout_battle = _sg_round_epoch(state)
                 rollout_post_battle_steps = 0
 
         if _sg_terminal(state):
             rollouts_stopped_terminal += 1
-            if _sg_winner(state) < 0:
-                utility = 0.0
-            else:
-                utility = 1.0 if _sg_winner(state) == root_player else -1.0
+            utility = _sg_terminal_reward(state, root_player)
         elif rollout_boundary:
             rollouts_stopped_battle_boundary += 1
-            utility = tanh(
-                evaluator.battle_boundary_evaluate_fast(
-                    state,
-                    root_player,
-                )
-                / leaf_scale
-            )
+            utility = _sg_boundary_value(evaluator, state, root_player, leaf_scale)
         else:
             rollouts_stopped_depth += 1
-            utility = tanh(
-                evaluator.strategic_evaluate_fast(state, root_player)
-                / leaf_scale
-            )
+            utility = _sg_rollout_value(evaluator, state, root_player, leaf_scale)
 
         for i in range(path_length):
             node_index = path_nodes[i]
