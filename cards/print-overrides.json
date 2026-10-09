@@ -187,7 +187,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if you have a Named Formation here and your opponent has none, reveal if tied or behind by exactly 1 Strength. If tied, win if still tied after other reveals. If behind by 1, give one of your Named Formations here +2 Strength this Battle."
+          "text": "At resolution, if only you have a Named Formation here: on a tie, win if still tied after reveals; if behind by 1, give one of your Named Formations here +2 Strength this Battle."
         }
       ],
       "design_note": "Close Fronts matter, including a one-point loss. Eligibility is checked only once against the pre-reveal totals."
@@ -402,7 +402,7 @@
         },
         {
           "timing": "continuous",
-          "text": "When you play a Tactic targeting a card or formation in a Front containing your Raider or Skirmisher, it costs 1 less Command (minimum 0). Afterward, you may Move one of your Raiders or Skirmishers there one legal position."
+          "text": "When you play a Tactic targeting a card or formation in a Front containing your Raider or Skirmisher, it costs 1 less Command (minimum 0). Afterward, you may Move one of your Raiders or Skirmishers there once."
         }
       ],
       "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
@@ -531,7 +531,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Attach a prepared Bond or Name from this or an adjacent active Front to the friendly formation directly ahead, if legal. If this completes a Named Formation, it gets +2 Strength this Battle."
+          "text": "Attach a prepared Bond or Name from this or an adjacent active Front to the friendly formation directly ahead, if legal. If the attachment completes a Named Formation, it gets +2 Strength this Battle."
         }
       ],
       "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
@@ -541,7 +541,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a Front with one of your Captains. Either swap two adjacent friendly formations there, if legal, or discard one friendly Force there with its attached Bond and Name to regain 2 Command."
+          "text": "In a Front containing your Captain, either swap two adjacent friendly formations (if legal) or discard one friendly Force there with its Bond and Name to regain 2 Command."
         }
       ],
       "design_note": "Explicit sacrifice releases one persistent position for an Action, at the cost of Force Strength and attached layers."
@@ -551,7 +551,7 @@
       "effects": [
         {
           "timing": "reaction",
-          "text": "When your opponent sets a Stratagem in a Front containing your Scout or Ship, or an adjacent active Front, look at it. Give one friendly formation in that Stratagem's Front +2 Strength this Battle, if any.",
+          "text": "When an opponent sets a Stratagem in or adjacent to a Front containing your Scout or Ship, look at it. Give one friendly formation in the Stratagem's Front +2 Strength this Battle, if any.",
           "limit": "once_per_battle"
         }
       ],
@@ -672,7 +672,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Exchange all your cards in two adjacent active Fronts, rank for rank, if both placements remain legal. Prepared layers and markers travel with their positions. Then give one Named Formation moved this way +2 Strength this Battle, if any."
+          "text": "Exchange your battlefield cards in two adjacent active Fronts rank for rank, if every placement is legal. Move attached layers and markers with their Force. Give one moved Named Formation +2 Strength this Battle."
         }
       ],
       "design_note": "Strange full-Front transformation resolves on PLAY rather than requiring another ACTION; rank restrictions respected, +2 rewards committed Named stacks."
@@ -812,6 +812,106 @@
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "the-red-shields",
+      "effects": [
+        {
+          "timing": "front",
+          "text": "While in Frontline, opposing Tactics targeting this formation cost 1 additional Command.",
+          "exposed": "FRONT · Opposing Tactics targeting this +1 Command"
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "the-banner-singers",
+      "effects": [
+        {
+          "timing": "while_named",
+          "text": "While Named in Middle, opposing Tactics targeting another friendly formation in this Front cost 1 additional Command.",
+          "exposed": "NAMED MIDDLE · Tactics vs others here cost +1"
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "the-serekh",
+      "effects": [
+        {
+          "timing": "front",
+          "text": "While in Frontline, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+          "exposed": "FRONT · Opposing Tactics vs friendly behind +1"
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "the-relief-column",
+      "effects": [
+        {
+          "timing": "middle",
+          "text": "While in Middle, the friendly Force directly ahead may Maneuver while Exhausted.",
+          "exposed": "MIDDLE · Force ahead Maneuvers while Exhausted"
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "the-signal-company",
+      "effects": [
+        {
+          "timing": "middle",
+          "text": "While in Middle, the friendly Force directly ahead may Maneuver without being Named.",
+          "exposed": "MIDDLE · Force ahead Maneuvers while Unnamed"
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "supported-by",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While this formation is Bonded in Middle, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+          "exposed": "BONDED MIDDLE · Tactics vs friendly behind cost +1"
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "eira",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "If you control another Named Human formation, draw 2 cards."
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "corin-of-the-high-wall",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Choose an opposing formation in this Front. It gets −1 Strength this Battle."
+        },
+        {
+          "timing": "continuous",
+          "text": "Other friendly Archers in this Front have +1 Strength."
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "send-a-runner",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Scouts in Rear. Draw 2 cards, then discard 1 card."
+        }
+      ],
+      "design_note": "Wording harmonization only; retain existing effect timing and costs."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -820,11 +920,6 @@
       "id": "the-white-hands-of-elara",
       "index": 0,
       "exposed": "ACTION: remove 1 negative marker directly ahead"
-    },
-    {
-      "id": "the-red-shields",
-      "index": 0,
-      "exposed": "Front: enemy Tactics targeting this +1 Command"
     },
     {
       "id": "the-dust-riders",
@@ -842,29 +937,9 @@
       "exposed": "Bonded: Name costs -1 (min 1) here"
     },
     {
-      "id": "the-banner-singers",
-      "index": 0,
-      "exposed": "Named Middle: enemy Tactics vs others here cost +1"
-    },
-    {
       "id": "the-vardai",
       "index": 0,
       "exposed": "ACTION: pay 1; move self one adjacent empty position"
-    },
-    {
-      "id": "the-serekh",
-      "index": 0,
-      "exposed": "Front: enemy Tactics vs friend behind cost +1"
-    },
-    {
-      "id": "the-relief-column",
-      "index": 0,
-      "exposed": "Middle: ahead may Maneuver while Exhausted"
-    },
-    {
-      "id": "the-signal-company",
-      "index": 0,
-      "exposed": "Middle: ahead may Maneuver without Name"
     },
     {
       "id": "followed",
@@ -895,11 +970,6 @@
       "id": "kept-the-gate-for",
       "index": 0,
       "exposed": "Bonded: behind may Maneuver while Exhausted"
-    },
-    {
-      "id": "supported-by",
-      "index": 0,
-      "exposed": "Bonded Middle: enemy Tactics vs behind cost +1"
     }
   ],
   "cost_adjustments": [
