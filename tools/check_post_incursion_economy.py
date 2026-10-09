@@ -41,20 +41,16 @@ def main() -> None:
         tariff = 1 + (strength + 1) // 2
         premium = p["premium"]
         credit = p.get("unused_half_point_credit", 0)
-        assert premium in (0, 1) and credit in (0, 1)
+        assert premium in (0, 1) and credit == 0
         assert force["command_cost"] == tariff + premium - credit, (cid, strength, force["command_cost"], tariff, premium, credit)
-        assert force["command_cost"] >= 2, cid
+        assert force["command_cost"] >= 3, cid
         if premium:
             ability_premiums.append(cid)
         if strength % 2:
             odd.append(cid)
-            # On the rounded-up step, a useful printed ability, Guard/
-            # combat classification, or an explicit price credit must
-            # compensate for the unused half point. In the existing
-            # pool we require *an ability* unless explicitly credited.
-            assert force["effects"] or credit, (cid, "odd Strength with no compensation")
-            if not premium:
-                assert (credit == 1 or len(force["effects"]) >= 1), cid
+            # On the rounded-up step, every odd Force has a useful
+            # printed effect, never a below-baseline price credit.
+            assert force["effects"] and credit == 0, (cid, "odd Strength without an ability")
         if credit:
             discount.append(cid)
         if cid in COSTLY_FREE_ATTACK:
