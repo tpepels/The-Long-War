@@ -86,3 +86,71 @@ cdef inline bytes _sg_information_key(
     FastEngine game, FastState state, int actor
 ):
     return _fe_information_key_fast(game, state, actor)
+
+
+# Game-specific policy hooks. Algorithm kernels receive scalar scores and
+# do not reason about Command economy or frontline/battle-strength details.
+cdef inline double _sg_order_score(
+    NativeHeuristicEvaluator evaluator, FastState state,
+    int player, uint64_t action, FastState scratch
+):
+    return evaluator.action_order_score_fast(state, player, action, scratch)
+
+
+cdef inline double _sg_rollout_prior(
+    NativeHeuristicEvaluator evaluator, FastState state,
+    int player, uint64_t action
+):
+    return evaluator.rollout_prior_fast(state, player, action)
+
+
+cdef inline bint _sg_rollout_reject_action(
+    NativeHeuristicEvaluator evaluator, FastState state,
+    int player, uint64_t action, FastState scratch
+):
+    return evaluator.rollout_action_exhausts_command_fast(
+        state, player, action, scratch
+    )
+
+
+cdef inline double _sg_strategic_value(
+    NativeHeuristicEvaluator evaluator, FastState state, int player
+):
+    return evaluator.strategic_evaluate_fast(state, player)
+
+
+cdef inline double _sg_leaf_value(
+    NativeHeuristicEvaluator evaluator, FastState state,
+    int player, double leaf_scale
+):
+    return tanh(evaluator.evaluate_fast(state, player) / leaf_scale)
+
+
+cdef inline double _sg_boundary_value(
+    NativeHeuristicEvaluator evaluator, FastState state,
+    int player, double leaf_scale
+):
+    return tanh(
+        evaluator.battle_boundary_evaluate_fast(state, player) / leaf_scale
+    )
+
+
+cdef inline double _sg_rollout_value(
+    NativeHeuristicEvaluator evaluator, FastState state,
+    int player, double leaf_scale
+):
+    return tanh(
+        evaluator.strategic_evaluate_fast(state, player) / leaf_scale
+    )
+
+
+cdef inline double _sg_terminal_reward(FastState state, int player) noexcept:
+    if state.winner < 0:
+        return 0.0
+    return 1.0 if state.winner == player else -1.0
+
+
+cdef inline int _sg_round_epoch(FastState state) noexcept:
+    # An epoch separates completed resolving segments; this implementation
+    # uses Battles, but the algorithms never need to inspect their rules.
+    return state.battle
