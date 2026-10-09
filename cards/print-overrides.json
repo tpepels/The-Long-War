@@ -11,8 +11,8 @@
           "text": "Move another friendly formation one row toward Frontline here, if legal. If that Move makes a basic Attack newly legal, it may Attack without another Action."
         }
       ],
-      "design_note": "Captain-style coordinated advance: move an ally forward and allow only a newly enabled basic Attack. No general Maneuver-then-Attack rule.",
-      "command_cost": 3
+      "design_note": "4C includes +1 premium: immediate allied Move and newly enabled free Attack is a substantial two-part coordination ability, unlike 3C minor odd-Strength bonuses.",
+      "command_cost": 4
     },
     {
       "id": "the-crow-archers",
@@ -571,8 +571,13 @@
     {
       "id": "the-fifty-men",
       "strength_value": 5,
-      "effects": [],
-      "design_note": "5 Strength at 2 Command and no ability: high per-position baseline versus specialist Guards/Raiders. Flag for playtest; no class/combat tricks.",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If another friendly Human is here, this Force gets +1 Strength this Battle."
+        }
+      ],
+      "design_note": "Odd 5 Strength has unused half-step; temporary +1 in an occupied friendly Front supplies modest conditional compensation without premium.",
       "command_cost": 4
     },
     {
@@ -664,10 +669,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If you control a Raider or Skirmisher formation here and an opposing Force in this Front is Exhausted, your opponent loses 1 Command and you regain the amount actually lost."
+          "text": "If an opposing Force here is Shaken, you may Move one friendly Raider or Skirmisher here one adjacent legal position."
         }
       ],
-      "design_note": "Phase 3: Prepared layer can exploit an Exhausted enemy via a separate friendly Raider/Skirmisher; supports Phase 2 Exhaustion payoff without added damage."
+      "design_note": "Replaces rare exhausted-Force Command theft, which compounds lost-Front Command snowballing, with on-PLAY tactical movement enabled by Shaken."
     },
     {
       "id": "marched-with",
@@ -819,14 +824,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Force in a Front containing your Archer. It gets −2 Strength this Battle.",
-          "scope": "opponent",
-          "memory": [
-            "effect_marker"
-          ]
+          "text": "Choose an opposing Force in a Front containing your Archer. Give it Shaken."
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged."
+      "design_note": "Archer-enabled Tactic can Shake any enemy rank rather than offer a dominated -2 temporary penalty or duplicate basic Rear targeting."
     },
     {
       "id": "tala",
@@ -1011,6 +1012,42 @@
       ],
       "design_note": "Once-per-Battle mobile attack enables a reposition-and-strike decision even while Unnamed; still pays 1 Command.",
       "command_cost": 3
+    },
+    {
+      "id": "the-aradai",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If played into Frontline, give the opposing Frontline formation −1 Strength this Battle, if any."
+        }
+      ],
+      "design_note": "Odd 3 Strength Raider gains modest entry pressure that can open a Raider Incursion on a locally tied line.",
+      "command_cost": 3
+    },
+    {
+      "id": "brannoc",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Choose an opposing Shaken formation in this Front. Return one of its attached Bonds or Names to its owner's hand."
+        },
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand."
+        }
+      ],
+      "design_note": "Named-completion attachment disruption now uses the common Shaken battlefield condition, not former Archer-enabled Exhaustion; retains Brannoc's paid preparation-tax ACTION."
+    },
+    {
+      "id": "thirty-spears",
+      "command_cost": 3,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Give another friendly formation in this Front +1 Strength this Battle, if any."
+        }
+      ],
+      "design_note": "Strict 3-Strength tariff costs 3C; short +1 temporary ally bonus compensates odd Strength."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1088,18 +1125,8 @@
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     },
     {
-      "id": "thirty-spears",
-      "command_cost": 2,
-      "reason": "Unadorned odd-Strength exception: no utility ability uses the half-point; preserve cheapest plain reinforcement."
-    },
-    {
       "id": "a-hundred-shields",
       "command_cost": 5,
-      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
-    },
-    {
-      "id": "the-aradai",
-      "command_cost": 3,
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     }
   ],

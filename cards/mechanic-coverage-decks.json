@@ -372,13 +372,13 @@
     {
       "id": "raw-strength-control",
       "title": "Raw Strength Control",
-      "focus": "A deliberately simple-Force comparison: all 16 Force cards have no printed special ability. Evaluate whether efficient persistent Strength already beats elaborate combinations.",
+      "focus": "Compare straightforward persistent Force Strength plus minimal one-step effects against combo decks; no longer an ability-free control after strict odd-Strength compensation.",
       "setup": "Use only Thirty Spears, Fifty Men, Hundred Shields and Aradai as Forces (four copies each). Other card types remain legal and supply simple Bonds, Names and counterplay. Do not treat this as proof that non-Force combos cannot win; compare mirrored draws against each core combo deck.",
       "observations": [
         "At equal spent Command and Actions, calculate each Front's persistent Strength before temporary bonuses.",
         "Record whether plain Force cards are drawn and playable more often than multi-card combo pieces and whether 12 positions become saturated.",
         "Compare winning Fronts, Command at each recovery, 1/2/3-card setup cost and how frequently opponent Tactics or Attacks reverse the result.",
-        "The Aradai has the basic Raider classification/Attack despite no printed special text; record whether its basic Attack contributes. Force pool is otherwise pure printed Strength."
+        "Track Aradai's temporary Frontline −1 and Raider Incursion, Fifty Men's conditional +1 and Thirty Spears' short allied +1. Record the temporary impact separately from persistent Strength."
       ],
       "cards": [
         {

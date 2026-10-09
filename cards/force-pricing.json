@@ -17,7 +17,7 @@
     {
       "id": "the-fifty-men",
       "premium": 0,
-      "rationale": "Plain 5-Strength body; no printed ability. Base cost only.",
+      "rationale": "Odd 5-Strength basic Human at baseline 4C; a conditional +1 Strength this Battle when another friendly Human is already in the Front compensates the rounded-up half-Strength with no permanent multiplier.",
       "previous_printed_command": 2
     },
     {
@@ -119,9 +119,8 @@
     {
       "id": "thirty-spears",
       "premium": 0,
-      "rationale": "Plain 3-Strength Human with no class combat ability or printed effect. Round the unused half-point down to preserve an inexpensive basic deployment.",
-      "previous_printed_command": 1,
-      "unused_half_point_credit": 1
+      "rationale": "Odd 3-Strength Human pays full 3C baseline; a conditional +1 Strength to another friendly formation on PLAY compensates the half-Strength rounding. No price credit.",
+      "previous_printed_command": 1
     },
     {
       "id": "a-hundred-shields",
@@ -138,7 +137,7 @@
     {
       "id": "the-aradai",
       "premium": 0,
-      "rationale": "Odd-Strength budget covers basic Raider Attack; no printed text.",
+      "rationale": "Odd 3-Strength Raider at baseline 3C: basic Raider Incursion plus a conditional Frontline entry −1 Strength to the opposing defender compensate the half-point rounding without an ability premium.",
       "previous_printed_command": 2
     },
     {
@@ -149,8 +148,8 @@
     },
     {
       "id": "the-damar",
-      "premium": 0,
-      "rationale": "3-Strength commander who advances another formation on PLAY; a free basic Attack follows only when the Move newly enables it.",
+      "premium": 1,
+      "rationale": "3-Strength commander at 4C: premium 1 for a free-Action allied Move plus a newly enabled basic Attack. Two combined operations exceed the odd-Strength half-point allowance.",
       "previous_printed_command": 2
     },
     {

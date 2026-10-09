@@ -2,7 +2,7 @@
 
 **Hero pricing (current):** each Hero has a separate Force and Name Command price; the totals below are ranges from choosing either mode for each Hero card, not a price to pay at setup. See [Hero valuation](hero-pricing.md).
 
-**Force pricing (current):** Forces are priced at 1 + ceil(Strength/2) plus an assessed ability premium, with a single no-ability half-point exception (Thirty Spears at 2C); totals below reflect the [Force pricing ledger](force-pricing.json). These are whole-deck sums, not up-front costs.
+**Force pricing (current):** Forces are priced at 1 + ceil(Strength/2) plus an assessed ability premium, with no below-baseline discounts; all odd Strength Forces have a small compensating effect; totals below reflect the [Force pricing ledger](force-pricing.json). These are whole-deck sums, not up-front costs.
 
 These **four 48-card lists** are for controlled comparison and underrepresented mechanic testing, not the primary competitive decks. Use current [physical rules](../rules/rulebook.md), the print-only card overrides, and [tabletop test scenarios](physical-rule-playtest-scenarios.md). They do not imply measured win rates.
 
@@ -142,18 +142,18 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 ## Raw Strength Control
 
-**Focus:** A deliberately simple-Force comparison: all 16 Force cards have no printed special ability. Evaluate whether efficient persistent Strength already beats elaborate combinations.
+**Focus:** A low-complexity Force comparison: direct Strength and brief, conditional printed effects rather than multi-step engines. Test whether straightforward deployment can beat elaborate combinations.
 
 **Setup:** Use only Thirty Spears, Fifty Men, Hundred Shields and Aradai as Forces (four copies each). Other card types remain legal and supply simple Bonds, Names and counterplay. Do not treat this as proof that non-Force combos cannot win; compare mirrored draws against each core combo deck.
 
-**Composition:** 48 cards, 95 Command across all cards (Hero mode-dependent), 68 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 99 Command across all cards (Hero mode-dependent), 68 sum printed Force Strength (not the Front total).
 
 **What to record**
 
 - At equal spent Command and Actions, calculate each Front's persistent Strength before temporary bonuses.
 - Record whether plain Force cards are drawn and playable more often than multi-card combo pieces and whether 12 positions become saturated.
 - Compare winning Fronts, Command at each recovery, 1/2/3-card setup cost and how frequently opponent Tactics or Attacks reverse the result.
-- The Aradai has the basic Raider classification/Attack despite no printed special text; record whether its basic Attack contributes. Force pool is otherwise pure printed Strength.
+- Record whether the Aradai's minor Frontline −1 opens a Raider Incursion, and how often Fifty Men and Thirty Spears receive their temporary ally bonus. This is a low-complexity control, not an ability-free Force control.
 
 | Copies | Card | Type |
 |---:|---|---|
@@ -183,5 +183,5 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 1. Compare each diagnostic deck against each core combination deck with mirrored opening draws and starting order. Record per-Battle Front totals, Actions spent, Command trajectory and Force-slot saturation.
 2. Separate **printed Force Strength**, persistent Bonds/Names, temporary Battle bonuses, and denial through Shaken/Depleted/Exhausted. A strong body can be efficient without proving an automatic win.
-3. The **Raw Strength Control** deliberately uses only four ability-free Force identities: Thirty Spears (3 Strength / 2 Command), Fifty Men (5 / 4), Hundred Shields (6 / 5), and Aradai (3 / 3). The Aradai still has its Raider classification and corresponding basic Attack; its text has no separate printed ability.
+3. The **Raw Strength Control** uses the four simplest Force identities at current prices: Thirty Spears (3 Strength / 3 Command), Fifty Men (5 / 4), Hundred Shields (6 / 5), and Aradai (3 / 3). The three odd-Strength Forces now carry short conditional compensation; Hundred Shields has built-in Guard screening. Distinguish simple play from ability-free play when interpreting results.
 4. Never substitute the native/Webgame outcomes for the print-only rules. There is currently no completed physical-compatible automated win-rate study.
