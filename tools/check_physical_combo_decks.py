@@ -108,8 +108,14 @@ def run() -> None:
                      if cards[e["id"]]["type"] == "force"}
     assert raw_force_ids == {"the-fifty-men", "thirty-spears", "a-hundred-shields",
                              "the-aradai"}
-    assert all(not cards[cid]["effects"] for cid in raw_force_ids), (
-        "Raw Force baseline should contain no printed Force abilities")
+    # All odd-Strength Forces now carry short compensating PLAY effects.
+    # This control is deliberately LOW COMPLEXITY, not an ability-free test.
+    assert all(len(cards[cid]["effects"]) <= 1 for cid in raw_force_ids)
+    assert all(len(e["text"]) <= 100 for cid in raw_force_ids
+               for e in cards[cid]["effects"])
+    assert all(cards[cid]["command_cost"] >=
+               1 + (cards[cid]["strength"] + 1) // 2
+               for cid in raw_force_ids), "Control still needs strict Force costs"
     # The exact catalogue requirement applies across ALL playable main
     # and diagnostic decks; newly authored cards must also be covered.
     covered = {e["id"] for d in main["decks"] + labs["decks"]
