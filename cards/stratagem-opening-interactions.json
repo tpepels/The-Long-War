@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "scope": "Paper game printed Stratagems; trigger timing vs post-Pass Opening Orders",
+  "resolution_model": "After Pass and both closing turns: order reveal and any opening-reveal Stratagems; Commit payments; paired numbered Maneuvers with move triggers; paired numbered Strikes with Attack triggers; final single resolution Stratagem reveal; Front scoring.",
+  "rules": [
+    "All four Opening Orders revealed at once, before triggered card responses.",
+    "Opening order redirection changes only an existing chosen Maneuver destination, not source, action kind or order count.",
+    "When simultaneous Strikes are legal at a numbered step, applying an affliction from one cannot undo the other Strike's legality retroactively.",
+    "An Archer counterattack uses its ordinary unused Attack allowance; a later Strike with the same Force fails.",
+    "Final resolution Stratagem eligibility uses the post-Opening-Orders provisional state, and a new tie caused by revealed effects does not open another reveal."
+  ],
+  "stratagems": [
+    {
+      "id": "the-scouts-had-warned-them",
+      "window": "opening_reveal",
+      "trigger": "Immediately after both players reveal their two Opening Orders; before Commit payments",
+      "effect": "Scout or Seer here; redirect destination of one own existing Maneuver starting here",
+      "distinct": "No additional Move/Attack; no viewing opponent face-down Stratagem; different from Rider extra-Move reaction",
+      "watch": "Direct Opening Order interaction"
+    },
+    {
+      "id": "no-step-back",
+      "window": "attack_or_tactic_prevention",
+      "trigger": "When enemy Tactic targets formation OR before affliction from an opposing Opening Strike or ordinary Attack",
+      "effect": "Ignore Tactic effect or prevent one Attack affliction",
+      "distinct": "Defense only, not extra movement or Attack",
+      "watch": "Works during Strike and ordinary turns"
+    },
+    {
+      "id": "the-battle-turned-east",
+      "window": "move_reaction",
+      "trigger": "After a Rider moves into/out of the assigned Front, including an Opening Maneuver",
+      "effect": "One further adjacent legal Move and +1 temporary Rider Strength",
+      "distinct": "Triggered Rider-only extension with +Strength; differs from public Bonded opening-only extension",
+      "watch": "Potential extra-step stacking; watch"
+    },
+    {
+      "id": "there-was-no-road-back",
+      "window": "named_completion",
+      "trigger": "When friendly formation here becomes Named, possibly by an Opening Move into prepared components",
+      "effect": "Two-step legal Move or bounce opposing attached Bond",
+      "distinct": "Formation-completion interruption; not another Opening Order",
+      "watch": "Reveals only on completion"
+    },
+    {
+      "id": "the-trap-closed",
+      "window": "negative_marker_reaction",
+      "trigger": "After friendly Raider/Skirmisher inflicts negative marker, including through Opening Strike",
+      "effect": "Return affected opposing Force attachment",
+      "distinct": "Attachment disruption, not another Attack or a general anti-Move effect",
+      "watch": "Persistent attachment attrition watch"
+    },
+    {
+      "id": "the-archers-were-ready",
+      "window": "after_attack_reaction",
+      "trigger": "After opposing Force Attacks here; Opening Strike also counts",
+      "effect": "One unused basic Archer counterattack, marks that Attack spent",
+      "distinct": "Counterattack uses existing once-per-Battle use; not the same as initial Opening Strike",
+      "watch": "No retroactive cancellation of simultaneous Strike"
+    },
+    {
+      "id": "the-ground-was-held",
+      "window": "front_resolution",
+      "trigger": "One final resolution reveal, after all Opening Orders and after provisional totals are known",
+      "effect": "Break initial tie if still tied, or apply +2 on initial one-point deficit with unique Named advantage",
+      "distinct": "Conditional tie manipulation, not +2 Opening Commit or early reaction",
+      "watch": "Dense eligibility; watch"
+    },
+    {
+      "id": "the-lines-held",
+      "window": "front_resolution",
+      "trigger": "One final resolution reveal, after Opening Orders",
+      "effect": "Move one friendly formation; +2 temporary Strength only if moved",
+      "distinct": "Late generic mobility, unlike early Maneuver that opens Strike targets",
+      "watch": "Partial Move/+2 overlap with two other resolution plans; watch"
+    },
+    {
+      "id": "the-center-must-hold",
+      "window": "front_resolution",
+      "trigger": "One final resolution reveal, after Opening Orders",
+      "effect": "King/Captain directs another formation Move and +2 Strength",
+      "distinct": "Leader-dependent late repositioning, no extra Strike",
+      "watch": "Partially overlaps Lines Held; watch"
+    },
+    {
+      "id": "the-flank-was-refused",
+      "window": "front_resolution",
+      "trigger": "One final resolution reveal, after Opening Orders",
+      "effect": "Outer Front Archer/Guard/Stronghold may Move and receives +2 Strength",
+      "distinct": "Outer-Front defence, restricted classes and area",
+      "watch": "Partially overlaps Lines Held and Center; watch"
+    },
+    {
+      "id": "every-banner-turned-toward-them",
+      "window": "front_resolution",
+      "trigger": "One final resolution reveal, after Opening Orders",
+      "effect": "King/Captain empowers up to three Humans across this and adjacent Front",
+      "distinct": "Wider cross-Front temporary Strength; no movement",
+      "watch": "Mass buff and uncapped full-margin loss: monitor, distinct from early single-Front Commit"
+    }
+  ]
+}
