@@ -67,10 +67,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may move an opposing Frontline formation in this Front one row toward its Rear if that position is empty and legal."
+          "text": "You may Move an opposing Frontline formation in this Front one row toward Rear, if legal and empty."
         }
       ],
-      "design_note": "Wolf Skirmishers no longer depend on an Archer."
+      "design_note": "Wolf Skirmishers no longer depend on an Archer. Standardized phrasing; intended mechanics unchanged."
     },
     {
       "id": "blocked-the-road-for",
@@ -727,6 +727,91 @@
         }
       ],
       "design_note": "Requires a real legal displacement to apply Depleted (−1 and disabled formation ACTIONs), giving the 0C Tactic a tactical payoff with counterplay."
+    },
+    {
+      "id": "the-unnamed-host",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If an opposing Force here is Exhausted, your opponent loses 1 Command (minimum 1 remaining). Regain the amount actually lost."
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "seven-black-ships",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If the opposing Frontline here is empty, return a Bond or Name attached to an opposing Middle or Rear formation here to its owner's hand."
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "the-salt-road-fleet",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Move another friendly formation in this Front one row toward Rear, if legal and empty."
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "the-river-raiders",
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. If the opposing Frontline here is empty, return a Bond or Name attached to an opposing Middle or Rear formation here to its owner's hand.",
+          "exposed": "ACTION · Pay 1: raid Bond/Name if enemy Frontline empty"
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "supplied-by",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Attach a prepared Bond or Name in this Front to the friendly formation directly ahead, if legal."
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "torren",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Choose a friendly formation in this Front with no Bond. You may play a Bond from your hand onto it, paying its Command cost."
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "a-volley-before-dawn",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Force in a Front containing your Archer. It gets −2 Strength this Battle."
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
+    },
+    {
+      "id": "tala",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Give an opposing formation in this Front −2 Strength this Battle."
+        },
+        {
+          "timing": "action",
+          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle."
+        }
+      ],
+      "design_note": "Standardized phrasing; intended mechanics unchanged."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -805,11 +890,6 @@
       "id": "marched-beneath-the-banner-of",
       "index": 0,
       "exposed": "Bonded with Captain/King: Bond gives +1 Strength"
-    },
-    {
-      "id": "the-river-raiders",
-      "index": 0,
-      "exposed": "ACTION: pay 1; enemy Front empty: raid Middle/Rear Bond/Name"
     },
     {
       "id": "kept-the-gate-for",
