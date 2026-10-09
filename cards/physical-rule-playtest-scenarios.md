@@ -271,7 +271,7 @@ not change the native/Webgame data.
 
 ### Simple Forces against Named formation investment
 
-Set two active Fronts with room. Player A has Thirty Spears (3S, 3C),
+Set two active Fronts with room. Player A has Thirty Spears (3S, 2C),
 Fifty Men (5S, 4C) and Hundred Shields (6S, 5C). Player B has Fifty
 Men with Followed and a +1 Name (8S after Named completion, 6C total).
 Record *card-play Actions*, paid Command, occupied ranks and effective
