@@ -36,7 +36,7 @@
     {
       "id": "the-house-of-reed",
       "opportunity": "Two prepared components can be attached to Forces in the same Front, one of which becomes Named.",
-      "comparison": "Count cost and Actions of preparing, playing House, and its attachment ACTION versus normal attachment.",
+      "comparison": "Compare the cost and Actions of preparing, playing House of Reed and using its attachment ACTION with straightforward attachment to that same Force.",
       "failure_signal": "If extra Actions and 4C cannot produce earlier or stronger Named completion, flag."
     },
     {
@@ -211,7 +211,7 @@
       "id": "carried-messages-for",
       "opportunity": "A Captain/Scout and attached Bond share a Front before a crucial draw.",
       "comparison": "Compare 1C zero-Strength Bond's filter with a normal +1-Strength Bond.",
-      "failure_signal": "If filtering never beats lost Strength, flag."
+      "failure_signal": "If filtering never produces a better card or choice before resolution, a zero-Strength Bond may be too expensive."
     },
     {
       "id": "the-scouts-found-the-gap",
