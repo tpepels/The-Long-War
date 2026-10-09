@@ -177,30 +177,30 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose one of your Kings or Captains. You may move another friendly formation in its Front to an adjacent active empty position, if legal."
+          "text": "Choose a friendly King or Captain and another friendly formation in its Front. Give that other formation +1 Strength this Battle; you may Move it one adjacent legal empty position."
         }
       ],
-      "design_note": "A leadership-gated movement Order."
+      "design_note": "Leadership Order supplies one meaningful temporary Strength before optional mobility."
     },
     {
       "id": "the-ground-was-held",
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if this Front would tie, you win it instead if you have a Named Formation here and your opponent has none, and it remains tied after other reveals."
+          "text": "At resolution, if you have a Named Formation here and the opponent has none, reveal if you would tie or lose by 1 Strength. If tied, you win only if still tied after other reveals. If losing by 1, give one of your Named Formations here +2 Strength this Battle."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
+      "design_note": "Close Fronts matter, including a one-point loss. Eligibility is checked only once against the pre-reveal totals."
     },
     {
       "id": "no-step-back",
       "effects": [
         {
           "timing": "hidden",
-          "text": "When an opposing Tactic targets one of your formations, ignore that Tactic's effect on that formation."
+          "text": "When an opposing Tactic targets your formation here, ignore its effects on that formation. Or, when an opposing Attack would give your Force here an affliction, prevent that affliction."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
+      "design_note": "Wider defensive trap: protects against one hostile Tactic or an Attack affliction in the assigned Front, not both. The reveal consumes the one plan."
     },
     {
       "id": "the-center-must-hold",
@@ -279,10 +279,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "When your opponent sets a Stratagem here and you have a Scout or Seer, look at that Stratagem. Draw 1 card, then discard 1 card."
+          "text": "When your opponent sets a Stratagem here while you have a Scout or Seer, look at it, then give one friendly Force here Guarded."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
+      "design_note": "Foreknowledge now creates actual protective counterplay; requires a Scout/Seer and a newly set plan."
     },
     {
       "id": "the-battle-had-chosen-them",
@@ -384,14 +384,14 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Move one friendly formation one orthogonally adjacent legal position."
+          "text": "Choose one friendly formation. Give it +1 Strength this Battle; you may Move it one legal orthogonally adjacent position."
         },
         {
           "timing": "continuous",
-          "text": "While you control a Seer, your formations treat the two outermost active Fronts as adjacent for Maneuvers and Move effects this Battle. This does not create flanks or change Attack targets."
+          "text": "While you control a Seer, your Named Formations in a Front containing one of your Seers or an adjacent active Front get +1 Strength this Battle."
         }
       ],
-      "design_note": "Immediate board adjustment plus Seer-controlled geography; no changed flank or Attack rules."
+      "design_note": "Seer support rewards actual Named Strength near their position; movement remains optional and supporting, without changing flank geometry."
     },
     {
       "id": "the-raiders-came-home-loaded",
@@ -411,21 +411,29 @@
       "id": "the-long-march",
       "effects": [
         {
+          "timing": "play",
+          "text": "Choose up to two friendly Rider formations in active Fronts. Each gets +1 Strength this Battle."
+        },
+        {
           "timing": "continuous",
-          "text": "Your Rider formations may Maneuver without being Named and pay 0 Command to Maneuver this Battle."
+          "text": "Your Riders may Maneuver without being Named and pay 0 Command to Maneuver this Battle."
         }
       ],
-      "design_note": "2C Rider Narrative enables otherwise unavailable Maneuvers as well as waiving their Command."
+      "design_note": "Riders gain a tangible 1–2 Strength payoff alongside optional zero-Command unnamed mobility."
     },
     {
       "id": "the-wall-did-not-break",
       "effects": [
         {
+          "timing": "play",
+          "text": "Give one friendly Guard or Stronghold Guarded."
+        },
+        {
           "timing": "continuous",
-          "text": "Your Guards and Strongholds may initiate Maneuvers while Exhausted and pay 0 Command to Maneuver this Battle."
+          "text": "Your Guards and Strongholds in Middle give the friendly Rear formation directly behind each of them +1 Strength this Battle."
         }
       ],
-      "design_note": "2C defensive counterpart is recovery through positioning; Named requirement still applies."
+      "design_note": "Two-Action movement exception replaced with an immediate Boon plus persistent positional defensive Strength."
     },
     {
       "id": "they-lived-to-tell-it",
@@ -543,11 +551,11 @@
       "effects": [
         {
           "timing": "reaction",
-          "text": "Once per Battle, when an opponent sets a Stratagem in or adjacent to a Front containing your Scout or Ship, look at it. You may then Move one friendly formation in that Stratagem's Front one adjacent legal position.",
+          "text": "When your opponent sets a Stratagem here or in an adjacent active Front containing your Scout or Ship, look at it. Give one friendly formation in that Stratagem's Front +2 Strength this Battle, if any.",
           "limit": "once_per_battle"
         }
       ],
-      "design_note": "Information has an immediate, visible optional response, not another scouting ACTION."
+      "design_note": "Intelligence reacts with material +2 Front Strength rather than small movement. Requires an existing Scout/Ship in the Stratagem Front or its neighbor."
     },
     {
       "id": "the-fifty-men",
@@ -657,11 +665,70 @@
         }
       ],
       "design_note": "Phase 3: Simple temporary Strength tempo for a Bond played attached or prepared, replacing low-payoff gratuitous movement."
+    },
+    {
+      "id": "no-road-was-too-long",
+      "command_cost": 3,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Exchange all your cards in two adjacent active Fronts, rank for rank, if both placements remain legal. Prepared layers and markers travel with their positions. Then give one Named Formation moved this way +2 Strength this Battle, if any."
+        }
+      ],
+      "design_note": "Strange full-Front transformation resolves on PLAY rather than requiring another ACTION; rank restrictions respected, +2 rewards committed Named stacks."
+    },
+    {
+      "id": "they-were-gathering-there",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Force in a Front with your Scout. If it is Exhausted, give it Shaken. Otherwise, Exhaust it."
+        }
+      ],
+      "design_note": "Scouting Tactic meaningfully converts already Exhausted targets into −2 Shaken, otherwise delivers −1 Exhausted."
+    },
+    {
+      "id": "the-muster-was-false",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Return an opposing prepared Bond or Name to its owner's hand. Alternatively, in a Front containing your Scout or Seer, return an opposing attached Bond there to its owner's hand."
+        }
+      ],
+      "design_note": "Preparation punish remains, but Scouts/Seers can also sabotage a completed formation."
+    },
+    {
+      "id": "they-had-gone-too-far",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Frontline or Middle formation in a Front with your Scout or Skirmisher. Move it one row toward Rear if legal and empty; otherwise give its Force Shaken."
+        }
+      ],
+      "design_note": "A positional dilemma: an eligible opponent yields space or takes −2 and loses Guard screening, but only under Scout/Skirmisher pressure."
+    },
+    {
+      "id": "they-let-them-through",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing formation. It cannot use printed ACTION abilities this Battle. If it is Named, its Name contributes no Strength this Battle."
+        }
+      ],
+      "design_note": "Suppresses ACTION abilities but remains useful against Named stacks through lost Name modifier."
+    },
+    {
+      "id": "the-line-was-baited",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Frontline or Middle Force in a Front with your Skirmisher. Move it one row toward Rear if legal and empty. If it moved, give it Depleted."
+        }
+      ],
+      "design_note": "Requires a real legal displacement to apply Depleted (−1 and disabled formation ACTIONs), giving the 0C Tactic a tactical payoff with counterplay."
     }
   ],
-  "once_per_battle_text_fixes": [
-    "no-road-was-too-long"
-  ],
+  "once_per_battle_text_fixes": [],
   "exposed_only": [
     {
       "id": "the-white-hands-of-elara",
@@ -779,11 +846,6 @@
       "id": "iven",
       "command_cost": 3,
       "reason": "4C Name needs several subsequent discounted Tactics to recover initial cost."
-    },
-    {
-      "id": "no-road-was-too-long",
-      "command_cost": 3,
-      "reason": "Strong one-use board transformation, but 4C plus two Actions delayed it too far."
     }
   ]
 }
