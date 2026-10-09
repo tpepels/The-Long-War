@@ -1037,6 +1037,17 @@
         }
       ],
       "design_note": "Named-completion attachment disruption now uses the common Shaken battlefield condition, not former Archer-enabled Exhaustion; retains Brannoc's paid preparation-tax ACTION."
+    },
+    {
+      "id": "thirty-spears",
+      "command_cost": 3,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Give another friendly formation in this Front +1 Strength this Battle, if any."
+        }
+      ],
+      "design_note": "Strict 3-Strength tariff costs 3C; short +1 temporary ally bonus compensates odd Strength."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1112,11 +1123,6 @@
       "id": "the-late-banner",
       "command_cost": 3,
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
-    },
-    {
-      "id": "thirty-spears",
-      "command_cost": 2,
-      "reason": "Unadorned odd-Strength exception: no utility ability uses the half-point; preserve cheapest plain reinforcement."
     },
     {
       "id": "a-hundred-shields",
