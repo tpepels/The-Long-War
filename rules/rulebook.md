@@ -77,7 +77,7 @@ If a Bond or Name is played into a position without a Force, it is **prepared** 
 
 Each position holds one of each layer. To change an attached Bond or Name, use a card effect that removes, returns, or exchanges it; this makes attachment-manipulation cards valuable. A Force is played into a position that has no Force. Unless a card says otherwise, components stay on the battlefield between Battles.
 
-**PLAY** effects resolve as you play a card, including a prepared Bond or Name. **BECOMES NAMED** effects happen when a formation gains its final missing layer. This makes completing a formation an event in its own right, and sometimes a rewarding combination with the card that completed it.
+**PLAY** effects resolve as you play a card, including a prepared Bond or Name. **BECOMES NAMED** effects happen when a formation gains its final missing layer. This makes completing a formation an event in its own right, and sometimes a rewarding combination with the card that completed it. A prepared card does **not** replay its earlier PLAY effect when it later attaches. Several Bonds now let you choose a different friendly formation in their Front when played, so preparation can have immediate value even before its own Force arrives.
 
 For instance, a Force joined with a Bond and Name immediately becomes a Named Formation. Read the new component's PLAY instructions first, then the newly completed formation's BECOMES NAMED instructions. The Reference explains the rarer cases involving preparation, rebuilding and several effects at once.
 
@@ -90,11 +90,11 @@ Each Force's printed row icons tell you where it can stand throughout the game. 
 
 ### Strength {#strength}
 
-A Force supplies its printed Strength. A Bond and Name contribute their printed **Strength modifiers** to the same formation. A Hero played as a Force uses its Force Strength; a Hero played as a Name contributes its printed Name modifier instead. Add any active bonuses and penalties, then apply a **minimum of 0 Strength to each individual formation**. Prepared Bonds and Names without a Force contribute no Strength.
+A Force supplies its printed Strength. A Bond and Name contribute their printed **Strength modifiers** to the same formation. A Hero played as a Force uses its Force Strength; a Hero played as a Name contributes its printed Name modifier instead. Add active bonuses and penalties, including **−1 Strength for Exhausted**, **−1 for Depleted**, **−2 for Shaken**, and **−1 for flanking**. These are separate effects and can apply together; duplicate markers of the same condition do not stack. Apply a **minimum of 0 Strength to each individual formation**. Prepared Bonds and Names without a Force contribute no Strength.
 
 At Battle resolution, add the Strength of every formation across all three ranks of one Front. Compare that total to the opponent's total in the same Front. Higher Strength wins; a tie means neither side wins or loses that Front. The winning margin does not matter unless a card says otherwise. There is **no overall winner of a Battle**: each active Front is settled separately.
 
-> **Strength example:** A Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Shaken (−2), it contributes 3; if it is also flanked (−1), it contributes 2. If penalties reduce that formation below 0, it contributes 0 rather than weakening another friendly formation. A second friendly formation in that Front contributes its own Strength separately.
+> **Strength example:** A Force with 3 Strength, a +1 Bond and a +1 Name has 5 Strength. If Exhausted (−1) and Depleted (−1), it contributes 3. If also Shaken (−2), it contributes 1; flanking (−1) reduces it to 0. Penalties never reduce a formation below 0 or weaken another friendly formation.
 
 ### Classifications {#classifications}
 
@@ -112,7 +112,7 @@ If the destination has no Force, move the whole formation there, taking any comp
 
 For movement, a printed **empty position** means a position with no Force. It may contain prepared Bonds or Names, provided they can attach to the incoming formation without producing two Bonds or two Names. A **completely empty position** has no cards at all. Move the complete existing formation into that position, attach the compatible prepared components, and resolve any BECOMES NAMED effects. If any layer conflicts, that movement is illegal. Prepared cards cannot be displaced by ordinary movement or taken from the opponent's side.
 
-An **Exhausted** Force contributes to Battle normally but usually stays where it is: it can move through a card's **Move** effect or be the non-initiating partner in a swap, while an explicit card exception can let it initiate a Maneuver. Each Force carries at most one Exhaustion token. Each formation may initiate at most one Maneuver during the resolution of a single Action or effect; no automatic Maneuver occurs between Battles.
+An **Exhausted** Force contributes **1 less Strength** while its Exhaustion remains and usually stays where it is: it can move through a card's **Move** effect or be the non-initiating partner in a swap, while an explicit card exception can let it initiate a Maneuver. It can still Attack if not also Depleted. Each Force carries at most one Exhaustion token. Each formation may initiate at most one Maneuver during the resolution of a single Action or effect; no automatic Maneuver occurs between Battles.
 
 **Move** and **swap** printed on cards are not ordinary Maneuvers. The distinction matters:
 
@@ -146,11 +146,11 @@ A Frontline Force is **flanked** if an opposing Frontline Force occupies an adja
 
 A Force may carry at most one marker of each named condition. Markers travel with that Force when its formation moves. A repeated affliction does not stack with itself unless the card explicitly says otherwise.
 
-- **Exhausted:** the Force holds its position and continues to contribute Strength, Attack, and use abilities. It initiates a Maneuver only when a card explicitly allows it.
+- **Exhausted:** the formation gets **−1 Strength**. Its Force can still Attack and use abilities, but cannot initiate an ordinary Maneuver without an explicit exception.
 - **Shaken:** the formation has **−2 Strength**, to a minimum of 0 for that formation, and a Guard's basic Archer screening stops working.
-- **Depleted:** the formation retains its Strength and passive or triggered abilities, but its Force cannot Attack or activate **ACTION** abilities until Depleted is removed.
+- **Depleted:** the formation gets **−1 Strength**. Its Force cannot Attack, and **no printed ACTION ability on that formation** (Force, attached Bond or attached Name, including a Hero in either role) may be activated until Depleted is removed. Passive and triggered abilities still work.
 
-Card effects can remove or prevent conditions. There is no generic recovery Action. Removing Exhaustion never restores a used Attack. All regular temporary afflictions clear at the end of each Battle **before new lost-Front Exhaustion is applied**.
+Card effects can remove or prevent conditions. There is no generic recovery Action. Removing Exhaustion never restores a used Attack. Exhausted and Depleted each subtract 1 Strength; if both affect a formation, the **combined penalty is −2** (before any Shaken or flank penalty). Guarded prevents one incoming affliction at a time: a card applying Exhausted and then Shaken applies two separate afflictions in printed order. All regular temporary afflictions clear at Battle end **before new lost-Front Exhaustion is applied**.
 
 ### Boons
 
@@ -234,9 +234,9 @@ After checking Guarded, follow this cleanup order:
 2. Discard Narratives and unrevealed Stratagems.
 3. **Place one new Exhaustion token on each unprotected Force in every Front its player lost** (maximum one per Force).
 
-This new Exhaustion **persists throughout the next Battle**, unless a card removes it earlier. At the end of that next Battle it clears during cleanup; losing a Front again gives a new token afterward.
+This new Exhaustion **persists throughout the next Battle**, imposing **−1 Strength** and restricting ordinary Maneuvers unless a card removes it earlier. At the end of that next Battle it clears during cleanup; losing a Front again gives a new token afterward.
 
-This sequence distinguishes Exhaustion caused by Attacks **during** a Battle from Exhaustion caused by **losing** it. The same type of token is used for both; no second Exhaustion marker is required. An Exhausted Force still contributes Strength and can Attack, but normally cannot initiate Maneuvers.
+This sequence distinguishes Exhaustion caused by Attacks **during** a Battle from Exhaustion caused by **losing** it. The same type of token is used for both; no second Exhaustion marker is required. In either case the formation loses **1 Strength** while Exhausted. Its Force may still Attack if not also Depleted, but normally cannot initiate Maneuvers.
 
 ### 6. Recover and begin the next Battle
 
@@ -252,9 +252,17 @@ The following details settle unusual card interactions. You can learn the game f
 
 **PLAY** text resolves when the particular card is played, including when placed prepared. If it needs a Force or other legal target that does not exist at that moment, that effect does nothing; it does not wait for a later attachment. **BECOMES NAMED** text resolves whenever an actual formation changes from not Named to Named, including after rebuilding it with a newly attached Bond or Name. An existing Named Formation does not trigger again merely because it is moved or a Battle begins.
 
-When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
+When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. This is also true for attachment effects from **The House of Reed** or **The Field Train**: resolve the new formation's BECOMES NAMED effects, then grant any explicitly stated Guarded or temporary Strength reward. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
 
-> **Formation example:** If Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, resolve the Bond's PLAY effect (its free Maneuver) first; then resolve Mara's BECOMES NAMED effect. A Maneuver or Move can change where Mara finishes before her effect is resolved.
+> **Formation example:** If Mara is already attached to a Force and playing **Swore Again To** fills the missing Bond slot, the Bond gives that formation **+2 Strength this Battle**. Then resolve Mara's BECOMES NAMED effect. If Swore Again To was prepared earlier instead, its PLAY card-filtering effect already happened; attaching it now can trigger Mara but cannot replay the Bond's earlier PLAY effect.
+
+### Prepared layers and attachment rewards
+
+A Bond or Name prepared in an empty position is not a formation and never contributes Strength there. Preparing a card may still activate its immediate PLAY effect if that text selects a **different, already existing** friendly formation; the prepared component stays on its position.
+
+When a card attaches a prepared component elsewhere, physically move that layer to the receiving formation and leave the source position empty unless another prepared card remains. The effect must explicitly permit that transfer; otherwise prepared layers stay put. Check that the receiving Force has the matching empty layer slot and that every resulting card is legal. Attaching prepared components never costs a second Command payment or Action unless stated.
+
+A card may attach **up to two** prepared layers through a single ACTION. Resolve the attachments **one at a time**, including any Named-completion triggers after each, then apply that card's stated completion reward. The same formation may receive a Bond and a Name in that sequence if both slots were empty. A Force becomes Named at most once per actual transition, even when two components attach through one ACTION. Temporary +Strength rewards expire at the end of the Battle; **Guarded** is a Boon and prevents only the next affliction.
 
 ### Simultaneous Stratagems
 
