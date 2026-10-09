@@ -128,7 +128,7 @@ const cueHero={...hero, modes:{
   name:hero.modes.name
 }};
 const cueHeroHtml=window.PhysicalCards.cardArticle(cueHero);
-assert.match(cueHeroHtml,/edge-mechanic edge-cue[^>]*aria-label="Check rule on action: Move this formation two positions\./);
+assert.match(cueHeroHtml,/edge-mechanic edge-cue[^>]*aria-label="Check rule on action \(once per Battle\): Move this formation two positions\./);
 assert.match(cueHeroHtml,/class="edge-cue-text">CHECK · ACTION<\/span>/);
 assert.doesNotMatch(cueHeroHtml,/class="edge-cue-text"[^<]*Move this formation/);
 const dual={...hero, type:"force", strength:3, effects:[
