@@ -1009,7 +1009,8 @@
           "exposed": "ACTION · 1/B: Move then unused Rider Attack"
         }
       ],
-      "design_note": "Once-per-Battle mobile attack enables a reposition-and-strike decision even while Unnamed; still pays 1 Command."
+      "design_note": "Once-per-Battle mobile attack enables a reposition-and-strike decision even while Unnamed; still pays 1 Command.",
+      "command_cost": 3
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1094,11 +1095,6 @@
     {
       "id": "a-hundred-shields",
       "command_cost": 5,
-      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
-    },
-    {
-      "id": "the-vardai",
-      "command_cost": 3,
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     },
     {
