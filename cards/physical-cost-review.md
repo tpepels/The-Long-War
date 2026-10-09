@@ -1,3 +1,10 @@
+> **Historical review notice (9 October 2026):** This file includes
+> before/after tables and tactical descriptions from earlier physical
+> balance stages. The **current** printed effect audit is
+> [Non-Force battlefield review](nonforce-battlefield-review.md);
+> card data in `print-overrides.json` and the live pricing ledger
+> take precedence over obsolete descriptions below.
+
 # Physical card cost and choice audit — 8–9 October 2026
 
 > **Historical pricing snapshot.** The final support-Force Strength and Hero Name-mode adjustments are documented in [the 9 October final balance audit](final-balance-audit-2026-10-09.md); numeric summaries and earlier pricing tables below are retained as historical analysis, not the latest printed values.

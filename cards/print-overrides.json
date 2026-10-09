@@ -154,10 +154,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Draw 1 card, then put 1 card from your hand on top of your deck."
+          "text": "Look at an opposing face-down Stratagem in this or an adjacent active Front, if any. Draw 1 card, then discard 1 card."
         }
       ],
-      "design_note": "One-shot card-flow instead of blank +0 Bond."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "mara",
@@ -175,10 +175,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if your Frontline is empty, Move one friendly Middle formation into it, if legal. Give that formation +2 Strength this Battle."
+          "text": "At resolution, you may Move one friendly formation here one adjacent legal position. If it moved, give it +2 Strength this Battle."
         }
       ],
-      "design_note": "One-time +2 and row transfer at resolution has a real setup and hidden-plan Action cost. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "fresh-orders",
@@ -215,10 +215,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if you have a King or Captain here, give up to two other friendly formations here +1 Strength this Battle."
+          "text": "At resolution, if you have a King or Captain here, choose another friendly formation here. You may Move it one legal position. Give it +2 Strength this Battle."
         }
       ],
-      "design_note": "2 temporary Strength on two other formations still requires a King/Captain and a set Stratagem Action. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged.",
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules.",
       "command_cost": 1
     },
     {
@@ -226,10 +226,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if this is an outer Front, give one friendly Archer, Guard or Stronghold formation here +2 Strength this Battle."
+          "text": "At resolution in an outer Front, choose a friendly Archer, Guard or Stronghold here. You may Move it one legal position. It gets +2 Strength this Battle."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "the-trap-closed",
@@ -391,28 +391,20 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a friendly formation. Give it +1 Strength this Battle. You may Move it one legal orthogonally adjacent position."
-        },
-        {
-          "timing": "continuous",
-          "text": "While you control a Seer, your Named Formations in a Front containing one of your Seers or an adjacent active Front get +1 Strength this Battle."
+          "text": "Choose a friendly formation, if any. You may Move it one adjacent legal position. If you control a Seer, give it Guarded."
         }
       ],
-      "design_note": "Seer support rewards actual Named Strength near their position; movement remains optional and supporting, without changing flank geometry."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "the-raiders-came-home-loaded",
       "effects": [
         {
           "timing": "play",
-          "text": "Draw 1 card, then discard 1 card."
-        },
-        {
-          "timing": "continuous",
-          "text": "Your Tactics targeting cards or formations in a Front with your Raider or Skirmisher cost 1 less Command (minimum 0). Afterward, you may Move one of those troops one legal position."
+          "text": "Move up to two friendly Raider or Skirmisher formations one adjacent legal position each."
         }
       ],
-      "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "the-long-march",
@@ -649,20 +641,20 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If you control a Rider or Scout formation in this Front, draw 1 card, then discard 1 card."
+          "text": "Move one friendly Rider or Scout formation in this Front one adjacent legal position, if any."
         }
       ],
-      "design_note": "Phase 3: Prepared Kept Pace With can still filter if a Rider or Scout already exists in its Front."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "carried-messages-for",
       "effects": [
         {
           "timing": "play",
-          "text": "If you control a Captain or Scout formation in this Front, draw 1 card, then discard 1 card."
+          "text": "With a friendly Scout or Captain here, you may Move one friendly formation here one legal position and look at an opposing face-down Stratagem here, if any."
         }
       ],
-      "design_note": "Phase 3: Card-flow Bond works when prepared near an existing Captain or Scout, not only when immediately attached."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "shared-the-spoils-with",
@@ -969,12 +961,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose one of your Scouts in Rear. Draw 2 cards, then discard 1 card.",
-          "scope": "self",
-          "memory": []
+          "text": "Move one friendly Scout in Rear one adjacent legal position, if any. Draw 1 card."
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs."
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     },
     {
       "id": "all-banners-forward",
@@ -1048,6 +1038,60 @@
         }
       ],
       "design_note": "Strict 3-Strength tariff costs 3C; short +1 temporary ally bonus compensates odd Strength."
+    },
+    {
+      "id": "rallied-behind",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "If you have less Command than your opponent, regain 1 Command and Move one friendly formation here one legal position, if possible."
+        }
+      ],
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+    },
+    {
+      "id": "iria",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Look at an opposing face-down Stratagem in this or an adjacent Front, if any. You may Move one friendly formation here one legal position."
+        }
+      ],
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+    },
+    {
+      "id": "lysa-the-listener",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Look at your opponent's hand. Give one friendly Force in this Front Guarded, if any."
+        }
+      ],
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+    },
+    {
+      "id": "elian",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Move this formation one adjacent legal position."
+        },
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. Move this formation one adjacent legal position. It may then make its unused basic Attack without another Action."
+        }
+      ],
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+    },
+    {
+      "id": "they-returned-with-names",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Named Formation. Give its Force Shaken and ignore its Name text this Battle."
+        }
+      ],
+      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1157,7 +1201,7 @@
       "mode": "name",
       "index": 1,
       "old_text": "Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle.",
-      "text": "Pay 1 Command. Give an opposing formation in this Front with no negative Strength marker −1 Strength this Battle."
+      "text": "Pay 1 Command. Move one friendly Archer in this Front one adjacent legal position."
     },
     {
       "id": "doros-the-last-spear",
@@ -1172,6 +1216,27 @@
       "index": 0,
       "old_text": "Move Kael up to two positions.",
       "text": "Move this formation up to two adjacent legal positions."
+    },
+    {
+      "id": "kael-the-roadless",
+      "mode": "name",
+      "index": 0,
+      "old_text": "Look at every opposing face-down Stratagem in this Front.",
+      "text": "Look at each opposing face-down Stratagem here. You may Move this formation one adjacent legal position."
+    },
+    {
+      "id": "rovan-the-gatebreaker",
+      "mode": "force",
+      "index": 0,
+      "old_text": "Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.",
+      "text": "If this Force is in Frontline and stronger than the opposing Frontline Force here, give that Force Shaken. You may Move it one rank toward Rear, if legal."
+    },
+    {
+      "id": "neris-the-ferryman",
+      "mode": "force",
+      "index": 0,
+      "old_text": "Move Neris one position.",
+      "text": "Move this formation one adjacent legal position. It may then make its unused basic Rider Attack without another Action."
     }
   ],
   "hero_mode_costs": [

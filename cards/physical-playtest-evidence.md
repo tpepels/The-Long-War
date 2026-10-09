@@ -168,3 +168,20 @@ and that Shared the Spoils With no longer steals Command.
 
 These are observation prompts only; do not silently extrapolate the
 old 2C Thirty Spears / 3C Damar deck-wide cost calculations.
+
+## Tactical-support observations after the non-Force redesign
+
+Count PLAY/ACTION/HIDDEN decisions that reposition formations, open an
+unused basic Attack, protect against one, or reveal a face-down plan.
+For each, record its opportunity and whether the opponent was forced
+to reply. Separate **information seen** from **a resulting different
+decision** and separate legal movement from a genuine Front-result
+change. The new 98-card audit is at
+[nonforce-battlefield-audit.json](nonforce-battlefield-audit.json);
+its 18 revised and 18 watch decisions are editorial, not match data.
+
+Important stressors: multiple hidden resolution Moves affecting adjacent
+Front totals, Elian/Neris not getting extra Attack uses, Rovan's
+Strength-gated displacement obeying row legality, and the 1C
+support-Bond positioning effects remaining less efficient than permanent
+Force deployment in situations with no tactical threat.

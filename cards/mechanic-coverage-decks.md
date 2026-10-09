@@ -61,7 +61,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 **What to record**
 
 - At least one Scout and one Seer can be deployed and completed
-- Scouts Had Warned Them prevents an actual targeted affliction
+- Scouts Had Warned Them protects a threatened position, while Iria and Kael-as-Name can Move after inspecting a hidden plan
 - Before Sunset has a same/adjacent Front trigger and changes Strength
 - Ground Was Held reveals only from an eligible pre-reveal total
 

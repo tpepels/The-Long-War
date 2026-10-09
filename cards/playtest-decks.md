@@ -18,10 +18,10 @@ Reliable leadership and permanent Strength: Captain/King formations amplify Bond
 
 ### Combinations to test
 
-- Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them give several independent leadership payoffs.
+- Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them offer a hidden positional surprise versus broad leadership Strength.
 - Followed x3 and The Battle Had Chosen Them x2 reward any of six different Names; the large Fifty Men, Hundred Shields and First Spear remain useful even before Named completion.
 - Stood Fast With x2 guards a critical Frontline from flanking and protects the Rider weakness; First Spear x3 can place Guarded on Middle support.
-- The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed final swings.
+- The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed repositioning versus broad Strength swings.
 
 ### Card availability, not playable-combo probability
 
@@ -243,7 +243,7 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 - Relief Column and White Hands heal or enable a recovery line; They Lived to Tell It, No One Would Be First to Leave, Bind the Wound and Catch Your Breath provide alternative ways to lift conditions.
 - Middle Old Guard, Serekh and First Spear protect Rear formations, while Supported By, Held the Line For, Blocked the Road For and Guarded each protect a different weakness.
 - Covered the Withdrawal Of, Kept the Gate For and Trusted allow Exhausted formations to Maneuver when necessary, but recovery and actual Strength must remain the primary payoff.
-- Rallied Behind helps recover Command after falling behind; No Step Back and The Ground Was Held can change the result of a narrow defensive Battle.
+- Rallied Behind can now recover Command and Move a formation when behind; No Step Back and The Ground Was Held remain hidden comeback plans.
 
 ### Card availability, not playable-combo probability
 
@@ -305,7 +305,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 
 - Seven Black Ships and River Raiders can remove attached layers after winning the Raider Strength check, even against an occupied enemy Frontline; Seized the Standard Of and The Muster Was False provide alternative attachment pressure.
 - Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.
-- Lantern Scouts and Lysa support They Were Gathering There, The Scouts Had Warned Them and Before Sunset for actual Strength or Guarded counterplay, not merely looking at cards.
+- Lantern Scouts and Lysa use enemy information to choose Guarded protection; Kael and scouting effects can also reposition formations instead of only looking at cards.
 - Shaken Raider/Skirmisher pressure enables Shared the Spoils With to Move a formation, and The Trap Closed to remove an attachment; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
 
 ### Card availability, not playable-combo probability
@@ -377,3 +377,14 @@ The static co-draw percentages cannot establish how often these conditions
 will be satisfied. In matched playtests, measure **legal openings, Actions
 saved, local Front reversals, and impact on losing-side Command**, not only
 the number of copies drawn together.
+
+## Dynamic battlefield role revision
+
+This deck composition is unchanged, but card **roles** evolved: the
+1C **Rallied Behind** also Moves a formation when Command is behind;
+**The Center Must Hold** may reposition a formation at resolution;
+**The Raiders Came Home Loaded** immediately Moves up to two
+Raiders/Skirmishers rather than recurring Tactic discounts. **Lysa**
+now combines hand information and Guarded; **Kael-as-Name** inspects
+hidden plans and Moves. The percentages above still measure card
+co-draw only, not how often these tactical opportunities exist.

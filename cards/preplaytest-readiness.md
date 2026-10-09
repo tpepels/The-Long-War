@@ -187,3 +187,17 @@ effects rather than ad hoc economy credits. Brannoc, A Volley Before
 Dawn and Shared the Spoils With have effects reconciled with the new
 Shaken/Incursion combat roles. `check_post_incursion_economy.py`
 runs the anti-regression audit. Price checks are **not win-rate results**.
+
+## Non-Force battlefield-agency review
+
+The strict price audit checked the economy; the follow-up
+[nonforce-battlefield-review.md](nonforce-battlefield-review.md) asks
+whether **all 98 other identities** help attacks, Maneuvers, intrigue,
+defence or necessary supporting infrastructure. The record is 18
+revisions, 62 deliberate keeps and 18 specific watch cases. The
+focused opportunities now contain **72 individual counterfactuals**,
+including all revised and watch-listed identities. The new
+`tools/check_nonforce_battlefield_roles.py` checks family coverage,
+printed effect sizes and the specific card-granted Attack exceptions.
+The normal Action menu and rulebook structure are unchanged. This
+is still **not evidence of improved win rates or battle feel**.

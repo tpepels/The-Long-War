@@ -9,10 +9,10 @@
       "playstyle": "Reliable leadership and permanent Strength: Captain/King formations amplify Bonded stacks and convert close Fronts through repeatable hidden plans.",
       "hypothesis": "With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?",
       "combo_notes": [
-        "Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them give several independent leadership payoffs.",
+        "Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them offer a hidden positional surprise versus broad leadership Strength.",
         "Followed x3 and The Battle Had Chosen Them x2 reward any of six different Names; the large Fifty Men, Hundred Shields and First Spear remain useful even before Named completion.",
         "Stood Fast With x2 guards a critical Frontline from flanking and protects the Rider weakness; First Spear x3 can place Guarded on Middle support.",
-        "The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed final swings."
+        "The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed repositioning versus broad Strength swings."
       ],
       "combo_packages": [
         {
@@ -669,7 +669,7 @@
         "Relief Column and White Hands heal or enable a recovery line; They Lived to Tell It, No One Would Be First to Leave, Bind the Wound and Catch Your Breath provide alternative ways to lift conditions.",
         "Middle Old Guard, Serekh and First Spear protect Rear formations, while Supported By, Held the Line For, Blocked the Road For and Guarded each protect a different weakness.",
         "Covered the Withdrawal Of, Kept the Gate For and Trusted allow Exhausted formations to Maneuver when necessary, but recovery and actual Strength must remain the primary payoff.",
-        "Rallied Behind helps recover Command after falling behind; No Step Back and The Ground Was Held can change the result of a narrow defensive Battle."
+        "Rallied Behind can now recover Command and Move a formation when behind; No Step Back and The Ground Was Held remain hidden comeback plans."
       ],
       "combo_packages": [
         {
@@ -868,7 +868,7 @@
       "combo_notes": [
         "Seven Black Ships, River Raiders and Seized the Standard Of can remove attached layers after the opposing Frontline opens; The Muster Was False offers another Bond-punishment line with a Scout or Seer.",
         "Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.",
-        "Lantern Scouts and Lysa support They Were Gathering There, The Scouts Had Warned Them and Before Sunset for actual Strength or Guarded counterplay, not merely looking at cards.",
+        "Lantern Scouts and Lysa use enemy information to choose Guarded protection; Kael and scouting effects can also reposition formations instead of only looking at cards.",
         "Shaken Raider/Skirmisher pressure makes Shared the Spoils With and The Trap Closed useful; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills."
       ],
       "combo_packages": [

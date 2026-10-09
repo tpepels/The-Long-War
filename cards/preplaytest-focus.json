@@ -29,9 +29,9 @@
     },
     {
       "id": "carried-messages-for",
-      "opportunity": "A Captain/Scout and attached Bond share a Front before a crucial draw.",
-      "comparison": "Compare 1C zero-Strength Bond's filter with a normal +1-Strength Bond.",
-      "failure_signal": "If filtering never produces a better card or choice before resolution, a zero-Strength Bond may be too expensive."
+      "opportunity": "A Scout or Captain holds a Front with an opposing face-down Stratagem and a legal friendly Move that could alter a flank.",
+      "comparison": "Compare spending 1C/Action to reveal a specific hidden plan and Move with the same Bond played without any plan or a regular Maneuver.",
+      "failure_signal": "If scouting information cannot change the movement decision, the two benefits are merely decorative and the zero-Strength Bond may be weak."
     },
     {
       "id": "carried-the-oath-of",
@@ -40,16 +40,58 @@
       "failure_signal": "If the opponent lacks suppression, the Bond's 1 Strength is its entire floor."
     },
     {
+      "id": "covered-the-withdrawal-of",
+      "opportunity": "An Exhausted friendly Force directly ahead could reach a flanked enemy only by Maneuvering while Exhausted, with this Bond already attached behind.",
+      "comparison": "Compare its 1C continuing Maneuver permission with a single Move Order or cleansing the Exhaustion first.",
+      "failure_signal": "If the directly-ahead geometry almost never occurs, replace this conditional permission with a more immediate decision."
+    },
+    {
+      "id": "eira",
+      "opportunity": "Another friendly Named Human formation is already in play when Eira completes her own Named Formation and would draw two cards.",
+      "comparison": "Compare Eira's conditional draw-two at 2C with a cheap Name and a separate 0C Scout-supported Order.",
+      "failure_signal": "If the prerequisite cannot be achieved early enough to affect Action choices, its card-flow reward is delayed too long."
+    },
+    {
       "id": "elian",
-      "opportunity": "A Force becomes Named with Elian and can move into a location that creates a Rider Attack or flank.",
-      "comparison": "Compare free completion Move with spending a separate Maneuver ACTION and 1C.",
-      "failure_signal": "If the same position could be used by choosing deployment earlier, count only the real saved Action."
+      "opportunity": "An Elian Named Formation can spend 1 Command and one Action to Move into a newly legal Raider, Archer, Skirmisher or Rider basic Attack target.",
+      "comparison": "Compare its paid Move-plus-unused-Attack with a normal 1C Maneuver followed by a second Attack Action; track once-per-Battle Attack use.",
+      "failure_signal": "If an ordinary Attack was already possible or the next Action is always spent on Force deployment, the card-granted combination may be too powerful or unnecessary."
+    },
+    {
+      "id": "every-bow-was-strung",
+      "opportunity": "Two or more Bonded Archer formations already threaten opposing Rear units and a 1C Narrative would multiply their Strength.",
+      "comparison": "Compare the passive Archer total with a 1C Narrative enabling a Move or hidden-plan decision for those same Archers.",
+      "failure_signal": "If permanent deployment plus this cheap Strength multiplier dominates counterattacks, reconsider the bonus or prerequisites."
     },
     {
       "id": "iria",
-      "opportunity": "The top three deck cards vary sharply in usefulness over the next turns.",
-      "comparison": "Compare 1C Name +1 Strength with reordered draws versus an immediate card-filtering Name.",
-      "failure_signal": "If no follow-up draw timing matters, the ordering ability contributes little."
+      "opportunity": "A formation becomes Named with Iria while an opposing Stratagem is set and a local legal Move could change which Front is threatened.",
+      "comparison": "Compare the 1C Name's peek plus friendly Move with a regular Maneuver on that Named Formation and a 1C scouting-only Name.",
+      "failure_signal": "If peeking never changes the intended Move, record the positional effect separately from the information payoff."
+    },
+    {
+      "id": "kael-the-roadless",
+      "opportunity": "Kael played as Name completes a formation while a hidden Stratagem exists in its Front and a legal positional response is available.",
+      "comparison": "Compare Kael's cheap Name-mode peek and Move with its more expensive Force-mode two-step ACTION and a normal 1C Name.",
+      "failure_signal": "If no hidden plan or legal Move can affect an Attack or Front result, the Hero Name may still be selected only because it costs less."
+    },
+    {
+      "id": "kept-pace-with",
+      "opportunity": "A friendly Rider or Scout occupies a Front whose adjacent active position is legally empty; playing the Bond could create a Rider flank or uncover a target.",
+      "comparison": "Compare a 1C Bond PLAY that Moves a Rider/Scout with a 1C Maneuver requiring Named status and a static +1 Strength Bond.",
+      "failure_signal": "If the Move is usually identical to choosing the initial position or never changes Attack eligibility, the extra tempo is overstated."
+    },
+    {
+      "id": "kept-the-gate-for",
+      "opportunity": "An Exhausted friendly Force directly behind a Bonded formation needs a legal Maneuver to prevent an adjacent flank or retreat.",
+      "comparison": "Compare its ongoing rearward Maneuver permission with the forward permission on Covered the Withdrawal of and a recovery Order.",
+      "failure_signal": "If the exact geometry rarely produces an Action-worthy Maneuver, this support role is too narrow."
+    },
+    {
+      "id": "lysa-the-listener",
+      "opportunity": "A new Named Formation with Lysa may inspect an opponent's hand and place Guarded on a vulnerable friendly Force in its Front.",
+      "comparison": "Compare the 1C Name's hand information and Guarded with Mara's hand-peek plus Move and with a 1C Guarded Bond.",
+      "failure_signal": "If hand information never affects where to protect or Guarded is usually redundant, Lysa has no distinctive practical purpose."
     },
     {
       "id": "marched-with",
@@ -58,10 +100,22 @@
       "failure_signal": "If the one-turn bonus does not alter result, it still enables Named; record that separately."
     },
     {
+      "id": "namar",
+      "opportunity": "A 4C Namar completes a Named Formation and can discount an additional Bond or Name play in the same Front next turn.",
+      "comparison": "Compare Namar's Command and Action setup cost against two cheaper Names and a direct Bond play at normal Command.",
+      "failure_signal": "If the 4C Name never repays its premium during a real Battle, reconsider its orchestration payoff."
+    },
+    {
+      "id": "nara-builder-of-walls",
+      "opportunity": "A prepared Bond and prepared Name occupy nearby positions while Nara could attach one of them immediately or as a once-per-Battle ACTION.",
+      "comparison": "Compare the Hero's Force- and Name-mode preparation effects with the ordinary two-step deployment and Field Train.",
+      "failure_signal": "If players never prepare enough layers to activate Nara or its mode choices feel identical, its unusual preparation role needs work."
+    },
+    {
       "id": "neris-the-ferryman",
-      "opportunity": "Choose Neris as Force or Name when a friendly formation needs a Move to open a flank or protect a support rank.",
-      "comparison": "Compare role cost and later ACTION against one ordinary Maneuver or Order.",
-      "failure_signal": "If one mode always dominates the other, log the exact alternatives."
+      "opportunity": "Neris Force mode has an unused basic Rider Attack and can Move into a position with a legal flanked enemy target.",
+      "comparison": "Compare the 4C Hero's once-per-Battle Move-plus-Attack ACTION with the 3C Vardai's 1C paid Move-plus-Attack and Neris's 2C Name mode.",
+      "failure_signal": "If the Force mode remains inferior to Vardai or the Hero's Name mode in most states, its Force premium may be wasted."
     },
     {
       "id": "no-road-was-too-long",
@@ -70,10 +124,46 @@
       "failure_signal": "If a legal beneficial exchange cannot be staged, the card is effectively dormant."
     },
     {
+      "id": "rallied-behind",
+      "opportunity": "After losing an early Front, the player has less Command and a friendly formation can Move to protect a rank or create an Incursion target.",
+      "comparison": "Compare this 1C Bond's recovery-plus-Move with a separate 1C Maneuver or spending that Action on permanent Force Strength.",
+      "failure_signal": "If players recover Command but almost never use the Move, it is still mostly economy text rather than comeback tactics."
+    },
+    {
+      "id": "re-form-the-line",
+      "opportunity": "A Captain is present while a friendly persistent Force blocks a crucial Frontline position and discarding it would regain two Command.",
+      "comparison": "Compare sacrificing the Force and its attachments for only two Command with the Order's alternative swap and a normal Maneuver.",
+      "failure_signal": "If the discard branch is never chosen outside inevitable Collapse, it should remain an emergency option rather than a primary battle action."
+    },
+    {
+      "id": "rovan-the-gatebreaker",
+      "opportunity": "Rovan is played as a Force in Frontline against a weaker opposing defender with a legal space behind it.",
+      "comparison": "Compare the 5C Hero's Shaken-plus-optional-push with Iron Boars' Shaken on PLAY and a separate forced-retreat Tactic.",
+      "failure_signal": "If Gatebreaker cannot displace troops often enough to justify its Hero allowance or reliably locks defenders out, rebalance its payoff."
+    },
+    {
+      "id": "seized-the-standard-of",
+      "opportunity": "An opposing Bonded Formation has spent an Action and Command on an attachment important to its Named status, and this Bond can return that component.",
+      "comparison": "Compare a 1C attached Bond that returns a permanent opposing Bond with a 2C hostile Tactic and a basic Attack.",
+      "failure_signal": "If the one-Action exchange removes too much persistent investment without meaningful counterplay, tighten this card rather than adding casualties."
+    },
+    {
       "id": "sela",
       "opportunity": "A Shaken/Exhausted named Rider needs row movement and can still Maneuver due to Sela.",
       "comparison": "Compare two movement permissions with free deployment and normal Maneuver restrictions.",
       "failure_signal": "If rank change is never worthwhile, investigate narrow movement rather than price."
+    },
+    {
+      "id": "send-a-runner",
+      "opportunity": "A Scout in Rear can legally Move toward a threatened Front while the player benefits from drawing one new card.",
+      "comparison": "Compare the free-Command Order's one Action for Scout movement and one draw with the normal 1C Named Maneuver or cycling two cards.",
+      "failure_signal": "If Scout movement is usually illegal or the Order is used solely as free card filtering, its tactical purpose is too weak."
+    },
+    {
+      "id": "serai-queen-of-crows",
+      "opportunity": "Serai played as Name commands an Archer that can reposition across active Fronts to alter a Guard screen or threaten a Rear Force.",
+      "comparison": "Compare the 1C paid repeatable Archer Move with simply deploying another Archer or paying for an ordinary Named Maneuver.",
+      "failure_signal": "If repeated moves never unlock different targets or are almost always better than other Name ACTIONs, revisit this Queen's mode value."
     },
     {
       "id": "shared-the-spoils-with",
@@ -112,6 +202,12 @@
       "failure_signal": "If +1 hostile cost never prevents or changes a Tactic choice, the effect is decoration."
     },
     {
+      "id": "the-battle-had-chosen-them",
+      "opportunity": "Several Hero or Named Formations are active in neighboring Fronts and a 2C Narrative would add widespread temporary Strength.",
+      "comparison": "Compare the immediate passive Strength total with one 2C tactical Narrative that moves or protects troops during the Battle.",
+      "failure_signal": "If mass Strength repeatedly dominates tactical positional choices, reduce its scope before adding new combat rules."
+    },
+    {
       "id": "the-battle-turned-east",
       "opportunity": "A Rider moves after plan is set; the extra step permits a new flank or avoids a counterattack.",
       "comparison": "Compare plan set +1C with two ordinary Maneuvers and with no plan.",
@@ -122,6 +218,18 @@
       "opportunity": "An opposing Shaken Named formation holds a valuable Bond or Name and The Black Pursuers can spend one Action and 1 Command to return it.",
       "comparison": "Compare its 1 Command ACTION after an Archer/Skirmisher Shake with another Attack, or using a hostile Tactic instead.",
       "failure_signal": "If a legal attached target rarely remains Shaken or the bounce has no tactical payoff, the extra Action is unattractive."
+    },
+    {
+      "id": "the-center-must-hold",
+      "opportunity": "A King or Captain supports a Front with another friendly formation that could shift ranks or neighboring active Fronts during resolution.",
+      "comparison": "Compare the 1C hidden plan's commanded Move and +2 with the broader 2C Every Banner Turned Toward Them mass Strength reward.",
+      "failure_signal": "If moving at the simultaneous window produces unclear eligibility or dominates both neighboring Fronts, narrow the effect."
+    },
+    {
+      "id": "the-crows-came-down",
+      "opportunity": "An opposing Force can first be Exhausted on Narrative PLAY and later be Shaken through a separately spent Action with an Archer present.",
+      "comparison": "Compare two Actions and 2C for the combined marker pressure with a single 2C Tactic that already Shakes one opposing Force.",
+      "failure_signal": "If the second Action almost never changes the Front winner, simplify the delayed sequence instead of adding more triggers."
     },
     {
       "id": "the-damar",
@@ -149,9 +257,9 @@
     },
     {
       "id": "the-flank-was-refused",
-      "opportunity": "An active outer Front has a Guard, Archer or Stronghold and faces a close result.",
-      "comparison": "Compare +2 for a 1C hidden-plan Action against regular Strength with no outer-Front gate.",
-      "failure_signal": "If outer Front cannot matter by activation timing, adjust deck and timing."
+      "opportunity": "An outer Front is active with a Guard, Archer or Stronghold that could Move before scoring and change local or adjacent Front results.",
+      "comparison": "Compare the 1C secret reposition-and-+2 with a simple +2 defence that leaves the formation fixed and the Rider flank unchanged.",
+      "failure_signal": "If the outer-Front timing gate produces no legal meaningful Move, note the dead setup rather than calling the card useful."
     },
     {
       "id": "the-grey-riders",
@@ -190,6 +298,12 @@
       "failure_signal": "If discount affects no Name before Battle closes, record setup failure."
     },
     {
+      "id": "the-line-had-begun-to-move",
+      "opportunity": "An opponent visibly needs to play into one crowded Front while a 1C Tactic places a two-Command Tax marker there.",
+      "comparison": "Compare the opponent's response to this avoidable Tax with simply using a 1C Shaken Tactic on an existing Force.",
+      "failure_signal": "If the opponent consistently plays elsewhere or Passes without losing tempo, the threat is too weak to count as intrigue."
+    },
+    {
       "id": "the-line-was-baited",
       "opportunity": "Your Skirmisher can move an opposing Frontline/Middle Force into a legal Rear slot.",
       "comparison": "Compare 0C Tactic Action with They Had Gone Too Far's 1C fallback Shaken.",
@@ -197,9 +311,9 @@
     },
     {
       "id": "the-lines-held",
-      "opportunity": "A Frontline is empty, a legal Middle formation exists, and +2 turns a close final result.",
-      "comparison": "Compare hidden plan 1C/Action to playing an immediate Frontline Force ahead of resolution.",
-      "failure_signal": "If the plan routinely accomplishes no more than one extra Force, inspect flexibility."
+      "opportunity": "At the single resolution reveal window, one friendly formation can legally Move to alter a flank and gain temporary +2 Strength.",
+      "comparison": "Compare a 1C hidden plan's Move-plus-strength with holding +2 Strength in place or having played a fresh Force earlier.",
+      "failure_signal": "If legal moves rarely exist at resolution, this hidden plan remains dead even though its old empty-Frontline gate is gone."
     },
     {
       "id": "the-long-march",
@@ -212,6 +326,12 @@
       "opportunity": "A threatened Rear Force needs Archer screening but friendly Middle Guard is Shaken.",
       "comparison": "Compare the unconditional Middle screening exception with an ordinary Middle Guard.",
       "failure_signal": "If Shaken screening rarely matters, note it as niche defensive rather than useless."
+    },
+    {
+      "id": "the-raiders-came-home-loaded",
+      "opportunity": "Two friendly Raiders or Skirmishers are positioned so their legal Moves could expose a Frontline or generate a threatened Incursion.",
+      "comparison": "Compare the 1C Narrative's two immediate Moves with two separate Maneuver Actions costing Command and with the old recurring Tactic-discount engine.",
+      "failure_signal": "If both Moves are rarely relevant, its ability may not beat cheaper single-Force movement or a direct hostile Tactic."
     },
     {
       "id": "the-red-shields",
@@ -275,15 +395,21 @@
     },
     {
       "id": "they-knew-the-ground",
-      "opportunity": "A Seer supports Named formations in current or adjacent Front and one moved Force can contest a Front.",
-      "comparison": "Compare temporary +1 plus movement and conditional multi-Front Strength to a 1C Bond or another Narrative.",
-      "failure_signal": "If Seer synergy never activates, assess the standalone PLAY ability."
+      "opportunity": "A formation can legally Move across a rank or Front; a Seer is also present to grant that moved formation Guarded.",
+      "comparison": "Compare a 1C Narrative's immediate Move and conditional Guarded with a regular named Maneuver or playing Guarded directly.",
+      "failure_signal": "If no legal Move exists the card should not silently create blanket Strength; test whether the Seer actually changes which choice is best."
     },
     {
       "id": "they-let-them-through",
       "opportunity": "An opposing Named ACTION formation could activate in a contested Front.",
       "comparison": "Compare the 1C suppression + Name Strength loss against All Banners Forward's Shaken/second target.",
       "failure_signal": "If target has no usable ACTION and no Name, record whether another Tactic was clearly better."
+    },
+    {
+      "id": "they-returned-with-names",
+      "opportunity": "An opposing Named Formation has a useful Name ability and a threatening local Strength advantage; the Tactic can Shake and suppress it.",
+      "comparison": "Compare 2C plus an Action for combined Shaken/Name suppression with a 2C Volley or a cheaper tactic suppressing one layer.",
+      "failure_signal": "If permanent Named investment is too easily erased by the Tactic with no response, this effect exceeds the intended tactical pressure."
     },
     {
       "id": "thirty-spears",
@@ -299,9 +425,15 @@
     },
     {
       "id": "watched-the-skies-for",
-      "opportunity": "One poor card in hand can be scheduled behind a high-value topdeck in a future draw sequence.",
-      "comparison": "Compare 1C Bond with normal discard-two-to-draw-one and Sorin's filtering.",
-      "failure_signal": "If topdeck cycling never changes decisions, count only its Named-enabling role."
+      "opportunity": "An opposing face-down Stratagem is active in the Bond's Front or an adjacent Front and one card in hand can be exchanged.",
+      "comparison": "Compare the 1C zero-Strength Bond's secret peek and card filter with ordinary hand cycling and an independently deployed Scout.",
+      "failure_signal": "If there is no decision informed by the revealed plan or the filtered card, its printed effect remains low-impact."
+    },
+    {
+      "id": "yara-the-chronicler",
+      "opportunity": "A discarded Narrative provides a meaningful movement or combat choice when Yara completes a Named Formation as a Name.",
+      "comparison": "Compare regaining that Narrative and spending another Action with the immediate tactical advantages of other similarly priced Hero Name modes.",
+      "failure_signal": "If Narratives are rarely in discard before Yara is Named, treat this as an unproductive setup dependency."
     }
   ]
 }

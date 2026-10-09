@@ -136,3 +136,14 @@ and these regression cases have been audited *statically*. No paper-rules
 compatible AI win-rate study has been completed, and static consistency
 cannot prove that all cards are equally attractive or that comeback
 rates are healthy.
+
+## Subsequent battlefield-agency revision
+
+The later [Non-Force battlefield review](nonforce-battlefield-review.md)
+extends this price-focused snapshot with a role evaluation of every
+Bond, Name, Hero, Tactic, Stratagem, Narrative and Order. Eighteen
+effects were revised for immediate repositioning, Attack
+opportunities and actionable information. Existing prices, the
+131-card ceiling, core player rules and no-routine-casualties
+principle were preserved. This earlier audit's statements about
+individual old effects are historical, not the current card text.
