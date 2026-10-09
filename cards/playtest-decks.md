@@ -73,7 +73,7 @@ Archer pressure reinforced by real Guard screening and repeatable conditional de
 
 ### Combinations to test
 
-- Three Crow Archers and two Thornbow Hunters offer five primary Archer Forces, while Corin and Serai add Archer classifications; Every Bow Was Strung x2 converts completed Bonds into predictable Strength.
+- Three Crow Archers and two Thornbow Hunters offer five primary Archer Forces, while Corin and Serai add Archer classifications; Every Bow Was Strung x2 gives a Bonded Archer's chosen Opening Strike the option to target the enemy Middle rather than Rear; it does not add another Attack or Strength.
 - Three Old Guards and two First Spears screen and protect Rear, while The Wall Did Not Break x2 supplies Guarded on PLAY and a Middle-to-Rear +1 Strength defence.
 - The Archers Were Ready x2 creates more likely counterattack opportunities; No Step Back x2 now protects against hostile Tactics or Attack afflictions.
 - The Baggage Was Abandoned x2 and A Volley Before Dawn x2 can directly weaken contested opposing ranks instead of requiring hidden information to be relevant.
@@ -304,8 +304,8 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 ### Combinations to test
 
 - Seven Black Ships and River Raiders can remove attached layers after winning the Raider Strength check, even against an occupied enemy Frontline; Seized the Standard Of and The Muster Was False provide alternative attachment pressure.
-- Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.
-- Lantern Scouts and Lysa use enemy information to choose Guarded protection; Kael and scouting effects can also reposition formations instead of only looking at cards.
+- Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward makes a Bonded formation's Opening Maneuver extend by one legal Move, not a second order.
+- Lantern Scouts and Lysa use enemy information to choose Guarded protection; The Scouts Had Warned Them now lets a Scout/Seer redirect an Opening Maneuver after seeing both commanders' orders.
 - Shaken Raider/Skirmisher pressure enables Shared the Spoils With to Move a formation, and The Trap Closed to remove an attachment; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
 
 ### Card availability, not playable-combo probability

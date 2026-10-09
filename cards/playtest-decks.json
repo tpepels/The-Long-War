@@ -173,7 +173,7 @@
       "playstyle": "Archer pressure reinforced by real Guard screening and repeatable conditional defence. Aim for Strength and protected Rear support, not reactive card inspection.",
       "hypothesis": "Do repeated Archer/Guard packages win Fronts often enough to justify lower raw starting Strength and the limited Rear positions?",
       "combo_notes": [
-        "Three Crow Archers and two Thornbow Hunters offer five primary Archer Forces, while Corin and Serai add Archer classifications; Every Bow Was Strung x2 converts completed Bonds into predictable Strength.",
+        "Three Crow Archers and two Thornbow Hunters offer five primary Archer Forces, while Corin and Serai add Archer classifications; Every Bow Was Strung x2 gives a Bonded Archer's chosen Opening Strike the option to target the enemy Middle rather than Rear; it does not add another Attack or Strength.",
         "Three Old Guards and two First Spears screen and protect Rear, while The Wall Did Not Break x2 supplies Guarded on PLAY and a Middle-to-Rear +1 Strength defence.",
         "The Archers Were Ready x2 creates more likely counterattack opportunities; No Step Back x2 now protects against hostile Tactics or Attack afflictions.",
         "The Baggage Was Abandoned x2 and A Volley Before Dawn x2 can directly weaken contested opposing ranks instead of requiring hidden information to be relevant."
@@ -867,8 +867,8 @@
       "hypothesis": "Can a Scout/Skirmisher/Raider setup create meaningful Strength denial and attached-layer theft, or does plain Force Strength still win?",
       "combo_notes": [
         "Seven Black Ships, River Raiders and Seized the Standard Of can remove attached layers after the opposing Frontline opens; The Muster Was False offers another Bond-punishment line with a Scout or Seer.",
-        "Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.",
-        "Lantern Scouts and Lysa use enemy information to choose Guarded protection; Kael and scouting effects can also reposition formations instead of only looking at cards.",
+        "Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward makes a Bonded formation's Opening Maneuver extend by one legal Move, not a second order.",
+        "Lantern Scouts and Lysa use enemy information to choose Guarded protection; The Scouts Had Warned Them now lets a Scout/Seer redirect an Opening Maneuver after seeing both commanders' orders.",
         "Shaken Raider/Skirmisher pressure makes Shared the Spoils With and The Trap Closed useful; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills."
       ],
       "combo_packages": [

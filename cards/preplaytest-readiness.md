@@ -216,3 +216,16 @@ equal to the complete **Strength difference**; the single selected
 Force for next-Battle Exhaustion and the recovery sequence remain
 unchanged. See [Opening Order scenarios](physical-rule-playtest-scenarios.md).
 Static checks do not establish reasonable game length or balance.
+
+## Opening Order card replacements and coherence review
+
+Three identities, already represented in physical decks, now supply
+distinct tactical decisions: **Had Been Ordered Forward** extends its
+Bonded formation's Opening Maneuver by one Move; **Every Bow Was Strung**
+lets one Bonded Archer Opening Strike target Middle instead of Rear;
+**The Scouts Had Warned Them** redirects one planned Maneuver after the
+simultaneous opening reveal when a Scout/Seer is in its assigned Front.
+They replace existing effects, not cards: the pool stays at 131,
+and the six standard and four diagnostic deck compositions remain
+intact. The full audit and Stratagem timing table are at
+[full-card-coherence-audit.md](full-card-coherence-audit.md).

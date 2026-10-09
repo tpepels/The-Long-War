@@ -58,7 +58,7 @@ Repeat from a provisional 5–4 non-tie in which the *Ground Was Held* owner is 
 
 ## 9. Front-assigned scouting and reactions
 
-Set **The Scouts Had Warned Them** face-down at a Front containing one of your Scouts or Seers. When your opponent sets a Stratagem **in that same Front**, you may reveal yours, inspect theirs, and give one friendly Force there Guarded. If your opponent sets a Stratagem elsewhere, this trigger does not fire. Try **The Scouts Found the Gap** to reveal an opposing face-down Stratagem involuntarily; its opponent may pay to set it down again as the Tactic specifies.
+Set **The Scouts Had Warned Them** face-down at a Front containing your Scout or Seer. After Pass and the two closing turns, both players reveal Opening Orders. Reveal your Stratagem immediately after the orders: you may change the legal destination of **one of your planned Opening Maneuvers starting in this Front**, not its starting formation, and not an extra order. Then resolve all Opening Orders. **The Scouts Found the Gap** still inspects an opposing face-down Stratagem during ordinary turns, but no longer shares this card's trigger.
 
 **Watch for:** Front assignment being genuinely meaningful without revealing hidden identity prematurely.
 
@@ -223,18 +223,22 @@ reveal window.
 
 **Record:** did the hidden one-point comeback create meaningful counterplay?
 
-### Scout and Seer react with actual protection
+### Scout and Seer answer revealed Opening Orders
 
 A's Scout occupies Front 2 and sets **The Scouts Had Warned Them** there.
-When B sets a new hidden Stratagem at Front 2, A can reveal, look, and give
-one friendly Force there Guarded. With **Before Sunset, the Ford Would Be
-Ours** face up, a newly set Stratagem in Front 3 (adjacent to that Scout)
-may instead produce +2 temporary Strength on one friendly formation in
-Front 3. If no formation is present in Front 3, looking still occurs but
-that +2 is unavailable.
+After Pass and both closing turns, A and B simultaneously reveal
+their two Opening Orders. A may now reveal this Stratagem to change
+the destination of one of A's declared Opening Maneuvers starting in
+Front 2 to another legal adjacent space. A cannot change which Force
+moves, issue a third order, or change a Strike into a Maneuver. The
+order may still fail if the destination becomes illegal during preceding
+orders. **Before Sunset, the Ford Would Be Ours** is a separate
+reaction to an opponent **setting** a Stratagem during regular turns;
+it does not reveal simply because Opening Orders were shown.
 
-**Record:** was the revealed information worth paying an Action/Command,
-and was its protective effect used?
+**Record:** did the changed destination react to real information,
+rather than provide a free Move? How often did the opponent's planned
+Strike lose its target after the redirected Maneuver?
 
 ### Whole-Front exchange must be all-or-nothing
 
@@ -545,3 +549,46 @@ Maneuver and Strike? How rapidly does uncapped Strength-margin loss
 cause Collapse on undefended Fronts? Keep the previous 12/9/6/3/1
 recovery sequence for these initial tests; do not silently
 compensate it without matched tabletop results.
+
+## Three existing cards adapted to Opening Orders
+
+- **Had Been Ordered Forward (Bond, 1C):** With this Bond attached,
+  write an Opening Maneuver for its formation. Resolve its legal
+  one-step Maneuver, then optionally Move that formation **one more
+  legal adjacent position**; this is still one Opening Order and
+  does not refresh its basic Attack. Repeat without a legal second
+  Move: the initial Maneuver still occurs. Ordinary turn Maneuvers
+  do **not** receive the extension.
+- **Every Bow Was Strung (Narrative, 1C):** Play it before passing.
+  Give one Bonded Archer a **Strike** order aimed at an opposing
+  Middle Force. If the chosen Archer is still legal when Strikes
+  resolve, Shake that Middle Force using the Archer's usual basic
+  Attack allowance. Ordinary turn Archers still target Rear unless
+  the Archer's own card grants an exception. Repeat with two Archers:
+  only **one** gets this alternative target per Opening Orders.
+- **The Scouts Had Warned Them (Stratagem, 1C):** Play face-down
+  at a publicly chosen Front with a friendly Scout/Seer. At the
+  reveal of both players' Opening Orders, look at the opponent's
+  chosen orders and redirect the destination of one of your
+  existing Maneuver orders whose formation starts here. The
+  destination must be an otherwise legal adjacent position;
+  the move's initiator cannot change. Any other existing
+  Stratagem remains hidden until its own trigger.
+
+**Cross-effects:** A Bonded Archer using Every Bow Was Strung's
+Opening Strike can trigger the opposing **No Step Back** (affliction
+prevention), **The Archers Were Ready** (unused Archer
+counterattack), or **The Trap Closed** if the triggering attacker
+has Raider/Skirmisher status and successfully applies a marker.
+A Rider Maneuver extended by Had Been Ordered Forward can trigger
+**The Battle Turned East**, but that hidden plan is discarded
+after its one reveal; it is not another Opening Order. Treat
+triggered prevention/reactions after the simultaneous legal
+attack declarations, not as a retrospective cancellation.
+
+**Resolution Stratagems** (The Lines Held, The Center Must Hold,
+The Flank Was Refused and Every Banner Turned Toward Them) wait
+until all Opening Orders have resolved; they are not part of the
+Opening Strike/Maneuver choices and cannot turn a spent basic
+Attack into another Attack. The Ground Was Held checks the
+provisional **post-Opening-Order** Front totals.

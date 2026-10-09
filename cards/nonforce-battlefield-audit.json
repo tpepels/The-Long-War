@@ -162,9 +162,9 @@
       "title": "Had Been Ordered Forward",
       "type": "bond",
       "role": "maneuver",
-      "decision": "keep",
-      "reason": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "effect_length_max": 68
+      "decision": "revised",
+      "reason": "Opening Maneuver extends a Bonded formation by one extra adjacent legal Move, without a bonus Opening Order.",
+      "effect_length_max": 109
     },
     {
       "id": "namar",
@@ -801,18 +801,18 @@
       "title": "The Scouts Had Warned Them",
       "type": "stratagem",
       "role": "intrigue",
-      "decision": "keep",
-      "reason": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "effect_length_max": 137
+      "decision": "revised",
+      "reason": "Face-down Scout/Seer plan changes a previously chosen Opening Maneuver destination after simultaneous orders are revealed.",
+      "effect_length_max": 146
     },
     {
       "id": "every-bow-was-strung",
       "title": "Every Bow Was Strung",
       "type": "narrative",
-      "role": "formation",
-      "decision": "watch",
-      "reason": "Pure Archer Strength amplifier may remain useful baseline but risks passive stacking.",
-      "effect_length_max": 59
+      "role": "attack",
+      "decision": "revised",
+      "reason": "One Bonded Archer assigned an Opening Strike can threaten Middle instead of Rear, with no extra Attack and no passive Strength.",
+      "effect_length_max": 120
     },
     {
       "id": "they-knew-the-ground",

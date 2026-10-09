@@ -1,0 +1,2079 @@
+{
+  "schema_version": 1,
+  "scope": "Physical-print 131-card pool, no executable native/Webgame balance proof",
+  "review_date": "2026-10-09",
+  "coherence_baseline": "After two post-Pass secret Opening Orders (twice per player) and before Stratagem Front-resolution reveal; full Strength-margin Command loss",
+  "counts": {
+    "coherent_on_paper": 101,
+    "watch": 27,
+    "new_opening_card": 3
+  },
+  "force_roles": "cards/tactical-force-roles.json",
+  "nonforce_roles": "cards/nonforce-battlefield-audit.json",
+  "stratagem_matrix": "cards/stratagem-opening-interactions.json",
+  "cards": [
+    {
+      "id": "the-fifty-men",
+      "type": "force",
+      "title": "The Fifty Men",
+      "price": 4,
+      "role": "line",
+      "purpose": "Massed Human line gains temporary Strength when deployed behind another Human in its Front.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 75,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "rider-flank-lab",
+        "seer-hidden-lab",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ],
+      "printed_strength": 5
+    },
+    {
+      "id": "seven-black-ships",
+      "type": "force",
+      "title": "Seven Black Ships",
+      "price": 4,
+      "role": "raider",
+      "purpose": "Deploy into a legal incursion to disrupt an enemy attachment immediately.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 143,
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 4
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "type": "force",
+      "title": "The White Hands of Elara",
+      "price": 3,
+      "role": "support",
+      "purpose": "Remove conditions so a threatened formation can act again.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 80,
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-red-shields",
+      "type": "force",
+      "title": "The Red Shields",
+      "price": 4,
+      "role": "guard",
+      "purpose": "Hold the line and tax hostile targeting.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 88,
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "oathforge",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 4
+    },
+    {
+      "id": "the-crow-archers",
+      "type": "force",
+      "title": "The Crow Archers",
+      "price": 4,
+      "role": "archer",
+      "purpose": "Shake Rear threats, bypass screening, or reach Middle through a gap.",
+      "review": "coherent_on_paper",
+      "order_interaction": "opening_strike_target",
+      "printed_effect_max_chars": 119,
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-house-of-reed",
+      "type": "force",
+      "title": "The House of Reed",
+      "price": 4,
+      "role": "support",
+      "purpose": "Complete prepared formations rather than simply add Strength.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 153,
+      "in_test_decks": [
+        "crown-of-crows",
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-grey-riders",
+      "type": "force",
+      "title": "The Grey Riders",
+      "price": 4,
+      "role": "rider",
+      "purpose": "Maneuver flexibly and exploit a newly reachable flanked target.",
+      "review": "watch",
+      "order_interaction": "opening_maneuver_trigger",
+      "printed_effect_max_chars": 137,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "watch_reason": "Opening Maneuver can trigger the printed unused Rider Attack for free; a later Strike with that Force must fail.",
+      "printed_strength": 3
+    },
+    {
+      "id": "the-dust-riders",
+      "type": "force",
+      "title": "The Dust Riders",
+      "price": 3,
+      "role": "rider",
+      "purpose": "Choose Rider or Skirmisher pressure while Bonded.",
+      "review": "coherent_on_paper",
+      "order_interaction": "ordinary_turn_maneuver",
+      "printed_effect_max_chars": 63,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-black-company",
+      "type": "force",
+      "title": "The Black Pursuers",
+      "price": 4,
+      "role": "skirmisher",
+      "purpose": "Exploit a Shaken target by removing a valuable attachment.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 96,
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
+      "printed_strength": 4
+    },
+    {
+      "id": "the-red-duelists",
+      "type": "force",
+      "title": "The Red Duelists",
+      "price": 4,
+      "role": "skirmisher",
+      "purpose": "Shake an opposing Frontline to prepare a breach.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 64,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths",
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "type": "force",
+      "title": "The Thornbow Hunters",
+      "price": 4,
+      "role": "archer",
+      "purpose": "Strengthen nearby friendly Archers while pressuring Rear.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 78,
+      "in_test_decks": [
+        "crown-of-crows",
+        "seer-hidden-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-iron-boars",
+      "type": "force",
+      "title": "The Iron Boars",
+      "price": 5,
+      "role": "raider",
+      "purpose": "Break weaker Frontlines and create incursion opportunities.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 98,
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
+      "printed_strength": 5
+    },
+    {
+      "id": "the-first-spear",
+      "type": "force",
+      "title": "The First Spear",
+      "price": 4,
+      "role": "guard",
+      "purpose": "Protect friendly formations from incoming afflictions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 107,
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "the-last-watch",
+        "rider-flank-lab"
+      ],
+      "printed_strength": 4
+    },
+    {
+      "id": "the-old-guard",
+      "type": "force",
+      "title": "The Old Guard",
+      "price": 3,
+      "role": "guard",
+      "purpose": "Continue screening an Archer target even while Shaken.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 128,
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch",
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-unnamed-host",
+      "type": "force",
+      "title": "The Salt-Road Reavers",
+      "price": 5,
+      "role": "raider",
+      "purpose": "Exploit a Shaken target with Depleted without Command theft.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 54,
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
+      "printed_strength": 5
+    },
+    {
+      "id": "the-late-banner",
+      "type": "force",
+      "title": "The Late Banner",
+      "price": 3,
+      "role": "command",
+      "purpose": "Accelerate building a Named formation.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 104,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-banner-singers",
+      "type": "force",
+      "title": "The Banner Singers",
+      "price": 3,
+      "role": "command",
+      "purpose": "Protect other formations from costly hostile Tactics.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 117,
+      "in_test_decks": [
+        "banner-and-blood"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "thirty-spears",
+      "type": "force",
+      "title": "Thirty Spears",
+      "price": 3,
+      "role": "line",
+      "purpose": "Basic 3-Strength infantry reinforces another friendly formation with temporary Strength on PLAY, at full 3C tariff.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 78,
+      "in_test_decks": [
+        "the-last-watch",
+        "raw-strength-control"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "a-hundred-shields",
+      "type": "force",
+      "title": "A Hundred Shields",
+      "price": 5,
+      "role": "guard",
+      "purpose": "Provide a durable line and basic Guard screening.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 0,
+      "in_test_decks": [
+        "banner-and-blood",
+        "raw-strength-control"
+      ],
+      "printed_strength": 6
+    },
+    {
+      "id": "the-vardai",
+      "type": "force",
+      "title": "The Vardai",
+      "price": 3,
+      "role": "rider",
+      "purpose": "Spend one Action to Move and make an unused Rider Attack.",
+      "review": "coherent_on_paper",
+      "order_interaction": "ordinary_turn_paid_attack",
+      "printed_effect_max_chars": 140,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-aradai",
+      "type": "force",
+      "title": "The Aradai",
+      "price": 3,
+      "role": "raider",
+      "purpose": "Apply brief Frontline pressure to enable a Raider Incursion after a local Strength tie.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 96,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths",
+        "raw-strength-control"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-ilyri",
+      "type": "force",
+      "title": "The Ilyri",
+      "price": 3,
+      "role": "skirmisher",
+      "purpose": "Swap occupied ranks to protect and reposition defenders.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 162,
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 2
+    },
+    {
+      "id": "the-damar",
+      "type": "force",
+      "title": "The Damar",
+      "price": 4,
+      "role": "command",
+      "purpose": "Advance an ally and unlock its basic Attack; high tempo pays an ability premium.",
+      "review": "coherent_on_paper",
+      "order_interaction": "on_play_attack_unlock",
+      "printed_effect_max_chars": 157,
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-serekh",
+      "type": "force",
+      "title": "The Serekh",
+      "price": 3,
+      "role": "guard",
+      "purpose": "Protect a formation behind against hostile Tactics.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 112,
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-relief-column",
+      "type": "force",
+      "title": "The Relief Column",
+      "price": 3,
+      "role": "support",
+      "purpose": "Restore a Force and make it Guarded.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 117,
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-field-train",
+      "type": "force",
+      "title": "The Field Train",
+      "price": 3,
+      "role": "support",
+      "purpose": "Play a Bond or Name from hand without another Action.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 186,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 2
+    },
+    {
+      "id": "the-signal-company",
+      "type": "force",
+      "title": "The Signal Company",
+      "price": 3,
+      "role": "command",
+      "purpose": "Reposition an ally and earn a draw on a flank swing.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 181,
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ],
+      "printed_strength": 2
+    },
+    {
+      "id": "followed",
+      "type": "bond",
+      "title": "Followed",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 76,
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "oathforge",
+        "blood-and-spoils",
+        "rider-flank-lab",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "guarded",
+      "type": "bond",
+      "title": "Guarded",
+      "price": 1,
+      "role": "defence",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 63,
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "blood-and-spoils",
+        "the-last-watch",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "stood-fast-with",
+      "type": "bond",
+      "title": "Stood Fast With",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 131,
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "rider-flank-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "marched-with",
+      "type": "bond",
+      "title": "Marched With",
+      "price": 1,
+      "role": "strength",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 83,
+      "in_test_decks": [
+        "rider-flank-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "kept-pace-with",
+      "type": "bond",
+      "title": "Kept Pace With",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 93,
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "covered-the-withdrawal-of",
+      "type": "bond",
+      "title": "Covered the Withdrawal of",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Only useful when an Exhausted Force directly ahead could otherwise make a Maneuver.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 95,
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "watch_reason": "Only useful when an Exhausted Force directly ahead could otherwise make a Maneuver."
+    },
+    {
+      "id": "blocked-the-road-for",
+      "type": "bond",
+      "title": "Blocked the Road for",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 69,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "held-the-line-for",
+      "type": "bond",
+      "title": "Held the Line for",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 88,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "seized-the-standard-of",
+      "type": "bond",
+      "title": "Seized the Standard of",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Returning a persistent Bond for 1C may outvalue the opposing Action and attachment.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 95,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
+      "watch_reason": "Returning a persistent Bond for 1C may outvalue the opposing Action and attachment."
+    },
+    {
+      "id": "stayed-behind-for",
+      "type": "bond",
+      "title": "Stayed Behind For",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Prepared-Name attachment requires a staging decision that may be uncommon.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 107,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "watch_reason": "Prepared-Name attachment requires a staging decision that may be uncommon."
+    },
+    {
+      "id": "swore-again-to",
+      "type": "bond",
+      "title": "Swore Again To",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 139,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ]
+    },
+    {
+      "id": "endured-with",
+      "type": "bond",
+      "title": "Endured With",
+      "price": 1,
+      "role": "defence",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 64,
+      "in_test_decks": [
+        "crown-of-crows"
+      ]
+    },
+    {
+      "id": "rallied-behind",
+      "type": "bond",
+      "title": "Rallied Behind",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 131,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "bought-time-for",
+      "type": "bond",
+      "title": "Bought Time For",
+      "price": 1,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 58,
+      "in_test_decks": [
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "trusted",
+      "type": "bond",
+      "title": "Trusted",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 70,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "marched-beneath-the-banner-of",
+      "type": "bond",
+      "title": "Marched Beneath the Banner of",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 123,
+      "in_test_decks": [
+        "banner-and-blood"
+      ]
+    },
+    {
+      "id": "carried-the-oath-of",
+      "type": "bond",
+      "title": "Carried the Oath of",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 67,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "had-been-ordered-forward",
+      "type": "bond",
+      "title": "Had Been Ordered Forward",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Opening Maneuver extends a Bonded formation by one extra adjacent legal Move, without a bonus Opening Order.",
+      "review": "new_opening_card",
+      "order_interaction": "opening_maneuver_modifier",
+      "printed_effect_max_chars": 109,
+      "in_test_decks": [
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "namar",
+      "type": "name",
+      "title": "Namar",
+      "price": 4,
+      "role": "formation",
+      "purpose": "A 4C Name needs substantial post-completion Action savings to justify its cost.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 150,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "watch_reason": "A 4C Name needs substantial post-completion Action savings to justify its cost."
+    },
+    {
+      "id": "iria",
+      "type": "name",
+      "title": "Iria",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 138,
+      "in_test_decks": [
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "oren",
+      "type": "name",
+      "title": "Oren",
+      "price": 2,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 183,
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "oathforge",
+        "blood-and-spoils",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ]
+    },
+    {
+      "id": "elian",
+      "type": "name",
+      "title": "Elian",
+      "price": 1,
+      "role": "attack",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 128,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ]
+    },
+    {
+      "id": "teren",
+      "type": "name",
+      "title": "Teren",
+      "price": 1,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 99,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "rider-flank-lab",
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "mara",
+      "type": "name",
+      "title": "Mara",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 125,
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "asha-the-shield-bearer",
+      "type": "name",
+      "title": "Asha, the Shield-Bearer",
+      "price": 1,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 130,
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils",
+        "the-last-watch",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "edrin",
+      "type": "name",
+      "title": "Edrin",
+      "price": 1,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 90,
+      "in_test_decks": [
+        "banner-and-blood",
+        "the-last-watch",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "sela",
+      "type": "name",
+      "title": "Sela",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 63,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ]
+    },
+    {
+      "id": "meren",
+      "type": "name",
+      "title": "Meren",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 52,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "the-last-watch",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "tala",
+      "type": "name",
+      "title": "Tala",
+      "price": 2,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 96,
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "sorin",
+      "type": "name",
+      "title": "Sorin",
+      "price": 1,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 65,
+      "in_test_decks": [
+        "oathforge",
+        "the-last-watch",
+        "broken-oaths",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "iven",
+      "type": "name",
+      "title": "Iven",
+      "price": 3,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 52,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "arel",
+      "type": "name",
+      "title": "Arel",
+      "price": 2,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 117,
+      "in_test_decks": [
+        "banner-and-blood",
+        "rider-flank-lab"
+      ]
+    },
+    {
+      "id": "torren",
+      "type": "name",
+      "title": "Torren",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 124,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "eira",
+      "type": "name",
+      "title": "Eira",
+      "price": 2,
+      "role": "logistics",
+      "purpose": "Drawing two depends on an already established separate Named Human.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 59,
+      "in_test_decks": [
+        "crown-of-crows",
+        "oathforge",
+        "the-last-watch",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ],
+      "watch_reason": "Drawing two depends on an already established separate Named Human."
+    },
+    {
+      "id": "avaros-the-bronze-king",
+      "type": "hero",
+      "title": "Avaros, the Bronze King",
+      "price": "Force 5 / Name 4",
+      "role": "strength",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 144,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "rider-flank-lab"
+      ]
+    },
+    {
+      "id": "kael-the-roadless",
+      "type": "hero",
+      "title": "Kael, the Roadless",
+      "price": "Force 3 / Name 1",
+      "role": "intrigue",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 104,
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "rovan-the-gatebreaker",
+      "type": "hero",
+      "title": "Rovan, the Gatebreaker",
+      "price": "Force 5 / Name 3",
+      "role": "disruption",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 154,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "alda-keeper-of-the-ford",
+      "type": "hero",
+      "title": "Alda, Keeper of the Ford",
+      "price": "Force 4 / Name 2",
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 136,
+      "in_test_decks": [
+        "banner-and-blood",
+        "crown-of-crows",
+        "the-last-watch",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "tovan-the-quartermaster",
+      "type": "hero",
+      "title": "Tovan, the Quartermaster",
+      "price": "Force 3 / Name 4",
+      "role": "formation",
+      "purpose": "Recurring Bond/Name discounts could accelerate formation growth disproportionately.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 109,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "watch_reason": "Recurring Bond/Name discounts could accelerate formation growth disproportionately."
+    },
+    {
+      "id": "nara-builder-of-walls",
+      "type": "hero",
+      "title": "Nara, Builder of Walls",
+      "price": "Force 4 / Name 3",
+      "role": "formation",
+      "purpose": "Prepared-layer payoff may be hard to set up compared with simply attaching cards directly.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 80,
+      "in_test_decks": [
+        "oathforge",
+        "the-last-watch",
+        "front-exchange-lab"
+      ],
+      "watch_reason": "Prepared-layer payoff may be hard to set up compared with simply attaching cards directly."
+    },
+    {
+      "id": "neris-the-ferryman",
+      "type": "hero",
+      "title": "Neris, the Ferryman",
+      "price": "Force 4 / Name 2",
+      "role": "attack",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 119,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ]
+    },
+    {
+      "id": "veyra-keeper-of-oaths",
+      "type": "hero",
+      "title": "Veyra, Keeper of Oaths",
+      "price": "Force 4 / Name 2",
+      "role": "defence",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 77,
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "yara-the-chronicler",
+      "type": "hero",
+      "title": "Yara, the Chronicler",
+      "price": "Force 4 / Name 2",
+      "role": "logistics",
+      "purpose": "Narrative recovery from discard requires an appropriate card and further actions.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 99,
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ],
+      "watch_reason": "Narrative recovery from discard requires an appropriate card and further actions."
+    },
+    {
+      "id": "the-baggage-was-abandoned",
+      "type": "tactic",
+      "title": "The Baggage Was Abandoned",
+      "price": 2,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 63,
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ]
+    },
+    {
+      "id": "they-returned-with-names",
+      "type": "tactic",
+      "title": "They Returned With Names",
+      "price": 2,
+      "role": "disruption",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 95,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "they-were-gathering-there",
+      "type": "tactic",
+      "title": "They Were Gathering There",
+      "price": 1,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 111,
+      "in_test_decks": [
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "the-muster-was-false",
+      "type": "tactic",
+      "title": "The Muster Was False",
+      "price": 1,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 171,
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ]
+    },
+    {
+      "id": "they-had-gone-too-far",
+      "type": "tactic",
+      "title": "They Had Gone Too Far",
+      "price": 1,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 168,
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab"
+      ],
+      "watch_reason": "Similar rearward displacement to The Line Was Baited: different class gate, failure reward and cost."
+    },
+    {
+      "id": "all-banners-forward",
+      "type": "tactic",
+      "title": "All Banners Forward",
+      "price": 1,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 176,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "the-line-wheeled",
+      "type": "tactic",
+      "title": "The Line Wheeled",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 115,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "the-last-watch",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "they-let-them-through",
+      "type": "tactic",
+      "title": "They Let Them Through",
+      "price": 1,
+      "role": "strength",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 134,
+      "in_test_decks": [
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "all-reserves-forward",
+      "type": "tactic",
+      "title": "All Reserves Forward",
+      "price": 2,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 90,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "the-line-had-begun-to-move",
+      "type": "tactic",
+      "title": "The Line Had Begun to Move",
+      "price": 1,
+      "role": "logistics",
+      "purpose": "Tax marker is avoidable and may not force a response; measure activations.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 106,
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "watch_reason": "Tax marker is avoidable and may not force a response; measure activations."
+    },
+    {
+      "id": "the-ground-was-held",
+      "type": "stratagem",
+      "title": "The Ground Was Held",
+      "price": 1,
+      "role": "strength",
+      "purpose": "The tie/down-by-one hidden resolution is mechanically dense; consider simplification after tests.",
+      "review": "watch",
+      "order_interaction": "front_resolution",
+      "printed_effect_max_chars": 178,
+      "in_test_decks": [
+        "the-last-watch",
+        "seer-hidden-lab",
+        "raw-strength-control"
+      ],
+      "watch_reason": "The tie/down-by-one hidden resolution is mechanically dense; consider simplification after tests."
+    },
+    {
+      "id": "the-lines-held",
+      "type": "stratagem",
+      "title": "The Lines Held",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "watch",
+      "order_interaction": "front_resolution",
+      "printed_effect_max_chars": 130,
+      "in_test_decks": [
+        "front-exchange-lab"
+      ],
+      "watch_reason": "One of three partially similar late Move/+2 hidden plans; resolution move can swing multiple Front totals."
+    },
+    {
+      "id": "no-step-back",
+      "type": "stratagem",
+      "title": "No Step Back",
+      "price": 2,
+      "role": "attack",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "attack_or_tactic_prevention",
+      "printed_effect_max_chars": 171,
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch",
+        "raw-strength-control"
+      ]
+    },
+    {
+      "id": "the-center-must-hold",
+      "type": "stratagem",
+      "title": "The Center Must Hold",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "watch",
+      "order_interaction": "front_resolution",
+      "printed_effect_max_chars": 159,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge"
+      ],
+      "watch_reason": "Leader-gated version of late Move/+2, partially overlapping with Lines Held."
+    },
+    {
+      "id": "the-flank-was-refused",
+      "type": "stratagem",
+      "title": "The Flank Was Refused",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "watch",
+      "order_interaction": "front_resolution",
+      "printed_effect_max_chars": 153,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "watch_reason": "Outer-Front class-gated version of late Move/+2, partially overlapping with Lines Held."
+    },
+    {
+      "id": "the-trap-closed",
+      "type": "stratagem",
+      "title": "The Trap Closed",
+      "price": 2,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "watch",
+      "order_interaction": "negative_marker_reaction",
+      "printed_effect_max_chars": 151,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
+      "watch_reason": "Attachment removal during Opening Strike can magnify uncapped Strength-margin Command loss."
+    },
+    {
+      "id": "the-battle-turned-east",
+      "type": "stratagem",
+      "title": "The Battle Turned East",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "watch",
+      "order_interaction": "move_reaction",
+      "printed_effect_max_chars": 142,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "watch_reason": "An extra Rider Move during Opening Orders may stack with Had Been Ordered Forward; one Stratagem reveal, no repeated chain."
+    },
+    {
+      "id": "there-was-no-road-back",
+      "type": "stratagem",
+      "title": "There Was No Road Back",
+      "price": 1,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "named_completion",
+      "printed_effect_max_chars": 157,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ]
+    },
+    {
+      "id": "every-banner-turned-toward-them",
+      "type": "stratagem",
+      "title": "Every Banner Turned Toward Them",
+      "price": 2,
+      "role": "strength",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "watch",
+      "order_interaction": "front_resolution",
+      "printed_effect_max_chars": 167,
+      "in_test_decks": [
+        "banner-and-blood"
+      ],
+      "watch_reason": "Cross-Front temporary Strength can amplify full-margin defeat at resolution."
+    },
+    {
+      "id": "the-long-march",
+      "type": "narrative",
+      "title": "The Long March",
+      "price": 2,
+      "role": "maneuver",
+      "purpose": "Global free Rider Maneuvers can overshadow class-specific movement cards.",
+      "review": "watch",
+      "order_interaction": "ordinary_turn_maneuver",
+      "printed_effect_max_chars": 95,
+      "in_test_decks": [
+        "rider-flank-lab"
+      ],
+      "watch_reason": "Global free Rider Maneuvers can overshadow class-specific movement cards."
+    },
+    {
+      "id": "the-wall-did-not-break",
+      "type": "narrative",
+      "title": "The Wall Did Not Break",
+      "price": 2,
+      "role": "defence",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 124,
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "the-crows-came-down",
+      "type": "narrative",
+      "title": "The Crows Came Down",
+      "price": 2,
+      "role": "disruption",
+      "purpose": "PLAY Exhaustion plus later Action to Shake asks for multiple steps; measure payoffs.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 85,
+      "in_test_decks": [
+        "blood-and-spoils"
+      ],
+      "watch_reason": "PLAY Exhaustion plus later Action to Shake asks for multiple steps; measure payoffs."
+    },
+    {
+      "id": "before-sunset-the-ford-would-be-ours",
+      "type": "narrative",
+      "title": "Before Sunset, the Ford Would Be Ours",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "during_turn_set_reaction",
+      "printed_effect_max_chars": 188,
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "they-lived-to-tell-it",
+      "type": "narrative",
+      "title": "They Lived to Tell It",
+      "price": 1,
+      "role": "defence",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 107,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "no-road-was-too-long",
+      "type": "narrative",
+      "title": "No Road Was Too Long",
+      "price": 3,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 180,
+      "in_test_decks": [
+        "front-exchange-lab"
+      ]
+    },
+    {
+      "id": "the-battle-had-chosen-them",
+      "type": "narrative",
+      "title": "The Battle Had Chosen Them",
+      "price": 2,
+      "role": "strength",
+      "purpose": "Wide Hero/Named Strength aura is powerful but static; preserve only if it anchors a clear archetype.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 110,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "raw-strength-control"
+      ],
+      "watch_reason": "Wide Hero/Named Strength aura is powerful but static; preserve only if it anchors a clear archetype."
+    },
+    {
+      "id": "no-one-would-be-first-to-leave",
+      "type": "narrative",
+      "title": "No One Would Be First to Leave",
+      "price": 2,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 91,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "the-king-had-given-the-order",
+      "type": "narrative",
+      "title": "The King Had Given the Order",
+      "price": 2,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 148,
+      "in_test_decks": [
+        "banner-and-blood",
+        "oathforge",
+        "front-exchange-lab"
+      ]
+    },
+    {
+      "id": "the-ash-bowmen",
+      "type": "force",
+      "title": "The Wolf Skirmishers",
+      "price": 4,
+      "role": "skirmisher",
+      "purpose": "Push an opposing Frontline out of position.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 99,
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 4
+    },
+    {
+      "id": "the-lantern-scouts",
+      "type": "force",
+      "title": "The Lantern Scouts",
+      "price": 3,
+      "role": "scout",
+      "purpose": "Inspect hidden Stratagems and choose safer commitments.",
+      "review": "coherent_on_paper",
+      "order_interaction": "during_turn_set_reaction",
+      "printed_effect_max_chars": 166,
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-river-raiders",
+      "type": "force",
+      "title": "The River Raiders",
+      "price": 4,
+      "role": "raider",
+      "purpose": "Spend additional Actions to remove enemy attachments after winning an incursion check.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 158,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
+      "printed_strength": 4
+    },
+    {
+      "id": "the-kings-spears",
+      "type": "force",
+      "title": "The King's Spears",
+      "price": 3,
+      "role": "guard",
+      "purpose": "Rearrange existing defense at Frontline deployment.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 142,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-salt-road-fleet",
+      "type": "force",
+      "title": "The Salt-Road Fleet",
+      "price": 3,
+      "role": "raider",
+      "purpose": "Move friendly formations back to escape pressure or open a rank.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 86,
+      "in_test_decks": [
+        "broken-oaths"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "type": "force",
+      "title": "The Watchtowers of Eren",
+      "price": 3,
+      "role": "scout",
+      "purpose": "Inspect enemy plans and filter available next moves.",
+      "review": "coherent_on_paper",
+      "order_interaction": "on_play_intelligence",
+      "printed_effect_max_chars": 106,
+      "in_test_decks": [
+        "seer-hidden-lab",
+        "front-exchange-lab"
+      ],
+      "printed_strength": 3
+    },
+    {
+      "id": "watched-the-skies-for",
+      "type": "bond",
+      "title": "Watched the Skies For",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 118,
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "kept-the-gate-for",
+      "type": "bond",
+      "title": "Kept the Gate For",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Rare backwards Exhaustion-Maneuver permission; check frequency before replacing.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 96,
+      "in_test_decks": [
+        "the-last-watch"
+      ],
+      "watch_reason": "Rare backwards Exhaustion-Maneuver permission; check frequency before replacing."
+    },
+    {
+      "id": "shared-the-spoils-with",
+      "type": "bond",
+      "title": "Shared the Spoils With",
+      "price": 1,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 117,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "carried-messages-for",
+      "type": "bond",
+      "title": "Carried Messages For",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 156,
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "supported-by",
+      "type": "bond",
+      "title": "Supported By",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 134,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "supplied-by",
+      "type": "bond",
+      "title": "Supplied By",
+      "price": 1,
+      "role": "formation",
+      "purpose": "Prepared-layer movement is conditional; compare with directly playing the layer.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 96,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ],
+      "watch_reason": "Prepared-layer movement is conditional; compare with directly playing the layer."
+    },
+    {
+      "id": "corin-of-the-high-wall",
+      "type": "name",
+      "title": "Corin of the High Wall",
+      "price": 2,
+      "role": "strength",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 76,
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "lysa-the-listener",
+      "type": "name",
+      "title": "Lysa the Listener",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 84,
+      "in_test_decks": [
+        "broken-oaths",
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "brannoc",
+      "type": "name",
+      "title": "Brannoc",
+      "price": 2,
+      "role": "disruption",
+      "purpose": "Attachment removal can create long-term value; monitor loss-side recovery.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 119,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ],
+      "watch_reason": "Attachment removal can create long-term value; monitor loss-side recovery."
+    },
+    {
+      "id": "maelin",
+      "type": "name",
+      "title": "Maelin",
+      "price": 2,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 96,
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "serai-queen-of-crows",
+      "type": "hero",
+      "title": "Serai, Queen of Crows",
+      "price": "Force 4 / Name 2",
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 95,
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ]
+    },
+    {
+      "id": "doros-the-last-spear",
+      "type": "hero",
+      "title": "Doros, the Last Spear",
+      "price": "Force 5 / Name 1",
+      "role": "formation",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 69,
+      "in_test_decks": [
+        "banner-and-blood",
+        "blood-and-spoils"
+      ]
+    },
+    {
+      "id": "a-volley-before-dawn",
+      "type": "tactic",
+      "title": "A Volley Before Dawn",
+      "price": 2,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 75,
+      "in_test_decks": [
+        "crown-of-crows"
+      ]
+    },
+    {
+      "id": "the-scouts-found-the-gap",
+      "type": "tactic",
+      "title": "The Scouts Found the Gap",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "during_turn_inspection",
+      "printed_effect_max_chars": 175,
+      "in_test_decks": [
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "the-stores-were-taken",
+      "type": "tactic",
+      "title": "The Stores Were Taken",
+      "price": 1,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 179,
+      "in_test_decks": [
+        "blood-and-spoils"
+      ]
+    },
+    {
+      "id": "the-line-was-baited",
+      "type": "tactic",
+      "title": "The Line Was Baited",
+      "price": 0,
+      "role": "disruption",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 163,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "rider-flank-lab"
+      ],
+      "watch_reason": "Similar rearward displacement to They Had Gone Too Far: cheap but needs Skirmisher and succeeds to Deplete."
+    },
+    {
+      "id": "the-archers-were-ready",
+      "type": "stratagem",
+      "title": "The Archers Were Ready",
+      "price": 1,
+      "role": "attack",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "watch",
+      "order_interaction": "after_attack_reaction",
+      "printed_effect_max_chars": 153,
+      "in_test_decks": [
+        "crown-of-crows",
+        "blood-and-spoils"
+      ],
+      "watch_reason": "A triggered Archer counterattack may spend an Attack that was already assigned to a later Opening Strike."
+    },
+    {
+      "id": "the-scouts-had-warned-them",
+      "type": "stratagem",
+      "title": "The Scouts Had Warned Them",
+      "price": 1,
+      "role": "intrigue",
+      "purpose": "Face-down Scout/Seer plan changes a previously chosen Opening Maneuver destination after simultaneous orders are revealed.",
+      "review": "new_opening_card",
+      "order_interaction": "opening_reveal",
+      "printed_effect_max_chars": 146,
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "every-bow-was-strung",
+      "type": "narrative",
+      "title": "Every Bow Was Strung",
+      "price": 1,
+      "role": "attack",
+      "purpose": "One Bonded Archer assigned an Opening Strike can threaten Middle instead of Rear, with no extra Attack and no passive Strength.",
+      "review": "new_opening_card",
+      "order_interaction": "opening_strike_target",
+      "printed_effect_max_chars": 120,
+      "in_test_decks": [
+        "crown-of-crows"
+      ]
+    },
+    {
+      "id": "they-knew-the-ground",
+      "type": "narrative",
+      "title": "They Knew the Ground",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 121,
+      "in_test_decks": [
+        "rider-flank-lab",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "the-raiders-came-home-loaded",
+      "type": "narrative",
+      "title": "The Raiders Came Home Loaded",
+      "price": 1,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 89,
+      "in_test_decks": [
+        "blood-and-spoils",
+        "broken-oaths"
+      ]
+    },
+    {
+      "id": "fresh-orders",
+      "type": "order",
+      "title": "Fresh Orders",
+      "price": 0,
+      "role": "maneuver",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 180,
+      "in_test_decks": [
+        "banner-and-blood",
+        "blood-and-spoils",
+        "broken-oaths",
+        "rider-flank-lab"
+      ]
+    },
+    {
+      "id": "catch-your-breath",
+      "type": "order",
+      "title": "Catch Your Breath",
+      "price": 0,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 112,
+      "in_test_decks": [
+        "crown-of-crows",
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "re-form-the-line",
+      "type": "order",
+      "title": "Re-form the Line",
+      "price": 0,
+      "role": "maneuver",
+      "purpose": "Discarding an entire persistent Force may be too costly except during Command emergencies.",
+      "review": "watch",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 171,
+      "in_test_decks": [
+        "banner-and-blood",
+        "blood-and-spoils"
+      ],
+      "watch_reason": "Discarding an entire persistent Force may be too costly except during Command emergencies."
+    },
+    {
+      "id": "bind-the-wound",
+      "type": "order",
+      "title": "Bind the Wound",
+      "price": 0,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 104,
+      "in_test_decks": [
+        "the-last-watch"
+      ]
+    },
+    {
+      "id": "send-a-runner",
+      "type": "order",
+      "title": "Send a Runner",
+      "price": 0,
+      "role": "maneuver",
+      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 81,
+      "in_test_decks": [
+        "broken-oaths",
+        "seer-hidden-lab"
+      ]
+    },
+    {
+      "id": "take-stock",
+      "type": "order",
+      "title": "Take Stock",
+      "price": 1,
+      "role": "logistics",
+      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "review": "coherent_on_paper",
+      "order_interaction": "normal_turn_or_persistent",
+      "printed_effect_max_chars": 143,
+      "in_test_decks": [
+        "oathforge",
+        "front-exchange-lab"
+      ]
+    }
+  ],
+  "all_test_decks": [
+    "banner-and-blood",
+    "crown-of-crows",
+    "oathforge",
+    "blood-and-spoils",
+    "the-last-watch",
+    "broken-oaths",
+    "rider-flank-lab",
+    "seer-hidden-lab",
+    "front-exchange-lab",
+    "raw-strength-control"
+  ],
+  "coverage": {
+    "printed_identities": 131,
+    "force_identities": 33,
+    "nonforce_identities": 98,
+    "stratagem_identities": 11,
+    "distinct_effect_texts": 131,
+    "test_deck_identities_covered": 131,
+    "test_deck_count": 10
+  }
+}

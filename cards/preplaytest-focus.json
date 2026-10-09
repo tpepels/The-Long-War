@@ -58,10 +58,22 @@
       "failure_signal": "If an ordinary Attack was already possible or the next Action is always spent on Force deployment, the card-granted combination may be too powerful or unnecessary."
     },
     {
+      "id": "every-banner-turned-toward-them",
+      "opportunity": "A King or Captain leads multiple Human formations across two active adjacent Fronts at the post-Opening-Orders resolution reveal.",
+      "comparison": "Compare 2C cross-Front Strength from Every Banner with a 1C single-Front opening Commit, The Center Must Hold, and using the Action to deploy another Force earlier.",
+      "failure_signal": "If the final simultaneous Strength swing decides several full-margin Front losses with no viable earlier response, revise reach or price."
+    },
+    {
       "id": "every-bow-was-strung",
-      "opportunity": "Two or more Bonded Archer formations already threaten opposing Rear units and a 1C Narrative would multiply their Strength.",
-      "comparison": "Compare the passive Archer total with a 1C Narrative enabling a Move or hidden-plan decision for those same Archers.",
-      "failure_signal": "If permanent deployment plus this cheap Strength multiplier dominates counterattacks, reconsider the bonus or prerequisites."
+      "opportunity": "One Bonded Archer can declare an Opening Strike against an opposing Middle Force while an ordinary Archer Strike against Rear would be screened or less relevant.",
+      "comparison": "Compare paying 1C and a Narrative PLAY Action for one Middle-target Opening Strike with relying on The Crow Archers when the opposing Frontline is empty.",
+      "failure_signal": "If middle-target Strikes are seldom legal or the existing Crow Archers provide the same answer reliably, the Narrative adds little tactical value."
+    },
+    {
+      "id": "had-been-ordered-forward",
+      "opportunity": "A Bonded formation has a legal opening Maneuver and a second adjacent empty legal position that creates a flank or changes which Front it defends.",
+      "comparison": "Compare one free two-position Opening Maneuver against the regular one-position Opening Maneuver and the hidden Rider-specific Battle Turned East extension.",
+      "failure_signal": "If another Move only repositions without changing an Attack, flank or final Front result, this 1C zero-Strength Bond may be too narrow."
     },
     {
       "id": "iria",
@@ -194,6 +206,12 @@
       "opportunity": "A 3-Strength Aradai is played into Frontline opposite a 3-Strength defender with an opposing Rear target; its temporary -1 permits an immediate later Raider Incursion.",
       "comparison": "Compare Aradai's 3C baseline body and one-Battle defender -1 with Thirty Spears at 2C (no Attack) and a stronger 4C Raider.",
       "failure_signal": "If the local -1 seldom opens a legal Raider Attack before Shaken clears, its odd-Strength compensation is too situational."
+    },
+    {
+      "id": "the-archers-were-ready",
+      "opportunity": "A player planned an Archer Opening Strike in slot 2, while an opponent Strikes an allied Force in slot 1 and The Archers Were Ready could counterattack.",
+      "comparison": "Compare using the Archer's Attack in response to the first Strike versus preserving it for the planned second Strike, checking Guard screening and legal targets after Maneuvers.",
+      "failure_signal": "If players can make both the reactive Archer Attack and the later Strike with the same Force, the once-per-Battle Attack allowance was implemented incorrectly."
     },
     {
       "id": "the-banner-singers",
@@ -359,9 +377,9 @@
     },
     {
       "id": "the-scouts-had-warned-them",
-      "opportunity": "Both players contest a Front with Scout/Seer and opponent sets a hidden Stratagem there.",
-      "comparison": "Compare 1C + hidden-plan ACTION for Guarded versus a standalone Guarded Bond.",
-      "failure_signal": "If Guarded is too late or never prevents an affliction, lower priority or redesign."
+      "opportunity": "A friendly Scout or Seer occupies the Stratagem's Front when both commanders reveal Opening Orders and one own Maneuver starts there with two possible destinations.",
+      "comparison": "Compare this 1C pre-set hidden redirection after seeing enemy orders with an unmodified opening Maneuver, No Step Back and The Battle Turned East.",
+      "failure_signal": "If redirection never changes an enemy Strike's legality, a flank or a decisive Front, it is a costly and redundant layer of intrigue."
     },
     {
       "id": "the-serekh",
@@ -374,6 +392,12 @@
       "opportunity": "During Battle II, an existing friendly Frontline Force can be moved one adjacent legal position by a new Middle Signal Company, changing a flank and allowing a card draw.",
       "comparison": "Compare 3C/2-Strength Signal Company's immediate free-Action Move and optional draw against a 3C/3-Strength Damar's same-Front forward Move and a 1C ordinary Maneuver.",
       "failure_signal": "If the extra movement reach and possible flank draw never compensate for one less Strength versus Damar, this remains a poor deployment choice."
+    },
+    {
+      "id": "the-trap-closed",
+      "opportunity": "A Raider or Skirmisher Opening Strike Shakes or Depletes an enemy carrying a costly Bond/Name, with The Trap Closed set face-down at that Front.",
+      "comparison": "Compare 2C paid hidden attachment-bounce after the negative marker with directly using Seized the Standard Of or saving Command while inflicting just the affliction.",
+      "failure_signal": "If the revealed trap routinely removes more permanent Strength than the opponent can recover before the uncapped margin penalty, limit its swing rather than adding more counters."
     },
     {
       "id": "the-vardai",
@@ -392,6 +416,12 @@
       "opportunity": "A Force directly ahead is Shaken before Front resolution and the Middle/Rear Healer can clear it.",
       "comparison": "Compare spending an ACTION to remove the condition versus playing a +Strength card and retaining tempo.",
       "failure_signal": "If its healing ACTION is repeatedly weaker, the 3-Strength body alone may not justify it."
+    },
+    {
+      "id": "they-had-gone-too-far",
+      "opportunity": "A friendly Scout or Skirmisher is present while an opposing Middle/Frontline Force can or cannot legally move one row toward Rear.",
+      "comparison": "Compare 1C They Had Gone Too Far (Scout or Skirmisher, Shaken fallback) with zero-Command The Line Was Baited (Skirmisher-only, Depleted on successful retreat).",
+      "failure_signal": "If successful movement dominates the situation and the Shaken fallback/Scout eligibility rarely matters, the two Tactics may be redundant."
     },
     {
       "id": "they-knew-the-ground",

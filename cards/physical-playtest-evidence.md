@@ -198,3 +198,27 @@ at Battle end; test Move-then-Strike and double-Commit separately.
 Track average Battles to Collapse under the existing recovery schedule.
 These rules apply to the **paper game only** until the native engine
 has explicitly implemented and validated them.
+
+## Opening Order-specific interaction measurements
+
+Three **existing** card identities now affect the post-Pass Opening
+Orders, with their existing deck copies unchanged. Track:
+**Had Been Ordered Forward** (Bond extension by one Move),
+**Every Bow Was Strung** (one Bonded Archer's Opening Strike can
+target Middle) and **The Scouts Had Warned Them** (Scout/Seer-hidden
+redirection of a previously declared Maneuver). Log whether each
+new effect changes a flank, an Attack target, the opponent's
+planned response or a Front result, and whether its original
+Command/Action investment was justified.
+
+Stratagem interaction checklist: Opening-reveal reactions happen
+before Commit, movement-triggered reactions after each numbered
+simultaneous Maneuver, prevention/counterattacks during the
+numbered simultaneous Strikes, and final resolution plans after
+**all** Opening Orders. Record if one Force is assigned Strike
+twice, or counters with The Archers Were Ready before an assigned
+later Strike: it still has only one basic Attack per Battle.
+Record when a Rider with Had Been Ordered Forward combines with
+The Battle Turned East, and ensure the hidden Stratagem is
+consumed after one reveal. Compare the three late Move/+2
+Stratagems for meaningful distinct use cases.

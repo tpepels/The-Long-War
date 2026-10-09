@@ -53,15 +53,15 @@ def run() -> None:
     assert "You may choose the same order twice" in SHORT
     assert "repeating a type is allowed" in DETAILED
     assert "both players" in DETAILED.lower()
-    assert "Simultaneous Strikes check legal attackers and targets before either Strike" in DETAILED
-    assert "If both Strikes use the same Force, the second cannot Attack again" in DETAILED
+    assert "Check Attack legality for **both** sides at the start of their paired Strike step" in DETAILED
+    assert "A second Strike by the same Force fails after its one Attack is spent" in DETAILED
     assert "does **not** help a Raider" in DETAILED
     assert "identical in every Battle, including Battle I" in SHORT
     assert "The same sequence applies to every Battle, including Battle I" in DETAILED
     assert "No initial deployment turn, skipped order phase, or Battle I exception" in DETAILED
     assert "after both closing turns" in DETAILED
     assert "two closing turns following the first **Pass**" in SHORT
-    assert "after the first Pass and the **two closing turns**" in DETAILED
+    assert "After the first Pass and the **two closing turns**" in DETAILED
     assert "before the single Stratagem reveal window" in DETAILED
     assert SHORT.index("## Passing and ending a Battle") < SHORT.index("## Opening Orders") < SHORT.index("## Resolving a Battle")
     assert DETAILED.index("## Passing and ending a Battle") < DETAILED.index("## Opening Orders") < DETAILED.index("## Resolving a Battle")

@@ -469,11 +469,12 @@ def run() -> None:
          and "would lose by exactly 1 Strength" in rulebook,
          "Only initial provisional result qualifies, no reaction to other reveals")
 
-    case("P4: Scout Stratagem gives Guarded after looking",
+    case("P4: Scout Stratagem redirects an opening plan",
          cost("the-scouts-had-warned-them") == 1
-         and has("the-scouts-had-warned-them", "Scout or Seer",
-                 "look at that Stratagem", "Guarded"),
-         "Hidden information has direct protective payoff when a plan is set")
+         and has("the-scouts-had-warned-them", "Opening Orders are revealed",
+                 "Scout or Seer", "change the destination",
+                 "Opening Maneuvers"),
+         "Hidden scouting plan answers revealed orders without adding another Move or Attack")
 
     case("P4: scouting Narrative turns intelligence into Strength",
          used_once("before-sunset-the-ford-would-be-ours")
