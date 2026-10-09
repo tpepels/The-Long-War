@@ -59,8 +59,10 @@ window.addEventListener("load",async()=>{{
       errors.push(id+":right-zone-overflow");
     for(const cue of cues){{
       const cueRect=rect(cue),label=cue.querySelector(".edge-cue-text");
-      if(!label||!label.textContent.startsWith("CHECK · "))
+      if(!label||!/^[A-Z/ ]{{1,16}}$/.test(label.textContent))
         errors.push(id+":invalid-cue-text");
+      if(label&&label.textContent.includes("CHECK"))
+        errors.push(id+":redundant-check-prefix");
       if(cueRect.left<box.left-1||cueRect.right>box.right+1||
          cueRect.top<box.top-1||cueRect.bottom>box.bottom+1)
         errors.push(id+":cue-outside-right-zone");
