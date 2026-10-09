@@ -60,7 +60,13 @@ window.addEventListener("load",async()=>{{
         fails.push(id+":redundant-cost-icon");
       const range=document.createRange();range.selectNodeContents(number);
       const ink=rect(range);
-      if(!inside(bound,ink))fails.push(id+":number-outside-seal");
+      if(!inside(bound,ink))
+        fails.push(id+":number-outside-seal"+JSON.stringify({{
+          top:Math.round(ink.top-bound.top),
+          bottom:Math.round(bound.bottom-ink.bottom),
+          left:Math.round(ink.left-bound.left),
+          right:Math.round(bound.right-ink.right)
+        }}));
       if(Math.abs((ink.left+ink.right)/2-(bound.left+bound.right)/2)>1)
         fails.push(id+":number-off-centre");
       if(parseFloat(getComputedStyle(number).fontSize)<4*96/25.4)
