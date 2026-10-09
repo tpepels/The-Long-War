@@ -94,10 +94,29 @@ function classificationLine(card){
   const suffix=classItems.length?'<span class="class-separator">·</span>'+classItems.join('<span class="class-separator">·</span>'):"";
   return '<div class="class-line">'+typeItem+suffix+'</div>';
 }
-function liveEffects(card){if(card.type==="hero")return modeEffects(card,"force").filter(e=>LIVE.has(e.timing));return["force","bond"].includes(card.type)?(card.effects||[]).filter(e=>LIVE.has(e.timing)):[]}
+function liveEffects(card){
+  const effects=card.type==="hero"?modeEffects(card,"force"):["force","bond"].includes(card.type)?(card.effects||[]):[];
+  const result=[];
+  for(const effect of effects.filter(e=>LIVE.has(e.timing))){
+    // A card with two permissions in the same phase needs one prompt,
+    // not two identical instructions to check the rule text.
+    const shared=effect.edge_cue&&!effect.limit&&result.find(e=>e.edge_cue===effect.edge_cue&&!e.limit);
+    if(shared){shared.text+=" / "+effect.text;continue;}
+    result.push({...effect});
+  }
+  return result;
+}
 function exposedText(effect){return String(effect.exposed||effect.text||"").replace(/^ACTION\s+1\/B\s*·\s*/i,"").replace(/^REACTION\s+1\/B\s*·\s*/i,"").replace(/^BONDED\s*·\s*/i,"").replace(/^NAMED\s*·\s*/i,"").trim()}
 function liveMarkup(effect){
   const limited=effect.limit==="once_per_battle";
+  const timing=LABEL[effect.timing]||effect.timing;
+  // The exposed strip is a visual index to the card's rules. Do not repeat
+  // outcomes, costs or a miniature version of the effect here.
+  if(effect.edge_cue){
+    return '<span class="edge-mechanic edge-cue" data-timing="'+esc(effect.timing)+'" title="'+esc(effect.text)+'" aria-label="'+esc("Check rule on "+effect.edge_cue.toLowerCase()+": "+effect.text)+'">'+
+      '<span class="edge-cue-text">CHECK · '+esc(effect.edge_cue)+'</span>'+
+      (limited?'<span class="use-socket" title="Once per Battle: cover after use" aria-hidden="true"></span>':"")+'</span>';
+  }
   const reminder=exposedText(effect);
   const timing=LABEL[effect.timing]||effect.timing;
   const redundant=effect.timing==="continuous"||reminder.toUpperCase().startsWith(timing);
