@@ -1,4 +1,4 @@
-"""Verify compact right-edge CHECK cues fit the 10.5 mm exposed strip in Chromium.
+"""Verify compact right-edge reminder cues fit the 10.5 mm exposed strip in Chromium.
 
 Uses the actual printed JSON, shared CSS, PNG glyph renderer and web fonts.
 Unlike general legacy layout diagnostics, only checks the edited edge region.
@@ -30,7 +30,7 @@ def main() -> None:
             ))
         )
     ]
-    assert len(cards) == 34
+    assert len(cards) == 32
     data = json.dumps(cards).replace("<", "\\u003c")
     css = (ROOT / "web" / "physical-cards.css").read_text(encoding="utf-8")
     scripts = "\n".join(
@@ -88,7 +88,7 @@ window.addEventListener("load",async()=>{{
     status = html.unescape(match.group(1)) if match else "browser check did not finish"
     if status != "PASS":
         raise SystemExit("FAIL: " + status[:4000])
-    print("PASS: 34 printed card right-edge cues fit the exposed strip without wrapping")
+    print("PASS: 32 printed card right-edge cues fit the exposed strip without wrapping")
 
 
 if __name__ == "__main__":
