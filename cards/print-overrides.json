@@ -67,7 +67,9 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may Move an opposing Frontline formation in this Front one row toward Rear, if legal and empty."
+          "text": "You may Move an opposing Frontline formation in this Front one row toward Rear, if legal and empty.",
+          "scope": "opponent",
+          "memory": []
         }
       ],
       "design_note": "Wolf Skirmishers no longer depend on an Archer. Standardized phrasing; intended mechanics unchanged."
@@ -733,7 +735,9 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If an opposing Force here is Exhausted, your opponent loses 1 Command (minimum 1 remaining). Regain the amount actually lost."
+          "text": "If an opposing Force here is Exhausted, your opponent loses 1 Command (minimum 1 remaining). Regain the amount actually lost.",
+          "scope": "opponent",
+          "memory": []
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -743,7 +747,9 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If the opposing Frontline here is empty, return a Bond or Name attached to an opposing Middle or Rear formation here to its owner's hand."
+          "text": "If the opposing Frontline here is empty, return a Bond or Name attached to an opposing Middle or Rear formation here to its owner's hand.",
+          "scope": "opponent",
+          "memory": []
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -753,7 +759,9 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Move another friendly formation in this Front one row toward Rear, if legal and empty."
+          "text": "Move another friendly formation in this Front one row toward Rear, if legal and empty.",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -764,7 +772,9 @@
         {
           "timing": "action",
           "text": "Pay 1 Command. If the opposing Frontline here is empty, return a Bond or Name attached to an opposing Middle or Rear formation here to its owner's hand.",
-          "exposed": "ACTION · Pay 1: raid Bond/Name if enemy Frontline empty"
+          "exposed": "ACTION · Pay 1: raid Bond/Name if enemy Frontline empty",
+          "scope": "opponent",
+          "memory": []
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -774,7 +784,9 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Attach a prepared Bond or Name in this Front to the friendly formation directly ahead, if legal."
+          "text": "Attach a prepared Bond or Name in this Front to the friendly formation directly ahead, if legal.",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -784,7 +796,9 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "Choose a friendly formation in this Front with no Bond. You may play a Bond from your hand onto it, paying its Command cost."
+          "text": "Choose a friendly formation in this Front with no Bond. You may play a Bond from your hand onto it, paying its Command cost.",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -794,7 +808,11 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Force in a Front containing your Archer. It gets −2 Strength this Battle."
+          "text": "Choose an opposing Force in a Front containing your Archer. It gets −2 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -804,11 +822,21 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "Give an opposing formation in this Front −2 Strength this Battle."
+          "text": "Give an opposing formation in this Front −2 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
         },
         {
           "timing": "action",
-          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle."
+          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "used_marker",
+            "suppression_marker"
+          ],
+          "limit": "once_per_battle"
         }
       ],
       "design_note": "Standardized phrasing; intended mechanics unchanged."
@@ -819,7 +847,9 @@
         {
           "timing": "front",
           "text": "While in Frontline, opposing Tactics targeting this formation cost 1 additional Command.",
-          "exposed": "FRONT · Opposing Tactics targeting this +1 Command"
+          "exposed": "FRONT · Opposing Tactics targeting this +1 Command",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -830,7 +860,9 @@
         {
           "timing": "while_named",
           "text": "While Named in Middle, opposing Tactics targeting another friendly formation in this Front cost 1 additional Command.",
-          "exposed": "NAMED MIDDLE · Tactics vs others here cost +1"
+          "exposed": "NAMED MIDDLE · Tactics vs others here cost +1",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -841,7 +873,9 @@
         {
           "timing": "front",
           "text": "While in Frontline, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
-          "exposed": "FRONT · Opposing Tactics vs friendly behind +1"
+          "exposed": "FRONT · Opposing Tactics vs friendly behind +1",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -852,7 +886,9 @@
         {
           "timing": "middle",
           "text": "While in Middle, the friendly Force directly ahead may Maneuver while Exhausted.",
-          "exposed": "MIDDLE · Force ahead Maneuvers while Exhausted"
+          "exposed": "MIDDLE · Force ahead Maneuvers while Exhausted",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -863,7 +899,9 @@
         {
           "timing": "middle",
           "text": "While in Middle, the friendly Force directly ahead may Maneuver without being Named.",
-          "exposed": "MIDDLE · Force ahead Maneuvers while Unnamed"
+          "exposed": "MIDDLE · Force ahead Maneuvers while Unnamed",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -874,7 +912,9 @@
         {
           "timing": "bonded",
           "text": "While this formation is Bonded in Middle, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
-          "exposed": "BONDED MIDDLE · Tactics vs friendly behind cost +1"
+          "exposed": "BONDED MIDDLE · Tactics vs friendly behind cost +1",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -884,7 +924,9 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "If you control another Named Human formation, draw 2 cards."
+          "text": "If you control another Named Human formation, draw 2 cards.",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -894,11 +936,19 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "Choose an opposing formation in this Front. It gets −1 Strength this Battle."
+          "text": "Choose an opposing formation in this Front. It gets −1 Strength this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "effect_marker"
+          ]
         },
         {
           "timing": "continuous",
-          "text": "Other friendly Archers in this Front have +1 Strength."
+          "text": "Other friendly Archers in this Front have +1 Strength.",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
@@ -908,7 +958,9 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose one of your Scouts in Rear. Draw 2 cards, then discard 1 card."
+          "text": "Choose one of your Scouts in Rear. Draw 2 cards, then discard 1 card.",
+          "scope": "self",
+          "memory": []
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
