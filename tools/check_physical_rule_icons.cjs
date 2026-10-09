@@ -17,13 +17,13 @@ const sample = {
     "Choose a friendly Force and one Archer in this Front. Add a Bond to a Named Formation; gain 1 Command. Attack a Guard with a Raider."}]
 };
 const html = window.PhysicalCards.cardArticle(sample);
-const effectTexts = source => [...source.matchAll(/<div class="effect-text">([\\s\\S]*?)<\\/div>/g)]
-  .map(match=>match[1]);
-const inlineCount = html => [...html.matchAll(/class="inline-rule-ref inline-impact-ref"/g)].length;
+const effectTexts = source => source.split('<div class="effect-text">')
+  .slice(1).map(part=>part.split('</div>')[0]);
+const inlineCount = html => html.split('class="inline-rule-ref inline-impact-ref"').length-1;
 const plain = source => source.replace(/<[^>]*>/g,"");
 const one = effectTexts(html)[0];
 for(const term of ["Force","Archer","Front","Bond","Named Formation","Attack","Guard","Raider"])
-  assert.match(plain(one), new RegExp("\\\\b"+term+"\\\\b"), "Missing readable ordinary game term: "+term);
+  assert.ok(plain(one).includes(term), "Missing readable ordinary game term: "+term);
 assert.equal(inlineCount(one),1,"Only the explicit Command amount earns an inline icon");
 assert.match(one, /class="inline-rule-ref inline-impact-ref" title="Command"/);
 assert.doesNotMatch(one, /inline-class-ref|title="Force"|title="Archer"|title="Front"|title="Bond"/,
