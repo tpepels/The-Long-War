@@ -146,7 +146,7 @@ Boons do not stack with themselves. Guarded stops one affliction, not a sequence
 
 **Stratagems** are hidden plans. Play at most **one from hand per Battle**, face-down beside a publicly chosen **active Front**, for one Action and its printed cost. When their REVEAL condition occurs, you may reveal and resolve them. Unless specified otherwise, their effects refer to that Front. Each revealed Stratagem resolves once and is discarded; unrevealed ones are discarded at Battle end. Opposing reveals at the same event are simultaneous.
 
-**Heroes** are Unique cards played as **Force or Name**. Choose the mode when played and use only its corresponding Strength and abilities. You may play **one Hero as Force and one as Name from hand per Battle**; Heroes remaining from earlier Battles do not use those allowances.
+**Heroes** are Unique cards played as **Force or Name**. Their Command seal has two centred prices: **Force on top, Name below**. Choose the mode when played, pay that price and use only its corresponding Strength and abilities. You may play **one Hero as Force and one as Name from hand per Battle**; Heroes remaining from earlier Battles do not use those allowances.
 
 ## Command {#command}
 
