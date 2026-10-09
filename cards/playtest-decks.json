@@ -710,7 +710,7 @@
             "the-first-spear"
           ],
           "payoffs": [
-            "stood-fast-with",
+            "held-the-line-for",
             "no-step-back",
             "the-ground-was-held",
             "rallied-behind"
@@ -887,7 +887,7 @@
           ]
         },
         {
-          "label": "Scout-supported affliction",
+          "label": "Scout-enabled disruption",
           "enablers": [
             "the-lantern-scouts",
             "the-ash-bowmen",
@@ -897,7 +897,7 @@
           ],
           "payoffs": [
             "they-were-gathering-there",
-            "the-line-was-baited",
+            "the-muster-was-false",
             "they-had-gone-too-far"
           ]
         },
