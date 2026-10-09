@@ -78,17 +78,17 @@
       "id": "the-center-must-hold",
       "window": "front_resolution",
       "trigger": "One final resolution reveal, after Opening Orders",
-      "effect": "King/Captain directs another formation Move and +2 Strength",
-      "distinct": "Leader-dependent late repositioning, no extra Strike",
-      "watch": "Partially overlaps Lines Held; watch"
+      "effect": "At final resolution, if a King or Captain here, exchange one friendly formation here with one in an adjacent active Front in the same rank, if legal",
+      "distinct": "Late two-formation swap across neighboring Fronts, no Strength addition or opening order",
+      "watch": "Legality and meaningful cross-Front score impact"
     },
     {
       "id": "the-flank-was-refused",
       "window": "front_resolution",
       "trigger": "One final resolution reveal, after Opening Orders",
-      "effect": "Outer Front Archer/Guard/Stronghold may Move and receives +2 Strength",
-      "distinct": "Outer-Front defence, restricted classes and area",
-      "watch": "Partially overlaps Lines Held and Center; watch"
+      "effect": "At resolution in an outer Front, ignore a friendly flanked Frontline Force's flank penalty and give it +2 Strength",
+      "distinct": "Conditional outer Front counterflank; no movement or ordinary Commit",
+      "watch": "Flanked outer Frontline eligibility after Opening Orders"
     },
     {
       "id": "every-banner-turned-toward-them",
