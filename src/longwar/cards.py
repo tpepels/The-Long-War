@@ -431,6 +431,12 @@ def validate_card_data(data: dict[str, Any]) -> None:
             if card_type == CardType.NAME and not card["unique"]:
                 raise ValueError(f"{card_id}: every Name must be Unique")
         elif card_type == CardType.HERO:
+            for mode_key in ("hero_force_command_cost", "hero_name_command_cost"):
+                mode_cost = card.get(mode_key, cost)
+                if type(mode_cost) is not int or not 0 <= mode_cost <= 127:
+                    raise ValueError(
+                        f"{card_id}: {mode_key} must be a nonnegative native-safe integer"
+                    )
             if not card["unique"]:
                 raise ValueError(f"{card_id}: every Hero must be Unique")
             force_strength = card.get(CardField.FORCE_STRENGTH)
