@@ -360,7 +360,7 @@ def run() -> None:
          row("the-field-train") == ["middle"]
          and cost("the-field-train") == 2
          and has("the-field-train", "adjacent active Front",
-                 "directly ahead", "makes it Named",
+                 "directly ahead", "completes a Named Formation",
                  "+2 Strength this Battle")
          and cards["the-field-train"]["effects"][0]["timing"] == "play",
          "Cross-Front delivery yields +2 only when completing Named")
