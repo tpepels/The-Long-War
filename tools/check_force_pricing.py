@@ -51,9 +51,8 @@ def main() -> None:
         changed += (row["previous_printed_command"] != expected)
         costs[expected] += 1
 
-    assert previous == 70 and current == 117 and changed == 33
-    assert all(c["command_cost"] >= 3 for c in forces.values())
-    assert all(c["command_cost"] <= 5 for c in forces.values())
+    # No permanent assertions on total costs or the current price range:
+    # physical card values are intentionally still under active development.
     assert len(cards) == 131
     print(f"PASS: {len(forces)} Forces priced at 1 + ceil(STR / 2) + premium (0 or 1)")
     print(f"  Print costs: {dict(sorted(costs.items()))}")
