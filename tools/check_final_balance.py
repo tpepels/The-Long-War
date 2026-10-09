@@ -50,19 +50,20 @@ def check() -> None:
         assert c["command_cost"] == 3
         assert c["effects"], cid
 
-    # Force tariff: 1 + ceil(Strength / 2) + ability premium - permitted
-    # plain odd-Strength unused-half-point credit (Thirty Spears).
+    # Force tariff: 1 + ceil(Strength / 2) + ability premium.
+    # Odd-Strength compensation belongs on the card, not as a price discount.
     rows = {row["id"]: row for row in ledger["forces"]}
     assert set(rows) == {c["id"] for c in printed["cards"] if c["type"] == "force"}
     for cid, row in rows.items():
         c = by_id[cid]
         assert row["premium"] in (0, 1)
-        expected = 1 + (c["strength"] + 1) // 2 + row["premium"] - row.get(
-            "unused_half_point_credit", 0
-        )
+        assert "unused_half_point_credit" not in row
+        expected = 1 + (c["strength"] + 1) // 2 + row["premium"]
         assert c["command_cost"] == expected, (cid, expected, c["command_cost"])
         if cid in SUPPORT:
             assert row["premium"] == 0
+        if c["strength"] % 2:
+            assert c["effects"], (cid, "missing rounded-up Strength compensation")
 
     # Independently priced Hero modes must keep their Force prices and Force
     # effects while improving the alternative Name-mode choice.
