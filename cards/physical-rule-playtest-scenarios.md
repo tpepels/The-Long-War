@@ -397,3 +397,39 @@ through that ability.
 
 **Watch for:** whether changing the local check creates a response window,
 rather than allowing strong Raider Forces to overwhelm every other archetype.
+
+## Post-Incursion economy correction: six printed effects and two prices
+
+These tabletop counterfactuals require no new rules beyond the basic Attack
+and Action menu.
+
+1. **3C Thirty Spears**: play beside another friendly formation. That
+   other formation gains +1 Strength **this Battle only**. Repeat with an
+   otherwise empty friendly Front: no target, no bonus. Compare the same
+   3C with Aradai in Frontline reducing the opposing Frontline by 1.
+2. **4C Fifty Men**: play when another Human formation already occupies
+   the same Front; the Fifty Men get +1 this Battle. Replay the same
+   scene without another Human: the 5 Strength still counts, but no +1.
+   Compare the same 4C with Red Shields' persistent Guard screening.
+3. **4C Damar**: legally Move another formation toward Frontline. Permit
+   a free basic Attack only if the Move makes that Attack **newly legal**.
+   Re-run with a target already legal before Move, or an already-used
+   Attack: no free Attack. Compare a 3C Vardai paying a separate 1C ACTION.
+4. **2C Volley Before Dawn**: a friendly Archer anywhere in the Front
+   lets the Tactic give an opposing **Frontline, Middle or Rear** Force
+   Shaken. An ordinary Archer Attack still reaches only Rear and is
+   subject to Guard screening. Compare Action and Command value.
+5. **1C Shared the Spoils With** (0 Strength): after a Shaken enemy
+   appears in the same Front, play the Bond and Move one friendly
+   Raider/Skirmisher a legal adjacent position. Do not steal Command.
+   When there is no Shaken enemy or legal Move, the Bond remains a
+   zero-Strength investment.
+6. **2C Brannoc**: complete a Named Formation while an opposing Shaken
+   formation carries a Bond/Name; return one attachment. Then check
+   Brannoc's **separately paid ACTION** remains available at its previous
+   repeatability and 1C per activation. Exhaustion alone does not
+   activate the Named-completion effect.
+
+**Watch for:** losing-side affordability after Battle I; whether the
+substantial Damar double action earns its +1 premium, and whether any
+low-cost Bond/Tactic now strictly dominates an expensive Force Action.
