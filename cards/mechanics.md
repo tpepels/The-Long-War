@@ -248,8 +248,8 @@ Reveal all four together. Resolve Commit payment/Front-total Strength
 in numbered simultaneous steps, then Strikes likewise. A Strike uses
 the Force's normal unused basic Attack; a free Opening Maneuver
 waives the Name and Command requirements, **not** an Exhausted Force's
-restriction. Battle I issues orders after each player has taken
-one normal turn, unless someone has already Passed. Later Battles
-issue orders before the first turn. Ties cost no Command; a lost Front
+restriction. **Every Battle, including Battle I**, issues orders
+**after the first Pass and both closing turns**, before Stratagems
+are revealed and Fronts are settled. Ties cost no Command; a lost Front
 costs Command **equal to its total Strength deficit**. All printed
 card effects remain as written.
