@@ -14,7 +14,7 @@ Examples:
 
 - not “SUPPORT +1”, but “The friendly formation directly ahead has +1 Strength.”
 - not “TIRELESS”, but “This Force may Maneuver while Exhausted.”
-- not “MOBILE”, but “This Force may Maneuver while Unnamed.”
+- not “MOBILE”, because **every Force can now Maneuver whether Named or Unnamed**.
 - not “STEAL 1 COMMAND”, but “Your opponent loses 1 Command, then you regain 1 Command.”
 - not “SUPPLY”, but an explicit logistical action such as moving a prepared Bond or Name forward.
 
@@ -39,7 +39,7 @@ The three ranks in a Front are **Frontline**, **Middle/Support**, and **Rear**.
 - **directly ahead** - the adjacent position in the same Front one rank toward Front.
 - **directly behind** - the adjacent position in the same Front one rank toward Rear.
 - **adjacent position** - one active Front left/right in the same rank, or one rank forward/back in the same Front. Never diagonal.
-- **move one position** - move the complete formation to an orthogonally adjacent active position, either empty or holding only compatible prepared layers. This is a card effect, not a Maneuver, so it costs no Maneuver Command and does not require the formation to be Named.
+- **move one position** - move the complete formation to an orthogonally adjacent active position, either empty or holding only compatible prepared layers. This is a card effect, not a Maneuver, so it costs no Maneuver Command.
 - **swap** - exchange the complete contents of two specified friendly positions. This is a card effect, not a Maneuver.
 - A Formation counts as having **moved** whenever its battlefield position changes through Maneuver, a card move, or a swap.
 
@@ -247,9 +247,13 @@ Reveal all four together. Resolve Commit payment/Front-total Strength
 (+2 per 1 Command for occupied active Fronts) first, then Maneuvers
 in numbered simultaneous steps, then Strikes likewise. A Strike uses
 the Force's normal unused basic Attack; a free Opening Maneuver
-waives the Name and Command requirements, **not** an Exhausted Force's
-restriction. **Every Battle, including Battle I**, issues orders
+waives the normal Action and Command costs, **not** an Exhausted Force's
+restriction. Ordinary Maneuvers are available to Named and Unnamed formations. **Every Battle, including Battle I**, issues orders
 **after the first Pass and both closing turns**, before Stratagems
 are revealed and Fronts are settled. Ties cost no Command; a lost Front
 costs Command **equal to its total Strength deficit**. All printed
 card effects remain as written.
+
+## Current Maneuver access and Stratagem limit
+
+Any formation may Maneuver for an Action and 1 Command, whether Named or Unnamed, unless Exhausted. Only one Stratagem card may be set per player per Battle, including free card-effect sets. Returning or revealing it does not allow another; an effect that resets that same card is not a second Stratagem. The 4-Narrative limit is unchanged. Opening Orders happen after the two closing turns and before the single final resolution reveal.
