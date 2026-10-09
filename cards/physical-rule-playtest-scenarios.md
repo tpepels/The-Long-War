@@ -74,7 +74,13 @@ Give a named **Grey Riders** formation Exhaustion by losing a Front. It may stil
 
 **Watch for:** recovery cards mattering without Exhaustion becoming a hard permanent trap.
 
-## 12. Physical print integrity
+## 12. Hero mode cost and role selection
+
+Put **Avaros**, **Tovan** and **Doros** on the table. Avaros costs 5 Command when played as a 5-Strength King Force, but 4 as a +1 Name. Tovan costs 3 as a 2-Strength Force, but 4 as a Name with ongoing discounts. Doros costs 5 as a 5-Strength Force, but only 2 as a +1 Name. Pay the chosen mode's price and apply only that mode's Strength and effects; there is no extra charge for being dual-mode. Repeat by preparing Tovan as a Name, paying **4 Command** on PLAY; later attachment does not replay his PLAY effects or require another Command payment. Verify that a discount referring to Names affects the Name price, not the Force price.
+
+**Check:** both labelled prices legible on a printed Hero at actual size; single Hero Force and Hero Name allowances still respected; ability/Strength from the unchosen mode never applies.
+
+## 13. Physical print integrity
 
 Print one Force+Bond+Name stack and one Hero+Bond+Name stack at **actual size**, leaving the bottom card and middle card's **10.5 mm top strips** exposed. Confirm that every **ongoing** buried effect can be read without lifting the Name, including Grey Riders' two movement permissions. Confirm that PLAY-only text may be covered. Read the updated Reference next to the cards and flag any different rule.
 
