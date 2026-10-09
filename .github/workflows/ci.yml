@@ -99,6 +99,8 @@ jobs:
         run: python tools/check_print_cards.py
       - name: Check physical cost and choice scenarios
         run: python tools/check_physical_cost_balance.py
+      - name: Self-test physical playtest metrics
+        run: python tools/physical_playtest_metrics.py --self-test
       - name: Build inspection website
         env:
           TLW_PAGES_INSPECTION_ONLY: '1'

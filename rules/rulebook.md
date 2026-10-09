@@ -130,9 +130,9 @@ Choose one legal opposing Force, check range, positioning and screening, allow a
 | **Archer** | Opposing Rear Force in the same Front | Exhaust it |
 | **Skirmisher** | Opposing Middle Force in the same Front | Shake it |
 | **Raider** | Opposing Middle or Rear Force in the same Front, but only if the opposing Frontline there is empty | Deplete it |
-| **Rider** | Opposing **flanked** Frontline Force in an adjacent active Front | Shake it |
+| **Rider** (attacking from Frontline or Middle) | Opposing **flanked** Frontline Force in an adjacent active Front | Shake it |
 
-An **Archer** normally targets the opposing Rear Force. *The Crow Archers* extend that same basic Attack to an opposing Middle Force when the opposing Frontline is empty, giving the attacker a new target rather than a second Attack. A friendly **Guard** in Middle screens the Rear Force directly behind it from a **basic Archer Attack**. A Guard that is Shaken or Depleted cannot screen, except where a specific card says otherwise. Screening does not automatically stop other card effects or Attacks.
+An **Archer** normally targets the opposing Rear Force. *The Crow Archers* extend that same basic Attack to an opposing Middle Force when the opposing Frontline is empty, giving the attacker a new target rather than a second Attack. A Rider in Rear cannot initiate its **basic Rider Attack**; it must reach Frontline or Middle first. This limitation does not prevent a Rider from moving, contributing Strength or receiving other card effects. A free Attack granted by a card obeys the normal legal-target, row, screening and once-per-Battle Attack rules unless that card explicitly states an exception. A friendly **Guard** in Middle screens the Rear Force directly behind it from a **basic Archer Attack**. A Guard that is Shaken or Depleted cannot screen, except where a specific card says otherwise. Screening does not automatically stop other card effects or Attacks.
 
 ### Flanking
 
@@ -164,7 +164,7 @@ Middle Guards provide their usual screening. Other roles—Strongholds, Ships, H
 
 ## Special cards {#stories}
 
-**Tactics** are one-shot hostile cards. **Orders** are their friendly counterparts. Each costs one Action plus any printed Command; resolve its PLAY text and discard it. Even a 0-Command Order uses one Action unless its text explicitly says otherwise.
+**Tactics** are one-shot hostile cards. **Orders** are their friendly counterparts. Each costs one Action plus any printed Command; resolve its PLAY text and discard it. Even a 0-Command Order uses one Action unless its text explicitly says otherwise. *Re-form the Line* can deliberately discard one of your Forces (including its attached Bond and Name) to regain 2 Command and vacate that battlefield position; this is the only general-purpose withdrawal option in the initial physical playtest pool. It requires a Captain in that Front. Discarded formation layers cannot be recovered merely by Maneuvering.
 
 A **Narrative** is a face-up effect that lasts **until the end of the current Battle**. You may have up to **4 Narratives in play** at once. Their CONTINUOUS abilities operate while they remain face-up; their ACTION abilities can be used on your normal turns (respecting printed limits). All Narratives leave play at Battle end. There is no separate player-facing Ongoing subtype or automatic rule for a Narrative's literary theme.
 
@@ -254,6 +254,8 @@ When a played card completes a Named Formation, resolve that played card's **PLA
 
 ### Simultaneous Stratagems
 
+A Stratagem such as *The Archers Were Ready* may grant a free basic Attack as a triggered effect. It does not spend an Action, but the attacking Archer must have a legal target and must not already have used its Attack this Battle; mark the Attack used normally. An Attack performed after an opposing Attack completes does not undo the earlier Attack or its afflictions.
+
 When both players can reveal eligible Stratagems **at the same event**, use this procedure:
 
 1. Each chooses privately whether to reveal, then they reveal simultaneously. Eligibility is checked against the **same board state before either reveal**.
@@ -306,7 +308,7 @@ Components leave the battlefield only when a card specifically makes them do so:
 
 | Event | Result |
 | --- | --- |
-| **Force discarded** | Discard its attached Bond and Name as well; remove its conditions. |
+| **Force discarded** | Discard its attached Bond and Name as well; remove its conditions. That position becomes empty unless independent prepared layers remain. |
 | **Bond discarded** | Force stays; return its Name to its owner's hand. |
 | **Bond returned** | Force stays; return the Bond, leaving any Name in position. |
 | **Name returned or discarded** | Force and Bond stay; the Bond becomes open. |

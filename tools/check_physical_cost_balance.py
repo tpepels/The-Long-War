@@ -8,12 +8,13 @@ tests, or a substitute for two humans physically playing the cards.
 """
 from __future__ import annotations
 
-from print_cards import load_print_cards
+from print_cards import ROOT, load_print_cards
 
 
 def run() -> None:
     data = load_print_cards()
     cards = {c["id"]: c for c in data["cards"]}
+    rulebook = (ROOT / "rules" / "rulebook.md").read_text(encoding="utf-8")
     assert len(cards) == len(data["cards"]) == 131
     checks = []
 
@@ -92,14 +93,16 @@ def run() -> None:
          and has("endured-with", "give", "Inspired"),
          "Named Boons must agree with their actual protective abilities")
 
-    # Opponent has two support Forces and friendly Archer threatens same Front.
-    case("B2: Crows reward formation setup",
+    # Crows now Exhaust on PLAY and can Shake an already Exhausted target later.
+    case("B2: Crows do not waste their setup Action",
          cost("the-crows-came-down") == 2
-         and has("the-crows-came-down", "up to two", "single Front", "Archers")
+         and any(e["timing"] == "play" and "Exhaust" in e["text"]
+                 for e in cards["the-crows-came-down"]["effects"])
+         and any(e["timing"] == "action" and "Shaken" in e["text"]
+                 for e in cards["the-crows-came-down"]["effects"])
          and used_once("the-crows-came-down")
-         and cost("the-baggage-was-abandoned") == 2
-         and has("the-baggage-was-abandoned", "Rear", "Exhaust", "Shaken"),
-         "Narrative costs a setup Action, but affects up to two targets")
+         and cost("the-baggage-was-abandoned") == 2,
+         "Crows should do something when played and reward the later Action")
 
     # B2 has active Fronts 1,2,3; 1 and 3 are ordinarily nonadjacent.
     case("B2: Seer changes geography without creating flanks",
@@ -163,6 +166,98 @@ def run() -> None:
          and sum(card["type"] == "force" and card.get("allowed_rows") == ["front"]
                  for card in data["cards"]) == 3,
          "Frontline-only payoffs must respect saturation, never jump occupied slots")
+
+    # Target rank and attacker rank have independent conditions.
+    case("B1: Rear Rider must reposition before attacking",
+         "A Rider in Rear cannot initiate its **basic Rider Attack**" in rulebook
+         and "from Frontline or Middle" in rulebook
+         and "Opposing **flanked** Frontline Force" in rulebook,
+         "Rear Riders retain Strength, but cannot make their basic Attack")
+
+    case("B3: Banner is not dominated by Center",
+         cost("every-banner-turned-toward-them") == 2
+         and cost("the-center-must-hold") == 1
+         and has("every-banner-turned-toward-them", "adjacent active Front",
+                 "three other", "Human")
+         and has("the-center-must-hold", "two other"),
+         "Costlier leadership has cross-Front reach and larger ceiling")
+
+    case("B2: Rider plan changes position, not just Strength",
+         cost("the-battle-turned-east") == 1
+         and has("the-battle-turned-east", "Riders", "one additional",
+                 "+1 Strength"),
+         "One more Move can alter a flank or exposure")
+
+    case("B2: Archer counterattack costs normal Attack allowance",
+         cost("the-archers-were-ready") == 1
+         and has("the-archers-were-ready", "completes an Attack",
+                 "basic Archer Attack", "without spending an Action",
+                 "Mark its Attack used")
+         and "does not undo the earlier Attack" in rulebook,
+         "Counterattack obeys range, screening, Attack allowance, timing")
+
+    case("B2: recovery pays off immediately and later",
+         cost("no-one-would-be-first-to-leave") == 2
+         and has("no-one-would-be-first-to-leave",
+                 "Remove its Exhaustion", "two different", "Move")
+         and any(e["timing"] == "play"
+                 for e in cards["no-one-would-be-first-to-leave"]["effects"])
+         and used_once("no-one-would-be-first-to-leave"),
+         "2C Narrative gives recovery before optional movement Action")
+
+    case("B3: Depleted creates logistics vulnerability",
+         cost("the-stores-were-taken") == 1
+         and has("the-stores-were-taken", "Depleted", "Bond",
+                 "pays 2 Command", "returns"),
+         "Raiders pressure attachments after preparation ends")
+
+    case("B2: Field Train crosses Fronts once",
+         cost("the-field-train") == cost("the-house-of-reed") == 2
+         and has("the-field-train", "adjacent active Front", "directly ahead")
+         and any(e["timing"] == "play"
+                 for e in cards["the-field-train"]["effects"])
+         and any(e["timing"] == "action"
+                 for e in cards["the-house-of-reed"]["effects"]),
+         "One-shot wider logistics differs from repeatable local support")
+
+    case("B1: Seer Narrative has immediate payoff",
+         cost("they-knew-the-ground") == 1
+         and any(e["timing"] == "play"
+                 for e in cards["they-knew-the-ground"]["effects"])
+         and has("they-knew-the-ground", "Move one", "Seer",
+                 "outermost active Fronts"),
+         "Geography spell matters even before outside Fronts open")
+
+    case("B4: sacrifice releases a persistent position",
+         cost("re-form-the-line") == 0
+         and has("re-form-the-line", "Captains",
+                 "discard one friendly Force", "attached Bond and Name",
+                 "regain 2 Command")
+         and "That position becomes empty" in rulebook,
+         "Withdrawal discards entire formation and vacates its slot")
+
+    case("B2: reconnaissance creates a reactive Move",
+         cost("before-sunset-the-ford-would-be-ours") == 1
+         and used_once("before-sunset-the-ford-would-be-ours")
+         and any(e["timing"] == "reaction"
+                 for e in cards["before-sunset-the-ford-would-be-ours"]["effects"])
+         and has("before-sunset-the-ford-would-be-ours",
+                 "Stratagem", "look", "Move"),
+         "Scouting no longer requires a second paid ACTION")
+
+    case("B1: Raider Narrative has on-play filtering",
+         cost("the-raiders-came-home-loaded") == 1
+         and any(e["timing"] == "play" and "Draw 1 card" in e["text"]
+                 for e in cards["the-raiders-came-home-loaded"]["effects"])
+         and has("the-raiders-came-home-loaded", "Tactic",
+                 "1 less Command", "Move"),
+         "Narrative still does something before drawing its synergies")
+
+    case("B2: completion plan offers two tactical payoffs",
+         cost("there-was-no-road-back") == 1
+         and has("there-was-no-road-back", "becomes Named",
+                 "two legal adjacent", "opposing attached Bond"),
+         "Completion plan offers reposition or attachment disruption")
 
     # All four example decks are 48 cards, and neither their published content
     # nor the executable source were mutated by the print-only revisions.
