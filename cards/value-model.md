@@ -1,5 +1,8 @@
 # Card value model
 
+> **Historical diagnostic, not current printed prices.** This model predates the 9 October 2026 Force/Hero pricing overhaul. For current 131-card physical costs and comparisons, see [the final balance audit](final-balance-audit-2026-10-09.md) and the printed overlay in `print-overrides.json`. The native/Webgame rules and costs are separate.
+
+
 This is a **diagnostic heuristic**, not a formula that dictates card design. It is meant to expose dominated cards, narrow cards with an inadequate floor, and implausibly high ceilings.
 
 ## Force baseline
