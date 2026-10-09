@@ -26,25 +26,25 @@ simple Forces:
 
 | Force | Current Command | Strength | Source of ability value |
 | --- | ---: | ---: | --- |
-| Thirty Spears | 3 | 3 | No special ability |
+| Thirty Spears | 2 | 3 | No special ability; unused half-point discount |
 | The Fifty Men | 4 | 5 | No special ability |
 | A Hundred Shields | 5 | 6 | Guard classification screens Rear from Middle |
 | The Aradai | 3 | 3 | Raider classification permits basic Attack |
 
-The **16** Forces provide 68 printed Strength for **60 Command** in all
+The **16** Forces provide 68 printed Strength for **56 Command** in all
 (four copies of each); this is a whole-deck number, **not** the cost of
 deploying every Force in one Battle. Their average is 4.25 printed
-Strength per Force-play Action but only about **1.13 Strength per Force
+Strength per Force-play Action but only about **1.21 Strength per Force
 Command**, compared with 68 Strength for 32 Command before repricing.
 
 **Action efficiency still matters.** Three Thirty Spears provide
-9 persistent Strength for 9 Command and three Actions across three
+9 persistent Strength for 6 Command and three Actions across three
 positions, while A Hundred Shields gives 6 Strength for 5 Command and
 one Action/position. A Fifty Men (5S, 4C) with Followed (+1S and +1S
 while Named, 1C) and a +1 Name (1C) produces **8 persistent Strength
 in one position for 6 Command and three card plays**. A Hundred
 Shields plus Thirty Spears produce **9 Strength in two positions for
-8 Command and two Actions**. The extra Action invested in a Named
+7 Command and two Actions**. The extra Action invested in a Named
 stack now saves Command, while its superior position density helps on
 a full board.
 
