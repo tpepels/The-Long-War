@@ -117,7 +117,7 @@ def run() -> None:
     case("B3: defence support versus Rider pressure",
          cost("the-wall-did-not-break") == cost("the-long-march") == 2
          and has("the-wall-did-not-break", "Guarded", "Rear", "+1 Strength")
-         and has("the-long-march", "Rider", "+1 Strength", "0 Command"),
+         and has("the-long-march", "Rider", "+1 Strength", "pay 0 Command"),
          "One card protects Rear and the other boosts Riders before Maneuver")
 
     # A prepared opponent's Bond is vulnerable only after pressure connects.
@@ -132,9 +132,9 @@ def run() -> None:
     case("B3: hidden plans reposition before Front scoring",
          cost("the-center-must-hold") == 1
          and cost("the-lines-held") == 1
-         and has("the-center-must-hold", "King or Captain", "Move", "+2 Strength")
+         and has("the-center-must-hold", "King or Captain", "swap", "adjacent active Front")
          and has("the-lines-held", "Move", "If it moved", "+2 Strength"),
-         "Hidden plans can move a Force and change Front scoring without new phases")
+         "Only one leadership Stratagem may exchange formations after Opening Orders")
 
     # Taxing an opponent's next card in a Front is avoidable: the card can be
     # played in another Front or the player can choose other Actions.
@@ -180,8 +180,8 @@ def run() -> None:
          and cost("the-center-must-hold") == 1
          and has("every-banner-turned-toward-them", "adjacent active Front",
                  "three other", "Human")
-         and has("the-center-must-hold", "Move", "King or Captain"),
-         "Mass leadership across Fronts differs from one hidden Move")
+         and has("the-center-must-hold", "swap", "King or Captain"),
+         "Broad leadership Strength differs from a two-unit late cross-Front swap")
 
     case("B2: Rider plan changes position, not just Strength",
          cost("the-battle-turned-east") == 1
