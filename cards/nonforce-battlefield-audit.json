@@ -119,7 +119,7 @@
       "role": "maneuver",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 102
+      "effect_length_max": 123
     },
     {
       "id": "bought-time-for",
@@ -182,7 +182,7 @@
       "role": "intrigue",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 122
+      "effect_length_max": 138
     },
     {
       "id": "oren",
@@ -515,7 +515,7 @@
       "role": "maneuver",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 140
+      "effect_length_max": 159
     },
     {
       "id": "the-flank-was-refused",
@@ -677,7 +677,7 @@
       "role": "intrigue",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 159
+      "effect_length_max": 150
     },
     {
       "id": "supported-by",
