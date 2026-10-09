@@ -238,3 +238,18 @@ Playing a component resolves PLAY text immediately, even when prepared. After pl
 Up to **4 Narratives** stay face-up for the current Battle. Every Stratagem is face-down at a **publicly assigned active Front**; revealing when eligible is optional. At Battle comparison there is a single simultaneous reveal window based on the initial board state. Effects evaluate simultaneously; prevention overrides prevented effects and incompatible movement of the same formation cancels. No second reveal window opens for ties created by a reveal.
 
 At Battle end resolve results and Command losses, then check Collapse. **The loser chooses one Force in each lost Front** for Exhaustion next Battle; Guarded on that Force can prevent it (choose no replacement). Clear old conditions and Boons, then give only each selected unprotected Force a new Exhaustion token for the **following Battle**. Such Exhaustion clears at the end of that next Battle unless removed earlier; a new loss permits another one-Force selection.
+
+## Two secret Opening Orders (9 October 2026)
+
+At each Battle's opening, both players select **two hidden orders**
+(identical types are allowed) from Maneuver, Commit, Strike, Hold.
+Reveal all four together. Resolve Commit payment/Front-total Strength
+(+2 per 1 Command for occupied active Fronts) first, then Maneuvers
+in numbered simultaneous steps, then Strikes likewise. A Strike uses
+the Force's normal unused basic Attack; a free Opening Maneuver
+waives the Name and Command requirements, **not** an Exhausted Force's
+restriction. Battle I issues orders after each player has taken
+one normal turn, unless someone has already Passed. Later Battles
+issue orders before the first turn. Ties cost no Command; a lost Front
+costs Command **equal to its total Strength deficit**. All printed
+card effects remain as written.
