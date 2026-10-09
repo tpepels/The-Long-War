@@ -1,4 +1,4 @@
-"""Validate physical combo decks and report exact enabler/payoff availability.
+"""Validate all physical playtest decks and report enabler/payoff availability.
 
 The two-group calculation measures only *seeing* cards in a random draw:
 having an enabler and payoff in hand does NOT mean they can legally combine
@@ -53,9 +53,9 @@ def run() -> None:
     main = json.loads(MAIN_PATH.read_text(encoding="utf-8"))
     labs = json.loads(COVERAGE_PATH.read_text(encoding="utf-8"))
     assert main["deck_size"] == labs["deck_size"] == DECK_SIZE
-    assert len(main["decks"]) == 4 and len(labs["decks"]) == 3
-    assert len({d["id"] for d in main["decks"]}) == 4
-    assert len({d["id"] for d in labs["decks"]}) == 3
+    assert len(main["decks"]) == 6 and len(labs["decks"]) == 4
+    assert len({d["id"] for d in main["decks"]}) == 6
+    assert len({d["id"] for d in labs["decks"]}) == 4
     assert set(d["id"] for d in main["decks"]).isdisjoint(d["id"] for d in labs["decks"])
     assert labs["not_standard_playtest_decks"] is True
 
@@ -64,7 +64,10 @@ def run() -> None:
         assert len(deck["combo_notes"]) >= 3 and len(deck["hypothesis"]) >= 25
         assert 2 <= len(deck["combo_packages"]) <= 5
         singletons = sum(v == 1 for v in counts.values())
-        assert singletons <= 18, (deck["id"], "too many one-copy dependencies", singletons)
+        if deck["id"] not in {"the-last-watch", "broken-oaths"}:
+            assert singletons <= 18, (deck["id"], "too many one-copy dependencies", singletons)
+        else:
+            print("    coverage-extension deck: includes rare one-copy cards intentionally")
         printed_command = sum(cards[i]["command_cost"] * n for i, n in counts.items())
         base_strength = sum(cards[i]["strength"] * n for i, n in counts.items()
                             if cards[i]["type"] == "force")
@@ -100,7 +103,22 @@ def run() -> None:
             "before-sunset-the-ford-would-be-ours"} <= lab_cards["seer-hidden-lab"]
     assert {"no-road-was-too-long", "the-house-of-reed", "the-field-train",
             "swore-again-to"} <= lab_cards["front-exchange-lab"]
-    print("PASS: four consistent combo decks plus three diagnostic coverage decks; "
+    raw = next(d for d in labs["decks"] if d["id"] == "raw-strength-control")
+    raw_force_ids = {e["id"] for e in raw["cards"]
+                     if cards[e["id"]]["type"] == "force"}
+    assert raw_force_ids == {"the-fifty-men", "thirty-spears", "a-hundred-shields",
+                             "the-aradai"}
+    assert all(not cards[cid]["effects"] for cid in raw_force_ids), (
+        "Raw Force baseline should contain no printed Force abilities")
+    # The exact catalogue requirement applies across ALL playable main
+    # and diagnostic decks; newly authored cards must also be covered.
+    covered = {e["id"] for d in main["decks"] + labs["decks"]
+               for e in d["cards"]}
+    missing = set(cards) - covered
+    assert not missing, "No physical playtest deck for: " + ", ".join(sorted(missing))
+    assert len(covered) == 131
+    print(f"PASS: six combo/coverage-extension decks, four diagnostic decks, "
+          f"all {len(covered)} printed identities represented; "
           "availability is NOT combo legality, card utility or win rate")
 
 
