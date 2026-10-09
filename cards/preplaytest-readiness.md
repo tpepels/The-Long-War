@@ -207,9 +207,9 @@ is still **not evidence of improved win rates or battle feel**.
 The paper rules now use **two simultaneous hidden Opening Orders per
 player**, selected from Maneuver, Commit, Strike and Hold, repeat types
 allowed. They resolve by Commit payments, numbered simultaneous
-Maneuvers and numbered simultaneous Strikes. Battle I performs these
-after each player's first normal turn (unless Pass has already begun);
-later Battles perform them before the first turn. Commit spends
+Maneuvers and numbered simultaneous Strikes. **All Battles, including
+Battle I**, use them **after the first Pass and both closing turns**,
+before Stratagems and the Front comparison. Commit spends
 1 Command for +2 **Front-total Strength** only while at least one
 friendly Force occupies that Front. Losing a Front now costs Command
 equal to the complete **Strength difference**; the single selected
