@@ -103,7 +103,7 @@ CARD ICON SIZES — TUNING PANEL
    * Both are horizontally centred like ordinary Command costs.
    * Positive X shifts right; positive Y shifts down. Appearance only.
    */
-  --hero-cost-inset: 0.85mm;
+  --hero-cost-inset: 0.55mm;
   --hero-cost-force-top: 0mm;
   --hero-cost-name-bottom: 0mm;
   --hero-cost-force-number-size: 4.7mm;
@@ -1444,6 +1444,9 @@ EXPOSED TOP ROW - TUNING PANEL
 .hero-cost-stack {
   position: absolute;
   inset: var(--hero-cost-inset);
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
 }
 .hero-cost-stack::before {
   content: "";
@@ -1458,10 +1461,11 @@ EXPOSED TOP ROW - TUNING PANEL
   pointer-events: none;
 }
 .hero-cost-part {
-  position: absolute;
+  position: relative;
   z-index: 1;
   left: 0;
   width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
