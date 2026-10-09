@@ -119,9 +119,8 @@
     {
       "id": "thirty-spears",
       "premium": 0,
-      "rationale": "Plain 3-Strength Human with no class combat ability or printed effect. Round the unused half-point down to preserve an inexpensive basic deployment.",
-      "previous_printed_command": 1,
-      "unused_half_point_credit": 1
+      "rationale": "Odd 3-Strength Human pays full 3C baseline; a conditional +1 Strength to another friendly formation on PLAY compensates the half-Strength rounding. No price credit.",
+      "previous_printed_command": 1
     },
     {
       "id": "a-hundred-shields",
