@@ -58,7 +58,7 @@ Attacking is an Action: once per Force per Battle, no Command by default, legal 
 
 Guards in Middle screen the Rear Force directly behind against basic Archer Attacks, unless the Guard is Shaken or Depleted.
 
-There are three core afflictions: **Exhausted** prevents initiating Maneuvers; **Shaken** reduces formation Strength by 2 (minimum zero per formation); **Depleted** prevents Attacks and printed ACTION abilities on the formation. Duplicate markers do not stack. Old conditions clear at Battle end, **then losing a Front Exhausts each unprotected Force there for the following Battle**. Guarded can prevent this Exhaustion. Recovery is card-specific; there is no generic recovery Action.
+There are three core afflictions: **Exhausted** gives −1 Strength and prevents initiating ordinary Maneuvers; **Shaken** gives −2 Strength (minimum zero per formation); **Depleted** gives −1 Strength and prevents Attacks and printed ACTION abilities throughout the formation. Independent penalties stack; duplicate markers do not. After losing a Front, the loser chooses **one Force there** for next-Battle Exhaustion, if any. Guarded on the chosen Force prevents it; there is no replacement choice. Clear old conditions before placing an unprevented new token. Recovery is card-specific; there is no generic recovery Action.
 
 ## Boons and protection
 
@@ -235,4 +235,4 @@ Playing a component resolves PLAY text immediately, even when prepared. After pl
 
 Up to **4 Narratives** stay face-up for the current Battle. Every Stratagem is face-down at a **publicly assigned active Front**; revealing when eligible is optional. At Battle comparison there is a single simultaneous reveal window based on the initial board state. Effects evaluate simultaneously; prevention overrides prevented effects and incompatible movement of the same formation cancels. No second reveal window opens for ties created by a reveal.
 
-At Battle end resolve results and Command losses, check Collapse, let Guarded prevent lost-Front Exhaustion, clear old conditions, and **then** Exhaust every other Force in lost Fronts for the **following Battle**. Such Exhaustion clears at the end of that next Battle unless removed earlier, and a new loss can apply it again.
+At Battle end resolve results and Command losses, then check Collapse. **The loser chooses one Force in each lost Front** for Exhaustion next Battle; Guarded on that Force can prevent it (choose no replacement). Clear old conditions and Boons, then give only each selected unprotected Force a new Exhaustion token for the **following Battle**. Such Exhaustion clears at the end of that next Battle unless removed earlier; a new loss permits another one-Force selection.
