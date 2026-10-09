@@ -923,5 +923,49 @@
       "command_cost": 3,
       "reason": "4C Name needs several subsequent discounted Tactics to recover initial cost."
     }
+  ],
+  "hero_mode_wording": [
+    {
+      "id": "alda-keeper-of-the-ford",
+      "mode": "force",
+      "index": 0,
+      "old_text": "While this formation is in the Front row, opposing Tactics targeting Alda or the friendly formation directly behind cost 1 additional Command.",
+      "text": "While this formation is in Frontline, opposing Tactics targeting it or the friendly formation directly behind cost 1 additional Command."
+    },
+    {
+      "id": "nara-builder-of-walls",
+      "mode": "force",
+      "index": 0,
+      "old_text": "Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation in this Front.",
+      "text": "Attach a prepared Bond or Name in this Front to a legal friendly formation here."
+    },
+    {
+      "id": "nara-builder-of-walls",
+      "mode": "name",
+      "index": 1,
+      "old_text": "Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation here.",
+      "text": "Attach a prepared Bond or Name in this Front to a legal friendly formation here."
+    },
+    {
+      "id": "serai-queen-of-crows",
+      "mode": "name",
+      "index": 1,
+      "old_text": "Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle.",
+      "text": "Pay 1 Command. Give an opposing formation in this Front with no negative Strength marker −1 Strength this Battle."
+    },
+    {
+      "id": "doros-the-last-spear",
+      "mode": "force",
+      "index": 0,
+      "old_text": "While this formation is Bonded and in the Front row, it has +1 Strength.",
+      "text": "While this formation is Bonded and in Frontline, it gets +1 Strength."
+    },
+    {
+      "id": "kael-the-roadless",
+      "mode": "force",
+      "index": 0,
+      "old_text": "Move Kael up to two positions.",
+      "text": "Move this formation up to two adjacent legal positions."
+    }
   ]
 }
