@@ -57,13 +57,12 @@ def main() -> None:
                 assert (credit == 1 or len(force["effects"]) >= 1), cid
         if credit:
             discount.append(cid)
-            assert cid == "thirty-spears"
-            assert strength % 2 == 1 and not force["effects"]
-            assert force["command_cost"] == tariff - 1
         if cid in COSTLY_FREE_ATTACK:
             assert premium == 1, (cid, "free Attack must pay premium")
-    assert discount == ["thirty-spears"]
+    assert discount == [], "Strict Force base tariff has no discount exceptions"
     assert len(odd) >= 20
+    assert cards["thirty-spears"]["command_cost"] == 3
+    assert "another friendly formation" in cards["thirty-spears"]["effects"][0]["text"]
     assert cards["the-damar"]["command_cost"] == 4
     assert cards["the-fifty-men"]["strength"] == 5
     assert cards["the-aradai"]["command_cost"] == 3
@@ -126,13 +125,13 @@ def main() -> None:
     assert all(c["command_cost"] == 1 for c in bonds)
     assert all(0 <= c["command_cost"] <= 2 for c in tactics + orders)
     assert all(c["hero_force_command_cost"] >= 3 and c["hero_name_command_cost"] >= 1 for c in heroes)
-    assert sum(c["command_cost"] for c in forces.values()) >= 115
+    assert sum(c["command_cost"] for c in forces.values()) >= 118
     for cid in WATCH_EFFECTS:
         c = cards[cid]
         assert all(0 < len(e["text"]) <= 190 for e in c["effects"]), cid
 
     print(f"PASS: 131 cards, 33 Force price identities, {len(odd)} odd-Strength Forces")
-    print(f"  1 + ceil(STR/2) + priced premium − compensated discount; {len(ability_premiums)} premium Forces")
+    print(f"  1 + ceil(STR/2) + priced premium, no below-tariff discount; {len(ability_premiums)} premium Forces")
     print(f"  Explicit plain-Force discount: {discount}")
     print("  Tactical consistency: Archer Shake, Raider Incursion, chosen Force Exhaustion,")
     print("  paid combined Actions, Shaken/Exhausted support and eight card families.")
