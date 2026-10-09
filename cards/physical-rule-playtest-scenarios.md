@@ -463,12 +463,12 @@ PLAY/ACTION/HIDDEN window; none modifies the universal Action menu.
    Iria and Kael may combine peeking with an immediate Move;
    Lysa inspects the opponent's hand and protects a Force with
    Guarded. No general information-triggered free Actions arise.
-6. **The Lines Held / The Center Must Hold / The Flank Was Refused**:
-   set a valid face-down plan. At the one normal resolution window,
-   legally Move the selected formation. Apply the printed +2
-   temporary Strength to the specified formation. Compare the
-   provisional and final results in both affected Fronts, and
-   cancel conflicting simultaneous movement as usual.
+6. **Three different late Stratagems**: The Lines Held grants
+   one final legal Move and +2. The Center Must Hold instead swaps
+   friendly same-rank formations across two adjacent active Fronts
+   if a King or Captain is present. The Flank Was Refused instead
+   removes a flanked outer Frontline Force's flank penalty and adds +2.
+   Each player can have set **only one** of these during the Battle.
 7. **They Returned With Names**: Shake an opposing Named Force
    and suppress that Name's text for this Battle; attachments
    remain in place and regain normal text at Battle cleanup.
