@@ -239,9 +239,9 @@
     },
     {
       "id": "the-center-must-hold",
-      "opportunity": "A King or Captain supports a Front with another friendly formation that could shift ranks or neighboring active Fronts during resolution.",
-      "comparison": "Compare the 1C hidden plan's commanded Move and +2 with the broader 2C Every Banner Turned Toward Them mass Strength reward.",
-      "failure_signal": "If moving at the simultaneous window produces unclear eligibility or dominates both neighboring Fronts, narrow the effect."
+      "opportunity": "A King or Captain shares a Front with a friendly unit having a legal same-rank swap partner in the adjacent active Front.",
+      "comparison": "Compare this 1C hidden cross-Front exchange after Opening Orders with a free single-formation Opening Maneuver and a normal 1C Maneuver.",
+      "failure_signal": "If no legal exchange changes either Front result, the formerly generic Move-plus-2 advantage was overstated."
     },
     {
       "id": "the-crows-came-down",
@@ -257,9 +257,9 @@
     },
     {
       "id": "the-dust-riders",
-      "opportunity": "A Bonded but Unnamed Rider/Skirmisher has an adjacent Front with a legal better position.",
-      "comparison": "Compare one-Command Maneuver to completing a Name before moving.",
-      "failure_signal": "If the Bond-only permission does not save an Action or Command, flag."
+      "opportunity": "Bonded Dust Riders can make their first legal ordinary Maneuver this Battle while retaining Command for another meaningful card.",
+      "comparison": "Compare one Command saved by the first Bonded Maneuver with a standard Unnamed Rider paying 1C.",
+      "failure_signal": "If the Command saving never alters a legal next Action, 3C body may be overvalued."
     },
     {
       "id": "the-field-train",
@@ -275,15 +275,15 @@
     },
     {
       "id": "the-flank-was-refused",
-      "opportunity": "An outer Front is active with a Guard, Archer or Stronghold that could Move before scoring and change local or adjacent Front results.",
-      "comparison": "Compare the 1C secret reposition-and-+2 with a simple +2 defence that leaves the formation fixed and the Rider flank unchanged.",
-      "failure_signal": "If the outer-Front timing gate produces no legal meaningful Move, note the dead setup rather than calling the card useful."
+      "opportunity": "An active outer Front contains a flanked friendly Frontline Force at final scoring after Opening Orders.",
+      "comparison": "Compare its 1C hidden removal of flank penalty and +2 Strength to a paid +2 Opening Commit in an occupied Front.",
+      "failure_signal": "If the outer flanked condition is too rare or both defend the same obvious result, adjust the condition or card price."
     },
     {
       "id": "the-grey-riders",
-      "opportunity": "An Unnamed or Exhausted Grey Rider Maneuvers across an active Front boundary, causing an opposing Frontline to become flanked and eligible for its basic Rider Attack.",
-      "comparison": "Compare Grey Riders' single paid Maneuver plus unused Rider Attack with an ordinary Named Rider's two separate Actions and permanent Strength deployment.",
-      "failure_signal": "If new legal Rider targets rarely appear, the expensive combined tempo does not earn its 4C printed price."
+      "opportunity": "Grey Riders are Exhausted or can newly flank an opposing Frontline after any legal Maneuver, with an unused Rider Attack available.",
+      "comparison": "Compare this 4C Move-plus-unused-Attack with a 3C Rider using a normal Maneuver followed by an Attack.",
+      "failure_signal": "If no newly legal Rider targets arise, its +1 tariff premium may still be too high."
     },
     {
       "id": "the-ground-was-held",
@@ -335,9 +335,9 @@
     },
     {
       "id": "the-long-march",
-      "opportunity": "At least two Riders have legal winning Maneuvers before resolution.",
-      "comparison": "Compare 2C Narrative plus moves/Actions with ordinary 1C Maneuvers and permanent strengthening.",
-      "failure_signal": "If players never Maneuver after playing it, static +Strength alone may not justify."
+      "opportunity": "Multiple friendly Riders can make paid-Action Maneuvers during the Battle after The Long March was played.",
+      "comparison": "Compare 2C Narrative's temporary +Strength and savings of 1 Command per Rider Maneuver with paying 1C for each ordinary Maneuver.",
+      "failure_signal": "If ordinary Maneuver Actions are scarce or no longer strategically worthwhile late in a Battle, Command savings may never repay setup."
     },
     {
       "id": "the-old-guard",
