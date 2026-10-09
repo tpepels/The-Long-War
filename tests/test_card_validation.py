@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import copy
+import json
 from pathlib import Path
 
 import pytest
 
 from longwar.cards import load_card_file, validate_card_data
-from longwar.game import GameEngine
+from longwar.game import Front, GameEngine, PlayForce, PlayName, Position, Rank
+from longwar.testing import GameScenario
 from longwar.game.engine import InvalidDeck
 from longwar.rules import GameRules
 
@@ -126,6 +128,65 @@ def _expanded_pool(data, size: int):
 
 
 def test_card_identity_capacity_is_checked_before_native_packing(data) -> None:
-    GameEngine(_expanded_pool(copy.deepcopy(data), 128))
-    with pytest.raises(ValueError, match="at most 128"):
-        GameEngine(_expanded_pool(copy.deepcopy(data), 129))
+    # Current paper pool has more than 128 identities. Reserve signed-byte
+    # overflow checks for actual native packing, not physical card count.
+    GameEngine(_expanded_pool(copy.deepcopy(data), 192))
+    with pytest.raises(ValueError, match="at most 192"):
+        GameEngine(_expanded_pool(copy.deepcopy(data), 193))
+
+
+def test_card_with_index_above_signed_byte_range_survives_native_transition(data) -> None:
+    # Verify hand -> packed state -> legal action -> battlefield round trip.
+    # Extra identities are synthetic; published card data is unchanged.
+    expanded = _expanded_pool(copy.deepcopy(data), max(len(data["cards"]) + 1, 132))
+    late_force = expanded["cards"][-1]["id"]
+    engine = GameEngine(expanded)
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    state = engine.new_game(
+        deck, deck, seed=132, first_player=0, opening_bonus=False
+    )
+    GameScenario(state).battle(3).hand(0, late_force)
+    action = PlayForce(late_force, Position(Front.FIRST, Rank.FRONT))
+
+    assert action in engine.legal_actions(state)
+    engine.apply(state, action)
+    assert state.slot(0, Position(Front.FIRST, Rank.FRONT)).force == late_force
+
+
+def test_paper_narrative_capacity_matches_native_storage() -> None:
+    assert GameRules.standard().ongoing_narrative_limit == 4
+    with pytest.raises(ValueError, match="native Narrative capacity"):
+        GameRules.standard().with_overrides(ongoing_narrative_limit=5)
+
+
+def test_hero_force_and_name_modes_have_separate_native_command_costs(data) -> None:
+    card = next(c for c in data["cards"] if c["type"] == "hero")
+    card["hero_force_command_cost"] = 5
+    card["hero_name_command_cost"] = 2
+    engine = GameEngine(data)
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    state = engine.new_game(
+        deck, deck, seed=134, first_player=0, opening_bonus=False
+    )
+    GameScenario(state).battle(3).hand(0, card["id"]).command(0, 10)
+    position = Position(Front.FIRST, Rank.FRONT)
+    force = PlayForce(card["id"], position)
+    name = PlayName(card["id"], position)
+
+    assert force in engine.legal_actions(state)
+    assert name in engine.legal_actions(state)
+    assert engine.command_cost_for_action(state, force) == 5
+    assert engine.command_cost_for_action(state, name) == 2
+    engine.apply(state, name)
+    assert state.players[0].command == 8
+
+
+def test_invalid_hero_mode_cost_is_rejected(data) -> None:
+    hero = next(c for c in data["cards"] if c["type"] == "hero")
+    hero["hero_name_command_cost"] = -1
+    with pytest.raises(ValueError, match="hero_name_command_cost"):
+        validate_card_data(data)

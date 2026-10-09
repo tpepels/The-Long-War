@@ -51,6 +51,7 @@ cdef class FastEngine:
 
     cdef int8_t card_type[MAX_CARDS]
     cdef int8_t card_command_cost[MAX_CARDS]
+    cdef int8_t hero_name_command_cost[MAX_CARDS]
     cdef int8_t completion_effect[MAX_CARDS]
     cdef int8_t completion_amount[MAX_CARDS]
     cdef uint8_t complete_narrative_protection[MAX_CARDS]

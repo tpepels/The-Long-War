@@ -391,7 +391,7 @@ cdef int _fe__information_state_encode(
             ):
                 _info_emit(buf, &n, h, <uint8_t>(card + 1))
             else:
-                # 255 is outside the current valid card-code range (MAX_CARDS = 128)
+                # 255 is reserved beyond the maximum encoded card ID (MAX_CARDS = 192)
                 # and means "a face-down Stratagem exists".
                 _info_emit(buf, &n, h, 255)
             _info_emit(buf, &n, h, state.stratagem_revealed[owner])

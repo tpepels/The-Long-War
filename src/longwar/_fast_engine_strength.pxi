@@ -258,6 +258,40 @@ cdef int _v2_narrative_strength_bonus(
     return result
 
 
+cdef inline bint _fe_frontline_is_flanked(
+    FastEngine self,
+    FastState state,
+    int slot,
+) noexcept:
+    """Paper game: a neighboring enemy Frontline exploits an empty friendly line.
+
+    This is a positional -1 penalty, never an Exhaustion marker, and cannot
+    stack from both sides. Inactive Fronts and battlefield edges do not flank.
+    """
+    cdef int player = owner_from_slot(slot)
+    cdef int front = front_from_slot(slot)
+    cdef int adjacent
+    if (
+        rank_from_slot(slot) != RANK_FRONT
+        or state.force[slot] < 0
+        or not front_is_active(state.battle, front)
+        or _v2_force_flank_protected(self, state, slot)
+    ):
+        return False
+    for adjacent in (front - 1, front + 1):
+        if (
+            adjacent < 0 or adjacent >= FRONT_COUNT
+            or not front_is_active(state.battle, adjacent)
+        ):
+            continue
+        if (
+            state.force[slot_index(player, adjacent, RANK_FRONT)] < 0
+            and state.force[slot_index(other_player(player), adjacent, RANK_FRONT)] >= 0
+        ):
+            return True
+    return False
+
+
 cdef int _v2_position_strength_no_reserve(
     FastEngine self,
     FastState state,
@@ -273,6 +307,8 @@ cdef int _v2_position_strength_no_reserve(
     value -= state.negative_one_markers[slot]
     value -= 2 * state.negative_two_markers[slot]
     value -= 3 * state.negative_three_markers[slot]
+    if _fe_frontline_is_flanked(self, state, slot):
+        value -= 1
 
     value += _v2_component_strength_effects(
         self, state, slot, force, _v2_mode_for_force(self, force), 0

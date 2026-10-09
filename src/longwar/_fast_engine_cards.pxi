@@ -381,6 +381,7 @@ cdef void _fe___cinit__(FastEngine self) except *:
     self.name_mode_count = 0
     memset(self.card_type, 0, sizeof(self.card_type))
     memset(self.card_command_cost, 0, sizeof(self.card_command_cost))
+    memset(self.hero_name_command_cost, 0, sizeof(self.hero_name_command_cost))
     memset(self.strength, 0, sizeof(self.strength))
     memset(self.name_strength, 0, sizeof(self.name_strength))
     memset(self.bond_strength_modifier, 0, sizeof(self.bond_strength_modifier))
@@ -553,7 +554,12 @@ cdef void _fe___init__(FastEngine self, engine) except *:
     for code, card_id in enumerate(self.card_ids):
         card = engine.cards[card_id]
         self.card_type[code] = type_map[card[CardField.TYPE]]
-        self.card_command_cost[code] = int(card.get(CardField.COMMAND_COST, 0))
+        self.card_command_cost[code] = int(card.get(
+            "hero_force_command_cost", card.get(CardField.COMMAND_COST, 0)
+        ))
+        self.hero_name_command_cost[code] = int(card.get(
+            "hero_name_command_cost", card.get(CardField.COMMAND_COST, 0)
+        ))
         self.class_mask[code] = <uint32_t>engine.card_mechanics[card_id]["_class_mask"]
         rows = card.get(CardField.ALLOWED_ROWS)
         self.allowed_rank_mask[code] = (
