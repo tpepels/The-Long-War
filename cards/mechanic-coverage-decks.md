@@ -54,14 +54,14 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Focus:** Seer and Scout classification support, hidden-plan responses, and meaningful counterplay after viewing a plan.
 
-**Setup:** Use Scouts or Seers to trigger a hostile Stratagem, compare Guarded versus +2 temporary Strength responses, and test Ground Was Held from both tied and down-by-one provisional totals.
+**Setup:** Use a Scout or Seer with a set The Scouts Had Warned Them to redirect an Opening Maneuver after order reveal; compare pre-reveal feints, reactive prevention and the Ground Was Held tie/down-by-one condition.
 
 **Composition:** 48 cards, 93–96 Command across all cards (Hero mode-dependent), 51 sum printed Force Strength (not the Front total).
 
 **What to record**
 
 - At least one Scout and one Seer can be deployed and completed
-- Scouts Had Warned Them protects a threatened position, while Iria and Kael-as-Name can Move after inspecting a hidden plan
+- Scouts Had Warned Them redirects one Opening Maneuver after both players reveal orders; Iria and Kael-as-Name still inspect hidden plans before their own Move effects
 - Before Sunset has a same/adjacent Front trigger and changes Strength
 - Ground Was Held reveals only from an eligible pre-reveal total
 
