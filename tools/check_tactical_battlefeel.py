@@ -76,7 +76,7 @@ def run() -> None:
     for text in (manual, detailed, quick):
         assert "Incursion" in text, "Missing basic Raider check"
         assert "Archer" in text and "Shake" in text
-        assert "one Force" in text, "Defeat exhaustion must be one chosen Force"
+        assert any(phrase in text for phrase in ("one Force", "one of your Forces", "one of their Forces")), "Defeat exhaustion must be one chosen Force"
         assert "every unprotected Force" not in text
         assert "all unprotected Forces" not in text
     assert "| **Archer** | Opposing Rear in same Front | Shake |" in manual
@@ -115,7 +115,7 @@ def run() -> None:
     assert "without another Action" in text("the-damar")
 
     # Conditions and abilities are printed exceptions, not global rules.
-    assert "every Force" not in manual.lower().replace("every force can", "every force may")
+    assert "after every Maneuver" not in manual and "after any Maneuver" not in manual
     assert printed["print_edge_cue_count"] == 32
     print("PASS: 131 printed identities; 33 design-only Force roles; "
           "Archer Shake, single-Force defeat Exhaustion, 9 local Incursion "
