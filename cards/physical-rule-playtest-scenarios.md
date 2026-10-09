@@ -126,9 +126,9 @@ remains visible, and attachment does not duplicate the Boon.
 
 ### House of Reed can finish two prepared layers in one ACTION
 
-A controls **The House of Reed** in Middle. A already has two prepared
-layers in its Front, and a friendly Force in Frontline with empty Bond and
-Name slots. When House of Reed is played, its PLAY may attach one prepared
+A controls **The House of Reed** in Middle. A already has three prepared
+layers in its Front, and friendly Forces with available Bond or Name slots,
+including one in Frontline directly ahead. When House of Reed is played, its PLAY may attach one prepared
 layer directly ahead. On a subsequent turn, its **once-per-Battle ACTION**
 may attach up to two remaining prepared layers, one at a time, to legal
 friendly formations in that Front. If a particular attachment genuinely
