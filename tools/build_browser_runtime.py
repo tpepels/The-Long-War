@@ -177,6 +177,7 @@ from longwar.protocol import (
 
 include "_fast_engine_core.pxi"
 include "_heuristic_core.pxi"
+include "_native_search_game.pxi"
 include "_ismcts_core.pxi"
 """
 
