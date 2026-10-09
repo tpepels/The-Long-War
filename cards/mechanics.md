@@ -14,7 +14,7 @@ Examples:
 
 - not “SUPPORT +1”, but “The friendly formation directly ahead has +1 Strength.”
 - not “TIRELESS”, but “This Force may Maneuver while Exhausted.”
-- not “MOBILE”, but “This Force may Maneuver while Unnamed.”
+- not “MOBILE”, because every Force may now Maneuver whether Named or Unnamed.
 - not “STEAL 1 COMMAND”, but “Your opponent loses 1 Command, then you regain 1 Command.”
 - not “SUPPLY”, but an explicit logistical action such as moving a prepared Bond or Name forward.
 
@@ -247,8 +247,8 @@ Reveal all four together. Resolve Commit payment/Front-total Strength
 (+2 per 1 Command for occupied active Fronts) first, then Maneuvers
 in numbered simultaneous steps, then Strikes likewise. A Strike uses
 the Force's normal unused basic Attack; a free Opening Maneuver
-waives the Name and Command requirements, **not** an Exhausted Force's
-restriction. **Every Battle, including Battle I**, issues orders
+waives the normal Action and Command costs, **not** an Exhausted Force's
+restriction. Ordinary Maneuvers are available to Named and Unnamed formations. **Every Battle, including Battle I**, issues orders
 **after the first Pass and both closing turns**, before Stratagems
 are revealed and Fronts are settled. Ties cost no Command; a lost Front
 costs Command **equal to its total Strength deficit**. All printed
@@ -280,3 +280,7 @@ Strike declared in the same numbered step cannot be undone by
 later Depletion or movement from its simultaneous counterpart.
 The one Attack per Force per Battle applies to Opening Strikes and
 card-triggered counterattacks alike.
+
+## Current Maneuver access and Stratagem limit
+
+Any formation may Maneuver for an Action and 1 Command, whether Named or Unnamed, unless Exhausted. Only one Stratagem card may be set per player per Battle, including free card-effect sets. Returning or revealing it does not allow another; an effect that re-sets that same card does not create a second Stratagem. The four-Narrative limit is unchanged. Opening Orders happen after the two closing turns and before final Stratagem resolution.
