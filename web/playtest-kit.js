@@ -45,8 +45,8 @@ async function main(){
 
   if(reference){
     const rows=[
-      ["TURN / PASS","Before drawing, either Pass (whole turn, no draw) or draw 1 and take up to 2 Actions: play, ACTION, Maneuver, Attack, Cycle. After Pass: opponent full turn, passer full turn, resolve."],
-      ["OPENING ORDERS","Secretly choose two orders per player, 1 then 2 (duplicates allowed): Maneuver one formation even if Unnamed, free; Commit 1 Command for +2 to an active occupied Front's total Strength; Strike with an unused basic Attack; or Hold. Reveal together: Commit, then numbered Maneuvers, then numbered Strikes. Battle I after each player's first turn unless Pass already began; later Battles before turns."],
+      ["TURN / PASS","Before drawing, either Pass (whole turn, no draw) or draw 1 and take up to 2 Actions: play, ACTION, Maneuver, Attack, Cycle. After Pass: opponent full turn, passer full turn, secret Opening Orders, then resolve."],
+      ["OPENING ORDERS","Secretly choose two orders per player, 1 then 2 (duplicates allowed): Maneuver one formation even if Unnamed, free; Commit 1 Command for +2 to an active occupied Front's total Strength; Strike with an unused basic Attack; or Hold. Reveal together: Commit, then numbered Maneuvers, then numbered Strikes. In every Battle: after a Pass and both closing turns, before Stratagem reveals and Front scoring."],
       ["STRENGTH","Force plus Bond and Name modifiers plus effects, minimum 0 per formation. Sum across all 3 ranks in each Front, plus its Commit bonus while occupied. Attached Name classifications combine with Force classes."],
       ["STACKING","Force below Bond below Name, exposing the buried 10.5 mm strips. PLAY resolves when played; BECOMES NAMED can retrigger after rebuilding."],
       ["PREPARED","Compatible prepared layers attach to legal formations. PLAY resolves when prepared, never replays on later attachment; House of Reed and Field Train reward completing Named formations."],
