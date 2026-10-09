@@ -210,14 +210,32 @@ def run() -> None:
                  "pays 2 Command", "returns"),
          "Raiders pressure attachments after preparation ends")
 
-    case("B2: Field Train crosses Fronts once",
+    case("B2: Field Train saves a Bond/Name play Action",
          cost("the-field-train") == 3 and cost("the-house-of-reed") == 4
-         and has("the-field-train", "adjacent active Front", "directly ahead")
+         and has("the-field-train", "from your hand", "adjacent active Front",
+                 "without another Action", "Guarded")
          and any(e["timing"] == "play"
                  for e in cards["the-field-train"]["effects"])
+         and has("the-house-of-reed", "prepared", "Attach up to two")
          and any(e["timing"] == "action"
                  for e in cards["the-house-of-reed"]["effects"]),
-         "One-shot wider logistics differs from repeatable local support")
+         "Hand deployment saves an Action while House of Reed handles prepared layers")
+
+    case("B2: Signal Company moves an existing formation",
+         cost("the-signal-company") == 3
+         and cards["the-signal-company"]["strength"] == 2
+         and row("the-signal-company") == ["middle"]
+         and has("the-signal-company", "another friendly formation",
+                 "adjacent active Front", "flanked", "draw 1 card"),
+         "Immediate Move must alter an existing Force and flank can reward positioning")
+
+    case("B2: Relief Column heals and protects immediately",
+         cost("the-relief-column") == 3
+         and cards["the-relief-column"]["strength"] == 3
+         and row("the-relief-column") == ["middle"]
+         and has("the-relief-column", "another friendly Force",
+                 "all its temporary negative markers", "Guarded"),
+         "Recovery must change an actual condition or prevent the next affliction")
 
     case("B1: Seer Narrative has an immediate Strength floor",
          cost("they-knew-the-ground") == 1
