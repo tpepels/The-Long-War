@@ -148,3 +148,15 @@ decks and timing tests were updated consistently, but **there is
 no native-automated paper-game simulation**, and human playtesting
 is still needed to establish usefulness, non-dominance and comeback
 viability.
+
+## Follow-up: universal Maneuver and the single-Stratagem rule
+
+**Every formation may now perform an ordinary Maneuver** for 1 Action and 1 Command, regardless of Named status. Exhausted Forces still cannot initiate without a printed exception. The three existing Opening Order cards above were retained unchanged; no additional Opening Order specials were introduced.
+
+Only **one Stratagem card may be set per player per Battle**, including free sets through Teren. Revealing or returning it never authorizes setting a different one. The four-Narrative cap stays unchanged. This makes choosing the one hidden plan a genuine commitment, especially beside two secret Opening Orders.
+
+The earlier near-identical late plans were separated: **The Lines Held** remains a final Move plus +2; **The Center Must Hold** is now a leader-gated same-rank swap across neighboring Fronts; **The Flank Was Refused** now counters the flanking penalty and adds +2 on an outer Frontline Force. The other eight Stratagems retain their trigger roles, including reactions to Opening Strikes.
+
+**Revalued at their existing costs:** Dust Riders (3C) save 1C on their first Bonded Maneuver; Grey Riders (4C) still Maneuver while Exhausted and can follow with an unused Rider Attack; The Long March (2C) preserves Rider +1 on PLAY and zero-Command ordinary Rider Maneuvers, but loses its now-redundant Unnamed exception; Teren (1C) saves the Action for the one permitted Stratagem. No extra card identity, Force Strength, Narrative allowance or Command recovery change. See the updated [131-card inventory](full-card-coherence-audit.json) and [all 11 Stratagem roles](stratagem-opening-interactions.json).
+
+**Remaining unknowns:** the cap may leave some dedicated hidden-plan and Teren draws weak; Grey Riders' Move-plus-Attack may be too efficient without a Name prerequisite; uncapped victory-margin Command losses may shorten play. The audit and CI establish rules coherence, not measured human balance.
