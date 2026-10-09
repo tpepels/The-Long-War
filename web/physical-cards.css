@@ -1456,13 +1456,6 @@ EXPOSED TOP ROW - TUNING PANEL
   font: 700 3.2mm/1 var(--card-cost-font-family);
   font-variant-numeric: lining-nums;
 }
-.card-hero .mode-command-cost {
-  margin-left: 0.7mm;
-  font-size: var(--card-hero-mode-heading-font-size);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 /* Give the prose room before reducing its type size. */
 .dense,
 .very-dense {
