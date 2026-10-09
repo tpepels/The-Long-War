@@ -30,6 +30,7 @@ include "_fast_engine_core.pxi"
 
 # Search/evaluation policies consume the engine; they do not participate in
 # rule composition.
+include "_native_search_game.pxi"
 include "_heuristic_core.pxi"
 include "_alpha_beta_core.pxi"
 include "_ismcts_core.pxi"
