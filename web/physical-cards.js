@@ -219,7 +219,14 @@ function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.t
 function costSeal(card){
   if(card.type==="hero"){
     const f=card.hero_force_command_cost,n=card.hero_name_command_cost;
-    return '<span class="cost-gem cost-gem-hero" aria-label="Hero Force cost '+esc(f)+' Command, Name cost '+esc(n)+' Command"><span class="hero-cost-stack"><span><small>F</small><b>'+esc(f)+'</b></span><span><small>N</small><b>'+esc(n)+'</b></span></span></span>';
+    // The numerator is the Force price (shield), the denominator is the
+    // Name price (banner). Both use the same symbols as the exposed edge.
+    // The role-labelled mode headings and accessible name confirm the pair.
+    return '<span class="cost-gem cost-gem-hero" aria-label="Hero Force cost '+esc(f)+' Command, Name cost '+esc(n)+' Command">'+
+      '<span class="hero-cost-fraction" aria-hidden="true">'+
+        '<span class="hero-cost-part hero-cost-force"><span class="hero-cost-symbol">'+typeGlyph("force")+'</span><b>'+esc(f)+'</b></span>'+
+        '<span class="hero-cost-part hero-cost-name"><span class="hero-cost-symbol">'+typeGlyph("name")+'</span><b>'+esc(n)+'</b></span>'+
+      '</span></span>';
   }
   return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>';
 }
