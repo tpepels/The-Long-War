@@ -49,12 +49,17 @@ def test_print_rulebook_handles_lists_quotes_and_tables() -> None:
     assert "Command" in typst
 
 def test_print_rulebook_uses_player_handbook_layout() -> None:
-    """Printed handbook must not fall back to the old 2-column novel."""
+    """The print handbook uses columns with intentional full-width breaks."""
     from tools.build_rulebook_pdf import markdown_to_typst
 
     md = (ROOT / "rules" / "rulebook.md").read_text(encoding="utf-8")
     rendered = markdown_to_typst(md, "test")
-    assert "#columns(2" not in rendered
+    # The normal narrative remains two-column, but tables and graphic guides
+    # deliberately close and reopen columns to use the full page width.
+    assert rendered.count("#columns(2, gutter: 8mm)[") >= 8
+    assert "Use these position terms literally:" in rendered
+    assert "After checking Guarded, follow this cleanup order:" in rendered
+    assert "#table(columns:" in rendered
     assert "FIELD MANUAL" in rendered
     assert "FORMATION LAYERS" in rendered
     assert rendered.count("#grid(") >= 6

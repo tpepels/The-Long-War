@@ -80,7 +80,7 @@ def _flush_paragraph(lines: list[str], out: list[str]) -> None:
 
 
 def markdown_to_typst(source: str, version: str) -> str:
-    """Convert the intentionally simple player-facing Markdown to Typst."""
+    """Typeset the canonical Markdown as a two-column handbook with full-width aids."""
     lines = source.splitlines()
     out: list[str] = []
     paragraph: list[str] = []
@@ -95,6 +95,7 @@ def markdown_to_typst(source: str, version: str) -> str:
     pending_kind = ""
     resolution_open = False
     resolution_index = 0
+    columns_open = False
 
     preamble = f"""#set page(
   paper: "a4",
@@ -183,6 +184,18 @@ def markdown_to_typst(source: str, version: str) -> str:
 """
     out.append(preamble)
 
+    def open_columns() -> None:
+        nonlocal columns_open
+        if not columns_open:
+            out.append("#columns(2, gutter: 8mm)[")
+            columns_open = True
+
+    def close_columns() -> None:
+        nonlocal columns_open
+        if columns_open:
+            out.append("]")
+            columns_open = False
+
     def finish_list() -> None:
         """Render actual Markdown lists as legible decision aids where helpful."""
         nonlocal pending_list, pending_kind
@@ -198,6 +211,11 @@ def markdown_to_typst(source: str, version: str) -> str:
             ("Passing and ending a Battle", "numbered"): (3, "CLOSING TURN", "#e8eeed", "#293c47"),
         }
         style = cards.get((current_section, pending_kind))
+        # Wide reference tiles are deliberate interruptions in the two-column
+        # narrative. A two-column grid *inside* one text column is illegible.
+        break_out = style is not None
+        if break_out:
+            close_columns()
         if style is None:
             for index, item in enumerate(pending_list):
                 out.append(("- " if pending_kind == "bullet" else "+ ") + _inline(item))
@@ -227,6 +245,8 @@ def markdown_to_typst(source: str, version: str) -> str:
         out.append("")
         pending_list = []
         pending_kind = ""
+        if break_out:
+            open_columns()
 
     def close_resolution() -> None:
         nonlocal resolution_open
@@ -268,6 +288,7 @@ def markdown_to_typst(source: str, version: str) -> str:
                     rendered = f'#text(weight: "bold")[{rendered}]'
                 cells.append(f"[{rendered}]")
         column_widths = "(0.95fr, 1.65fr)" if width == 2 else f"({', '.join(['1fr'] * width)},)"
+        close_columns()
         out.append(
             f"#table(columns: {column_widths}, inset: 4pt, "
             'fill: (x, y) => if y == 0 { rgb("#e6e6dd") } else if calc.odd(y) { rgb("#faf6ee") } else { rgb("#f1ebe0") }, '
@@ -276,6 +297,7 @@ def markdown_to_typst(source: str, version: str) -> str:
         out.append("")
         table_rows = []
         in_table = False
+        open_columns()
 
     for raw in lines:
         line = raw.rstrip()
@@ -354,14 +376,19 @@ def markdown_to_typst(source: str, version: str) -> str:
             current_section = re.sub(
                 r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip()
             )
-            out.append(f"== {current_section}")
             if current_section == "The battlefield":
+                close_columns()
+                out.append(f"== {current_section}")
                 out.append(
                     '#grid(columns: (1fr, 1fr, 1fr), gutter: 6pt,'
                     ' [#block(fill: rgb("#e7ebea"), inset: 9pt, stroke: (bottom: 2pt + rgb("#293c47")))[#text(weight: "bold")[NAME] #linebreak() #text(size: 8pt)[Top · identity]]],'
                     ' [#block(fill: rgb("#f0e8dc"), inset: 9pt, stroke: (bottom: 2pt + rgb("#986448")))[#text(weight: "bold")[BOND] #linebreak() #text(size: 8pt)[Middle · attachment]]],'
                     ' [#block(fill: rgb("#f3e8d6"), inset: 9pt, stroke: (bottom: 2pt + rgb("#ad8a50")))[#text(weight: "bold")[FORCE] #linebreak() #text(size: 8pt)[Base · Strength]]])'
                 )
+                open_columns()
+            else:
+                open_columns()
+                out.append(f"== {current_section}")
             continue
 
         if line.startswith("### "):
@@ -421,6 +448,7 @@ def markdown_to_typst(source: str, version: str) -> str:
     finish_quote()
     finish_table()
     close_resolution()
+    close_columns()
 
     return "\n".join(out).rstrip() + "\n"
 
