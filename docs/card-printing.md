@@ -83,3 +83,31 @@ The printed [rulebook](../rules/rulebook.md), [quick reference](../web/playmat.h
 ### Cost/diversity verification
 
 Use `python tools/check_physical_cost_balance.py` for 15 static tabletop decision checks and [the complete 131-card cost ledger](../cards/physical-cost-review.md). A GitHub Actions advisory build checks the card export, generated Pages, PDF, and rulebook PDF. Full-size browser/card geometry still needs a repaired layout fixture or local print inspection. The build is not a full simulation of the print rules.
+
+
+## Hero cost seal and icon colour tuning
+
+In `web/physical-cards.css`, near the top of the `:root` block under
+**HERO COST SEAL - EDIT THESE VALUES**, tune the diagonal Force/Name Command
+seal without changing card data or renderer code:
+
+- `--hero-cost-force-left` / `--hero-cost-force-top` position the upper-left
+  Force icon and number together; `--hero-cost-name-right` /
+  `--hero-cost-name-bottom` position the lower-right Name pair.
+- `--hero-cost-*-symbol-size`, `--hero-cost-*-number-size`, and
+  `--hero-cost-*-gap` control the separate glyph and numeral dimensions.
+- `--hero-cost-*-symbol-x/y` and `--hero-cost-*-number-x/y` fine-tune each
+  part independently; positive X moves right and positive Y moves down.
+- `--hero-cost-fraction-inset` adjusts the inner area; `--hero-cost-slash-*`
+  controls the diagonal separator. Values use millimetres except the slash
+  position (percent), angle (degrees) and opacity (0–1).
+
+All these variables are visual only: the Force and Name Command costs still
+come from their separate card-data fields. Inspect all Hero cards at actual
+print size after adjustments; `PhysicalCards.inspect()` flags cost pairs
+that overlap or leave the seal.
+
+Transparent PNG glyphs now use the **same card-family filter values** as the
+decorative frame PNGs (`--card-shell-*` in each `.card-*` selector).
+They follow the card family theme automatically. Illustrations, text and SVG
+fallback icons are intentionally excluded from that filter.
