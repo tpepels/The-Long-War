@@ -1,4 +1,4 @@
-$0
+# Physical mechanic coverage and control decks
 
 **Force pricing (current):** Forces are priced at 1 + ceil(Strength/2) plus an assessed ability premium; totals below reflect the [Force pricing ledger](force-pricing.json). These are whole-deck sums, not up-front costs.
 
