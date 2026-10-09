@@ -177,7 +177,7 @@ After the two closing turns following the first **Pass**, but before settling th
 - **Strike:** Make one legal **basic Attack** with a chosen Force against a chosen target. It uses that Force's normal once-per-Battle Attack.
 - **Hold:** Do nothing.
 
-**Reveal all four orders together.** Pay for valid Commit orders first. Then resolve Maneuvers, followed by Strikes, in numbered order. Opposing orders at the same step happen simultaneously. Check legal positions and targets after earlier steps; an impossible order does nothing. Two Commits may reinforce the same Front. All Opening Orders are **free Actions**; only Commit spends Command.
+**Reveal all four orders together.** First reveal any Stratagem triggered by that reveal; it may alter only what its own text permits. Pay for valid Commit orders, then resolve Maneuvers followed by Strikes in numbered order. Opposing orders at the same step happen simultaneously. Check legal positions and targets after earlier steps; an impossible order does nothing. **Other Stratagems may react to a Move or Attack as usual**, but resolution Stratagems wait until Opening Orders are complete. Two Commits may reinforce the same Front. All Opening Orders are **free Actions**; only Commit spends Command.
 
 The procedure is **identical in every Battle, including Battle I**. Players play their cards during their normal turns before the Pass and closing turns. Opening Orders happen **once**, after those turns and before Stratagems are revealed.
 
