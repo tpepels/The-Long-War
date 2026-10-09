@@ -7,8 +7,10 @@
 - `catalogue.md` - human-readable card reference; reconcile it with JSON when editing cards.
 - `playtest-matrix.md` / `effect-audit.md` - authored coverage and readability reviews.
 - `value-model.md` / `valuation-audit.md` - provisional design diagnostics, not measured balance evidence.
-- `playtest-decks.json` / `playtest-decks.md` - four Strength-first 48-card combo decklists with exact two-package availability baselines; distinct from shipped research profiles.
-- `mechanic-coverage-decks.json` / `mechanic-coverage-decks.md` - three separate 48-card diagnostic decks for Riders, Seers, hidden plans, preparation and Front exchange. These are not primary competitive decks.
+- `playtest-decks.json` / `playtest-decks.md` - six 48-card lists: four core repeatable combo decks plus two supplementary coverage/combo experiments.
+- `mechanic-coverage-decks.json` / `mechanic-coverage-decks.md` - four separate 48-card diagnostic lists, including a Raw Strength Control for matching simple Forces against combos.
+- `physical-text-and-coverage-audit.md` - effect wording conventions and confirmation that all 131 identities appear in a deck.
+- `strength-combos-snowball-review.md` - simple Strength action economics and noncanonical alternatives to lost-Front Exhaustion.
 - `art-sources/` - uncropped illustration originals for future artwork edits.
 
 Canonical per-card PNGs live in `web/art/cards/`. Pages generates optimized WebP derivatives in `dist/art/cards-print/`; it never rewrites the PNGs. Neither the physical game nor print presentation requires runtime parity to be usable.
