@@ -249,7 +249,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal when one of your formations in this Front becomes Named. Choose one: Move that formation up to two legal adjacent empty positions; or return one opposing attached Bond in this Front to its owner's hand."
+          "text": "Reveal when one of your formations in this Front becomes Named. Choose one: Move it up to two legal adjacent empty positions, or return one opposing attached Bond here to its owner's hand."
         }
       ],
       "design_note": "Named completion creates either a repositioning or an attachment-raid threat."
@@ -259,7 +259,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal during Battle resolution if this Front contains one of your Kings or Captains. Choose this Front and up to one adjacent active Front. Up to three other friendly Human formations across those Fronts each get +1 Strength this Battle."
+          "text": "Reveal during Battle resolution if you have a King or Captain here. Choose this Front and one adjacent active Front. Up to three other friendly Human formations across them each get +1 Strength this Battle."
         }
       ],
       "design_note": "Leadership projects strength across a Front boundary, rather than cloning cheaper Center Must Hold."
@@ -269,7 +269,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal after an opposing Force completes an Attack in this Front while you have an Archer here. One of your Archers here may immediately make its basic Archer Attack without spending an Action, if it has a legal target and has not Attacked this Battle. Mark its Attack used."
+          "text": "Reveal after an opposing Force completes an Attack in this Front. An Archer you control here that has not Attacked this Battle may make a legal basic Archer Attack without spending an Action. Mark its Attack used."
         }
       ],
       "design_note": "A triggered counterattack instead of a temporary Strength bonus."
@@ -388,7 +388,7 @@
         },
         {
           "timing": "continuous",
-          "text": "While you control a Seer, your formations treat the two outermost active Fronts as adjacent for Maneuvers and Move card effects this Battle. This does not create flanks or change Attack targets."
+          "text": "While you control a Seer, your formations treat the two outermost active Fronts as adjacent for Maneuvers and Move effects this Battle. This does not create flanks or change Attack targets."
         }
       ],
       "design_note": "Immediate board adjustment plus Seer-controlled geography; no changed flank or Attack rules."
@@ -402,7 +402,7 @@
         },
         {
           "timing": "continuous",
-          "text": "When you play a Tactic targeting a card or formation in a Front containing one of your Raider or Skirmisher formations, it costs 1 less Command (minimum 0). After that Tactic, you may Move one friendly Raider or Skirmisher formation there one legal position."
+          "text": "When you play a Tactic targeting a card or formation in a Front with your Raider or Skirmisher, it costs 1 less Command (minimum 0). Afterward, you may Move one of your Raiders or Skirmishers there one legal position."
         }
       ],
       "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
@@ -514,7 +514,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing prepared Bond or Name, or a Bond attached to an opposing Depleted Force, in a Front containing one of your Raiders. Its owner pays 2 Command or returns that chosen component to hand."
+          "text": "In a Front containing your Raider, choose an opposing prepared Bond or Name, or the Bond of an opposing Depleted Force. Its owner pays 2 Command or returns that component to hand."
         }
       ],
       "design_note": "Depleted gains a targeted logistical risk; prepared cards remain vulnerable."
@@ -524,7 +524,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a prepared Bond or Name in this Front or an adjacent active Front. Attach it to the friendly formation directly ahead of this Force, if the matching slot is empty and the attachment is legal."
+          "text": "Choose a prepared Bond or Name here or in an adjacent active Front. Attach it to the friendly formation directly ahead of this Force, if legal and the slot is empty."
         }
       ],
       "design_note": "Cross-Front one-time logistics separate from House of Reed repeatable ACTION."
@@ -534,7 +534,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a Front containing one of your Captains. Choose one: swap two orthogonally adjacent friendly formations in that Front, if legal; or discard one friendly Force in that Front together with its attached Bond and Name, then regain 2 Command."
+          "text": "Choose a Front with one of your Captains. Either swap two adjacent friendly formations there, if legal, or discard one friendly Force there with its attached Bond and Name to regain 2 Command."
         }
       ],
       "design_note": "Explicit sacrifice releases one persistent position for an Action, at the cost of Force Strength and attached layers."
@@ -544,7 +544,7 @@
       "effects": [
         {
           "timing": "reaction",
-          "text": "Once per Battle, when your opponent sets a Stratagem in the Front of one of your Scouts or Ships or an adjacent active Front, you may look at that Stratagem. You may then Move one friendly formation in the Stratagem's Front one orthogonally adjacent legal position.",
+          "text": "Once per Battle, when an opponent sets a Stratagem in or adjacent to a Front containing your Scout or Ship, look at it. You may then Move one friendly formation in that Stratagem's Front one adjacent legal position.",
           "limit": "once_per_battle"
         }
       ],
