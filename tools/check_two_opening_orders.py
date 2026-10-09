@@ -43,7 +43,7 @@ def run() -> None:
         assert "closing turns" in opening
         assert "Pass" in opening
         assert "before" in opening.lower() and "Stratagem" in opening
-        assert "Unnamed" in opening or "without a Name" in opening
+        assert "Maneuver" in opening
         assert "Exhausted" in opening
         assert "once-per-Battle" in opening or "one Attack per Battle" in opening
         assert "two Commits" in opening or "Two Commits" in opening
@@ -56,6 +56,10 @@ def run() -> None:
     assert "Check Attack legality for **both** sides at the start of their paired Strike step" in DETAILED
     assert "A second Strike by the same Force fails after its one Attack is spent" in DETAILED
     assert "does **not** help a Raider" in DETAILED
+    assert "**Any formation** may initiate an ordinary **Maneuver**" in DETAILED
+    assert "**Any formation**, Named or Unnamed, may Maneuver" in SHORT
+    assert "set only one Stratagem card in total per Battle" in DETAILED
+    assert "set only one Stratagem card per Battle" in SHORT
     assert "identical in every Battle, including Battle I" in SHORT
     assert "The same sequence applies to every Battle, including Battle I" in DETAILED
     assert "No initial deployment turn, skipped order phase, or Battle I exception" in DETAILED
