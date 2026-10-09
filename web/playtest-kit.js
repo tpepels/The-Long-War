@@ -60,6 +60,7 @@ async function main(){
       ["EXHAUSTED","−1 Strength; cannot initiate ordinary Maneuver. Can still Attack unless Depleted. Clear old Exhaustion at Battle end; defeated Forces receive new Exhaustion for the next Battle."],
       ["SHAKEN / DEPLETED","Shaken: −2 Strength and no Guard screening. Depleted: −1 Strength, no Attack or ACTION abilities on any layer of its formation, and no Guard screening. Penalties stack."],
       ["BOONS","Guarded blocks next affliction, including lost-Front Exhaustion; Inspired prevents Shaken; Empowered bypasses Archer screening for next Attack."],
+      ["HERO","Choose Force or Name when playing a Hero and pay the price printed for that mode. Only that mode contributes Strength and effects; a prepared Hero Name costs its Name price. Limit one Hero as Force and one as Name from hand per Battle."],
       ["NARRATIVE","Up to 4 face-up per player; all last through the current Battle, then discard."],
       ["STRATAGEM","Assign an active Front publicly; identity hidden. Reveal on an eligible trigger. One pre-comparison simultaneous window; a tie or one-point deficit must exist before reveals, not arise during them."],
       ["RESOLUTION","Compare Fronts; lose 1 Command per lost Front, then check Collapse. The loser chooses one Force per lost Front to Exhaust next Battle; Guarded on it prevents this. Clear old effects, apply new Exhaustion, then recover."],
