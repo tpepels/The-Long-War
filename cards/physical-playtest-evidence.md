@@ -59,8 +59,9 @@ selection, player experience and opening-hand luck.
 1. Compare **Every Banner Turned Toward Them** with **The Center Must Hold**
    in identical board states; record whether the extra Front matters.
 2. Run Battle II and IV test hands for **The Field Train**, **The Stores Were
-   Taken**, and **Re-form the Line**. Record stranded Forces and actual
-   sacrifices, including the Strength lost and future deployment enabled.
+   Taken**, and **Re-form the Line**. Count Field Train's saved attachment
+   Action and full Command paid, plus stranded Forces and actual
+   sacrifices (Strength lost and future deployment enabled).
 3. Test Riders in Rear versus Middle/Frontline, especially with **The Long
    March**, and counterattacks with **The Archers Were Ready**. Record each
    legal target and Attack marker.
@@ -87,9 +88,10 @@ Record the following alongside ordinary card plays and game results:
   whether that single threat forces too much Command or protection.
 - **Prepared layer effectiveness:** count Bonds/Names played without a Force,
   how often their immediate PLAY effect mattered, how many were later
-  attached, and how often House of Reed or Field Train produced a Named
-  completion reward. Record instances where preparation cost more Actions
-  than a simpler direct attachment sequence.
+  attached, and how often House of Reed produced a Named completion reward.
+  Track Field Train separately: no-extra-Action Bond/Name **plays from hand**,
+  Command still paid, and actual Guarded protection of a completed formation.
+  Record instances where preparation cost more Actions than direct attachment.
 - **Named-completion diversity:** count completed formations and whether a
   +2 temporary Strength or Guarded reward actually altered a Front.
   Distinguish stable formation Strength from Battle-only spikes.
