@@ -187,13 +187,14 @@ function effectBlock(effect,options={}){
   const reminder=mechanicReminder(effect);
   return '<section class="effect-block timing-'+kind+'"><div class="effect-head"><span class="effect-timing-icon" aria-hidden="true">'+effectTimingGlyph(effect.timing)+'</span><span class="effect-label">'+esc(LABEL[effect.timing]||effect.timing)+'</span>'+(effect.limit==="once_per_battle"?'<span class="effect-use"><span class="use-socket"></span><em>once per Battle</em></span>':"")+'</div> <div class="effect-text">'+formatRuleText(effect.text)+'</div>'+(reminder?'<div class="effect-reminder">'+formatRuleText(reminder,{icons:false})+'</div>':"")+'</section>';
 }
-function heroModeHeading(card,mode){
-  const cost=mode==="force"?card.hero_force_command_cost:card.hero_name_command_cost;
-  return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span><span class="mode-command-cost">'+esc(cost)+' Command</span></span></h4>';
+function heroModeHeading(mode){
+  // Mode identity belongs in the rules section; prices live only in the
+  // diagonal Force/Name Command seal in the footer.
+  return '<h4 class="mode-heading"><span class="mode-heading-core">'+typeGlyph(mode)+'<span>'+esc(titleCase(mode))+'</span></span></h4>';
 }
 function rules(card){
   const placement=placementRuleBlock(card);
-  if(card.type==="hero")return placement+'<section class="hero-rule-mode" data-mode="force">'+heroModeHeading(card,"force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading(card,"name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
+  if(card.type==="hero")return placement+'<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
   return placement+effects(card).map(effect=>effectBlock(effect)).join("");
 }
 function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.type!=="narrative")bits.push("This Battle");return bits.join(" · ")}
