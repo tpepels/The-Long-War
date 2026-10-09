@@ -1218,8 +1218,8 @@ EXPOSED TOP ROW - TUNING PANEL
   font: var(--card-effect-text-font-size)/var(--card-effect-text-line-height)
     var(--card-rule-font-family);
 }
-/* Inline pictograms highlight rare rule outcomes, not every glossary word.
-   Keep the impact symbol with its word, whether loaded from PNG or SVG. */
+/* Inline symbols identify referenced card types or classifications only.
+   Conditions, numbers, actions and ordinary game prose have no pictograms. */
 .effect-text .rule-term {
   font-weight: 700;
 }
@@ -1403,18 +1403,19 @@ EXPOSED TOP ROW - TUNING PANEL
   padding-bottom: 0;
 }
 .hero-cost-fraction {
-  position: relative;
+  position: absolute;
+  inset: 1.5mm;
   display: block;
-  width: 100%;
-  height: 100%;
+  /* The old full-seal box put the lower-right glyph and number onto
+     the octagon border. Reserve a genuine inner content area. */
 }
 .hero-cost-fraction::before {
   content: "";
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 8mm;
-  height: 0.22mm;
+  width: 6.3mm;
+  height: 0.2mm;
   transform: translate(-50%, -50%) rotate(-45deg);
   background: currentColor;
   opacity: 0.8;
@@ -1425,24 +1426,24 @@ EXPOSED TOP ROW - TUNING PANEL
   z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: 0.25mm;
+  gap: 0.16mm;
   line-height: 1;
   white-space: nowrap;
 }
 .hero-cost-force {
-  top: 1.7mm;
-  left: 1.3mm;
+  top: 0;
+  left: 0;
 }
 .hero-cost-name {
-  right: 1.2mm;
-  bottom: 1.8mm;
+  right: 0;
+  bottom: 0;
 }
 .hero-cost-symbol {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.3mm;
-  height: 2.3mm;
+  width: 1.9mm;
+  height: 1.9mm;
   flex: none;
 }
 .hero-cost-symbol svg,
@@ -1453,7 +1454,7 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
 }
 .cost-gem .hero-cost-part b {
-  font: 700 3.2mm/1 var(--card-cost-font-family);
+  font: 700 2.9mm/1 var(--card-cost-font-family);
   font-variant-numeric: lining-nums;
 }
 /* Give the prose room before reducing its type size. */
@@ -1495,19 +1496,10 @@ EXPOSED TOP ROW - TUNING PANEL
   margin-top: 0.2mm;
 }
 .card-hero .effect-head {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.3mm;
-  white-space: nowrap;
-  vertical-align: -0.1em;
-  margin: 0 0.6mm 0 0;
-}
-.card-hero .effect-timing-icon {
-  display: inline-flex;
-  width: var(--icon-hero-mode-size);
-  height: var(--icon-hero-mode-size);
-  align-self: center;
-  flex: none;
+  display: inline;
+  white-space: normal;
+  vertical-align: baseline;
+  margin: 0 0.65mm 0 0;
 }
 .card-hero .effect-use {
   display: inline-flex;
@@ -1537,29 +1529,14 @@ EXPOSED TOP ROW - TUNING PANEL
   font-size: var(--card-hero-mode-heading-font-size);
 }
 .card-hero .mode-heading-core {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
+  display: inline;
+  white-space: normal;
 }
 .card-hero .mode-heading-core::after {
   content: " ·";
 }
-.card-hero .mode-heading-core svg,
-.card-hero .mode-heading-core img.glyph-png {
-  vertical-align: middle;
-  margin-right: 0.4mm;
-}
 .card-hero .effect-block:first-of-type {
   display: inline;
-}
-.card-hero .mode-heading-core svg,
-.card-hero .mode-heading-core img.glyph-png {
-  width: var(--icon-hero-mode-size);
-  height: var(--icon-hero-mode-size);
-}
-.card-hero .effect-timing-icon {
-  width: var(--icon-rule-timing-size);
-  height: var(--icon-rule-timing-size);
 }
 .card-hero .effect-label {
   font-size: var(--card-hero-effect-label-font-size);
