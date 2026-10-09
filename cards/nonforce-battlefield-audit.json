@@ -677,7 +677,7 @@
       "role": "intrigue",
       "decision": "revised",
       "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 151
+      "effect_length_max": 156
     },
     {
       "id": "supported-by",
