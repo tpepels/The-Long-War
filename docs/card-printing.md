@@ -100,6 +100,7 @@ Force and Name headings. No prices are duplicated in the body text.
 The central `:root` **HERO COST SEAL - EDIT THESE VALUES** section in
 `web/physical-cards.css` contains all visual adjustments:
 
+- `--hero-cost-seal-size`: overall Hero seal diameter, separate from ordinary cards.
 - `--hero-cost-inset`: inner seal margin.
 - `--hero-cost-force-number-size` / `--hero-cost-name-number-size`:
   separate large numerical type sizes.
