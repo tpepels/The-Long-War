@@ -201,3 +201,18 @@ including all revised and watch-listed identities. The new
 printed effect sizes and the specific card-granted Attack exceptions.
 The normal Action menu and rulebook structure are unchanged. This
 is still **not evidence of improved win rates or battle feel**.
+
+## Two Opening Orders and decisive margins
+
+The paper rules now use **two simultaneous hidden Opening Orders per
+player**, selected from Maneuver, Commit, Strike and Hold, repeat types
+allowed. They resolve by Commit payments, numbered simultaneous
+Maneuvers and numbered simultaneous Strikes. Battle I performs these
+after each player's first normal turn (unless Pass has already begun);
+later Battles perform them before the first turn. Commit spends
+1 Command for +2 **Front-total Strength** only while at least one
+friendly Force occupies that Front. Losing a Front now costs Command
+equal to the complete **Strength difference**; the single selected
+Force for next-Battle Exhaustion and the recovery sequence remain
+unchanged. See [Opening Order scenarios](physical-rule-playtest-scenarios.md).
+Static checks do not establish reasonable game length or balance.
