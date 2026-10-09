@@ -1,6 +1,6 @@
 {
   "format": "physical-print-overrides-v1",
-  "description": "Physical print only. 131 identities retained. Sidegrades, assigned-Front rulings, and focused Command/effect rebalancing, not native gameplay input.",
+  "description": "Physical print only; 131 identities retained. Decision-led positional, Command and effect balance pass; native/Webgame remains unchanged.",
   "replacements": [
     {
       "id": "the-damar",
@@ -239,40 +239,40 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal after one of your Riders moves from or into this Front. That Rider gets +2 Strength this Battle."
+          "text": "Reveal after one of your Riders moves from or into this Front. That Rider may immediately Move one additional legal adjacent position and gets +1 Strength this Battle."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing."
+      "design_note": "A Rider movement chain with positional and Strength consequences."
     },
     {
       "id": "there-was-no-road-back",
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal when one of your formations in this Front becomes Named. Draw 2 cards, then discard 1 card."
+          "text": "Reveal when one of your formations in this Front becomes Named. Choose one: Move that formation up to two legal adjacent empty positions; or return one opposing attached Bond in this Front to its owner's hand."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing."
+      "design_note": "Named completion creates either a repositioning or an attachment-raid threat."
     },
     {
       "id": "every-banner-turned-toward-them",
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal during Battle resolution if this Front contains one of your Kings or Captains. Every other friendly Human formation here gets +1 Strength this Battle."
+          "text": "Reveal during Battle resolution if this Front contains one of your Kings or Captains. Choose this Front and up to one adjacent active Front. Up to three other friendly Human formations across those Fronts each get +1 Strength this Battle."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing."
+      "design_note": "Leadership projects strength across a Front boundary, rather than cloning cheaper Center Must Hold."
     },
     {
       "id": "the-archers-were-ready",
       "effects": [
         {
           "timing": "hidden",
-          "text": "Reveal when an opposing Tactic targets one of your formations in this Front and you have an Archer here. One friendly Archer here gets +2 Strength this Battle."
+          "text": "Reveal after an opposing Force completes an Attack in this Front while you have an Archer here. One of your Archers here may immediately make its basic Archer Attack without spending an Action, if it has a legal target and has not Attacked this Battle. Mark its Attack used."
         }
       ],
-      "design_note": "Assigned-Front Stratagem phrasing."
+      "design_note": "A triggered counterattack instead of a temporary Strength bonus."
     },
     {
       "id": "the-scouts-had-warned-them",
@@ -353,43 +353,59 @@
       "id": "no-one-would-be-first-to-leave",
       "effects": [
         {
+          "timing": "play",
+          "text": "Choose a friendly Force. Remove its Exhaustion, if present."
+        },
+        {
           "timing": "action",
-          "text": "Choose a friendly formation. Remove Exhaustion from its Force, if present. You may then Move that formation one orthogonally adjacent position, if legal.",
+          "text": "Move up to two different friendly formations one orthogonally adjacent legal position each.",
           "limit": "once_per_battle"
         }
       ],
-      "design_note": "2C+setup Action buys one reposition and optional recovery, not only one costly Exhaustion removal."
+      "design_note": "Recovery followed by an optional coordinated redeployment."
     },
     {
       "id": "the-crows-came-down",
       "effects": [
         {
+          "timing": "play",
+          "text": "Choose an opposing Force in a Front containing one of your Archers. Exhaust it."
+        },
+        {
           "timing": "action",
-          "text": "Choose up to two opposing Forces in a single Front containing one of your Archers. Exhaust each chosen Force.",
+          "text": "Choose an opposing Exhausted Force in a Front containing one of your Archers. Give it Shaken.",
           "limit": "once_per_battle"
         }
       ],
-      "design_note": "2C+setup Action becomes a local multi-target Archer pressure event."
+      "design_note": "Immediate Archer pressure plus optional second-Action Shaken payoff."
     },
     {
       "id": "they-knew-the-ground",
       "effects": [
         {
+          "timing": "play",
+          "text": "Move one friendly formation one orthogonally adjacent legal position."
+        },
+        {
           "timing": "continuous",
           "text": "While you control a Seer, your formations treat the two outermost active Fronts as adjacent for Maneuvers and Move card effects this Battle. This does not create flanks or change Attack targets."
         }
       ],
-      "design_note": "1C Seer-driven geography change; low early payoff but unusual tactical reach after Battle I."
+      "design_note": "Immediate board adjustment plus Seer-controlled geography; no changed flank or Attack rules."
     },
     {
       "id": "the-raiders-came-home-loaded",
       "effects": [
         {
+          "timing": "play",
+          "text": "Draw 1 card, then discard 1 card."
+        },
+        {
           "timing": "continuous",
           "text": "When you play a Tactic targeting a card or formation in a Front containing one of your Raider or Skirmisher formations, it costs 1 less Command (minimum 0). After that Tactic, you may Move one friendly Raider or Skirmisher formation there one legal position."
         }
       ],
-      "design_note": "1C tactical raid engine makes Tactics and shifting pressure reinforce each other, rather than only saving 1 Command."
+      "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
     },
     {
       "id": "the-long-march",
@@ -492,6 +508,47 @@
         }
       ],
       "design_note": "2C one-shot now affects Strength as well as movement; Shaken counterplay via Inspired."
+    },
+    {
+      "id": "the-stores-were-taken",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing prepared Bond or Name, or a Bond attached to an opposing Depleted Force, in a Front containing one of your Raiders. Its owner pays 2 Command or returns that chosen component to hand."
+        }
+      ],
+      "design_note": "Depleted gains a targeted logistical risk; prepared cards remain vulnerable."
+    },
+    {
+      "id": "the-field-train",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose a prepared Bond or Name in this Front or an adjacent active Front. Attach it to the friendly formation directly ahead of this Force, if the matching slot is empty and the attachment is legal."
+        }
+      ],
+      "design_note": "Cross-Front one-time logistics separate from House of Reed repeatable ACTION."
+    },
+    {
+      "id": "re-form-the-line",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose a Front containing one of your Captains. Choose one: swap two orthogonally adjacent friendly formations in that Front, if legal; or discard one friendly Force in that Front together with its attached Bond and Name, then regain 2 Command."
+        }
+      ],
+      "design_note": "Explicit sacrifice releases one persistent position for an Action, at the cost of Force Strength and attached layers."
+    },
+    {
+      "id": "before-sunset-the-ford-would-be-ours",
+      "effects": [
+        {
+          "timing": "reaction",
+          "text": "Once per Battle, when your opponent sets a Stratagem in the Front of one of your Scouts or Ships or an adjacent active Front, you may look at that Stratagem. You may then Move one friendly formation in the Stratagem's Front one orthogonally adjacent legal position.",
+          "limit": "once_per_battle"
+        }
+      ],
+      "design_note": "Information has an immediate, visible optional response, not another scouting ACTION."
     }
   ],
   "once_per_battle_text_fixes": [
@@ -548,11 +605,6 @@
       "id": "the-relief-column",
       "index": 0,
       "exposed": "Middle: ahead may Maneuver while Exhausted"
-    },
-    {
-      "id": "the-field-train",
-      "index": 0,
-      "exposed": "ACTION: attach prepared Bond/Name directly ahead"
     },
     {
       "id": "the-signal-company",
