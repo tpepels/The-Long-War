@@ -1267,5 +1267,183 @@
       "strength": 3,
       "reason": "One optional reaction to a same-Front hidden Stratagem per Battle is too intermittent for a 2-Strength 3C Force; +1 Strength ensures value without a Stratagem."
     }
-  ]
+  ],
+  "edge_cues": [
+    {
+      "id": "the-white-hands-of-elara",
+      "index": 0,
+      "cue": "ACTION"
+    },
+    {
+      "id": "the-red-shields",
+      "index": 0,
+      "cue": "FRONTLINE"
+    },
+    {
+      "id": "the-crow-archers",
+      "index": 1,
+      "cue": "ATTACK"
+    },
+    {
+      "id": "the-house-of-reed",
+      "index": 1,
+      "cue": "ACTION"
+    },
+    {
+      "id": "the-grey-riders",
+      "index": 0,
+      "cue": "MANEUVER"
+    },
+    {
+      "id": "the-grey-riders",
+      "index": 1,
+      "cue": "MANEUVER"
+    },
+    {
+      "id": "the-dust-riders",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "the-black-company",
+      "index": 0,
+      "cue": "ACTION"
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "index": 0,
+      "cue": "REAR"
+    },
+    {
+      "id": "the-old-guard",
+      "index": 0,
+      "cue": "MIDDLE"
+    },
+    {
+      "id": "the-late-banner",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "the-banner-singers",
+      "index": 0,
+      "cue": "NAMED/MIDDLE"
+    },
+    {
+      "id": "the-vardai",
+      "index": 0,
+      "cue": "ACTION"
+    },
+    {
+      "id": "the-serekh",
+      "index": 0,
+      "cue": "FRONTLINE"
+    },
+    {
+      "id": "the-relief-column",
+      "index": 0,
+      "cue": "MIDDLE"
+    },
+    {
+      "id": "the-signal-company",
+      "index": 0,
+      "cue": "MIDDLE"
+    },
+    {
+      "id": "followed",
+      "index": 0,
+      "cue": "NAMED"
+    },
+    {
+      "id": "stood-fast-with",
+      "index": 0,
+      "cue": "BONDED/FRONT"
+    },
+    {
+      "id": "covered-the-withdrawal-of",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "blocked-the-road-for",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "held-the-line-for",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "trusted",
+      "index": 0,
+      "cue": "NAMED"
+    },
+    {
+      "id": "marched-beneath-the-banner-of",
+      "index": 0,
+      "cue": "BONDED/LEADER"
+    },
+    {
+      "id": "carried-the-oath-of",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "had-been-ordered-forward",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "kael-the-roadless",
+      "index": 0,
+      "cue": "ACTION"
+    },
+    {
+      "id": "alda-keeper-of-the-ford",
+      "index": 0,
+      "cue": "FRONTLINE"
+    },
+    {
+      "id": "neris-the-ferryman",
+      "index": 0,
+      "cue": "ACTION"
+    },
+    {
+      "id": "the-lantern-scouts",
+      "index": 0,
+      "cue": "PLAN SET"
+    },
+    {
+      "id": "the-river-raiders",
+      "index": 0,
+      "cue": "ACTION"
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "index": 0,
+      "cue": "ACTION"
+    },
+    {
+      "id": "kept-the-gate-for",
+      "index": 0,
+      "cue": "BONDED"
+    },
+    {
+      "id": "supported-by",
+      "index": 0,
+      "cue": "BONDED/MIDDLE"
+    },
+    {
+      "id": "serai-queen-of-crows",
+      "index": 0,
+      "cue": "BONDED/ARCHER"
+    },
+    {
+      "id": "doros-the-last-spear",
+      "index": 0,
+      "cue": "BONDED/FRONT"
+    }
+  ],
+  "edge_cue_policy": "Print layout only: upper-right text reminds players when to consult the card body; never summarises rules, outcomes, costs or Strength. Text is CHECK + short trigger. Do not insert timing/condition icon glyphs."
 }
