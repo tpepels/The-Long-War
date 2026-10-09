@@ -210,43 +210,35 @@ def markdown_to_typst(source: str, version: str) -> str:
             ("Conditions and protection", "bullet"): (2, "CONDITION", "#f3e8df", "#986448"),
             ("Passing and ending a Battle", "numbered"): (3, "CLOSING TURN", "#e8eeed", "#293c47"),
         }
+        # One continuous two-column flow: no forced page endings at each panel.
         style = cards.get((current_section, pending_kind))
-        # Wide reference tiles are deliberate interruptions in the two-column
-        # narrative. A two-column grid *inside* one text column is illegible.
-        break_out = style is not None
-        if break_out:
-            close_columns()
         if style is None:
             for index, item in enumerate(pending_list):
                 out.append(("- " if pending_kind == "bullet" else "+ ") + _inline(item))
         else:
-            count, label, bg, accent = style
-            out.append("#grid(")
-            out.append("  columns: (" + ", ".join(["1fr"] * count) + "),")
-            out.append("  gutter: 6pt,")
+            _, label, bg, accent = style
             for index, item in enumerate(pending_list, 1):
-                # In Conditions, the first list is afflictions and the second
-                # is boons; distinguish them without changing the source text.
                 item_bg, item_accent = bg, accent
                 if current_section == "Conditions and protection" and item.startswith(
                     ("**Guarded:**", "**Inspired:**", "**Empowered:**")
                 ):
                     item_bg, item_accent = "#e7eee7", "#5f7966"
+                # One independent, short card per item. This can wrap to the
+                # next column without pushing an entire grid to another page.
                 out.append(
-                    '  [#block(fill: rgb("' + item_bg
-                    + '"), stroke: (left: 2.3pt + rgb("' + item_accent
-                    + '")), inset: 10pt, width: 100%, breakable: true)['
-                    + '#text(size: 7.3pt, weight: "bold", fill: rgb("' + item_accent
+                    '#block(fill: rgb("' + item_bg
+                    + '"), stroke: (left: 2pt + rgb("' + item_accent
+                    + '")), inset: (x: 8pt, y: 6pt), width: 100%,'
+                    ' breakable: false)['
+                    + '#text(size: 7pt, weight: "bold", fill: rgb("' + item_accent
                     + '"))[' + label + ' ' + f"{index:02d}" + ']'
-                    + '#v(5pt)'
-                    + _inline(item) + ']],'
+                    + '#v(3pt)'
+                    + _inline(item) + ']'
                 )
-            out.append(")")
+                out.append("#v(3pt)")
         out.append("")
         pending_list = []
         pending_kind = ""
-        if break_out:
-            open_columns()
 
     def close_resolution() -> None:
         nonlocal resolution_open
@@ -280,24 +272,35 @@ def markdown_to_typst(source: str, version: str) -> str:
         width = len(rows[0])
         if any(len(row) != width for row in rows):
             raise ValueError("Rulebook Markdown table has inconsistent column counts")
-        cells: list[str] = []
-        for row_index, row in enumerate(rows):
-            for cell in row:
-                rendered = _inline(cell.strip())
-                if row_index == 0:
-                    rendered = f'#text(weight: "bold")[{rendered}]'
-                cells.append(f"[{rendered}]")
-        column_widths = "(0.95fr, 1.65fr)" if width == 2 else f"({', '.join(['1fr'] * width)},)"
-        close_columns()
-        out.append(
-            f"#table(columns: {column_widths}, inset: 4pt, "
-            'fill: (x, y) => if y == 0 { rgb("#e6e6dd") } else if calc.odd(y) { rgb("#faf6ee") } else { rgb("#f1ebe0") }, '
-            'stroke: 0.35pt + rgb("#c7bba7"), ' + ", ".join(cells) + ")"
-        )
+        # Convert wide tables to a compact sequence of labelled reference
+        # entries in the text column. All original cell content is preserved,
+        # and each entry can independently move to the next column.
+        headings = rows[0]
+        for row_index, row in enumerate(rows[1:], 1):
+            # Balance the final Reference page manually. Typst cannot balance
+            # the last two columns automatically, and without this break the
+            # final reference cards occupy only the left-hand column.
+            if headings[0].strip().lower() == "event" and row_index == 3:
+                out.append("#colbreak()")
+            colour = "#f1eadd" if row_index % 2 else "#e9eeec"
+            out.append(
+                '#block(fill: rgb("' + colour
+                + '"), inset: (x: 8pt, y: 7pt), width: 100%,'
+                ' stroke: (left: 2pt + rgb("#af9167")), breakable: false)['
+            )
+            out.append(_inline(row[0]))
+            for cell_name, cell_text in zip(headings[1:], row[1:]):
+                out.append(
+                    '#v(2pt)'
+                    '#text(size: 7.2pt, weight: "bold", fill: rgb("#53636a"))['
+                    + _string(cell_name.strip().upper()) + ':] '
+                    + _inline(cell_text)
+                )
+            out.append("]")
+            out.append("#v(4pt)")
         out.append("")
         table_rows = []
         in_table = False
-        open_columns()
 
     for raw in lines:
         line = raw.rstrip()
@@ -376,18 +379,19 @@ def markdown_to_typst(source: str, version: str) -> str:
             current_section = re.sub(
                 r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip()
             )
+            open_columns()
             if current_section == "The battlefield":
-                close_columns()
                 out.append(f"== {current_section}")
+                # A small illustrated key stays with the explanation.
                 out.append(
-                    '#grid(columns: (1fr, 1fr, 1fr), gutter: 6pt,'
-                    ' [#block(fill: rgb("#e7ebea"), inset: 9pt, stroke: (bottom: 2pt + rgb("#293c47")))[#text(weight: "bold")[NAME] #linebreak() #text(size: 8pt)[Top · identity]]],'
-                    ' [#block(fill: rgb("#f0e8dc"), inset: 9pt, stroke: (bottom: 2pt + rgb("#986448")))[#text(weight: "bold")[BOND] #linebreak() #text(size: 8pt)[Middle · attachment]]],'
-                    ' [#block(fill: rgb("#f3e8d6"), inset: 9pt, stroke: (bottom: 2pt + rgb("#ad8a50")))[#text(weight: "bold")[FORCE] #linebreak() #text(size: 8pt)[Base · Strength]]])'
+                    '#block(fill: rgb("#f0e8dc"), width: 100%,'
+                    ' inset: 8pt, stroke: (left: 2pt + rgb("#ad8a50")))['
+                    '#text(weight: "bold")[FORMATION LAYERS]'
+                    '#v(3pt)'
+                    '#text(size: 8pt)[Name (top) · Bond (middle) · Force (base)]'
+                    ']'
                 )
-                open_columns()
             else:
-                open_columns()
                 out.append(f"== {current_section}")
             continue
 
@@ -401,7 +405,7 @@ def markdown_to_typst(source: str, version: str) -> str:
                 accent = "#986448" if resolution_index % 2 == 0 else "#293c47"
                 fill = "#f5ece4" if resolution_index % 2 == 0 else "#e9eeec"
                 out.append(
-                    '#block(width: 100%, breakable: true, inset: (x: 11pt, y: 10pt),'
+                    '#block(width: 100%, breakable: false, inset: (x: 11pt, y: 10pt),'
                     ' fill: rgb("' + fill + '"),'
                     ' stroke: (left: 3pt + rgb("' + accent + '")))['
                 )
