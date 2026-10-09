@@ -17,21 +17,21 @@
     },
     {
       "id": "the-field-train",
-      "opportunity": "A prepared Name is in an adjacent active Front and your Middle Field Train can complete the Force directly ahead.",
-      "comparison": "Compare the 3C/PLAY timing with spending the Action on a normal layer in the target Front.",
-      "failure_signal": "If preparation plus Field Train takes more Actions without a Front swing or future option, flag logistics tempo."
+      "opportunity": "During Battle II, a Bonded Force in an active Front is missing a Name and you hold The Field Train plus that Name; playing Field Train in Middle is legal.",
+      "comparison": "Compare Field Train's 3C/2-Strength body and a no-extra-Action Name play (full Name Command paid, Guarded on completion) against spending one Action on each card or playing a stronger Force.",
+      "failure_signal": "If spending 3C for the weak Field Train body and saved Action never changes the Front or next-turn options, its hand deployment still fails the tempo test."
     },
     {
       "id": "the-relief-column",
-      "opportunity": "An Exhausted Named Force in Frontline would change an upcoming Front by a legal Maneuver, and the Relief Column is directly behind.",
-      "comparison": "Compare the enabling support at 3C/3 Strength with an ordinary new Force or a defensive Order.",
-      "failure_signal": "If the enabled Maneuver never beats adding immediate Strength, flag narrow passive."
+      "opportunity": "In Battle II, a friendly Force in the same active Front has Exhausted and Shaken; play Middle Relief Column to remove all its negative markers and give it Guarded.",
+      "comparison": "Compare the 3C/3-Strength body plus immediate healing and Guarded with a separate 1C Guarded Bond, White Hands' later healing ACTION, and a normal 3C Force.",
+      "failure_signal": "If a legal, threatened Force rarely needs recovery and Guarded before the Battle closes, its 3-Strength baseline may be doing all the work."
     },
     {
       "id": "the-signal-company",
-      "opportunity": "An Unnamed healthy Frontline Force has a tactically winning Maneuver if enabled by the Middle Signal Company.",
-      "comparison": "Compare its 3C/2 Strength and setup with attaching a Bond and Name or an Order movement.",
-      "failure_signal": "If the shortcut is more expensive than completing Name or movement does not matter, flag."
+      "opportunity": "During Battle II, an existing friendly Frontline Force can be moved one adjacent legal position by a new Middle Signal Company, changing a flank and allowing a card draw.",
+      "comparison": "Compare 3C/2-Strength Signal Company's immediate free-Action Move and optional draw against a 3C/3-Strength Damar's same-Front forward Move and a 1C ordinary Maneuver.",
+      "failure_signal": "If the extra movement reach and possible flank draw never compensate for one less Strength versus Damar, this remains a poor deployment choice."
     },
     {
       "id": "the-house-of-reed",
