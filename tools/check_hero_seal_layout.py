@@ -54,17 +54,20 @@ window.addEventListener("load",async()=>{{
     const bound=rect(seal);
     for(const part of parts){{
       if(!inside(bound,rect(part)))fails.push(id+":price-outside-seal");
-      const symbol=part.querySelector(".hero-cost-symbol img,.hero-cost-symbol svg");
       const number=part.querySelector("b");
-      if(!symbol||!number){{fails.push(id+":missing-icon-or-number");continue;}}
-      if(!inside(bound,rect(symbol)))fails.push(id+":icon-outside-seal");
+      if(!number){{fails.push(id+":missing-number");continue;}}
+      if(part.querySelector("img,svg,.hero-cost-symbol"))
+        fails.push(id+":redundant-cost-icon");
       const range=document.createRange();range.selectNodeContents(number);
-      if(!inside(bound,rect(range)))fails.push(id+":number-outside-seal");
+      const ink=rect(range);
+      if(!inside(bound,ink))fails.push(id+":number-outside-seal");
+      if(Math.abs((ink.left+ink.right)/2-(bound.left+bound.right)/2)>1)
+        fails.push(id+":number-off-centre");
+      if(parseFloat(getComputedStyle(number).fontSize)<4*96/25.4)
+        fails.push(id+":number-too-small");
     }}
-    const a=rect(parts[0]),b=rect(parts[1]);
-    if(Math.min(a.right,b.right)>Math.max(a.left,b.left)+1 &&
-       Math.min(a.bottom,b.bottom)>Math.max(a.top,b.top)+1)
-       fails.push(id+":prices-overlap");
+    const a=rect(parts[0].querySelector("b")),b=rect(parts[1].querySelector("b"));
+    if(a.bottom>b.top-1)fails.push(id+":numbers-overlap-or-out-of-order");
     if(card.querySelector(".hero-rule-mode .effect-timing-icon,.hero-rule-mode .mode-heading img,.hero-rule-mode .mode-heading svg"))
       fails.push(id+":redundant-heading-icon");
     for(const effect of card.querySelectorAll(".hero-rule-mode .effect-block")){{
@@ -86,7 +89,7 @@ window.addEventListener("load",async()=>{{
     status = html.unescape(match.group(1)) if match else "browser check did not complete"
     if status != "PASS":
         raise SystemExit("FAIL: " + status[:3000])
-    print("PASS: 11 actual Hero seals keep both icon/price pairs inside; no role or timing icons in rules")
+    print("PASS: 11 Hero seals contain large centred Force(top)/Name(bottom) costs with no role icons")
 
 
 if __name__ == "__main__":
