@@ -53,13 +53,13 @@
     {
       "id": "the-grey-riders",
       "premium": 1,
-      "rationale": "3-Strength Rider with mobile/Exhausted Maneuver exceptions and an unused Rider Attack after its Maneuver; distinctive 4C cavalry tempo.",
+      "rationale": "3-Strength Rider with Exhausted-Maneuver exception and an unused Rider Attack after Maneuver. 4C retains the 1C ability premium; generic Unnamed Maneuver access is no longer a paid benefit.",
       "previous_printed_command": 3
     },
     {
       "id": "the-dust-riders",
       "premium": 0,
-      "rationale": "Odd-Strength budget covers the conditional Bonded mobility.",
+      "rationale": "3-Strength Rider with conditional first-Maneuver Command saving while Bonded. 3C uses the existing odd-Strength ability allowance, not a Named-access surcharge.",
       "previous_printed_command": 2
     },
     {
