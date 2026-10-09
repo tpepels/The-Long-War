@@ -45,13 +45,14 @@ def run() -> None:
          and has("the-red-shields", "Tactics", "additional Command"),
          "A first spear must offer protection in return for its row lock")
 
-    # Battle I, breach: enemy Frontline empty, Middle target still active.
-    case("B1: Iron Boars exploit a breach",
+    # Battle I: strong Raiders pressure the line, then exploit Shaken troops.
+    case("B1: Iron Boars and Reavers create different tactical choices",
          cost("the-iron-boars") == cost("the-unnamed-host") == 5
          and row("the-iron-boars") == ["front"]
-         and has("the-iron-boars", "opposing Frontline", "empty", "Depleted")
-         and has("the-unnamed-host", "Exhausted", "Command"),
-         "Raider bodies need different payoff and exploitable counterplay")
+         and has("the-iron-boars", "stronger", "opposing Frontline", "Shaken")
+         and has("the-unnamed-host", "opposing Force", "Shaken", "Depleted")
+         and "Command" not in cards["the-unnamed-host"]["text"],
+         "Raider line-breaking and exploitation replace added Command snowball")
 
     # Enemy Frontline occupied, Shaken improves the immediate comparison but
     # the Duelists lose ability to stand in a supporting row.
@@ -338,7 +339,7 @@ def run() -> None:
          marker_strength(5, exhausted=True) == 4
          and "**−1 Strength**" in rulebook
          and "- **Exhausted:**" in rulebook,
-         "Lost Front or Archer Exhaustion must cost 1 actual Strength")
+         "Lost-Front Exhaustion must cost 1 actual Strength")
 
     case("P2: Depleted changes Strength and entire formation ACTION access",
          marker_strength(5, depleted=True) == 4
