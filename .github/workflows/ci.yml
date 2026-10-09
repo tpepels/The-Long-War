@@ -111,6 +111,8 @@ jobs:
         run: python tools/check_physical_cost_balance.py
       - name: Check role-led Incursion and combined-Attack contracts
         run: python tools/check_tactical_battlefeel.py
+      - name: Audit strict Force tariffs and post-Incursion mechanics
+        run: python tools/check_post_incursion_economy.py
       - name: Check combo deck lists (advisory)
         run: python tools/check_physical_combo_decks.py
       - name: Smoke-check inline card icons (advisory)
