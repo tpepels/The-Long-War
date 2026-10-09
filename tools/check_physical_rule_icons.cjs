@@ -86,8 +86,8 @@ const heroRuleSections = heroHtml.split('<section class="hero-rule-mode"').slice
 assert.equal(heroRuleSections.length, 2, "Both Hero roles remain visible in the rules");
 for (const rule of heroRuleSections)
   assert.doesNotMatch(rule, /\\b(?:5|2) Command\\b/, "Prices belong only in the Hero seal");
-assert.match(heroRuleSections[0], /mode-heading-core[\\s\\S]*?Force/, "Force heading remains");
-assert.match(heroRuleSections[1], /mode-heading-core[\\s\\S]*?Name/, "Name heading remains");
+assert.ok(heroRuleSections[0].includes("<span>Force</span>"), "Force heading remains");
+assert.ok(heroRuleSections[1].includes("<span>Name</span>"), "Name heading remains");
 const css=fs.readFileSync(path.join(root,"web/physical-cards.css"),"utf8");
 assert.match(css, /\.inline-rule-ref\s*\{[^}]*white-space:\s*nowrap/s);
 assert.match(css, /\.card-hero \.effect-head\s*\{[^}]*display:\s*inline-flex/s);
