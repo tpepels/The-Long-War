@@ -546,7 +546,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may play one Bond or Name from your hand onto a friendly formation in this Front or an adjacent active Front, paying its Command cost without another Action. If it becomes Named, give it Guarded."
+          "text": "You may play a Bond or Name from hand onto a friendly formation in this or an adjacent active Front, paying its Command cost without another Action. If it becomes Named, give it Guarded."
         }
       ],
       "design_note": "Replace prep-dependent one-shot with an immediate free-Action Bond/Name deployment, while retaining the Field Train's adjacent-Front logistics reach and weak 2-Strength body.",
