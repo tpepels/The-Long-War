@@ -95,13 +95,32 @@ assert.match(heroRuleSections[1],/title="Force"/,"Hero text can reference a Forc
 const css=fs.readFileSync(path.join(root,"web/physical-cards.css"),"utf8");
 assert.match(css,/\.inline-rule-ref\s*\{[^}]*white-space:\s*nowrap/s);
 assert.match(css,/\.card-hero \.effect-head\s*\{[^}]*display:\s*inline;/s);
-assert.match(css,/\.hero-cost-fraction\s*\{[^}]*inset:\s*1\.5mm/s,
-  "Both prices must sit inside the decorative octagon");
-assert.match(css,/\.hero-cost-fraction::before\s*\{[^}]*rotate\(-45deg\)/s);
-assert.match(css,/\.hero-cost-force\s*\{[^}]*top:\s*0;/s);
-assert.match(css,/\.hero-cost-name\s*\{[^}]*bottom:\s*0;/s);
-assert.match(css,/\.hero-cost-symbol svg,[\s\S]*?\.hero-cost-symbol img\.glyph-png/s);
+// Card-family colour filters apply to PNG glyphs as well as frame assets,
+// without tinting the entire card (and therefore the card illustration).
+const pngFilter = css.match(/\\.physical-card img\\.glyph-png\\s*\\{([^}]+)\\}/s)?.[1]||"";
+for (const value of ["sepia","saturate","grayscale","hue","brightness","contrast"])
+  assert.match(pngFilter,new RegExp("--card-shell-"+value+"\\\\b"),
+    "PNG glyphs must inherit the "+value+" card-family filter control");
+assert.doesNotMatch(css,/\\.physical-card\\s*\\{[^}]*filter:/s,
+  "Filtering the entire card would tint the illustration and text");
+
+// Every Hero fraction dimension / location is editable from one :root block.
+// Keep independent controls for the Force and Name pair, glyph and numeral.
+const controls = [
+  "fraction-inset",
+  ...["force","name"].flatMap(mode=>[
+    ...(mode==="force"?["left","top"]:["right","bottom"]).map(x=>mode+"-"+x),
+    ...["gap","symbol-size","symbol-x","symbol-y","number-size","number-x","number-y"].map(x=>mode+"-"+x)
+  ]),
+  ...["x","y","length","thickness","angle","opacity"].map(x=>"slash-"+x)
+];
+for (const key of controls) {
+  const variable="--hero-cost-"+key;
+  assert.ok(css.includes(variable+":"),"Missing Hero cost editor control "+variable);
+  assert.ok(css.includes("var("+variable+")"),"Hero cost control is unused: "+variable);
+}
+assert.match(css,/\\.hero-cost-symbol svg,[\\s\\S]*?\\.hero-cost-symbol img\\.glyph-png/s);
 const js=fs.readFileSync(path.join(root,"web/physical-cards.js"),"utf8");
 assert.match(js,/hero-price-outside-seal/);
 assert.match(js,/hero-price-overlap/);
-console.log("PASS: referenced-card/class icons only, aligned Hero rules, seal geometry guard");
+console.log("PASS: rule icon policy, Hero cost CSS controls, PNG family colouring and seal checks");
