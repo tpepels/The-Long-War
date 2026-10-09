@@ -36,10 +36,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may move this formation one position into an adjacent active empty position, if legal."
+          "text": "You may swap this formation with the friendly formation directly ahead or directly behind, if both placements are legal. If you do, give that other Force Guarded."
         }
       ],
-      "design_note": "Deployment tempo for reduced Strength.",
+      "design_note": "Skirmisher swaps an occupied line and protects the displaced Force; cannot be replicated by choosing another deployment square.",
       "command_cost": 3
     },
     {
@@ -989,6 +989,17 @@
         }
       ],
       "design_note": "Wording harmonization only; retain existing effect timing and costs."
+    },
+    {
+      "id": "all-banners-forward",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing formation containing a King or Captain. Give its Force Shaken. If it is Named, you may give another opposing formation in this Front −1 Strength this Battle."
+        }
+      ],
+      "command_cost": 1,
+      "design_note": "Leadership disruption: immediate Shaken on the leader plus optional splash pressure, not a weaker version of general ACTION suppression."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1050,11 +1061,6 @@
     }
   ],
   "cost_adjustments": [
-    {
-      "id": "all-banners-forward",
-      "command_cost": 1,
-      "reason": "Stops only printed ACTION abilities on a King/Captain for current Battle."
-    },
     {
       "id": "the-line-had-begun-to-move",
       "command_cost": 1,
