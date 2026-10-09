@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import copy
+import json
 from pathlib import Path
 
 import pytest
 
 from longwar.cards import load_card_file, validate_card_data
-from longwar.game import GameEngine
+from longwar.game import Front, GameEngine, PlayForce, Position, Rank
+from longwar.testing import GameScenario
 from longwar.game.engine import InvalidDeck
 from longwar.rules import GameRules
 
@@ -131,3 +133,23 @@ def test_card_identity_capacity_is_checked_before_native_packing(data) -> None:
     GameEngine(_expanded_pool(copy.deepcopy(data), 192))
     with pytest.raises(ValueError, match="at most 192"):
         GameEngine(_expanded_pool(copy.deepcopy(data), 193))
+
+
+def test_card_with_index_above_signed_byte_range_survives_native_transition(data) -> None:
+    # Verify hand -> packed state -> legal action -> battlefield round trip.
+    # Extra identities are synthetic; published card data is unchanged.
+    expanded = _expanded_pool(copy.deepcopy(data), max(len(data["cards"]) + 1, 132))
+    late_force = expanded["cards"][-1]["id"]
+    engine = GameEngine(expanded)
+    deck = json.loads(
+        (ROOT / "decks" / "mobility-open-bonds.json").read_text(encoding="utf-8")
+    )["cards"]
+    state = engine.new_game(
+        deck, deck, seed=132, first_player=0, opening_bonus=False
+    )
+    GameScenario(state).battle(3).hand(0, late_force)
+    action = PlayForce(late_force, Position(Front.FIRST, Rank.FRONT))
+
+    assert action in engine.legal_actions(state)
+    engine.apply(state, action)
+    assert state.slot(0, Position(Front.FIRST, Rank.FRONT)).force == late_force
