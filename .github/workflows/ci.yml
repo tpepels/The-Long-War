@@ -69,9 +69,16 @@ jobs:
           cd candidate
           PYTHONPATH="$PWD/src" make native-build WORKERS=2
           PYTHONPATH="$PWD/src" python tools/benchmark_native_search.py --root "$PWD" --output ../candidate.json
+      - name: Alternate benchmark order without rebuilding binaries
+        run: |
+          cd candidate
+          PYTHONPATH="$PWD/src" python tools/benchmark_native_search.py --root "$PWD" --output ../candidate-repeat.json
+          cd ../baseline
+          PYTHONPATH="$PWD/src" python ../candidate/tools/benchmark_native_search.py --root "$PWD" --output ../baseline-repeat.json
       - name: Publish throughput and per-run distribution
         run: |
-          python candidate/tools/compare_native_search_benchmarks.py baseline.json candidate.json --report search-throughput.md
+          python candidate/tools/compare_native_search_benchmarks.py baseline.json candidate.json --report search-throughput-first.md
+          python candidate/tools/compare_native_search_benchmarks.py baseline.json candidate.json --baseline-recheck baseline-repeat.json --candidate-recheck candidate-repeat.json --report search-throughput.md
           cat search-throughput.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
@@ -80,6 +87,9 @@ jobs:
           path: |
             baseline.json
             candidate.json
+            baseline-repeat.json
+            candidate-repeat.json
+            search-throughput-first.md
             search-throughput.md
           if-no-files-found: ignore
           retention-days: 14
