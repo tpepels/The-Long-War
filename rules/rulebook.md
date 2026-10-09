@@ -174,7 +174,7 @@ A **Stratagem** is a hidden plan. Playing one costs one Action and its printed C
 
 Every printed **REVEAL** ability belongs to the Stratagem's assigned Front. Its card text may omit the words *in this Front* for local units, formations, and conditions; **here**, **your** and **opposing** in that ability mean in its assigned Front unless the card explicitly refers to another Front. **At resolution** means the one simultaneous Stratagem reveal window, using eligibility and provisional Strength from before any reveal. The owner may reveal only while its printed condition is satisfied. A Stratagem does not need to repeat the reveal procedure or local-target language on its face.
 
-When the Stratagem's printed trigger occurs, its owner **may** reveal and resolve it or leave it face-down for a later eligible opportunity that Battle. If a card explicitly tells you to reveal an opponent's Stratagem, that is a compulsory inspection/reveal effect, not the opponent choosing to activate its ability. A revealed Stratagem resolves once and is discarded. All unrevealed Stratagems are discarded at Battle end. A used Stratagem does not move to another Front unless a card explicitly moves it.
+When the Stratagem's printed trigger occurs, its owner **may** reveal and resolve it or leave it face-down for a later eligible opportunity that Battle. If a Stratagem would **prevent an Attack affliction**, reveal before applying that affliction, but after declaring the legal attacker and target. Preventing an affliction does not undo an Attack or return its spent Attack allowance; any other independent effects of that Attack still happen. If a card explicitly tells you to reveal an opponent's Stratagem, that is a compulsory inspection/reveal effect, not the opponent choosing to activate its ability. A revealed Stratagem resolves once and is discarded. All unrevealed Stratagems are discarded at Battle end. A used Stratagem does not move to another Front unless a card explicitly moves it.
 
 When opposing Stratagems have the same trigger, each player decides privately whether to reveal and both decisions are shown together. The Battle resolution procedure below explains the special single reveal window used when Fronts are compared; the Reference covers conflicting effects.
 
@@ -210,7 +210,7 @@ After the final closing turn, follow this order for all active Fronts.
 
 ### 1. The single Stratagem reveal window
 
-Use the board state and provisional Strength **as they stand before reveals** to determine which unrevealed Stratagems are eligible, including any *would tie* condition. Both players choose privately whether to reveal eligible Stratagems, then reveal simultaneously. Apply their effects with the simultaneous-conflict rules above. Do not open another reveal window if those effects create new triggers or ties.
+Use the board state and provisional Strength **as they stand before reveals** to determine which unrevealed Stratagems are eligible, including any *would tie* or *would lose by exactly 1 Strength* condition. Such close-result conditions cannot become eligible from another simultaneous reveal. Both players choose privately whether to reveal eligible Stratagems, then reveal simultaneously. Apply their effects with the simultaneous-conflict rules above. Do not open another reveal window if those effects create new triggers or ties.
 
 ### 2. Settle every active Front
 
@@ -276,7 +276,15 @@ When both players can reveal eligible Stratagems **at the same event**, use this
 
 No player gains a timing advantage from who Passed.
 
-During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. This deliberate single-window rule keeps the final outcome unambiguous.
+During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. A card eligible because its Front would lose by exactly 1 may give printed Strength instead, but that bonus does not create another reveal window. When an effect offers different branches for an initial tie or one-point deficit, choose its branch using that **initial eligible state**. This deliberate single-window rule keeps the final outcome unambiguous.
+
+### Unusual Front exchanges and hidden responses
+
+A card may exchange **entire friendly columns between adjacent active Fronts**. Move each complete formation and any independent prepared layers into the matching rank in the other Front. Attached Bond and Name layers and condition markers follow their Force; standalone prepared layers remain prepared. The two Fronts and all resulting row restrictions must be legal before any cards move. If that complete exchange is not legal, it cannot be made partially. Such an exchange is a card effect, not a Maneuver and not an Attack, and it does not replay earlier PLAY effects or trigger BECOMES NAMED for formations that remain Named throughout. Any printed temporary Strength bonus after the exchange applies only to the indicated qualifying formations.
+
+A Tactic that offers **forced movement or an affliction if movement is impossible** uses its printed target and classification requirements first. Resolve the legal Move when possible; only use the alternative affliction when the specified Move is impossible. A Tactic that grants a marker **if it moved** does nothing further when displacement is illegal. Enemy forced movement cannot bypass row restrictions or move cards into inactive Fronts.
+
+Scouts and Seers do not gain universal reconnaissance rules. They matter only where their cards explicitly refer to them. Looking at a face-down Stratagem reveals its identity to the player instructed to look, **not** automatically to the opponent or the table. A reactive bonus or Guarded Boon granted after looking resolves at that trigger and lasts according to its text; it is not postponed until Battle resolution.
 
 ### Timing words
 
