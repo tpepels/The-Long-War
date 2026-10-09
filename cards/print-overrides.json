@@ -523,7 +523,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a prepared Bond or Name here or in an adjacent active Front. Attach it to the friendly formation directly ahead of this Force, if legal. If this completes a Named Formation, it gets +2 Strength this Battle."
+          "text": "Attach a prepared Bond or Name here or in an adjacent active Front to the friendly formation directly ahead, if legal. If it becomes Named, give it +2 Strength this Battle."
         }
       ],
       "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
@@ -597,11 +597,11 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a prepared Bond or Name in this Front. Attach it to the friendly formation directly ahead of this Force, if legal."
+          "text": "Attach a prepared Bond or Name in this Front to the friendly formation directly ahead, if legal."
         },
         {
           "timing": "action",
-          "text": "Attach up to two prepared Bonds or Names in this Front, one at a time, to legal friendly formations here. After each attachment that completes a Named Formation, give its Force Guarded.",
+          "text": "Attach up to two prepared Bonds or Names to friendly formations in this Front, one at a time. Each formation made Named this way gains Guarded.",
           "limit": "once_per_battle",
           "exposed": "ACTION · 1/B: attach up to 2 prepared; newly Named Guarded"
         }
