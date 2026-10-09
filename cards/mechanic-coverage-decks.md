@@ -1,5 +1,7 @@
 # Physical mechanic coverage and control decks
 
+**Hero pricing (current):** each Hero has a separate Force and Name Command price; the totals below are ranges from choosing either mode for each Hero card, not a price to pay at setup. See [Hero valuation](hero-pricing.md).
+
 **Force pricing (current):** Forces are priced at 1 + ceil(Strength/2) plus an assessed ability premium, with a single no-ability half-point exception (Thirty Spears at 2C); totals below reflect the [Force pricing ledger](force-pricing.json). These are whole-deck sums, not up-front costs.
 
 These **four 48-card lists** are for controlled comparison and underrepresented mechanic testing, not the primary competitive decks. Use current [physical rules](../rules/rulebook.md), the print-only card overrides, and [tabletop test scenarios](physical-rule-playtest-scenarios.md). They do not imply measured win rates.
@@ -10,7 +12,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's +1 Strength payoff to repeated Maneuvers.
 
-**Composition:** 48 cards, 94 Command across all cards, 54 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 93–97 Command across all cards (Hero mode-dependent), 54 sum printed Force Strength (not the Front total).
 
 **What to record**
 
@@ -54,7 +56,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Use Scouts or Seers to trigger a hostile Stratagem, compare Guarded versus +2 temporary Strength responses, and test Ground Was Held from both tied and down-by-one provisional totals.
 
-**Composition:** 48 cards, 93 Command across all cards, 51 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 93–96 Command across all cards (Hero mode-dependent), 51 sum printed Force Strength (not the Front total).
 
 **What to record**
 
@@ -99,7 +101,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Build a Named stack in adjacent Fronts with support Forces. Play No Road Was Too Long to exchange columns legally, then verify Named Strength and all token transfer details.
 
-**Composition:** 48 cards, 106 Command across all cards, 51 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 106–109 Command across all cards (Hero mode-dependent), 51 sum printed Force Strength (not the Front total).
 
 **What to record**
 
@@ -144,7 +146,7 @@ These **four 48-card lists** are for controlled comparison and underrepresented 
 
 **Setup:** Use only Thirty Spears, Fifty Men, Hundred Shields and Aradai as Forces (four copies each). Other card types remain legal and supply simple Bonds, Names and counterplay. Do not treat this as proof that non-Force combos cannot win; compare mirrored draws against each core combo deck.
 
-**Composition:** 48 cards, 95 Command across all cards, 68 sum printed Force Strength (not the Front total).
+**Composition:** 48 cards, 95 Command across all cards (Hero mode-dependent), 68 sum printed Force Strength (not the Front total).
 
 **What to record**
 
