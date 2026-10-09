@@ -99,6 +99,8 @@ jobs:
         run: python tools/check_print_cards.py
       - name: Audit readable physical card wording
         run: python tools/check_physical_wording.py
+      - name: Audit Force price tariff (advisory)
+        run: python tools/check_force_pricing.py
       - name: Check physical cost and choice scenarios
         run: python tools/check_physical_cost_balance.py
       - name: Check combo deck lists (advisory)
