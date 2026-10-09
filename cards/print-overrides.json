@@ -685,7 +685,8 @@
           "text": "Choose an opposing Force in a Front with your Scout. If it is Exhausted, give it Shaken. Otherwise, Exhaust it."
         }
       ],
-      "design_note": "Scouting Tactic meaningfully converts already Exhausted targets into −2 Shaken, otherwise delivers −1 Exhausted."
+      "design_note": "Scouting Tactic meaningfully converts already Exhausted targets into −2 Shaken, otherwise delivers −1 Exhausted.",
+      "command_cost": 1
     },
     {
       "id": "the-muster-was-false",
@@ -826,11 +827,6 @@
       "id": "the-black-company",
       "command_cost": 3,
       "reason": "4C body plus 1C Action made attachment raid unattractive."
-    },
-    {
-      "id": "they-were-gathering-there",
-      "command_cost": 1,
-      "reason": "Conditional single Exhaustion is narrower than immediate 2C Strength denial."
     },
     {
       "id": "all-banners-forward",
