@@ -178,7 +178,7 @@ When the Stratagem's printed trigger occurs, its owner **may** reveal and resolv
 
 When opposing Stratagems have the same trigger, each player decides privately whether to reveal and both decisions are shown together. The Battle resolution procedure below explains the special single reveal window used when Fronts are compared; the Reference covers conflicting effects.
 
-**Heroes** are Unique cards played **either as a Force or as a Name**. Choose a mode when playing the card and use only that mode's printed Strength and abilities. Each Battle, you may play at most **1 Hero as a Force** and **1 Hero as a Name** from your hand. Heroes already on the battlefield from earlier Battles do not use those allowances. A Hero used as a Name contributes its printed Name modifier and classifications, not its Force Strength.
+**Heroes** are Unique cards played **either as a Force or as a Name**. Choose a mode when playing the card, **pay that mode's printed Command cost** (Force or Name), and use only that mode's Strength and abilities. The other mode's cost and abilities do not apply. Pay the Name price even when placing a Hero as a prepared Name; any legal discount applies to the mode actually chosen. Each Battle, you may play at most **1 Hero as a Force** and **1 Hero as a Name** from your hand. Heroes already on the battlefield from earlier Battles do not use those allowances. A Hero used as a Name contributes its printed Name modifier and classifications, not its Force Strength.
 
 A card marked **Unique** may appear once in your deck. Both players may control their own copies of the same Unique title.
 

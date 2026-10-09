@@ -167,6 +167,32 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         card.pop("design_rules", None)
         card.pop("combat_redesign_proposal", None)
 
+    # Heroes already have separate Force and Name effect panels. Their modes
+    # can have different costs without changing Strength or their abilities.
+    # command_cost is retained as the Force price for legacy consumers;
+    # physical renderers must show BOTH labelled mode prices.
+    hero_price_seen = set()
+    for entry in overrides.get("hero_mode_costs", []):
+        cid = entry["id"]
+        if cid in hero_price_seen or cid not in by_id or by_id[cid]["type"] != "hero":
+            raise ValueError("Invalid or duplicate Hero mode price: " + cid)
+        if cid in seen or cid in cost_seen:
+            raise ValueError("Hero price collides with a generic override: " + cid)
+        hero_price_seen.add(cid)
+        force_cost, name_cost = entry["force_cost"], entry["name_cost"]
+        if (type(force_cost) is not int or type(name_cost) is not int
+                or not 0 <= force_cost <= 20 or not 0 <= name_cost <= 20):
+            raise ValueError("Invalid Hero mode price amount: " + cid)
+        card = by_id[cid]
+        card["hero_force_command_cost"] = force_cost
+        card["hero_name_command_cost"] = name_cost
+        card["modes"]["force"]["command_cost"] = force_cost
+        card["modes"]["name"]["command_cost"] = name_cost
+        card["command_cost"] = force_cost
+        card["print_revision"] = "hero-mode-pricing"
+        card.pop("design_rules", None)
+        card.pop("combat_redesign_proposal", None)
+
     # All buried, live abilities need a visible reminder; no silent fallback to
     # 100+ character body text which would overflow the 10.5 mm exposed edge.
     for card in printed["cards"]:
@@ -192,6 +218,7 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
     printed["print_only"] = True
     printed["print_override_count"] = len(seen)
     printed["print_hero_wording_count"] = len(hero_targets)
+    printed["print_hero_mode_price_count"] = len(hero_price_seen)
     printed["print_timing_fix_count"] = len(limit_ids)
     printed["print_cost_adjustment_count"] = len(cost_seen)
     return printed

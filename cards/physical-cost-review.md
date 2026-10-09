@@ -3,6 +3,26 @@
 > **Scope:** all **131** identities in `cards/cards.json` assembled with the **physical print** overlay `cards/print-overrides.json`. No changes to the native/Webgame engine. The old-cost column compares with the immediately preceding **print-only** pool, not the old unmodified executable card text. **These are tabletop design judgments, not measured win rates.**
 
 
+## Hero role economics: price the chosen mode, not an imaginary blended card
+
+Physical Hero cards now have **two clearly labelled Command costs**. A Hero played as a Force pays the Force tariff plus its assessed Force ability premium; one played as a Name pays its Name-mode appraisal compared with ordinary Names, including its +1 Name modifier and classification. **Both modes are mutually exclusive**, including while preparing a Hero as a Name. This avoids changing Force Strength to compensate for a powerful Name ability or making a modest Name prohibitively expensive to subsidize a high-Strength Force.
+
+| Hero | Former shared cost | Current Force cost | Current Name cost |
+| --- | ---: | ---: | ---: |
+| Avaros | 3 | 5 | 4 |
+| Kael | 3 | 3 | 2 |
+| Rovan | 4 | 5 | 3 |
+| Alda | 2 | 4 | 3 |
+| Tovan | 3 | 3 | 4 |
+| Nara | 3 | 4 | 3 |
+| Neris | 3 | 4 | 2 |
+| Veyra | 3 | 4 | 2 |
+| Yara | 3 | 4 | 3 |
+| Serai | 3 | 4 | 3 |
+| Doros | 3 | 5 | 2 |
+
+All effects, mode Strength values and other card prices are unchanged. Full rationales appear in [hero-pricing.md](hero-pricing.md). Whole-deck Command totals are now shown as **ranges** where Heroes can choose different modes; those totals are not simultaneous spending requirements. These appraisals are untested in real games.
+
 ## Force Command economics: base deployment cost and ability premium (9 October 2026)
 
 **Current printed prices.** Every Force now pays **1 + ceil(printed Strength / 2)** Command plus an assessed **0 or 1 Command ability premium**. The extra base Command represents occupying a persistent battlefield position and participating in combat. This is a **design guideline with explicit appraisals**, not an automatic price assigned by an engine and not a new gameplay rule. Printed Force effects, Strength, classifications and rows were not changed.
