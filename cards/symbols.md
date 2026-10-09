@@ -43,7 +43,9 @@ the full printed rule**, not an abbreviated rulebook. Use brief textual cues:
 - `CHECK · ATTACK` / `CHECK · PLAN SET` — review the card at that event.
 
 For layered requirements, a minimal context such as
-`CHECK · BONDED/FRONT` is enough. **Never** put Strength bonuses,
+`CHECK · NAMED/MIDDLE` is enough. For longer conditions, prefer a single
+relevant trigger (for example `CHECK · FRONTLINE`) and let the full rule
+supply the remaining requirements. **Never** put Strength bonuses,
 Command taxes, movement permissions, recovery details or other outcomes
 in the strip. A player must look at the card body for the actual effect.
 The full rule is also available to assistive technology through the cue's
