@@ -65,10 +65,14 @@ Examples of questions still requiring tabletop observation:
 
 - **The Ilyri:** does swapping an existing Force and Guarding it change
   deployment priorities, or is 2 Strength too low for 3C?
-- **The Field Train, House of Reed, Supplied By, Stayed Behind For:** does
-  preparation actually speed up completion after counting *every* Action?
-- **The Relief Column / Signal Company:** does their special Maneuver
-  permission save more than simply Naming or directly reinforcing the Force?
+- **The Field Train:** does playing a Bond/Name from hand without a second
+  Action create useful tempo, distinct from prepared-layer transfers?
+- **House of Reed, Supplied By, Stayed Behind For:** does preparing components
+  actually speed up completion after counting *every* Action?
+- **The Relief Column:** does immediate marker removal plus Guarded matter
+  more than a separate Boon or healing card?
+- **The Signal Company:** does moving an existing Force create a real flank
+  decision, or would a directional Move or Maneuver do as well?
 - **All Banners Forward:** does Shaken plus a conditional second target
   deliver a distinct choice rather than overtaking other 1C Tactics?
 - **Watchtowers / Lantern Scouts / hidden-plan counters:** does looking at a
@@ -145,3 +149,16 @@ and avoid copying these printed mechanics into the separate digital runtime.
 The prior physical scenario sheet was reconciled with the current
 **Swore Again To** effect and Doros's **1C Name-mode** price, and now includes
 specific All Banners Forward, Ilyri, tempo and lab-only drills.
+
+## Support-design correction after the first gate
+
+The first pass labeled three structural problems as "WATCH" rather than fixing
+them. Their printed effects were then replaced without changing identity,
+Strength, cost, row, class or the 131-card pool. **Field Train** now saves one
+additional Bond/Name play Action (still paying its Command); **Signal
+Company** now issues an immediate free Move of *another* friendly formation,
+with card draw only if a Force's flank status changes; **Relief Column** now
+removes every temporary negative marker from *another* Force in its Front and
+gives it Guarded. These have useful, testable outcomes in more common
+positions, but their comparative strength is still an **unmeasured playtest
+question**. The focused opportunity cases were rewritten accordingly.
