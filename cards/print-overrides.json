@@ -1054,7 +1054,7 @@
       "effects": [
         {
           "timing": "trigger",
-          "text": "After Opening Orders are revealed, you may change the target of one of your Strikes in this Front. Check legality when it resolves."
+          "text": "After Opening Orders are revealed, if this formation is Named, you may redirect one Strike targeting this Front. Its new target must be legal."
         }
       ],
       "design_note": "1C +1 Name: a deliberately distinct post-reveal target feint, no additional Strike or general Scout/Stratagem overlap."
@@ -1124,7 +1124,7 @@
     {
       "id": "the-dust-riders",
       "index": 0,
-      "exposed": "Bonded: Maneuver without Name"
+      "exposed": "Bonded: first Maneuver free"
     },
     {
       "id": "the-late-banner",
