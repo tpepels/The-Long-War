@@ -485,8 +485,8 @@ cdef uint64_t _ismcts_rollout_action(
     cdef uint64_t actions[MAX_ACTIONS]
     cdef double weights[MAX_ACTIONS]
     cdef int safe_indices[MAX_ACTIONS]
-    cdef int n = _fe_legal_actions_into(engine, state, &actions[0])
-    cdef int actor = state.active_player
+    cdef int n = _sg_legal_actions(engine, state, &actions[0])
+    cdef int actor = _sg_actor(state)
     cdef int i, best_ix=0, safe_n=0, pick
     cdef bint use_greedy
     cdef double value, best=ISMCTS_NEGATIVE_INFINITY
@@ -682,16 +682,16 @@ def ismcts_search(
     if not isinstance(root_states[0], FastState):
         raise TypeError("ISMCTS belief samples must be FastState instances")
     sampled = <FastState>root_states[0]
-    root_key = _fe_information_hash_fast(engine, sampled, root_player)
+    root_key = _sg_information_hash(engine, sampled, root_player)
     for candidate in root_states:
         if not isinstance(candidate, FastState):
             raise TypeError("ISMCTS belief samples must be FastState instances")
         sampled = <FastState>candidate
-        if sampled.phase == PHASE_COMPLETE:
+        if _sg_terminal(sampled):
             raise ValueError("ISMCTS cannot search a completed state")
-        if sampled.active_player != root_player:
+        if _sg_actor(sampled) != root_player:
             raise ValueError("ISMCTS root_player must be the acting player")
-        key = _fe_information_hash_fast(engine, sampled, root_player)
+        key = _sg_information_hash(engine, sampled, root_player)
         if key.a != root_key.a or key.b != root_key.b:
             raise ValueError("ISMCTS belief samples must share a root information set")
 
@@ -744,22 +744,22 @@ def ismcts_search(
         # Battle Flags and pending effect choices therefore do not shorten the
         # strategic horizon.
         while (
-            state.phase != PHASE_COMPLETE
+            not _sg_terminal(state)
             and (
                 tree_turn_depth < tree_depth_limit
-                or _fe_forced_substep_pending(state)
+                or _sg_forced_substep(state)
             )
             and path_length < MAX_ISMCTS_DEPTH
         ):
-            actor = state.active_player
-            n = _fe_legal_actions_into(engine, state, &actions[0])
+            actor = _sg_actor(state)
+            n = _sg_legal_actions(engine, state, &actions[0])
             if n <= 0:
                 break
 
             # If the tree deliberately continues past a Battle boundary,
             # the previous boundary is no longer the rollout leaf.
             rollout_boundary = False
-            key = _fe_information_hash_fast(engine, state, actor)
+            key = _sg_information_hash(engine, state, actor)
             # A persistent arena must not grow with game length. Existing
             # information sets still learn at capacity; unseen leaves rollout.
             if tree.node_count >= tree.max_nodes and tree.find(key) < 0:
@@ -785,13 +785,13 @@ def ismcts_search(
             action = tree.nodes[node_index].edges[ix].action
             path_nodes[path_length] = node_index
             path_indices[path_length] = <uint16_t>ix
-            action_battle = state.battle
-            action_turn = state.turn_number
-            action_count_before = state.actions_this_turn
-            action_kind_code = action_kind(action)
-            _fe_apply_fast(engine, state, action)
+            action_battle = _sg_battle(state)
+            action_turn = _sg_turn_serial(state)
+            action_count_before = _sg_actions_in_turn(state)
+            action_kind_code = _sg_action_kind(action)
+            _sg_apply(engine, state, action)
             path_length += 1
-            if _fe_transition_completed_turn(
+            if _sg_completed_turn(
                 engine,
                 state,
                 action_turn,
@@ -800,8 +800,8 @@ def ismcts_search(
             ):
                 tree_turn_depth += 1
             if (
-                state.phase != PHASE_COMPLETE
-                and state.battle != action_battle
+                not _sg_terminal(state)
+                and _sg_battle(state) != action_battle
             ):
                 rollout_boundary = True
 
@@ -816,7 +816,7 @@ def ismcts_search(
         rollout_steps = 0
         rollout_post_battle_steps = 0
         rollout_raw_steps = 0
-        rollout_battle = state.battle
+        rollout_battle = _sg_battle(state)
         rollout_in_post_battle = False
 
         # If tree expansion itself just crossed a Battle boundary, use the
@@ -829,10 +829,10 @@ def ismcts_search(
 
         while (
             not rollout_boundary
-            and state.phase != PHASE_COMPLETE
+            and not _sg_terminal(state)
             and rollout_raw_steps < MAX_ISMCTS_DEPTH
             and (
-                _fe_forced_substep_pending(state)
+                _sg_forced_substep(state)
                 or (
                     not rollout_in_post_battle
                     and rollout_steps < rollout_depth
@@ -855,15 +855,15 @@ def ismcts_search(
                 &decisive_rollout_probes,
                 &decisive_rollout_actions,
             )
-            action_turn = state.turn_number
-            action_count_before = state.actions_this_turn
-            action_kind_code = action_kind(action)
-            _fe_apply_fast(engine, state, action)
+            action_turn = _sg_turn_serial(state)
+            action_count_before = _sg_actions_in_turn(state)
+            action_kind_code = _sg_action_kind(action)
+            _sg_apply(engine, state, action)
             rollout_raw_steps += 1
             rollout_actions += 1
             if rollout_in_post_battle:
                 rollout_post_battle_actions += 1
-            if _fe_transition_completed_turn(
+            if _sg_completed_turn(
                 engine,
                 state,
                 action_turn,
@@ -875,8 +875,8 @@ def ismcts_search(
                 else:
                     rollout_steps += 1
             if (
-                state.phase != PHASE_COMPLETE
-                and state.battle != rollout_battle
+                not _sg_terminal(state)
+                and _sg_battle(state) != rollout_battle
             ):
                 if rollout_in_post_battle or post_battle_rollout_depth <= 0:
                     rollout_boundary = True
@@ -886,15 +886,15 @@ def ismcts_search(
                 # formations, fresh draws and actual next-Battle options.
                 rollout_in_post_battle = True
                 rollout_battle_continuations += 1
-                rollout_battle = state.battle
+                rollout_battle = _sg_battle(state)
                 rollout_post_battle_steps = 0
 
-        if state.phase == PHASE_COMPLETE:
+        if _sg_terminal(state):
             rollouts_stopped_terminal += 1
-            if state.winner < 0:
+            if _sg_winner(state) < 0:
                 utility = 0.0
             else:
-                utility = 1.0 if state.winner == root_player else -1.0
+                utility = 1.0 if _sg_winner(state) == root_player else -1.0
         elif rollout_boundary:
             rollouts_stopped_battle_boundary += 1
             utility = tanh(
