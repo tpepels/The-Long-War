@@ -210,9 +210,7 @@ def markdown_to_typst(source: str, version: str) -> str:
             ("Conditions and protection", "bullet"): (2, "CONDITION", "#f3e8df", "#986448"),
             ("Passing and ending a Battle", "numbered"): (3, "CLOSING TURN", "#e8eeed", "#293c47"),
         }
-        style = cards.get((current_section, pending_kind))
-        # The entire manual uses one continuous two-column flow. Do not
-        # close and reopen columns for cards: doing so strands partial pages.
+        # One continuous two-column flow: no forced page endings at each panel.
         style = cards.get((current_section, pending_kind))
         if style is None:
             for index, item in enumerate(pending_list):
@@ -274,13 +272,6 @@ def markdown_to_typst(source: str, version: str) -> str:
         width = len(rows[0])
         if any(len(row) != width for row in rows):
             raise ValueError("Rulebook Markdown table has inconsistent column counts")
-        cells: list[str] = []
-        for row_index, row in enumerate(rows):
-            for cell in row:
-                rendered = _inline(cell.strip())
-                if row_index == 0:
-                    rendered = f'#text(weight: "bold")[{rendered}]'
-                cells.append(f"[{rendered}]")
         # Convert wide tables to a compact sequence of labelled reference
         # entries in the text column. All original cell content is preserved,
         # and each entry can independently move to the next column.
