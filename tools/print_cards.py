@@ -215,6 +215,37 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         card.pop("design_rules", None)
         card.pop("combat_redesign_proposal", None)
 
+    # Printed exposed strips are prompts to consult the full rule below.
+    # Cue text is presentation-only; neither abilities nor historical exposed
+    # summaries are changed in cards.json or the authored replacements.
+    edge_live = {"action", "attack", "reaction", "bonded", "while_named",
+                 "continuous", "front", "middle", "rear", "tireless", "mobile"}
+    expected_cues = set()
+    for card in printed["cards"]:
+        if card["type"] not in ("force", "bond", "hero"):
+            continue
+        effects = (card["modes"]["force"]["effects"]
+                   if card["type"] == "hero" else card.get("effects", []))
+        expected_cues.update((card["id"], i) for i, effect in enumerate(effects)
+                             if effect.get("timing") in edge_live)
+    seen_cues = set()
+    for entry in overrides.get("edge_cues", []):
+        cid, index, cue = entry["id"], entry["index"], entry["cue"]
+        key = (cid, index)
+        if (key in seen_cues or key not in expected_cues
+                or type(cue) is not str or not 1 <= len(cue) <= 16
+                or not all(ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ/" + " " for ch in cue)
+                or cue.strip() != cue):
+            raise ValueError("Invalid or duplicate edge cue: " + str(key))
+        seen_cues.add(key)
+        card = by_id[cid]
+        effects = (card["modes"]["force"]["effects"]
+                   if card["type"] == "hero" else card["effects"])
+        effects[index]["edge_cue"] = cue
+    if seen_cues != expected_cues:
+        raise ValueError("Missing upper-right check cues for "
+                         + repr(sorted(expected_cues - seen_cues)))
+
     # All buried, live abilities need a visible reminder; no silent fallback to
     # 100+ character body text which would overflow the 10.5 mm exposed edge.
     for card in printed["cards"]:
@@ -244,4 +275,5 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
     printed["print_timing_fix_count"] = len(limit_ids)
     printed["print_cost_adjustment_count"] = len(cost_seen)
     printed["print_strength_adjustment_count"] = len(strength_seen)
+    printed["print_edge_cue_count"] = len(seen_cues)
     return printed
