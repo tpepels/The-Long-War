@@ -93,6 +93,22 @@ jobs:
             search-throughput.md
           if-no-files-found: ignore
           retention-days: 14
+  native-solved-game-oracles:
+    name: Native kernels solve independent games (required)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Compile production search kernels against independent solved games
+        run: python tools/build_native_solver_oracles.py
+      - name: Verify native alpha-beta, ISMCTS and MCCFR against exact oracles
+        run: python -m pytest -q --tb=short tests/test_native_solver_oracles.py
+
   native-search-parity:
     name: Native search/reference parity (required)
     runs-on: ubuntu-latest
