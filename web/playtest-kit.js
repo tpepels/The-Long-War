@@ -55,7 +55,7 @@ async function main(){
       ["ARCHER","Exhaust opposing Rear Force in same Front; Middle Guard screens unless Shaken or Depleted."],
       ["SKIRMISHER","Shake opposing Middle Force in same Front."],
       ["RAIDER","Deplete opposing Middle or Rear Force if its opposing Frontline is empty."],
-      ["RIDER","Shake opposing flanked Frontline Force in adjacent active Front."],
+      ["RIDER","From Frontline or Middle, Shake opposing flanked Frontline Force in adjacent active Front."],
       ["FLANKING","Enemy Frontline in an adjacent active Front without a matching friendly Frontline there: flanked Force has −1 Strength while exposed (no marker)."],
       ["EXHAUSTED","Cannot initiate Maneuver; can still Attack and contribute Strength. Old Exhaustion clears at Battle end; defeated Forces get new Exhaustion for next Battle."],
       ["SHAKEN / DEPLETED","Shaken: −2 Strength and no Guard screening. Depleted: no Attack or printed ACTION ability; no Guard screening."],
@@ -99,7 +99,9 @@ async function main(){
         '<header class="deck-sheet-heading"><strong>The Long War · playtest deck '+(deckIndex+1)+' of '+chosenDecks.length+'</strong>'+
         '<span>'+esc(deck.title)+' · '+expanded.length+' cards</span></header>'+
         '<div class="deck-screen-summary"><div><p class="deck-print-kicker">PLAYTEST DECK</p><h2>'+esc(deck.title)+'</h2><p>'+esc(deck.playstyle||"")+'</p></div>'+
-        '<aside><strong>What this deck tests</strong><p>'+esc(deck.hypothesis||"")+'</p></aside></div>'+
+        '<aside><strong>Key combinations</strong><ul class="deck-combo-list">'+
+        (deck.combo_notes||[]).map(note=>'<li>'+esc(note)+'</li>').join("")+
+        '</ul><details class="deck-combo-question"><summary>Playtest question</summary><p>'+esc(deck.hypothesis||"")+'</p></details></aside></div>'+
         chunk(expanded,8).map((sheet,sheetIndex)=>
           '<div class="deck-card-grid print-sheet" data-sheet="'+(sheetIndex+1)+'">'+
           sheet.map(id=>window.PhysicalCards.cardArticle(index.get(id),"print-card deck-card",{printArt:true})).join("")+
