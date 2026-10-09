@@ -189,7 +189,7 @@
       "combo_notes": [
         "Crow Archers + a Bond + Corin of the High Wall or Serai, Queen of Crows combines Empowered pressure, Archer classifications, and multiple +1 Strength effects; Every Bow Was Strung rewards bonded Archers.",
         "Old Guard in Middle protects a Rear Archer from basic Archer Attacks. Thornbow Hunters in Rear give every other friendly Archer in their Front +1 Strength; First Spear can Guard the Middle screen.",
-        "The Archers Were Ready lets an unspent Archer fire as a reaction to an opposing Attack; The Crows Came Down Exhausts on PLAY and can Shake a target later for a -2 Strength swing.",
+        "The Archers Were Ready can trigger a free legal Archer Attack after an enemy Attack. The Crows Came Down now reduces opposing Strength by 1 when it Exhausts on PLAY and can add Shaken (−2) with a later ACTION; track whether this stacked −3 swing is too reliable.",
         "Serai + other Archers + The Battle Had Chosen Them pushes Strength, while Asha, Alda, Veyra, No Step Back and Guarded protect crucial formations from hostile effects."
       ],
       "cards": [
@@ -363,7 +363,7 @@
       "combo_notes": [
         "Late Banner + Followed + a Name yields a cheaper Named stack with an extra Bond Strength bonus; The Battle Had Chosen Them rewards that same Named state.",
         "Tovan, the Quartermaster discounts Bonds and Names. Torren supplies immediate Bond attachment, while Oren discounts a Bond by 1 Command once per Battle and draws if it completes a Named formation. Namar restores Command and discounts another attachment.",
-        "Field Train and House of Reed attach prepared layers into a supported formation; Nara, Builder of Walls and Stayed Behind For complete otherwise stranded stacks.",
+        "Field Train delivers a prepared layer from its Front or an adjacent active Front and grants +2 Strength if it completes Named. House of Reed can attach one prepared layer on PLAY and up to two more with one once-per-Battle ACTION, giving Guarded to formations completed. Stayed Behind For can send a prepared Name to another friendly Force.",
         "Teren turns Named completion into a free Stratagem setting Action; There Was No Road Back can then punish an enemy Bond or reposition a completed stack. Avaros and the Banner Stratagem convert prepared strength into a winning Front."
       ],
       "cards": [
@@ -543,8 +543,8 @@
       "playstyle": "Combine persistent high-Strength Raiders with Archer Exhaustion, Skirmisher Shaken penalties, Command transfers and attachment raids.",
       "hypothesis": "Can Exhaustion and Shaken turn into genuine Strength and Command advantages without leaving the deck unable to defend or finish a Front?",
       "combo_notes": [
-        "Crow Archers or The Baggage Was Abandoned Exhaust an enemy; The Unnamed Host + Shared the Spoils With can then transfer Command, while Brannoc or Black Company strips an attached component from the exhausted formation.",
-        "Red Duelists and Tala apply Shaken or -2 Strength at a contested Front; Iron Boars punish an exposed support rank with Depleted, enabling The Stores Were Taken to threaten a Bond.",
+        "Crow Archers or The Baggage Was Abandoned Exhaust an enemy for −1 Strength. The Unnamed Host and Shared the Spoils With then turn that Exhaustion into Command advantage; Brannoc or Black Company can strip an attachment.",
+        "Red Duelists and Tala apply Shaken (−2) to swing a contested Front. Iron Boars Deplete exposed support for −1 Strength and suppress ACTION abilities throughout that formation, enabling The Stores Were Taken to threaten a Bond.",
         "Raider or Skirmisher affliction can activate The Trap Closed, returning an attached Bond/Name; All Reserves Forward and Seized the Standard of offer additional layer removal instead of relying on movement.",
         "Rovan, Doros and Red Shields provide durable raw Strength, while Serai + Crow Archers + The Archers Were Ready gives an independent defensive counterattack and Strength line."
       ],
