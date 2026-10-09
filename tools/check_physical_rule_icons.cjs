@@ -120,6 +120,26 @@ for (const key of controls) {
   assert.ok(css.includes("var("+variable+")"),"Hero cost control is unused: "+variable);
 }
 assert.match(css,/\.hero-cost-symbol svg,[\s\S]*?\.hero-cost-symbol img\.glyph-png/s);
+// Every printed exposed reminder is now a concise action/condition prompt,
+// never an effect summary. Preserve full rule text in the accessible label.
+const cueHero={...hero, modes:{
+  force:{effects:[{timing:"action", limit:"once_per_battle",
+                 text:"Move this formation two positions.",edge_cue:"ACTION"}]},
+  name:hero.modes.name
+}};
+const cueHeroHtml=window.PhysicalCards.cardArticle(cueHero);
+assert.match(cueHeroHtml,/edge-mechanic edge-cue[^>]*aria-label="Check rule on action: Move this formation two positions\./);
+assert.match(cueHeroHtml,/class="edge-cue-text">CHECK · ACTION<\/span>/);
+assert.doesNotMatch(cueHeroHtml,/class="edge-cue-text"[^<]*Move this formation/);
+const dual={...hero, type:"force", strength:3, effects:[
+  {timing:"continuous",text:"Can Maneuver without a Name.",edge_cue:"MANEUVER"},
+  {timing:"continuous",text:"Can Maneuver while Exhausted.",edge_cue:"MANEUVER"}
+]};
+const dualHtml=window.PhysicalCards.cardArticle(dual);
+assert.equal(dualHtml.split('class="edge-cue-text"').length-1,1,
+  "Identical reminders on one card must collapse into a single cue");
+assert.match(dualHtml,/Can Maneuver without a Name\. \/ Can Maneuver while Exhausted\./,
+  "The combined cue must still expose both rules accessibly");
 const js=fs.readFileSync(path.join(root,"web/physical-cards.js"),"utf8");
 assert.match(js,/hero-price-outside-seal/);
 assert.match(js,/hero-price-overlap/);
