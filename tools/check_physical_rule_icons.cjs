@@ -34,11 +34,11 @@ assert.match(heroHtml, /aria-label="Hero Force cost 5 Command, Name cost 2 Comma
   "Accessible cost must clarify both Hero modes");
 assert.match(heroHtml, /hero-cost-fraction" aria-hidden="true"/,
   "Hero must render diagonal fraction container");
-assert.match(heroHtml, /hero-cost-part hero-cost-force[^>]*><span class="hero-cost-symbol"><(?:img|svg)[^>]*data-icon="force"[^>]*>[\\s\\S]*?<b>5<\\/b>/,
+assert.match(heroHtml, /hero-cost-part hero-cost-force[^>]*><span class="hero-cost-symbol"><(?:img|svg)[^>]*data-icon="force"[^>]*>[\s\S]*?<b>5<\/b>/,
   "Force numerator must use the printed Force shield symbol and cost");
-assert.match(heroHtml, /hero-cost-part hero-cost-name[^>]*><span class="hero-cost-symbol"><(?:img|svg)[^>]*data-icon="name"[^>]*>[\\s\\S]*?<b>2<\\/b>/,
+assert.match(heroHtml, /hero-cost-part hero-cost-name[^>]*><span class="hero-cost-symbol"><(?:img|svg)[^>]*data-icon="name"[^>]*>[\s\S]*?<b>2<\/b>/,
   "Name denominator must use the printed Name banner symbol and cost");
-assert.doesNotMatch(heroHtml, /hero-cost-stack|<small>F<\\/small>|<small>N<\\/small>/,
+assert.doesNotMatch(heroHtml, /hero-cost-stack|<small>F<\/small>|<small>N<\/small>/,
   "Old stacked letter labels must not return");
 assert.match(heroHtml, /mode-command-cost">5 Command/, "Force rule panel must explain Force cost");
 assert.match(heroHtml, /mode-command-cost">2 Command/, "Name rule panel must explain Name cost");
@@ -46,12 +46,12 @@ const css=fs.readFileSync(path.join(root,"web/physical-cards.css"),"utf8");
 assert.match(css, /\.inline-rule-ref\s*\{[^}]*white-space:\s*nowrap/s);
 assert.match(css, /\.card-hero \.effect-head\s*\{[^}]*display:\s*inline-flex/s);
 assert.match(css, /--icon-inline-term-size:/);
-assert.match(css, /\\.hero-cost-fraction::before\\s*\\{[^}]*rotate\\(-45deg\\)/s,
+assert.match(css, /\.hero-cost-fraction::before\s*\{[^}]*rotate\(-45deg\)/s,
   "Hero fraction needs a diagonal separator in physical CSS");
-assert.match(css, /\\.hero-cost-force\\s*\\{[^}]*top:\\s*1\\.7mm/s,
+assert.match(css, /\.hero-cost-force\s*\{[^}]*top:\s*1\.7mm/s,
   "Force numerator must sit above-left");
-assert.match(css, /\\.hero-cost-name\\s*\\{[^}]*bottom:\\s*1\\.8mm/s,
+assert.match(css, /\.hero-cost-name\s*\{[^}]*bottom:\s*1\.8mm/s,
   "Name denominator must sit below-right");
-assert.match(css, /\\.hero-cost-symbol svg,[\\s\\S]*?\\.hero-cost-symbol img\\.glyph-png/s,
+assert.match(css, /\.hero-cost-symbol svg,[\s\S]*?\.hero-cost-symbol img\.glyph-png/s,
   "Both SVG and PNG heraldic symbols need identical dimensions");
 console.log("PASS: inline rule icons / Hero dual-price heraldry / diagonal fraction layout");
