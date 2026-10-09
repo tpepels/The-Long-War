@@ -259,6 +259,25 @@ function inspect(root=document){
   if(art&&rules&&rules.getBoundingClientRect().top<art.getBoundingClientRect().bottom-.5)problems.push("art-rules-overlap");
   if(rules&&footer&&rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+.5)problems.push("rules-footer-overlap");
   if(art?.querySelector("svg,img"))problems.push("art-overlay");
+  // Printed Hero prices use two tiny elements. Validate each element's *ink
+  // box* is contained by its seal, rather than trusting card-level overflow.
+  const seal=card.querySelector(".cost-gem-hero");
+  if(seal){
+    const bound=seal.getBoundingClientRect();
+    const parts=[...seal.querySelectorAll(".hero-cost-part")];
+    for(const part of parts){
+      const rect=part.getBoundingClientRect();
+      if(rect.left<bound.left+1||rect.right>bound.right-1||
+         rect.top<bound.top+1||rect.bottom>bound.bottom-1)
+        problems.push("hero-price-outside-seal");
+    }
+    if(parts.length===2){
+      const a=parts[0].getBoundingClientRect(),b=parts[1].getBoundingClientRect();
+      if(Math.min(a.right,b.right)>Math.max(a.left,b.left)+1&&
+         Math.min(a.bottom,b.bottom)>Math.max(a.top,b.top)+1)
+        problems.push("hero-price-overlap");
+    }
+  }
   card.classList.toggle("layout-overflow",problems.length>0);if(problems.length)failures.push({id:card.dataset.cardId,problems:[...new Set(problems)]});
  });return failures;
 }
