@@ -49,7 +49,10 @@ DEF PRE_RESOLUTION_SACRIFICE_END = PRE_RESOLUTION_SUPPRESSION_END + SLOT_COUNT
 
 # Card identities use signed 8-bit fields in the native state. Keep at most
 # 128 identities; increasing this requires changing those representations.
-DEF MAX_CARDS = 128
+# 131 printed identities currently exceed the old 128-card fixed arrays.
+# Action card ids reserve zero for the sentinel in an 8-bit field; 192
+# remains safely below that encoding ceiling.
+DEF MAX_CARDS = 192
 # A legal deck may contain four copies of every non-Unique card. Size native
 # card zones for the full wire-format card pool rather than imposing a hidden
 # 254-card deck rule.
