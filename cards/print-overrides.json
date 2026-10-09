@@ -546,10 +546,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Attach a prepared Bond or Name from here or an adjacent active Front to the formation directly ahead, if legal. If it becomes Named, it gets +2 Strength this Battle."
+          "text": "You may play one Bond or Name from your hand onto a friendly formation in this Front or an adjacent active Front, paying its Command cost without another Action. If it becomes Named, give it Guarded."
         }
       ],
-      "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength.",
+      "design_note": "Replace prep-dependent one-shot with an immediate free-Action Bond/Name deployment, while retaining the Field Train's adjacent-Front logistics reach and weak 2-Strength body.",
       "command_cost": 3
     },
     {
@@ -907,28 +907,22 @@
       "id": "the-relief-column",
       "effects": [
         {
-          "timing": "middle",
-          "text": "While in Middle, the friendly Force directly ahead may Maneuver while Exhausted.",
-          "exposed": "MIDDLE · Force ahead Maneuvers while Exhausted",
-          "scope": "self",
-          "memory": []
+          "timing": "play",
+          "text": "Choose another friendly Force in this Front, if any. Remove all its temporary negative markers, then give it Guarded."
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs.",
+      "design_note": "Replace rare Exhausted Maneuver permission with immediate rescue plus protection; 3 Strength remains a reasonable baseline at 3C and Middle-only.",
       "command_cost": 3
     },
     {
       "id": "the-signal-company",
       "effects": [
         {
-          "timing": "middle",
-          "text": "While in Middle, the friendly Force directly ahead may Maneuver without being Named.",
-          "exposed": "MIDDLE · Force ahead Maneuvers while Unnamed",
-          "scope": "self",
-          "memory": []
+          "timing": "play",
+          "text": "You may Move another friendly formation in this or an adjacent active Front one orthogonally adjacent legal position. If that Move changes whether any Force is flanked, draw 1 card."
         }
       ],
-      "design_note": "Wording harmonization only; retain existing effect timing and costs.",
+      "design_note": "Replace almost-unused Unnamed Maneuver permission with one immediate movement order and an observable flank swing payoff, differentiated from directional same-Front Moves.",
       "command_cost": 3
     },
     {
@@ -1344,16 +1338,6 @@
       "id": "the-serekh",
       "index": 0,
       "cue": "FRONTLINE"
-    },
-    {
-      "id": "the-relief-column",
-      "index": 0,
-      "cue": "MIDDLE"
-    },
-    {
-      "id": "the-signal-company",
-      "index": 0,
-      "cue": "MIDDLE"
     },
     {
       "id": "followed",
