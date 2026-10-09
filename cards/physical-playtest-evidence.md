@@ -133,3 +133,22 @@ or a future physical rules-compatible simulator.
 Test the unusual effects against active-Front schedules and rank restrictions,
 with mirrored turns. The static contracts and probability checker do **not**
 provide victory probabilities or demonstrated playtest win rates.
+
+## Tactical-breakthrough observation sheet
+
+For each legal Raider incursion opportunity, record the Raider's **current**
+Strength, opposing Frontline formation's current Strength (or empty), and
+the target's rank. Count threatened targets at 4 vs 5 before Shaken, 4 vs
+3 afterward, and 4 vs 4 ties. Track whether a Raid consumes an ordinary
+Attack, changes a Front's winner, or merely spends an Action for no swing.
+
+For Archer Attacks, log successful **Shaken** Rear targets and whether a
+Guard screened them. Track combined Move/Maneuver+Attack Actions granted by
+**Grey Riders**, **The Vardai**, or **The Damar** separately; none are
+universal movement rules. If one free Attack creates several effects,
+check its once-per-Battle use and whether the response was comprehensible
+without consulting the reference.
+
+For both players, compare Battle I losses and subsequent Battle II/III
+front reversals. An incursion should create immediate tactical pressure,
+**not** compound Command loss or destroy a persistent Force.

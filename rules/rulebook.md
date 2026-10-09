@@ -123,16 +123,18 @@ An **Exhausted** Force contributes **1 less Strength** while its Exhaustion rema
 
 ## Attacking {#attacking}
 
-An **Attack** uses one Action and usually costs no Command. Each Force can Attack **once per Battle**, whether or not it is Named; place a used-Attack marker after attacking. Attacks create positional pressure through Exhaustion, Shaken, and Depleted, rather than dealing health damage. A Depleted Force must recover before attacking.
+An **Attack** uses one Action and usually costs no Command. Each Force can Attack **once per Battle**, whether or not it is Named; place a used-Attack marker after attacking. Only a printed card effect can combine a Move or Maneuver with a basic Attack without an additional Action. Attacks create positional pressure through Exhaustion, Shaken, and Depleted, rather than dealing health damage. A Depleted Force must recover before attacking.
 
 Choose one legal opposing Force, check range, positioning and screening, allow any eligible Reactions or Stratagems, then apply the printed Attack effect. A Force with several Attack classifications chooses **one basic Attack**, not one per classification. A printed **ATTACK** ability changes or extends that Force's normal Attack; it does not grant another Action or another Attack unless explicitly stated.
 
 | Classification | Legal target | Basic Attack result |
 | --- | --- | --- |
-| **Archer** | Opposing Rear Force in the same Front | Exhaust it |
+| **Archer** | Opposing Rear Force in the same Front | Shake it |
 | **Skirmisher** | Opposing Middle Force in the same Front | Shake it |
-| **Raider** | Opposing Middle or Rear Force in the same Front, but only if the opposing Frontline there is empty | Deplete it |
+| **Raider** | Opposing Middle or Rear Force in the same Front, after a successful Incursion | Deplete it |
 | **Rider** (attacking from Frontline or Middle) | Opposing **flanked** Frontline Force in an adjacent active Front | Shake it |
+
+**Incursion:** A Raider in your Frontline succeeds if its current Strength is **strictly greater** than the opposing Frontline formation's current Strength, or if that opposing position has no Force. Compare the two complete formations, including Bond/Name modifiers, afflictions and flanking. On a tie the defender holds. The Raider's one normal Attack then Depletes a legal opposing Middle or Rear target. An Incursion does **not** move the Raider into enemy positions, add an Action, or give another Attack. If there is no Middle or Rear target, no basic Raider Attack is possible.
 
 An **Archer** normally targets the opposing Rear Force. *The Crow Archers* extend that same basic Attack to an opposing Middle Force when the opposing Frontline is empty, giving the attacker a new target rather than a second Attack. A Rider in Rear cannot initiate its **basic Rider Attack**; it must reach Frontline or Middle first. This limitation does not prevent a Rider from moving, contributing Strength or receiving other card effects. A free Attack granted by a card obeys the normal legal-target, row, screening and once-per-Battle Attack rules unless that card explicitly states an exception. A friendly **Guard** in Middle screens the Rear Force directly behind it from a **basic Archer Attack**. A Guard that is Shaken or Depleted cannot screen, except where a specific card says otherwise. Screening does not automatically stop other card effects or Attacks.
 

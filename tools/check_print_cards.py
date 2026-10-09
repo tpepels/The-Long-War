@@ -56,7 +56,7 @@ def main() -> None:
     # Every live Force/Bond or Hero-Force ability gets a short cue.
     # It tells players when to check the body text without summarising payoff.
     edge_cues = overrides["edge_cues"]
-    assert len(edge_cues) == printed["print_edge_cue_count"] == 33
+    assert len(edge_cues) == printed["print_edge_cue_count"] == 32
     assert len({(x["id"], x["index"]) for x in edge_cues}) == len(edge_cues)
     for x in edge_cues:
         card = after[x["id"]]
@@ -155,7 +155,7 @@ def main() -> None:
     assert "Empowered" in after["the-crow-archers"]["text"]
     assert "Guarded" in after["guarded"]["text"]
     assert "Inspired" in after["endured-with"]["text"]
-    assert "Depleted" in after["the-iron-boars"]["text"]
+    assert "Shaken" in after["the-iron-boars"]["text"]
     for card_id in ("no-one-would-be-first-to-leave", "the-crows-came-down"):
         effects = after[card_id]["effects"]
         assert effects[0]["timing"] == "play", card_id

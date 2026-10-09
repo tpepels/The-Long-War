@@ -23,7 +23,7 @@
     {
       "id": "seven-black-ships",
       "premium": 1,
-      "rationale": "Raider that removes an attached layer when the opposing Frontline is empty.",
+      "rationale": "4-Strength Ship/Raider that returns one attached Bond/Name from a legal basic Raider Attack target on PLAY.",
       "previous_printed_command": 3
     },
     {
@@ -53,7 +53,7 @@
     {
       "id": "the-grey-riders",
       "premium": 1,
-      "rationale": "Two ongoing Maneuver permissions, including while Exhausted.",
+      "rationale": "3-Strength Rider with mobile/Exhausted Maneuver exceptions and an unused Rider Attack after its Maneuver; distinctive 4C cavalry tempo.",
       "previous_printed_command": 3
     },
     {
@@ -65,7 +65,7 @@
     {
       "id": "the-black-company",
       "premium": 1,
-      "rationale": "Skirmisher can raid an attached layer on an Exhausted target (paid ACTION).",
+      "rationale": "4-Strength Skirmisher can return an attachment from an opposing Shaken formation with a paid ACTION.",
       "previous_printed_command": 3
     },
     {
@@ -83,7 +83,7 @@
     {
       "id": "the-iron-boars",
       "premium": 1,
-      "rationale": "High-Strength Raider can Deplete an unguarded Middle/Rear target.",
+      "rationale": "5-Strength Frontline-only Raider that immediately Shakes a weaker opposing Frontline Force, opening combat opportunities.",
       "previous_printed_command": 3
     },
     {
@@ -101,7 +101,7 @@
     {
       "id": "the-unnamed-host",
       "premium": 1,
-      "rationale": "Raider transfers Command when an opposing Force is Exhausted.",
+      "rationale": "5-Strength Raider that converts a Shaken enemy into Depleted on PLAY instead of stripping Command.",
       "previous_printed_command": 3
     },
     {
@@ -132,7 +132,7 @@
     {
       "id": "the-vardai",
       "premium": 0,
-      "rationale": "Odd-Strength budget covers paid repositioning ACTION.",
+      "rationale": "3-Strength Rider with a 1C, once-per-Battle ACTION combining an adjacent Move and an unused basic Rider Attack; odd-Strength rounding covers conditional timing.",
       "previous_printed_command": 2
     },
     {
@@ -150,7 +150,7 @@
     {
       "id": "the-damar",
       "premium": 0,
-      "rationale": "Odd-Strength budget covers one conditional allied Frontline Move.",
+      "rationale": "3-Strength commander who advances another formation on PLAY; a free basic Attack follows only when the Move newly enables it.",
       "previous_printed_command": 2
     },
     {
@@ -192,7 +192,7 @@
     {
       "id": "the-river-raiders",
       "premium": 1,
-      "rationale": "Raider can remove an attachment after Frontline opens, through paid ACTION.",
+      "rationale": "4-Strength Raider with a paid repeatable attachment return on a legal basic Raider Attack target; unlike Ship this costs another Action.",
       "previous_printed_command": 3
     },
     {

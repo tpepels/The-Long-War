@@ -51,10 +51,12 @@ Attacking is an Action: once per Force per Battle, no Command by default, legal 
 
 | Classification | Basic Attack |
 |---|---|
-| Archer | Exhaust opposing Rear Force in same Front |
+| Archer | Shake opposing Rear Force in same Front |
 | Skirmisher | Shake opposing Middle Force in same Front |
-| Raider | Deplete opposing Middle/Rear Force in same Front, if the opposing Frontline is empty |
+| Raider | From Frontline, Deplete opposing Middle/Rear after the Incursion Strength check |
 | Rider | Shake flanked opposing Frontline Force in adjacent active Front |
+
+**Incursion check:** A Raider in your Frontline can Attack opposing Middle/Rear when its current Strength exceeds the opposing Frontline formation's current Strength, or that opposing position is empty. A tie holds the line. This is the normal Raider Attack: no extra Action, no enemy-side position and no new marker. Free Attacks after movement exist **only when printed on cards**, consume the Force's unused Attack, and cannot create an unlimited chain.
 
 Guards in Middle screen the Rear Force directly behind against basic Archer Attacks, unless the Guard is Shaken or Depleted.
 

@@ -12,10 +12,12 @@ Force Strength + printed Bond modifier + printed Name modifier (including Hero-a
 
 | Classification | Basic Attack target | Result |
 | --- | --- | --- |
-| Archer | Opposing Rear Force in same Front | Exhaust |
+| Archer | Opposing Rear Force in same Front | Shake |
 | Skirmisher | Opposing Middle Force in same Front | Shake |
-| Raider | Opposing Middle or Rear Force if opposing Frontline empty | Deplete |
+| Raider | Opposing Middle or Rear Force after an Incursion check | Deplete |
 | Rider (attacking from Frontline or Middle) | Opposing flanked Frontline Force in adjacent active Front | Shake |
+
+**Incursion:** A Raider in your Frontline can Attack Middle/Rear if its Strength exceeds the opposing Frontline's, or the opposing Frontline is empty. Ties defend. No extra Action, movement or marker. Some cards allow an unused Attack after a Move/Maneuver; this is never a universal rule.
 
 A Middle Guard screens the Rear from a basic Archer Attack unless Shaken or Depleted, except when a card grants explicit screening while Shaken.
 

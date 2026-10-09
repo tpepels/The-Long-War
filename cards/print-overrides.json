@@ -8,10 +8,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may move another friendly formation in this Front one row toward its Frontline into an empty legal position."
+          "text": "Move another friendly formation one row toward Frontline here, if legal. If that Move makes a basic Attack newly legal, it may Attack without another Action."
         }
       ],
-      "design_note": "Immediate Frontline reinforcement.",
+      "design_note": "Captain-style coordinated advance: move an ally forward and allow only a newly enabled basic Attack. No general Maneuver-then-Attack rule.",
       "command_cost": 3
     },
     {
@@ -307,16 +307,11 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "This Force may Maneuver without being Named.",
-          "exposed": "May Maneuver unnamed"
-        },
-        {
-          "timing": "continuous",
-          "text": "This Force may Maneuver while Exhausted.",
-          "exposed": "May Maneuver while Exhausted"
+          "text": "This Force may Maneuver while Unnamed or Exhausted. After it Maneuvers, it may make its unused basic Rider Attack without another Action.",
+          "exposed": "May Maneuver Unnamed/Exhausted; then Rider Attack"
         }
       ],
-      "design_note": "Retire the player-facing MOBILE and TIRELESS headers without altering movement permissions.",
+      "design_note": "Fast cavalry combines legal Maneuver and an unused basic Rider Attack in one Action; retains both prior mobility exceptions.",
       "command_cost": 4
     },
     {
@@ -341,10 +336,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If the opposing Frontline here is empty, choose an opposing Middle or Rear Force here and give it Depleted."
+          "text": "If this Force is stronger than the opposing Frontline Force here, give that opposing Force Shaken."
         }
       ],
-      "design_note": "Frontline-only breakthrough; only useful when a gap is already open, unlike persistent Command-stealing Reavers.",
+      "design_note": "Frontline shock weakens a weaker defender and opens subsequent Raid possibilities, without a gap-only on-play trigger.",
       "command_cost": 5
     },
     {
@@ -751,12 +746,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If an opposing Force here is Exhausted, your opponent loses 1 Command (minimum 1 remaining). Regain the amount actually lost.",
-          "scope": "opponent",
-          "memory": []
+          "text": "If an opposing Force here is Shaken, give it Depleted."
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged.",
+      "design_note": "Reavers exploit disruption to suppress combat rather than stripping additional Command from a losing side.",
       "command_cost": 5
     },
     {
@@ -764,12 +757,10 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If the opposing Frontline here is empty, return a Bond or Name attached to an opposing Middle or Rear formation here to its owner's hand.",
-          "scope": "opponent",
-          "memory": []
+          "text": "Choose an opposing Force this formation could target with a basic Raider Attack. Return one of its attached Bonds or Names to its owner's hand."
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged.",
+      "design_note": "Immediate attachment raid with the shared Strength check; does not spend this Force's basic Attack.",
       "command_cost": 4
     },
     {
@@ -790,13 +781,13 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Pay 1 Command. If the opposing Frontline here is empty, return a Bond or Name attached to an opposing Middle or Rear formation here to its owner's hand.",
-          "exposed": "ACTION · Pay 1: raid Bond/Name if enemy Frontline empty",
+          "text": "Pay 1 Command. Choose an opposing Force this formation could target with a basic Raider Attack. Return one of its attached Bonds or Names to its owner's hand.",
+          "exposed": "ACTION: Pay 1; take Bond/Name from legal Raid target",
           "scope": "opponent",
           "memory": []
         }
       ],
-      "design_note": "Standardized phrasing; intended mechanics unchanged.",
+      "design_note": "Repeatable sabotage exploits the same local Raider Strength check instead of an empty-front-only check.",
       "command_cost": 4
     },
     {
@@ -994,6 +985,32 @@
       ],
       "command_cost": 1,
       "design_note": "Leadership disruption: immediate Shaken on the leader plus optional splash pressure, not a weaker version of general ACTION suppression."
+    },
+    {
+      "id": "the-black-company",
+      "effects": [
+        {
+          "timing": "action",
+          "text": "Pay 1 Command. Return a Bond or Name from an opposing Shaken formation here to its owner's hand.",
+          "exposed": "ACTION: Pay 1; strip Shaken enemy attachment",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "design_note": "Black Pursuers now exploit Shaken attacks rather than needing the rarer Exhausted marker after Archer attacks change."
+    },
+    {
+      "id": "the-vardai",
+      "effects": [
+        {
+          "timing": "action",
+          "limit": "once_per_battle",
+          "text": "Pay 1 Command. Move this formation one adjacent legal empty position. It may then make its unused basic Rider Attack without another Action.",
+          "exposed": "ACTION · 1/B: Move then unused Rider Attack"
+        }
+      ],
+      "design_note": "Once-per-Battle mobile attack enables a reposition-and-strike decision even while Unnamed; still pays 1 Command.",
+      "command_cost": 3
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1009,19 +1026,9 @@
       "exposed": "Bonded: Maneuver without Name"
     },
     {
-      "id": "the-black-company",
-      "index": 0,
-      "exposed": "ACTION: pay 1; return Bond/Name from Exhausted enemy here"
-    },
-    {
       "id": "the-late-banner",
       "index": 0,
       "exposed": "Bonded: Name costs -1 (min 1) here"
-    },
-    {
-      "id": "the-vardai",
-      "index": 0,
-      "exposed": "ACTION: pay 1; move self one adjacent empty position"
     },
     {
       "id": "followed",
@@ -1088,11 +1095,6 @@
     {
       "id": "a-hundred-shields",
       "command_cost": 5,
-      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
-    },
-    {
-      "id": "the-vardai",
-      "command_cost": 3,
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     },
     {
@@ -1292,11 +1294,6 @@
     {
       "id": "the-grey-riders",
       "index": 0,
-      "cue": "MANEUVER"
-    },
-    {
-      "id": "the-grey-riders",
-      "index": 1,
       "cue": "MANEUVER"
     },
     {

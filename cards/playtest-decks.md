@@ -175,16 +175,16 @@ Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed
 
 ## Blood & Spoils
 
-Exhaust or Deplete opposing Forces, then convert their negative conditions into Command theft and lost Bonds while retaining strong frontline bodies.
+Shake, Deplete and displace opposing Forces, then exploit weakened defenders with Raider Incursions and attachment disruption while retaining strong Frontline bodies.
 
-**Test question:** Can repeated Raiders and Shaken/Depleted enablers generate more sustainable Command and effective Strength than direct King/Captain stacking?
+**Test question:** Can Shaken Frontline defenders open Raider Incursions often enough to beat simply deploying more permanent Strength?
 
 48 cards · 17 Forces · 29 titles · 14 one-copy titles · 117–123 total printed Command (Hero mode-dependent) · 67 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
 - Iron Boars x3 and Red Duelists x3 give tangible initial penalties; The Stores Were Taken x2 and Trap Closed x2 follow up with layer loss or Command taxation.
-- Two Baggage Was Abandoned and two Crows Came Down create repeatable −1 Exhaustion; three Unnamed Hosts and three Shared the Spoils With convert this into Command transfer.
+- Two Baggage Was Abandoned and two Crows Came Down still create Exhaustion; three Salt-Road Reavers instead exploit Shaken for Depleted. Shared the Spoils With retains a separate conditional Command-transfer option.
 - Black Company x2 and River Raiders x2 punish opponent attachment investment. Two Seized the Standard Of Bonds can remove a Bond even without waiting for an enemy condition.
 - The Line Was Baited now gives Depleted only on a legal forced retreat by your Skirmisher. Raider bodies and Rovan remain useful when no affliction combo appears.
 
@@ -192,7 +192,7 @@ Exhaust or Deplete opposing Forces, then convert their negative conditions into 
 
 | Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
-| Exhaustion-to-Command transfer | 6 | 6 | 58.9% | 93.9% |
+| Exhaustion/raid follow-up (card co-draw only) | 6 | 6 | 58.9% | 93.9% |
 | Breakthrough-to-attachment raid | 7 | 6 | 63.2% | 95.3% |
 | Reusable raid pressure | 6 | 4 | 46.8% | 86.6% |
 
@@ -295,7 +295,7 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 
 ## Broken Oaths — supplementary
 
-Scout-led feints and Raider breaches drive opposing formations out of position, then remove attachments and convert Exhaustion into Command pressure.
+Scout-led feints and Raider breaches drive opposing formations out of position, then threaten Middle/Rear troops and their attachments without needing an empty enemy Frontline.
 
 **Test question:** Can a Scout/Skirmisher/Raider setup create meaningful Strength denial and attached-layer theft, or does plain Force Strength still win?
 
@@ -303,7 +303,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 
 ### Combinations to test
 
-- Seven Black Ships, River Raiders and Seized the Standard Of can remove attached layers after the opposing Frontline opens; The Muster Was False offers another Bond-punishment line with a Scout or Seer.
+- Seven Black Ships and River Raiders can remove attached layers after winning the Raider Strength check, even against an occupied enemy Frontline; Seized the Standard Of and The Muster Was False provide alternative attachment pressure.
 - Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.
 - Lantern Scouts and Lysa support They Were Gathering There, The Scouts Had Warned Them and Before Sunset for actual Strength or Guarded counterplay, not merely looking at cards.
 - Bloodied Raider/Skirmisher pressure makes Shared the Spoils With and The Trap Closed useful; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
@@ -355,7 +355,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 
 ## How to interpret the decks
 
-The **core four** build around distinct *interactions*: leadership/Bond multiplication, Archer screens and counterattacks, prepared Named-completion rewards, and Exhaustion-to-Command/attachment theft. These are more concrete than abstract play-styles, but some named “combos” merely pair efficient bodies with bonuses; record those separately from genuinely contingent sequences.
+The **core four** build around distinct *interactions*: leadership/Bond multiplication, Archer screens and counterattacks, prepared Named-completion rewards, and Shake-to-Incursion/attachment disruption. These are more concrete than abstract play-styles, but some named “combos” merely pair efficient bodies with bonuses; record those separately from genuinely contingent sequences.
 
 **The Last Watch** and **Broken Oaths** test recovery/defensive Bonds and bluff/raid tools that were absent from every previous list. Their higher singleton rates are intentional **coverage**, not proof of competitive consistency. For the simplest alternative, compare the [Raw Strength Control](mechanic-coverage-decks.md#raw-strength-control) in mirrored games: it uses 16 ability-free Force cards and may have better immediate Strength-per-Action than intricate formation setups.
 
