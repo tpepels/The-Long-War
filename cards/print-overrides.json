@@ -1108,7 +1108,8 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While Bonded, this formation's first Maneuver each Battle costs 0 Command."
+          "text": "While Bonded, this formation's first Maneuver each Battle costs 0 Command.",
+          "exposed": "Bonded: first Maneuver free"
         }
       ],
       "design_note": "3C odd-Strength Force keeps its conditional mobility payoff as one Command saved, not redundant Unnamed permission."
