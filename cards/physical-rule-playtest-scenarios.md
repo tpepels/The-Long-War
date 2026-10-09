@@ -592,3 +592,14 @@ until all Opening Orders have resolved; they are not part of the
 Opening Strike/Maneuver choices and cannot turn a spent basic
 Attack into another Attack. The Ground Was Held checks the
 provisional **post-Opening-Order** Front totals.
+
+## Universal Maneuver and single Stratagem: focused tabletop checks
+
+1. Place an Unnamed unexhausted Force in Middle and a Named Force in another active Front. Both may **Maneuver** one legal step for **1 Action and 1 Command**. Named completion is no longer a permission gate. Repeat with an **Exhausted** Force: it cannot initiate unless a printed card explicitly allows it.
+2. **Dust Riders:** Bond this Force, then use its first normal Maneuver. It costs **0 Command** but still takes **one Action**. Its next normal Maneuver costs 1 Command. Compare against the former, now meaningless, 'Maneuver without a Name' privilege.
+3. **Grey Riders:** Move them while Exhausted under their card exception, then attempt a legal unused Rider Attack without another Action. Mark that Attack spent. Repeat with an unused ordinary (non-Exhausted) Maneuver by any Force: no generic free Attack is created.
+4. **The Long March:** Play the Narrative for 2C while two Rider formations exist. Each receives the stated +1 Strength for this Battle. Rider ordinary Maneuvers can cost 0 Command during the Battle, but each still takes an Action. Opening Maneuvers were already free; no extra Rider steps or orders are created.
+5. **One Stratagem:** Set No Step Back for a normal Action. Later complete a Named Formation with Teren: it cannot set another Stratagem. If the first card is revealed or returned to hand, the allowance remains used. The Scouts Found the Gap may expressly re-set that **same** card without introducing a second plan.
+6. **Opening versus late hidden plans:** At the post-Pass reveal, both players take two Opening Orders. Only the already set one-Stratagem-per-player cards can react. The Lines Held may make one late Move and +2 at the final window; The Center Must Hold can legally exchange friendly same-rank formations across adjacent active Fronts if a King/Captain is present; The Flank Was Refused instead needs a flanked friendly Frontline Force in an outer active Front and grants anti-flank defence. Test all three after opening positions are finalized.
+
+**Observe:** which Maneuver decisions are new, whether ordinary free Opening Maneuvers crowd out costly normal ones, and whether one hidden plan per player improves readability without making scouting or counterattack cards dead draws.
