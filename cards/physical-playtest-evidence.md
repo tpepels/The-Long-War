@@ -151,7 +151,7 @@ without consulting the reference.
 
 For both players, compare Battle I losses and subsequent Battle II/III
 front reversals. An incursion should create immediate tactical pressure,
-**not** compound Command loss or destroy a persistent Force.
+**not** destroy a persistent Force; Battle-end Command loss now follows the full Strength difference and may compound.
 
 ## Force economy after the strict tariff
 
@@ -185,3 +185,16 @@ Front totals, Elian/Neris not getting extra Attack uses, Rovan's
 Strength-gated displacement obeying row legality, and the 1C
 support-Bond positioning effects remaining less efficient than permanent
 Force deployment in situations with no tactical threat.
+
+## New experiment: two hidden Opening Orders and full-margin losses
+
+Record **two numbered commitments per player** (Maneuver, Commit,
+Strike or Hold), all four revealed together. Observe legality and
+activation after each simultaneous step. For every Front, log both
+final Strength totals, winner, **Strength difference and actual
+Command lost**, including the case of an empty defending Front.
+Distinguish the 1 Command spent on each Commit from Command lost
+at Battle end; test Move-then-Strike and double-Commit separately.
+Track average Battles to Collapse under the existing recovery schedule.
+These rules apply to the **paper game only** until the native engine
+has explicitly implemented and validated them.
