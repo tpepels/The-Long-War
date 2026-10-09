@@ -19,6 +19,8 @@ REVISED = {
     "the-raiders-came-home-loaded", "send-a-runner",
     "kael-the-roadless", "rovan-the-gatebreaker",
     "neris-the-ferryman", "serai-queen-of-crows",
+    "had-been-ordered-forward", "every-bow-was-strung",
+    "the-scouts-had-warned-them",
 }
 FAMILIES = {
     "bond": 24, "name": 20, "hero": 11, "tactic": 14,
@@ -64,7 +66,7 @@ def run() -> None:
     assert len({r["id"] for r in rows}) == len(rows)
     assert {r["id"] for r in rows if r["decision"] == "revised"} == REVISED
     assert Counter(r["decision"] for r in rows) == {
-        "keep": 62, "watch": 18, "revised": 18,
+        "keep": 60, "watch": 17, "revised": 21,
     }
 
     for row in rows:
@@ -123,11 +125,17 @@ def run() -> None:
                "Pay 1 Command", "Move one friendly Archer")
     for cid in ("elian", "neris-the-ferryman"):
         assert "unused basic" in content(catalogue[cid])
+    assert has(catalogue, "had-been-ordered-forward",
+               "Opening Orders", "Maneuvers", "additional adjacent legal position")
+    assert has(catalogue, "every-bow-was-strung",
+               "Opening Orders", "Bonded Archers", "Strike", "Middle Force")
+    assert has(catalogue, "the-scouts-had-warned-them",
+               "Opening Orders are revealed", "Scout or Seer", "change the destination")
     assert printed["print_only"] is True
     print("PASS: all 98 non-Force printed identities mapped to battlefield roles")
-    print("  18 concise revisions, 62 deliberately retained, "
-          "18 opportunities flagged for real tabletop checks")
-    print("  Tactical improvements live on cards; core player rules unchanged")
+    print("  21 concise revisions, 60 deliberately retained, "
+          "17 opportunities flagged for real tabletop checks")
+    print("  Three cards now interact with Opening Orders, without new order types")
     print("LIMIT: no evidence of actual activation rates, win rates or comeback balance")
 
 
