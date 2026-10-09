@@ -238,3 +238,71 @@ def test_generic_mccfr_learns_known_matching_pennies_equilibrium() -> None:
         strategy = node.average_strategy(["H", "T"])
         assert sum(strategy.values()) == pytest.approx(1.0)
         assert abs(strategy["H"] - 0.5) < 0.20
+
+
+@dataclass
+class BranchState:
+    path: tuple[str, ...] = ()
+    actor: int = 0
+
+    def clone(self):
+        return BranchState(self.path, self.actor)
+
+    def copy_from(self, other):
+        self.path, self.actor = other.path, other.actor
+
+
+class ExhaustiveTreeGame(ToyGame):
+    def __init__(self, payoffs):
+        self.payoffs = payoffs
+
+    def is_terminal(self, state):
+        return len(state.path) == 4
+
+    def legal_actions(self, state):
+        return [] if self.is_terminal(state) else ["a", "b", "c"]
+
+    def apply(self, state, action):
+        state.path = (*state.path, action)
+        state.actor = 1 - state.actor
+
+    def completed_turn(self, before, after, action):
+        return True
+
+    def state_key(self, state):
+        return state.path
+
+    def information_set_id(self, state, player):
+        return (player, state.path)
+
+    def terminal_utility(self, state, player):
+        return (
+            float(self.payoffs[state.path])
+            if player == 0 else -float(self.payoffs[state.path])
+        )
+
+
+def test_generic_alpha_beta_matches_exhaustive_minimax_oracle() -> None:
+    from itertools import product
+
+    leaves = list(product("abc", repeat=4))
+    for seed in (1, 9, 52, 131):
+        rng = random.Random(seed)
+        payoffs = {leaf: rng.randrange(-10, 11) for leaf in leaves}
+        game = ExhaustiveTreeGame(payoffs)
+
+        def oracle(path, actor):
+            if len(path) == 4:
+                return payoffs[path]
+            children = [oracle((*path, a), 1 - actor) for a in "abc"]
+            return max(children) if actor == 0 else min(children)
+
+        expected = oracle((), 0)
+        result = GenericAlphaBetaSearch(
+            game, candidate_width=3
+        ).search(
+            BranchState(), root_player=0, depth=4,
+            alpha=-inf, beta=inf,
+            budget=SearchBudget(10000), transposition={}, scratch=[],
+        )
+        assert result == expected
