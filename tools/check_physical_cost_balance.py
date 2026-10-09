@@ -38,7 +38,7 @@ def run() -> None:
     # Battle I, position: friendly Middle Force; Frontline still open.
     # First Spear supplies immediate protection; Red Shields instead taxes Tactics.
     case("B1: defensive Frontline sidegrade",
-         cost("the-first-spear") == cost("the-red-shields") == 2
+         cost("the-first-spear") == cost("the-red-shields") == 4
          and row("the-first-spear") == ["front"]
          and len(row("the-red-shields")) == 3
          and has("the-first-spear", "directly behind", "Guarded")
@@ -47,7 +47,7 @@ def run() -> None:
 
     # Battle I, breach: enemy Frontline empty, Middle target still active.
     case("B1: Iron Boars exploit a breach",
-         cost("the-iron-boars") == cost("the-unnamed-host") == 3
+         cost("the-iron-boars") == cost("the-unnamed-host") == 5
          and row("the-iron-boars") == ["front"]
          and has("the-iron-boars", "opposing Frontline", "empty", "Depleted")
          and has("the-unnamed-host", "Exhausted", "Command"),
@@ -56,7 +56,7 @@ def run() -> None:
     # Enemy Frontline occupied, Shaken improves the immediate comparison but
     # the Duelists lose ability to stand in a supporting row.
     case("B1: Duelists open the line",
-         cost("the-red-duelists") == cost("the-dust-riders") == 2
+         cost("the-red-duelists") == 4 and cost("the-dust-riders") == 3
          and row("the-red-duelists") == ["front"]
          and has("the-red-duelists", "Shaken", "Frontline")
          and "rider" not in cards["the-red-duelists"]["classes"]
@@ -66,7 +66,7 @@ def run() -> None:
     # Crow Archer has an immediate screening answer; Thornbow instead adds
     # persistent Front Strength if at least one OTHER Archer shares its Front.
     case("B1: Archer pressure has different payoff requirements",
-         cost("the-crow-archers") == cost("the-thornbow-hunters") == 2
+         cost("the-crow-archers") == cost("the-thornbow-hunters") == 4
          and has("the-crow-archers", "Empowered", "Middle Force")
          and has("the-thornbow-hunters", "Rear", "other friendly Archer",
                  "+1 Strength"),
@@ -211,7 +211,7 @@ def run() -> None:
          "Raiders pressure attachments after preparation ends")
 
     case("B2: Field Train crosses Fronts once",
-         cost("the-field-train") == cost("the-house-of-reed") == 2
+         cost("the-field-train") == 3 and cost("the-house-of-reed") == 4
          and has("the-field-train", "adjacent active Front", "directly ahead")
          and any(e["timing"] == "play"
                  for e in cards["the-field-train"]["effects"])
@@ -260,8 +260,8 @@ def run() -> None:
 
     # Phase 1 keeps pure baseline bodies simple but differentiates absolute
     # per-position Strength against specialist protection and Attack classes.
-    case("P1: Fifty Men trades abilities for highest simple 2C body",
-         cost("the-fifty-men") == cost("the-red-shields") == 2
+    case("P1: Fifty Men trades strength for same-cost Guard protection",
+         cost("the-fifty-men") == cost("the-red-shields") == 4
          and cards["the-fifty-men"]["strength"] == 5
          and cards["the-red-shields"]["strength"] == 4
          and cards["the-fifty-men"]["effects"] == []
@@ -289,7 +289,7 @@ def run() -> None:
          "Oren discounts Bond play inside one Action and rewards completion")
 
     case("P1: Thornbow supports multiple Archers without passive scouting",
-         cost("the-thornbow-hunters") == cost("the-crow-archers") == 2
+         cost("the-thornbow-hunters") == cost("the-crow-archers") == 4
          and cards["the-thornbow-hunters"]["strength"] == 3
          and len(cards["the-thornbow-hunters"]["effects"]) == 1
          and cards["the-thornbow-hunters"]["effects"][0]["timing"] == "rear"
@@ -354,7 +354,7 @@ def run() -> None:
     # Phase 3: preparing a layer should be able to contribute immediately
     # without replaying old PLAY effects on eventual attachment.
     case("P3: House of Reed can turn prepared layers into real defence",
-         cost("the-house-of-reed") == 2
+         cost("the-house-of-reed") == 4
          and len(cards["the-house-of-reed"]["effects"]) == 2
          and any(e["timing"] == "play" and "directly ahead" in e["text"]
                  for e in cards["the-house-of-reed"]["effects"])
@@ -366,7 +366,7 @@ def run() -> None:
 
     case("P3: Field Train rewards legal cross-Front completion",
          row("the-field-train") == ["middle"]
-         and cost("the-field-train") == 2
+         and cost("the-field-train") == 3
          and has("the-field-train", "adjacent active Front",
                  "directly ahead", "becomes Named",
                  "+2 Strength this Battle")
