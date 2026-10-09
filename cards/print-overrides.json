@@ -995,7 +995,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing formation containing a King or Captain. Give its Force Shaken. If it is Named, another opposing formation in this Front gets −1 Strength this Battle."
+          "text": "Choose an opposing formation containing a King or Captain. Give its Force Shaken. If it is Named, you may give another opposing formation in this Front −1 Strength this Battle."
         }
       ],
       "command_cost": 1,
