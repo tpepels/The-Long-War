@@ -19,7 +19,7 @@ The intended test is straightforward: play a deck as a complete plan, then compa
 - Late Banner + Marched Beneath the Banner of + Namar or Arel turns a cheaper Name into a Named leadership formation with an additional Bond Strength bonus; Namar restores Command for the next attachment.
 - Avaros, the Bronze King + The Center Must Hold or Every Banner Turned Toward Them creates a concentrated final Strength swing; the Banner Stratagem can also reinforce an adjacent active Front.
 - Doros, the Last Spear or A Hundred Shields + Followed + a Name forms a large persistent stack; The Battle Had Chosen Them adds a further +1 to Named formations.
-- First Spear protects the Force behind it with Guarded, while Red Shields, Serekh and Alda deter hostile Tactics. Re-form the Line can sacrifice an obsolete Force when the field fills.
+- First Spear protects the Force behind it with Guarded, while Red Shields, Serekh and Alda deter hostile Tactics. The King Had Given the Order exchanges attached Bonds and gives affected Named formations +1 Strength this Battle. Re-form the Line opens overcrowded positions.
 
 ### Card list
 
@@ -78,7 +78,7 @@ The intended test is straightforward: play a deck as a complete plan, then compa
 ### Signature combinations
 
 - Crow Archers + a Bond + Corin of the High Wall or Serai, Queen of Crows combines Empowered pressure, Archer classifications, and multiple +1 Strength effects; Every Bow Was Strung rewards bonded Archers.
-- Old Guard in Middle protects a Rear Archer from basic Archer Attacks; First Spear can place Guarded on the Middle Force, protecting the screen while the Archer accumulates Strength.
+- Old Guard in Middle protects a Rear Archer from basic Archer Attacks. Thornbow Hunters in Rear give every other friendly Archer in their Front +1 Strength; First Spear can Guard the Middle screen.
 - The Archers Were Ready lets an unspent Archer fire as a reaction to an opposing Attack; The Crows Came Down Exhausts on PLAY and can Shake a target later for a -2 Strength swing.
 - Serai + other Archers + The Battle Had Chosen Them pushes Strength, while Asha, Alda, Veyra, No Step Back and Guarded protect crucial formations from hostile effects.
 
@@ -138,7 +138,7 @@ The intended test is straightforward: play a deck as a complete plan, then compa
 ### Signature combinations
 
 - Late Banner + Followed + a Name yields a cheaper Named stack with an extra Bond Strength bonus; The Battle Had Chosen Them rewards that same Named state.
-- Tovan, the Quartermaster as Name discounts Bonds and Names; Torren and Oren supply extra attachments, while Namar reimburses Command and discounts a subsequent attachment.
+- Tovan, the Quartermaster discounts Bonds and Names. Torren supplies immediate Bond attachment, while Oren discounts a Bond by 1 Command once per Battle and draws if it completes a Named formation. Namar restores Command and discounts another attachment.
 - Field Train and House of Reed attach prepared layers into a supported formation; Nara, Builder of Walls and Stayed Behind For complete otherwise stranded stacks.
 - Teren turns Named completion into a free Stratagem setting Action; There Was No Road Back can then punish an enemy Bond or reposition a completed stack. Avaros and the Banner Stratagem convert prepared strength into a winning Front.
 
