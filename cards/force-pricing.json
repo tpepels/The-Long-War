@@ -10,7 +10,8 @@
     "Even-Strength special abilities are normally assessed +1, including meaningful class-native screening.",
     "Keep Bond, Name, Hero, Tactic, Stratagem, Narrative and Order costs unchanged.",
     "Treat these as first-pass physical prices, not measured win-rate balance.",
-    "For a completely ability-free odd-Strength basic Force, a 1-Command unused-half-point credit may replace inventing an ability; currently only Thirty Spears."
+    "For a completely ability-free odd-Strength basic Force, a 1-Command unused-half-point credit may replace inventing an ability; currently only Thirty Spears.",
+    "The four narrow 2-Strength non-attacking supports moved to 3 Strength at the same 3C cost; their minor/conditional abilities now occupy the odd-Strength half-point, without an added premium."
   ],
   "forces": [
     {
@@ -27,8 +28,8 @@
     },
     {
       "id": "the-white-hands-of-elara",
-      "premium": 1,
-      "rationale": "Healer can clear a condition from the forward formation.",
+      "premium": 0,
+      "rationale": "3-Strength specialist with narrow conditional utility included in the rounded-up odd-Strength tariff: Conditional healer Action needs another Action and an afflicted Force ahead; +1 printed Strength restores a viable default body without changing the effect or cost.",
       "previous_printed_command": 1
     },
     {
@@ -111,8 +112,8 @@
     },
     {
       "id": "the-banner-singers",
-      "premium": 1,
-      "rationale": "Named Middle Captain continuously taxes enemy Tactics against allies.",
+      "premium": 0,
+      "rationale": "3-Strength specialist with narrow conditional utility included in the rounded-up odd-Strength tariff: Middle-only, Named-only Tactic tax against other formations has a late and uncertain trigger; +1 Strength restores a useful default contribution.",
       "previous_printed_command": 1
     },
     {
@@ -160,8 +161,8 @@
     },
     {
       "id": "the-relief-column",
-      "premium": 1,
-      "rationale": "Persistent forward movement support while Exhausted.",
+      "premium": 0,
+      "rationale": "3-Strength specialist with narrow conditional utility included in the rounded-up odd-Strength tariff: Middle-only passive for an already Exhausted and otherwise Maneuver-eligible Force is a rare setup; +1 Strength compensates its narrow floor.",
       "previous_printed_command": 2
     },
     {
@@ -184,8 +185,8 @@
     },
     {
       "id": "the-lantern-scouts",
-      "premium": 1,
-      "rationale": "Repeatable hidden-plan inspection and hand filter while positioned.",
+      "premium": 0,
+      "rationale": "3-Strength specialist with narrow conditional utility included in the rounded-up odd-Strength tariff: One optional reaction to a same-Front hidden Stratagem per Battle is too intermittent for a 2-Strength 3C Force; +1 Strength ensures value without a Stratagem.",
       "previous_printed_command": 1
     },
     {

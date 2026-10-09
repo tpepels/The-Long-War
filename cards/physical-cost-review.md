@@ -1,5 +1,7 @@
 # Physical card cost and choice audit — 8–9 October 2026
 
+> **Historical pricing snapshot.** The final support-Force Strength and Hero Name-mode adjustments are documented in [the 9 October final balance audit](final-balance-audit-2026-10-09.md); numeric summaries and earlier pricing tables below are retained as historical analysis, not the latest printed values.
+
 > **Scope:** all **131** identities in `cards/cards.json` assembled with the **physical print** overlay `cards/print-overrides.json`. No changes to the native/Webgame engine. The old-cost column compares with the immediately preceding **print-only** pool, not the old unmodified executable card text. **These are tabletop design judgments, not measured win rates.**
 
 

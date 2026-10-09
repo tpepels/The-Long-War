@@ -103,6 +103,8 @@ jobs:
         run: python tools/check_force_pricing.py
       - name: Audit Hero dual-mode prices (advisory)
         run: python tools/check_hero_pricing.py
+      - name: Audit final print-only Strength and role balance
+        run: python tools/check_final_balance.py
       - name: Check physical cost and choice scenarios
         run: python tools/check_physical_cost_balance.py
       - name: Check combo deck lists (advisory)

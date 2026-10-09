@@ -14,16 +14,16 @@ This pricing is **physical-print only**. The native/Webgame engine and the canon
 | Hero | Force Strength | Previous single cost | Force cost | Name cost | Pricing focus |
 | --- | ---: | ---: | ---: | ---: | --- |
 | Avaros, the Bronze King | 5 | 3 | **5** | **4** | King Name immediately regains 2 Command and offers a once-per-Battle classification-wide Strength bonus |
-| Kael, the Roadless | 3 | 3 | **3** | **2** | Name brings information from a hidden plan and a paid once-per-Battle second peek |
+| Kael, the Roadless | 3 | 3 | **3** | **1** | Name brings information from a hidden plan and a paid once-per-Battle second peek |
 | Rovan, the Gatebreaker | 5 | 4 | **5** | **3** | Name suppresses an attached effect on completion and can impose a one-use local Tax |
-| Alda, Keeper of the Ford | 3 | 2 | **4** | **3** | Name removes harmful markers when completed and redirects one hostile Tactic when eligible |
+| Alda, Keeper of the Ford | 3 | 2 | **4** | **2** | Name removes harmful markers when completed and redirects one hostile Tactic when eligible |
 | Tovan, the Quartermaster | 2 | 3 | **3** | **4** | Name regains 2 Command and provides persistent global Bond/Name price reductions |
 | Nara, Builder of Walls | 3 | 3 | **4** | **3** | Name recovers a discarded Bond and attaches prepared layers once per Battle |
 | Neris, the Ferryman | 4 | 3 | **4** | **2** | Name repositions an ally on completion and has a once-per-Battle Move Action |
 | Veyra, Keeper of Oaths | 4 | 3 | **4** | **2** | Name protects itself from suppression and makes opposing targeted Tactics cost more |
-| Yara, the Chronicler | 3 | 3 | **4** | **3** | Name recovers a Narrative on completion and filters cards when you play Narratives |
-| Serai, Queen of Crows | 4 | 3 | **4** | **3** | Name temporarily buffs friendly Archers and weakens opponents with a paid ACTION |
-| Doros, the Last Spear | 5 | 3 | **5** | **2** | Name regains 1 Command and passively prevents hostile Tactic Strength reduction |
+| Yara, the Chronicler | 3 | 3 | **4** | **2** | Name recovers a Narrative on completion and filters cards when you play Narratives |
+| Serai, Queen of Crows | 4 | 3 | **4** | **2** | Name temporarily buffs friendly Archers and weakens opponents with a paid ACTION |
+| Doros, the Last Spear | 5 | 3 | **5** | **1** | Name regains 1 Command and passively prevents hostile Tactic Strength reduction |
 
 ## Mode-specific comparison
 
@@ -31,12 +31,12 @@ This pricing is **physical-print only**. The native/Webgame engine and the canon
 
 **Tovan:** as a 2-Strength Force with a useful draw/filter effect he costs **3 Command**; as a Name providing continuous Bond and Name discounts he costs **4**. This is an important counterexample to pricing a Hero solely from its Force Strength.
 
-**Doros:** 5 Strength with a Bonded Frontline bonus costs **5** as a Force, but the protective Name with +1 Name modifier is **2**. A flat 5 Command price would strongly discourage using his Name mode.
+**Doros:** 5 Strength with a Bonded Frontline bonus costs **5** as a Force, but the protective Name with +1 Name modifier is **1**. A flat 5 Command price would strongly discourage using his Name mode.
 
 ## Validation and outstanding balance questions
 
 The printed card shows both mode prices **only in its diagonal Command seal**, with the Force shield and Name banner beside their respective amounts. The Force and Name rules headings identify the modes without repeating Command costs. The Force and Name versions each contribute only their chosen Strength and abilities.
 
-Test the prices with six combo decks and four mechanic-coverage decks, mirroring first player and comparable hands. Track whether **both modes are sometimes chosen**, when a Hero is stranded in hand, the actions to reach a Named Formation, Command at each Battle boundary, and actual effects on Front winners. Prices are design appraisals, **not proven win rates**. Name costs may need further adjustment once how often their abilities trigger is observed.
+The final 9 October support-and-Hero comparison review adjusted five Name mode prices; see [final balance audit](final-balance-audit-2026-10-09.md). Test the prices with six combo decks and four mechanic-coverage decks, mirroring first player and comparable hands. Track whether **both modes are sometimes chosen**, when a Hero is stranded in hand, the actions to reach a Named Formation, Command at each Battle boundary, and actual effects on Front winners. Prices are design appraisals, **not proven win rates**. Name costs may need further adjustment once how often their abilities trigger is observed.
 
 See [force-pricing.json](force-pricing.json) for the ordinary Force tariff and [print-overrides.json](print-overrides.json) for the exact Hero role-specific values.

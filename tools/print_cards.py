@@ -167,6 +167,28 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
         card.pop("design_rules", None)
         card.pop("combat_redesign_proposal", None)
 
+    # Small physical-only Strength corrections for narrow support Forces.
+    # Keep these separate from effect replacements and price adjustments so a
+    # cost audit can distinguish a stronger body from a cheaper Command cost.
+    strength_seen = set()
+    replacement_strength_ids = {
+        change["id"] for change in overrides["replacements"]
+        if "strength_value" in change
+    }
+    for change in overrides.get("strength_adjustments", []):
+        card_id = change["id"]
+        if (card_id in strength_seen or card_id in replacement_strength_ids
+                or card_id not in by_id or by_id[card_id]["type"] != "force"):
+            raise ValueError("Invalid or duplicate print Strength adjustment: " + card_id)
+        strength_seen.add(card_id)
+        value = change["strength"]
+        if type(value) is not int or not 1 <= value <= 9 or value == by_id[card_id]["strength"]:
+            raise ValueError("Invalid or ineffective printed Strength change: " + card_id)
+        by_id[card_id]["strength"] = value
+        by_id[card_id]["print_revision"] = "strength-balance-correction"
+        by_id[card_id].pop("design_rules", None)
+        by_id[card_id].pop("combat_redesign_proposal", None)
+
     # Heroes already have separate Force and Name effect panels. Their modes
     # can have different costs without changing Strength or their abilities.
     # command_cost is retained as the Force price for legacy consumers;
@@ -221,4 +243,5 @@ def load_print_cards(base: dict | None = None, overrides: dict | None = None) ->
     printed["print_hero_mode_price_count"] = len(hero_price_seen)
     printed["print_timing_fix_count"] = len(limit_ids)
     printed["print_cost_adjustment_count"] = len(cost_seen)
+    printed["print_strength_adjustment_count"] = len(strength_seen)
     return printed
