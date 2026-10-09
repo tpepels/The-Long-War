@@ -12,11 +12,11 @@ During Battle I, leave both players with several playable cards. At the **start 
 
 ## 2. Front loss causes one future Battle of Exhaustion
 
-After comparing Fronts, Player A loses Front 2 with three Forces across its Frontline, Middle and Rear. The Middle Force has **Guarded**; the others do not. Deduct 1 Command for the lost Front and check Collapse. Guarded protects the Middle Force from the new loss-based Exhaustion; consume Guarded. Clear all old conditions and then give the Frontline and Rear Forces one Exhaustion token each. These start the next Battle Exhausted and cannot initiate ordinary Maneuvers. They still have Strength and may Attack. A recovery card can remove their tokens.
+After comparing Fronts, Player A loses Front 2 with three Forces across its Frontline, Middle and Rear. The Middle Force has **Guarded**; the others do not. Deduct 1 Command for the lost Front and check Collapse. Guarded protects the Middle Force from the new loss-based Exhaustion; consume Guarded. Clear all old conditions and then give the Frontline and Rear Forces one Exhaustion token each. These start the next Battle Exhausted, with **−1 Strength each**, and cannot initiate ordinary Maneuvers. They may still Attack unless also Depleted. A recovery card can remove their tokens.
 
 At the following Battle end, those old tokens clear. If A loses Front 2 again, the defeated, unprotected Forces receive fresh Exhaustion tokens for the Battle after that.
 
-**Watch for:** two Battles of Exhaustion from one loss (wrong); Guarded clearing before it protects (wrong); immobilized armies without enough recovery options (balance risk).
+**Watch for:** two Battles of Exhaustion from one loss (wrong); Guarded clearing before it protects (wrong); repeated defeats causing a runaway −1 Strength disadvantage (balance risk).
 
 ## 3. Flanking influences Strength without adding a marker
 
