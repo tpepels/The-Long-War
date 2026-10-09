@@ -174,3 +174,16 @@ all Strength/cost values and deck contents stay fixed. The primary design job
 of every Force is inventoried in [tactical-force-roles.json](tactical-force-roles.json).
 `tools/check_tactical_battlefeel.py` tests the main contracts.
 This remains a static gate, not evidence of match balance.
+
+## Post-Incursion economic coherence gate
+
+See [post-incursion-cost-and-mechanics.md](post-incursion-cost-and-mechanics.md).
+All 33 Forces now pay **1 + ceil(Strength/2) + 0–1 premium** with
+**no exception**. The 23 odd-Strength Forces gain small on-card
+compensation; Thirty Spears was the last below-tariff exception and
+now costs 3C. Damar's two-part Move/Attack effect now costs 4C.
+Thirty Spears, Fifty Men and Aradai have simple on-PLAY battlefield
+effects rather than ad hoc economy credits. Brannoc, A Volley Before
+Dawn and Shared the Spoils With have effects reconciled with the new
+Shaken/Incursion combat roles. `check_post_incursion_economy.py`
+runs the anti-regression audit. Price checks are **not win-rate results**.
