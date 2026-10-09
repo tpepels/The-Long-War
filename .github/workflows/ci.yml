@@ -40,6 +40,21 @@ jobs:
       - name: Verify generic alpha-beta, ISMCTS, MCCFR and hidden-information contracts
         run: python -m pytest -q tests/test_generic_search.py
 
+  native-search-parity:
+    name: Native search/reference parity (required)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Build native algorithms with current adapter
+        run: make native-build WORKERS=2
+      - name: Compare native and reference search and information contracts
+        run: python -m pytest -q --tb=short tests/test_native_search_parity.py
+
   sanity:
     name: Repository sanity
     runs-on: ubuntu-latest
