@@ -53,7 +53,7 @@ def run() -> None:
     assert "You may choose the same order twice" in SHORT
     assert "repeating a type is allowed" in DETAILED
     assert "both players" in DETAILED.lower()
-    assert "Simultaneous Strikes check legal attackers and targets before either Strike" in DETAILED
+    assert "Check Attack legality for **both** sides at the start of their paired Strike step" in DETAILED
     assert "If both Strikes use the same Force, the second cannot Attack again" in DETAILED
     assert "does **not** help a Raider" in DETAILED
     assert "identical in every Battle, including Battle I" in SHORT
