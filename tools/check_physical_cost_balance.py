@@ -123,7 +123,7 @@ def run() -> None:
     case("B3: ambush damages a formation rather than adding Strength",
          cost("the-trap-closed") == 2
          and has("the-trap-closed", "Raider", "negative marker",
-                 "Bond or Name", "hand"),
+                 "Bonds or Names", "hand"),
          "Hidden plan requires a preceding tactical move and attached target")
 
     # Delayed plan versus direct Tactic; Stratagem can wait but costs an Action
@@ -223,14 +223,14 @@ def run() -> None:
          cost("they-knew-the-ground") == 1
          and any(e["timing"] == "play"
                  for e in cards["they-knew-the-ground"]["effects"])
-         and has("they-knew-the-ground", "Choose one friendly formation",
+         and has("they-knew-the-ground", "Choose a friendly formation",
                  "+1 Strength", "may Move", "Seer"),
          "A support spell changes the Front even if no Move is legal")
 
     case("B4: sacrifice releases a persistent position",
          cost("re-form-the-line") == 0
-         and has("re-form-the-line", "Captains",
-                 "discard one friendly Force", "attached Bond and Name",
+         and has("re-form-the-line", "Captain",
+                 "discard one friendly Force", "Bond and Name",
                  "regain 2 Command")
          and "That position becomes empty" in rulebook,
          "Withdrawal discards entire formation and vacates its slot")
@@ -360,7 +360,7 @@ def run() -> None:
          row("the-field-train") == ["middle"]
          and cost("the-field-train") == 2
          and has("the-field-train", "adjacent active Front",
-                 "directly ahead", "becomes Named",
+                 "directly ahead", "makes it Named",
                  "+2 Strength this Battle")
          and cards["the-field-train"]["effects"][0]["timing"] == "play",
          "Cross-Front delivery yields +2 only when completing Named")
@@ -424,21 +424,21 @@ def run() -> None:
 
     case("P4: Ground Held covers a tie or one-point deficit only",
          cost("the-ground-was-held") == 1
-         and has("the-ground-was-held", "Named Formation", "none opposite",
-                 "tied", "losing by 1", "+2 Strength")
+         and has("the-ground-was-held", "Named Formation", "only you",
+                 "on a tie", "behind by 1", "+2 Strength")
          and "would lose by exactly 1 Strength" in rulebook,
          "Only initial provisional result qualifies, no reaction to other reveals")
 
     case("P4: Scout Stratagem gives Guarded after looking",
          cost("the-scouts-had-warned-them") == 1
          and has("the-scouts-had-warned-them", "Scout or Seer",
-                 "look at it", "Guarded"),
+                 "look at that Stratagem", "Guarded"),
          "Hidden information has direct protective payoff when a plan is set")
 
     case("P4: scouting Narrative turns intelligence into Strength",
          used_once("before-sunset-the-ford-would-be-ours")
          and has("before-sunset-the-ford-would-be-ours",
-                 "adjacent active Front", "Scout or Ship",
+                 "adjacent to a Front", "Scout or Ship",
                  "look at it", "+2 Strength"),
          "Adjacent plan can matter without a second paid ACTION")
 
@@ -464,7 +464,7 @@ def run() -> None:
          and len(cards["no-road-was-too-long"]["effects"]) == 1
          and cards["no-road-was-too-long"]["effects"][0]["timing"] == "play"
          and has("no-road-was-too-long", "two adjacent active Fronts",
-                 "rank for rank", "if both placements remain legal",
+                 "rank for rank", "if legal",
                  "Named Formation", "+2 Strength")
          and "cannot be made partially" in rulebook,
          "Wild exchange no longer consumes a second Action or breaks rank rules")
@@ -503,7 +503,7 @@ def run() -> None:
     case("P4: baited displacement applies Depleted only if moved",
          cost("the-line-was-baited") == 0
          and has("the-line-was-baited", "Skirmisher",
-                 "Frontline or Middle", "If it moved",
+                 "Frontline or Middle", "If it moves",
                  "Depleted"),
          "Zero-Command disruption has a meaningful legal-position dependency")
 
