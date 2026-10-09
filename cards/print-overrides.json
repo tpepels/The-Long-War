@@ -1144,5 +1144,106 @@
       "old_text": "Move Kael up to two positions.",
       "text": "Move this formation up to two adjacent legal positions."
     }
+  ],
+  "hero_mode_costs": [
+    {
+      "id": "avaros-the-bronze-king",
+      "force_cost": 5,
+      "name_cost": 4,
+      "force_ability_premium": 1,
+      "force_rationale": "5 Strength plus strong two-unit PLAY buff and King access",
+      "name_rationale": "King Name immediately regains 2 Command and offers a once-per-Battle classification-wide Strength bonus",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "kael-the-roadless",
+      "force_cost": 3,
+      "name_cost": 2,
+      "force_ability_premium": 0,
+      "force_rationale": "3-Strength Scout with once-per-Battle two-step Move (Action required)",
+      "name_rationale": "Name brings information from a hidden plan and a paid once-per-Battle second peek",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "rovan-the-gatebreaker",
+      "force_cost": 5,
+      "name_cost": 3,
+      "force_ability_premium": 1,
+      "force_rationale": "5-Strength Raider with PLAY tax/hand-return attack on prepared layers",
+      "name_rationale": "Name suppresses an attached effect on completion and can impose a one-use local Tax",
+      "previous_command_cost": 4
+    },
+    {
+      "id": "alda-keeper-of-the-ford",
+      "force_cost": 4,
+      "name_cost": 3,
+      "force_ability_premium": 1,
+      "force_rationale": "3-Strength Guard with continuous Tactic-cost screening for its rank",
+      "name_rationale": "Name removes harmful markers when completed and redirects one hostile Tactic when eligible",
+      "previous_command_cost": 2
+    },
+    {
+      "id": "tovan-the-quartermaster",
+      "force_cost": 3,
+      "name_cost": 4,
+      "force_ability_premium": 1,
+      "force_rationale": "2-Strength Steward draws 2 and discards 1 when played",
+      "name_rationale": "Name regains 2 Command and provides persistent global Bond/Name price reductions",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "nara-builder-of-walls",
+      "force_cost": 4,
+      "name_cost": 3,
+      "force_ability_premium": 1,
+      "force_rationale": "3-Strength Force attaches a prepared layer immediately",
+      "name_rationale": "Name recovers a discarded Bond and attaches prepared layers once per Battle",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "neris-the-ferryman",
+      "force_cost": 4,
+      "name_cost": 2,
+      "force_ability_premium": 1,
+      "force_rationale": "4-Strength Rider with a free-Command once-per-Battle Move Action",
+      "name_rationale": "Name repositions an ally on completion and has a once-per-Battle Move Action",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "veyra-keeper-of-oaths",
+      "force_cost": 4,
+      "name_cost": 2,
+      "force_ability_premium": 1,
+      "force_rationale": "4-Strength Force clears a harmful marker on entry",
+      "name_rationale": "Name protects itself from suppression and makes opposing targeted Tactics cost more",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "yara-the-chronicler",
+      "force_cost": 4,
+      "name_cost": 3,
+      "force_ability_premium": 1,
+      "force_rationale": "3-Strength Seer offers strong on-PLAY top-three deck selection",
+      "name_rationale": "Name recovers a Narrative on completion and filters cards when you play Narratives",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "serai-queen-of-crows",
+      "force_cost": 4,
+      "name_cost": 3,
+      "force_ability_premium": 1,
+      "force_rationale": "4-Strength King/Archer with a Bonded +1 Strength condition",
+      "name_rationale": "Name temporarily buffs friendly Archers and weakens opponents with a paid ACTION",
+      "previous_command_cost": 3
+    },
+    {
+      "id": "doros-the-last-spear",
+      "force_cost": 5,
+      "name_cost": 2,
+      "force_ability_premium": 1,
+      "force_rationale": "5-Strength Force gains a persistent +1 when Bonded and Frontline",
+      "name_rationale": "Name regains 1 Command and passively prevents hostile Tactic Strength reduction",
+      "previous_command_cost": 3
+    }
   ]
 }
