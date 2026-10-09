@@ -184,17 +184,12 @@ cdef int ordered_actions_into(
     cdef object tmp_key=None
     cdef bint have_turn_control=False
 
-    n = _fe_legal_actions_into(engine, state, &actions[0])
+    n = _sg_legal_actions(engine, state, &actions[0])
     if n <= 0:
         return 0
 
     for i in range(n):
-        scores[i] = evaluator.action_order_score_fast(
-            state,
-            actor,
-            actions[i],
-            order_scratch,
-        )
+        scores[i] = _sg_order_score(evaluator, state, actor, actions[i], order_scratch)
 
     # Beam membership is determined only by the heuristic policy. A
     # transposition-table preferred move may improve traversal order, but it
@@ -209,8 +204,8 @@ cdef int ordered_actions_into(
                 pass
             elif scores[j] == tmp_score:
                 if tmp_key is None:
-                    tmp_key = _fe_action_key(engine, tmp_action)
-                if _fe_action_key(engine, actions[j]) <= tmp_key:
+                    tmp_key = _sg_action_id(engine, tmp_action)
+                if _sg_action_id(engine, actions[j]) <= tmp_key:
                     break
             else:
                 break
@@ -223,15 +218,15 @@ cdef int ordered_actions_into(
     selected_n = n if n <= width else width
     for i in range(selected_n):
         selected[i] = actions[i]
-        kind = action_kind(actions[i])
-        if kind == TYPE_PASS or kind == TYPE_END_TURN:
+        kind = _sg_action_kind(actions[i])
+        if _sg_priority_action(actions[i]):
             have_turn_control = True
 
     if selected_n < n:
         for i in range(selected_n, n):
-            kind = action_kind(actions[i])
+            kind = _sg_action_kind(actions[i])
             if (
-                (kind == TYPE_PASS or kind == TYPE_END_TURN)
+                (_sg_priority_action(actions[i]))
                 and not have_turn_control
             ):
                 selected[selected_n] = actions[i]
@@ -286,13 +281,13 @@ cdef double native_alphabeta(
         budget.timed_out = True
         raise NativeSearchLimit()
 
-    if state.phase == PHASE_COMPLETE or (
+    if _sg_terminal(state) or (
         depth <= 0
-        and not _fe_forced_substep_pending(state)
+        and not _sg_forced_substep(state)
     ):
-        return evaluator.strategic_evaluate_fast(state, root_player)
+        return _sg_strategic_value(evaluator, state, root_player)
 
-    key = _fe_state_hash_fast(engine, state)
+    key = _sg_state_hash(engine, state)
     if table is not None and table.probe(
         key,
         root_player,
@@ -304,7 +299,7 @@ cdef double native_alphabeta(
     ):
         return cached_value
 
-    actor = state.active_player
+    actor = _sg_actor(state)
     order_scratch = <FastState>scratch[level * 2]
     child = <FastState>scratch[level * 2 + 1]
     n = ordered_actions_into(
@@ -318,18 +313,18 @@ cdef double native_alphabeta(
         order_scratch,
     )
     if n <= 0:
-        return evaluator.strategic_evaluate_fast(state, root_player)
+        return _sg_strategic_value(evaluator, state, root_player)
 
     maximizing = actor == root_player
     value = -1.0e300 if maximizing else 1.0e300
 
     for i in range(n):
         child.copy_from_fast(state)
-        kind = action_kind(actions[i])
-        turn_serial = state.turn_number
-        actions_before = state.actions_this_turn
-        _fe_apply_fast(engine, child, actions[i])
-        turn_completed = _fe_transition_completed_turn(
+        kind = _sg_action_kind(actions[i])
+        turn_serial = _sg_turn_serial(state)
+        actions_before = _sg_actions_in_turn(state)
+        _sg_apply(engine, child, actions[i])
+        turn_completed = _sg_completed_turn(
             engine, child, turn_serial, actions_before, kind
         )
         child_depth = depth - (1 if turn_completed else 0)
