@@ -143,11 +143,11 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, it may Maneuver without being Named.",
-          "exposed": "May Maneuver without being Named"
+          "text": "During Opening Orders, when this formation Maneuvers, you may Move it one additional adjacent legal position.",
+          "exposed": "Opening Maneuver: +1 Move"
         }
       ],
-      "design_note": "Exposed Bond mobility."
+      "design_note": "Public 1C Bond: extend a chosen Opening Maneuver, not a free extra order or another ordinary Maneuver."
     },
     {
       "id": "watched-the-skies-for",
@@ -287,10 +287,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "When your opponent sets a Stratagem here and you have a Scout or Seer here, look at that Stratagem. Give one friendly Force here Guarded."
+          "text": "When Opening Orders are revealed, if you have a Scout or Seer here, you may change the destination of one of your Opening Maneuvers starting here."
         }
       ],
-      "design_note": "Foreknowledge now creates actual protective counterplay; requires a Scout/Seer and a newly set plan."
+      "design_note": "Hidden 1C counterplanning: reveal once before resolving orders; change destination only, not the maneuvering formation or number of orders."
     },
     {
       "id": "the-battle-had-chosen-them",
@@ -1092,6 +1092,16 @@
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+    },
+    {
+      "id": "every-bow-was-strung",
+      "effects": [
+        {
+          "timing": "continuous",
+          "text": "During Opening Orders, one of your Bonded Archers chosen for Strike may target an opposing Middle Force instead of Rear."
+        }
+      ],
+      "design_note": "Proactive 1C Archer Narrative: one alternate target for an already declared Opening Strike; no bonus Attack or passive Strength."
     }
   ],
   "once_per_battle_text_fixes": [],
