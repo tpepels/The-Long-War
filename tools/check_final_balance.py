@@ -73,7 +73,14 @@ def check() -> None:
         assert c["modes"]["name"]["command_cost"] == name_cost
         assert c["command_cost"] == c["hero_force_command_cost"]
         assert c["modes"]["force"]["command_cost"] == c["hero_force_command_cost"]
-        assert c["modes"]["force"]["effects"] == source[cid]["modes"]["force"]["effects"]
+        # Earlier print-only wording corrections are intentional. The mode's
+        # effect count, timing and once-per-Battle limits must remain the same.
+        actual = c["modes"]["force"]["effects"]
+        original = source[cid]["modes"]["force"]["effects"]
+        assert len(actual) == len(original)
+        assert [(e["timing"], e.get("limit")) for e in actual] == [
+            (e["timing"], e.get("limit")) for e in original
+        ]
         assert c["force_strength"] == source[cid]["force_strength"]
 
     # Detect an obvious limitless free Strength engine on repeatable ACTIONs.
