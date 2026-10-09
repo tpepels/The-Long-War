@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "scope": "131 print-only identities; prospective tabletop probes, not measured observations",
+  "goal": "For each focus card, demonstrate a real choice, payoff net of Command and Actions, and legal counterplay. A failed probe is a reason to consider replacement, not automated proof of uselessness.",
+  "focus": [
+    {
+      "id": "all-banners-forward",
+      "opportunity": "An opposing King/Captain Force is active with another opposing formation in the same Front; one is named.",
+      "comparison": "Compare its Shaken and −1 splash to They Let Them Through's single-formation ACTION/Name shutdown at the same 1C.",
+      "failure_signal": "If the new effect still never wins a different trade from They Let Them Through, redesign it."
+    },
+    {
+      "id": "the-ilyri",
+      "opportunity": "You have an exposed high-value Frontline Force and an empty Middle. Play Ilyri in Middle, then swap the friendly Forces and Guard the displaced Force.",
+      "comparison": "Compare to putting Ilyri in Frontline normally and to spending 3C on a 3-Strength Force.",
+      "failure_signal": "If swap never changes a result or protection, the 2-Strength premium has no payoff."
+    },
+    {
+      "id": "the-field-train",
+      "opportunity": "A prepared Name is in an adjacent active Front and your Middle Field Train can complete the Force directly ahead.",
+      "comparison": "Compare the 3C/PLAY timing with spending the Action on a normal layer in the target Front.",
+      "failure_signal": "If preparation plus Field Train takes more Actions without a Front swing or future option, flag logistics tempo."
+    },
+    {
+      "id": "the-relief-column",
+      "opportunity": "An Exhausted Named Force in Frontline would change an upcoming Front by a legal Maneuver, and the Relief Column is directly behind.",
+      "comparison": "Compare the enabling support at 3C/3 Strength with an ordinary new Force or a defensive Order.",
+      "failure_signal": "If the enabled Maneuver never beats adding immediate Strength, flag narrow passive."
+    },
+    {
+      "id": "the-signal-company",
+      "opportunity": "An Unnamed healthy Frontline Force has a tactically winning Maneuver if enabled by the Middle Signal Company.",
+      "comparison": "Compare its 3C/2 Strength and setup with attaching a Bond and Name or an Order movement.",
+      "failure_signal": "If the shortcut is more expensive than completing Name or movement does not matter, flag."
+    },
+    {
+      "id": "the-house-of-reed",
+      "opportunity": "Two prepared components can be attached to Forces in the same Front, one of which becomes Named.",
+      "comparison": "Count cost and Actions of preparing, playing House, and its attachment ACTION versus normal attachment.",
+      "failure_signal": "If extra Actions and 4C cannot produce earlier or stronger Named completion, flag."
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "opportunity": "A Force directly ahead is Shaken before Front resolution and the Middle/Rear Healer can clear it.",
+      "comparison": "Compare spending an ACTION to remove the condition versus playing a +Strength card and retaining tempo.",
+      "failure_signal": "If its healing ACTION is repeatedly weaker, the 3-Strength body alone may not justify it."
+    },
+    {
+      "id": "the-banner-singers",
+      "opportunity": "A Named Middle Banner Singers faces an opponent holding a Tactic that targets another friendly formation here.",
+      "comparison": "Compare 3C/three-layer setup with the same turn spent adding a higher Strength Force.",
+      "failure_signal": "If +1 hostile cost never prevents or changes a Tactic choice, the effect is decoration."
+    },
+    {
+      "id": "the-lantern-scouts",
+      "opportunity": "An opponent sets a face-down plan in the same Front while Scouts are in Middle or Rear.",
+      "comparison": "Compare peek plus filter with a planned Attack or unconditional card selection, counting when a useful decision follows.",
+      "failure_signal": "If no new decision is enabled after reading the plan, the reaction is ineffective."
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "opportunity": "An opponent has a relevant hidden plan before your scouting ACTION; you can change the next card played based on the reveal.",
+      "comparison": "Compare extra ACTION spent inspecting/filtering with playing your best available card immediately.",
+      "failure_signal": "If the peek never changes a next action, the information is too passive."
+    },
+    {
+      "id": "the-black-company",
+      "opportunity": "An opposing Exhausted Named formation contains a worthwhile attachment and Black Pursuers has 1C available.",
+      "comparison": "Compare its separate 1C ACTION with a normal Skirmisher Attack or hostile Tactic.",
+      "failure_signal": "If attachment removal does not change the Front or future Battle despite setup, flag."
+    },
+    {
+      "id": "the-river-raiders",
+      "opportunity": "A Rear opposing Bond/Name is exposed behind an empty opposing Frontline; this Force can act for 1C.",
+      "comparison": "Compare 4C Force plus 1C ACTION to Seven Black Ships immediate PLAY return.",
+      "failure_signal": "If the extra ACTION never creates repeat value, it is outcompeted by the Ship."
+    },
+    {
+      "id": "before-sunset-the-ford-would-be-ours",
+      "opportunity": "A Scout or Ship observes a newly set enemy Stratagem in the same or an adjacent Front.",
+      "comparison": "Compare a +2 Strength reaction with playing an immediate 1C support card this Battle.",
+      "failure_signal": "If no Stratagem appears or the +2 cannot affect a contested Front, the Narrative is unplayable value."
+    },
+    {
+      "id": "the-scouts-had-warned-them",
+      "opportunity": "Both players contest a Front with Scout/Seer and opponent sets a hidden Stratagem there.",
+      "comparison": "Compare 1C + hidden-plan ACTION for Guarded versus a standalone Guarded Bond.",
+      "failure_signal": "If Guarded is too late or never prevents an affliction, lower priority or redesign."
+    },
+    {
+      "id": "the-ground-was-held",
+      "opportunity": "At resolution, only your side has Named Formation and your Front is tied or losing by exactly 1.",
+      "comparison": "Compare its 1C resolution swing to saving the hidden-plan action for a Force/Name earlier.",
+      "failure_signal": "If only late rare board states work, treat as a specialist rather than automatic keeper."
+    },
+    {
+      "id": "the-late-banner",
+      "opportunity": "A Bonded Late Banner can attach a 2–4C Name, and there is still a contested Front to decide.",
+      "comparison": "Compare total Command/Actions saved against a 3-Strength baseline Captain.",
+      "failure_signal": "If discount affects no Name before Battle closes, record setup failure."
+    },
+    {
+      "id": "the-red-shields",
+      "opportunity": "An opposing Tactic can target your Frontline Red Shields while both players have Command choices.",
+      "comparison": "Compare the 1C Tactic tax against a normal 4C Guard body's Strength and screening.",
+      "failure_signal": "If opponent simply chooses other targets without cost, this may still be useful; record diversion."
+    },
+    {
+      "id": "the-serekh",
+      "opportunity": "Your Frontline Serekh directly protects a Middle formation from hostile Tactics.",
+      "comparison": "Compare 3C/3 Strength shield with just adding a stronger Frontline Guard.",
+      "failure_signal": "If the tax never influences targeting, assess whether its Guard class is enough."
+    },
+    {
+      "id": "the-old-guard",
+      "opportunity": "A threatened Rear Force needs Archer screening but friendly Middle Guard is Shaken.",
+      "comparison": "Compare the unconditional Middle screening exception with an ordinary Middle Guard.",
+      "failure_signal": "If Shaken screening rarely matters, note it as niche defensive rather than useless."
+    },
+    {
+      "id": "the-grey-riders",
+      "opportunity": "An Unnamed or Exhausted Rider can shift across adjacent active Fronts to create or close a flank.",
+      "comparison": "Compare one Command Maneuver with an equivalent Named Rider or newly played Force.",
+      "failure_signal": "If there is never space and no score/attack effect, reconsider the mobility premium."
+    },
+    {
+      "id": "the-dust-riders",
+      "opportunity": "A Bonded but Unnamed Rider/Skirmisher has an adjacent Front with a legal better position.",
+      "comparison": "Compare one-Command Maneuver to completing a Name before moving.",
+      "failure_signal": "If the Bond-only permission does not save an Action or Command, flag."
+    },
+    {
+      "id": "the-vardai",
+      "opportunity": "A Force in a congested Front needs a non-Maneuver Move even though it is Unnamed.",
+      "comparison": "Compare paying 1C plus an ACTION with normal Maneuver when Named and regular deployment.",
+      "failure_signal": "If Action and Command outweigh position improvement, measure as weak."
+    },
+    {
+      "id": "marched-with",
+      "opportunity": "A Bond completes a Formation in a contested Front and its +1 this Battle would flip the Front.",
+      "comparison": "Compare 1C Bond's permanent Strength plus temporary bonus against other 1C Bonds.",
+      "failure_signal": "If the one-turn bonus does not alter result, it still enables Named; record that separately."
+    },
+    {
+      "id": "iria",
+      "opportunity": "The top three deck cards vary sharply in usefulness over the next turns.",
+      "comparison": "Compare 1C Name +1 Strength with reordered draws versus an immediate card-filtering Name.",
+      "failure_signal": "If no follow-up draw timing matters, the ordering ability contributes little."
+    },
+    {
+      "id": "elian",
+      "opportunity": "A Force becomes Named with Elian and can move into a location that creates a Rider Attack or flank.",
+      "comparison": "Compare free completion Move with spending a separate Maneuver ACTION and 1C.",
+      "failure_signal": "If the same position could be used by choosing deployment earlier, count only the real saved Action."
+    },
+    {
+      "id": "sela",
+      "opportunity": "A Shaken/Exhausted named Rider needs row movement and can still Maneuver due to Sela.",
+      "comparison": "Compare two movement permissions with free deployment and normal Maneuver restrictions.",
+      "failure_signal": "If rank change is never worthwhile, investigate narrow movement rather than price."
+    },
+    {
+      "id": "neris-the-ferryman",
+      "opportunity": "Choose Neris as Force or Name when a friendly formation needs a Move to open a flank or protect a support rank.",
+      "comparison": "Compare role cost and later ACTION against one ordinary Maneuver or Order.",
+      "failure_signal": "If one mode always dominates the other, log the exact alternatives."
+    },
+    {
+      "id": "they-let-them-through",
+      "opportunity": "An opposing Named ACTION formation could activate in a contested Front.",
+      "comparison": "Compare the 1C suppression + Name Strength loss against All Banners Forward's Shaken/second target.",
+      "failure_signal": "If target has no usable ACTION and no Name, record whether another Tactic was clearly better."
+    },
+    {
+      "id": "the-lines-held",
+      "opportunity": "A Frontline is empty, a legal Middle formation exists, and +2 turns a close final result.",
+      "comparison": "Compare hidden plan 1C/Action to playing an immediate Frontline Force ahead of resolution.",
+      "failure_signal": "If the plan routinely accomplishes no more than one extra Force, inspect flexibility."
+    },
+    {
+      "id": "the-flank-was-refused",
+      "opportunity": "An active outer Front has a Guard, Archer or Stronghold and faces a close result.",
+      "comparison": "Compare +2 for a 1C hidden-plan Action against regular Strength with no outer-Front gate.",
+      "failure_signal": "If outer Front cannot matter by activation timing, adjust deck and timing."
+    },
+    {
+      "id": "the-battle-turned-east",
+      "opportunity": "A Rider moves after plan is set; the extra step permits a new flank or avoids a counterattack.",
+      "comparison": "Compare plan set +1C with two ordinary Maneuvers and with no plan.",
+      "failure_signal": "If the extra step is illegal or redundant, record failure."
+    },
+    {
+      "id": "the-long-march",
+      "opportunity": "At least two Riders have legal winning Maneuvers before resolution.",
+      "comparison": "Compare 2C Narrative plus moves/Actions with ordinary 1C Maneuvers and permanent strengthening.",
+      "failure_signal": "If players never Maneuver after playing it, static +Strength alone may not justify."
+    },
+    {
+      "id": "no-road-was-too-long",
+      "opportunity": "Two adjacent active Fronts each have movable Formations with all rank placements legal.",
+      "comparison": "Compare one Action/3C front-column exchange and +2 to individual Moves across several turns.",
+      "failure_signal": "If a legal beneficial exchange cannot be staged, the card is effectively dormant."
+    },
+    {
+      "id": "watched-the-skies-for",
+      "opportunity": "One poor card in hand can be scheduled behind a high-value topdeck in a future draw sequence.",
+      "comparison": "Compare 1C Bond with normal discard-two-to-draw-one and Sorin's filtering.",
+      "failure_signal": "If topdeck cycling never changes decisions, count only its Named-enabling role."
+    },
+    {
+      "id": "carried-messages-for",
+      "opportunity": "A Captain/Scout and attached Bond share a Front before a crucial draw.",
+      "comparison": "Compare 1C zero-Strength Bond's filter with a normal +1-Strength Bond.",
+      "failure_signal": "If filtering never beats lost Strength, flag."
+    },
+    {
+      "id": "the-scouts-found-the-gap",
+      "opportunity": "An opposing hidden plan in or adjacent to your Scout's Front is strategically relevant.",
+      "comparison": "Compare paying 1C + a Tactic Action to force a reveal/re-set choice against playing direct Strength.",
+      "failure_signal": "If opponent always pays 1C and no decision changes, estimate whether tax pays."
+    },
+    {
+      "id": "they-knew-the-ground",
+      "opportunity": "A Seer supports Named formations in current or adjacent Front and one moved Force can contest a Front.",
+      "comparison": "Compare temporary +1 plus movement and conditional multi-Front Strength to a 1C Bond or another Narrative.",
+      "failure_signal": "If Seer synergy never activates, assess the standalone PLAY ability."
+    },
+    {
+      "id": "the-line-was-baited",
+      "opportunity": "Your Skirmisher can move an opposing Frontline/Middle Force into a legal Rear slot.",
+      "comparison": "Compare 0C Tactic Action with They Had Gone Too Far's 1C fallback Shaken.",
+      "failure_signal": "If Rear is always full, the 0C card may be dead despite free Command."
+    },
+    {
+      "id": "supplied-by",
+      "opportunity": "A prepared Name/Bond can attach to the Force directly ahead as this Bond is played.",
+      "comparison": "Compare extra prep Action and 0-Strength Bond with ordinary direct attachment.",
+      "failure_signal": "If the preparation shortcut does not save time or grant a Named completion, flag."
+    },
+    {
+      "id": "stayed-behind-for",
+      "opportunity": "A prepared Name is in the same Front as an unNamed Force and this Bond can complete it.",
+      "comparison": "Compare 0-Strength Bond + immediate attachment with a normal +1 Bond and an ordinary Name play.",
+      "failure_signal": "If it requires more setup than saved Actions, it is redundant."
+    },
+    {
+      "id": "supported-by",
+      "opportunity": "A Bonded Middle formation can tax enemy Tactics targeting a valuable friendly Rear unit.",
+      "comparison": "Compare 0-Strength defensive Bond with a +1-Strength Bond and a Guard screen.",
+      "failure_signal": "If tax has no practical deterrent, identify better trigger."
+    },
+    {
+      "id": "carried-the-oath-of",
+      "opportunity": "An attached Name's continuous or ACTION effect would be suppressed by a legal opposing Tactic.",
+      "comparison": "Compare protection of Name text with a +Strength Bond and simply replaying the effect next Battle.",
+      "failure_signal": "If the opponent lacks suppression, the Bond's 1 Strength is its entire floor."
+    },
+    {
+      "id": "the-aradai",
+      "opportunity": "A plain 3-Strength Raider can use its basic Raider Attack after the opposing Frontline becomes empty.",
+      "comparison": "Compare its 3C body against a similarly priced Skirmisher and a raw-strength Force.",
+      "failure_signal": "If the Raider classification cannot find targets, inspect deck opening-line tools."
+    },
+    {
+      "id": "tovan-the-quartermaster",
+      "opportunity": "Tovan is attached as a Name early enough to discount multiple later Bonds and Names.",
+      "comparison": "Count actual Command saved and extra Actions vs 4C Name cost, and compare playing as 3C Force.",
+      "failure_signal": "If discount cannot repay its cost before Command recovery declines, price again."
+    }
+  ]
+}
