@@ -153,3 +153,9 @@ def test_card_with_index_above_signed_byte_range_survives_native_transition(data
     assert action in engine.legal_actions(state)
     engine.apply(state, action)
     assert state.slot(0, Position(Front.FIRST, Rank.FRONT)).force == late_force
+
+
+def test_paper_narrative_capacity_matches_native_storage() -> None:
+    assert GameRules.standard().ongoing_narrative_limit == 4
+    with pytest.raises(ValueError, match="native Narrative capacity"):
+        GameRules.standard().with_overrides(ongoing_narrative_limit=5)
