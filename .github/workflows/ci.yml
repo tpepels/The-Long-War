@@ -115,6 +115,8 @@ jobs:
         run: python tools/check_post_incursion_economy.py
       - name: Audit all non-Force battlefield roles and card exceptions
         run: python tools/check_nonforce_battlefield_roles.py
+      - name: Verify two simultaneous Opening Orders and strength-margin loss
+        run: python tools/check_two_opening_orders.py
       - name: Check combo deck lists (advisory)
         run: python tools/check_physical_combo_decks.py
       - name: Smoke-check inline card icons (advisory)
