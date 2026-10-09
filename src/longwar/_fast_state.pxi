@@ -1,15 +1,17 @@
 cdef class FastState:
-    cdef int8_t deck[PLAYER_COUNT][MAX_DECK]
+    # Canonical catalogue exceeds signed byte card IDs; stored identities
+    # use signed 16-bit values so -1 remains the absence sentinel.
+    cdef int16_t deck[PLAYER_COUNT][MAX_DECK]
     cdef uint16_t deck_len[PLAYER_COUNT]
     cdef uint8_t deck_counts[PLAYER_COUNT][MAX_CARDS]
     cdef uint8_t hand[PLAYER_COUNT][MAX_CARDS]
     cdef uint8_t hand_len[PLAYER_COUNT]
-    cdef int8_t discard[PLAYER_COUNT][MAX_DECK]
+    cdef int16_t discard[PLAYER_COUNT][MAX_DECK]
     cdef uint16_t discard_len[PLAYER_COUNT]
 
-    cdef int8_t force[SLOT_COUNT]
-    cdef int8_t bond[SLOT_COUNT]
-    cdef int8_t name[SLOT_COUNT]
+    cdef int16_t force[SLOT_COUNT]
+    cdef int16_t bond[SLOT_COUNT]
+    cdef int16_t name[SLOT_COUNT]
     cdef uint8_t exhausted[SLOT_COUNT]
     cdef int16_t temporary[SLOT_COUNT]
     cdef uint8_t negative_one_markers[SLOT_COUNT]
@@ -23,13 +25,13 @@ cdef class FastState:
     cdef uint8_t maneuver_count[SLOT_COUNT]
     cdef uint8_t maneuvered_in_operation[SLOT_COUNT]
 
-    cdef int8_t narrative[NARRATIVE_COUNT]
+    cdef int16_t narrative[NARRATIVE_COUNT]
     cdef uint8_t narrative_front_mask[NARRATIVE_COUNT]
     cdef int8_t narrative_target_slot[NARRATIVE_COUNT]
     cdef uint8_t narrative_used[NARRATIVE_COUNT]
     cdef uint8_t narrative_direction[NARRATIVE_COUNT]
     cdef uint8_t narrative_trigger_mask[NARRATIVE_COUNT]
-    cdef int8_t stratagem[PLAYER_COUNT]
+    cdef int16_t stratagem[PLAYER_COUNT]
     cdef uint8_t stratagem_revealed[PLAYER_COUNT]
     cdef uint8_t stratagem_known_to_mask[PLAYER_COUNT]
     cdef uint8_t stratagem_front_mask[PLAYER_COUNT]
@@ -42,7 +44,7 @@ cdef class FastState:
 
     cdef int8_t constraint_kind[MAX_CONSTRAINTS]
     cdef int8_t constraint_player[MAX_CONSTRAINTS]
-    cdef int8_t constraint_source_card[MAX_CONSTRAINTS]
+    cdef int16_t constraint_source_card[MAX_CONSTRAINTS]
     cdef int8_t constraint_source_owner[MAX_CONSTRAINTS]
     cdef int8_t constraint_front[MAX_CONSTRAINTS]
     cdef int8_t constraint_direction[MAX_CONSTRAINTS]
@@ -115,8 +117,8 @@ cdef class FastState:
 
     cdef int8_t pending_kind[MAX_PENDING_EFFECTS]
     cdef int8_t pending_player[MAX_PENDING_EFFECTS]
-    cdef int8_t pending_card[MAX_PENDING_EFFECTS]
-    cdef int8_t pending_command_source[MAX_PENDING_EFFECTS]
+    cdef int16_t pending_card[MAX_PENDING_EFFECTS]
+    cdef int16_t pending_command_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_source[MAX_PENDING_EFFECTS]
     cdef int8_t pending_aux[MAX_PENDING_EFFECTS]
     cdef uint32_t pending_source_mask[MAX_PENDING_EFFECTS]
@@ -126,7 +128,7 @@ cdef class FastState:
     cdef uint8_t pending_resume
     cdef int8_t pending_resume_player
     cdef uint8_t free_maneuver_available[PLAYER_COUNT]
-    cdef int8_t free_maneuver_source[PLAYER_COUNT]
+    cdef int16_t free_maneuver_source[PLAYER_COUNT]
 
     cdef uint8_t resolution_stage
     cdef uint8_t resolution_lost_mask[PLAYER_COUNT]
