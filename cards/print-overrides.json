@@ -1051,11 +1051,6 @@
   ],
   "cost_adjustments": [
     {
-      "id": "the-black-company",
-      "command_cost": 4,
-      "reason": "4C body plus 1C Action made attachment raid unattractive."
-    },
-    {
       "id": "all-banners-forward",
       "command_cost": 1,
       "reason": "Stops only printed ACTION abilities on a King/Captain for current Battle."
