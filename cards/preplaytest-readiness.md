@@ -162,3 +162,15 @@ removes every temporary negative marker from *another* Force in its Front and
 gives it Guarded. These have useful, testable outcomes in more common
 positions, but their comparative strength is still an **unmeasured playtest
 question**. The focused opportunity cases were rewritten accordingly.
+
+## Tactical breakthrough correction
+
+The physical pool now uses a **normal Raider Attack with an Incursion
+Strength check** (no mission marker or extra phase), an **Archer basic Attack
+that Shakes**, and **one selected Force per lost Front** for next-Battle
+Exhaustion. An unused Attack may follow movement only when its card says so.
+Eight existing Forces have short replacement effects; the 131 identities,
+all Strength/cost values and deck contents stay fixed. The primary design job
+of every Force is inventoried in [tactical-force-roles.json](tactical-force-roles.json).
+`tools/check_tactical_battlefeel.py` tests the main contracts.
+This remains a static gate, not evidence of match balance.
