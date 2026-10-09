@@ -203,9 +203,9 @@ These are **physical tabletop scripts**, not results of automated matches.
 ### Hidden protection: Tactic or Attack, never both
 
 Player A sets **No Step Back** at Front 2. Player B declares a legal Archer
-Attack that would Exhaust A's Rear Force there. A may reveal the plan
-**before** applying Exhausted. The Attack is still spent; the Exhaustion
-is prevented and the plan is discarded. Repeat with a Tactic targeting that
+Attack that would Shake A's Rear Force there. A may reveal the plan
+**before** applying Shaken. The Attack is still spent; the Shaken
+affliction is prevented and the plan is discarded. Repeat with a Tactic targeting that
 formation: the plan can instead ignore that Tactic's effect on the formation.
 It cannot be revealed twice or cancel unrelated effects on another Front.
 
