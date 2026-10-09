@@ -484,12 +484,13 @@ only whether an effect's printed text could execute.
 
 ## Two secret Opening Orders and full Strength-margin losses
 
-**Battle I timing:** Both players play one normal turn (first player,
-then second), placing any legal Forces normally. If nobody has Passed,
-both secretly write **two numbered Opening Orders**. Reveal all four
-together; continue with the first player's second turn. If a Pass
-already began the closing sequence, skip Opening Orders entirely.
-Battle II onward uses the same two orders **before its first turn**.
+**Identical timing in every Battle, including Battle I:** Players
+take normal turns and may deploy Forces. Someone eventually **Passes**.
+The opponent takes one full closing turn, then the passer takes one full
+closing turn. **Only then** both secretly write **two numbered Opening
+Orders**. Reveal all four together; resolve the orders, then reveal
+eligible Stratagems and score the Fronts. There is no special early
+deployment turn or opening window before the Pass.
 
 1. **Double Commit:** A has a Force with 5 Strength in Front 2.
    A secretly records **Commit Front 2 twice**. Reveal; pay 2 Command,
