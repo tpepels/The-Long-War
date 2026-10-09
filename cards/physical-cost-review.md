@@ -16,8 +16,7 @@ attachment bonuses and board restrictions.
 
 The current report on [simple Strength, combo decisions, and snowball
 variants](strength-combos-snowball-review.md) makes **no win-rate claim**.
-The proposed rule limiting lost-Front Exhaustion to one Force per losing
-Front has **not** been applied to current cards or the rulebook. Printed
+The approved rule limiting lost-Front Exhaustion to **one chosen Force per losing Front** is now in the physical rulebook; Guarded on the chosen Force may prevent it. Printed
 costs and Strength for the original core four below are retained as
 historical phase snapshots; the supplementary lists and current lists
 are recorded in [playtest-decks.md](playtest-decks.md).
@@ -154,7 +153,7 @@ The base native/Webgame data remains unchanged.
    Shaken (−2) from one 2-Command card. *The Crows Came Down* also can
    stack those penalties across two Actions. These **−3 Strength**
    swings are intentionally flagged for possible over-efficiency.
-3. Compare a lost Front with three exhausted defenders against a protected
+3. Compare a lost Front with one chosen exhausted defender against a protected
    Front with three defenders, repeating across Battles II–IV. Record
    comeback rates rather than assuming Phase 2 is balanced.
 4. Test House of Reed's double attachment, Field Train's +2 completion,
