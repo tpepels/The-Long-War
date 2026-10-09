@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "scope": "physical-print-forces-only",
+  "formula": "1 + ceil(printed Strength / 2) + ability premium",
+  "premium_scale": "0 for modest odd-Strength utility or no ability; 1 for significant specialist or even-Strength ability, including basic Guard screening where it materially differentiates 6 Strength",
+  "policies": [
+    "Preserve all printed abilities, classifications, and placement limits.",
+    "The core Force function has a fixed 1 Command base cost.",
+    "The rounded-up odd-Strength half point supports a modest utility effect; a stronger effect may require +1.",
+    "Even-Strength special abilities are normally assessed +1, including meaningful class-native screening.",
+    "Keep Bond, Name, Hero, Tactic, Stratagem, Narrative and Order costs unchanged.",
+    "Treat these as first-pass physical prices, not measured win-rate balance."
+  ],
+  "forces": [
+    {
+      "id": "the-fifty-men",
+      "premium": 0,
+      "rationale": "Plain 5-Strength body; no printed ability. Base cost only."
+    },
+    {
+      "id": "seven-black-ships",
+      "premium": 1,
+      "rationale": "Raider that removes an attached layer when the opposing Frontline is empty."
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "premium": 1,
+      "rationale": "Healer can clear a condition from the forward formation."
+    },
+    {
+      "id": "the-red-shields",
+      "premium": 1,
+      "rationale": "Guard with persistent Tactic tax when placed in Frontline."
+    },
+    {
+      "id": "the-crow-archers",
+      "premium": 1,
+      "rationale": "Archer gains Empowered and a conditional Middle-rank Attack target."
+    },
+    {
+      "id": "the-house-of-reed",
+      "premium": 1,
+      "rationale": "Prepared-layer attachment engine can complete Named and grant Guarded."
+    },
+    {
+      "id": "the-grey-riders",
+      "premium": 1,
+      "rationale": "Two ongoing Maneuver permissions, including while Exhausted."
+    },
+    {
+      "id": "the-dust-riders",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers the conditional Bonded mobility."
+    },
+    {
+      "id": "the-black-company",
+      "premium": 1,
+      "rationale": "Skirmisher can raid an attached layer on an Exhausted target (paid ACTION)."
+    },
+    {
+      "id": "the-red-duelists",
+      "premium": 1,
+      "rationale": "Frontline-only Shaken on PLAY can shift a Front by two Strength."
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "premium": 1,
+      "rationale": "Rear Archer gives persistent Strength to other friendly Archers."
+    },
+    {
+      "id": "the-iron-boars",
+      "premium": 1,
+      "rationale": "High-Strength Raider can Deplete an unguarded Middle/Rear target."
+    },
+    {
+      "id": "the-first-spear",
+      "premium": 1,
+      "rationale": "Frontline Guard grants Guarded to a supporting Force on PLAY."
+    },
+    {
+      "id": "the-old-guard",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers narrow Middle screening despite Shaken."
+    },
+    {
+      "id": "the-unnamed-host",
+      "premium": 1,
+      "rationale": "Raider transfers Command when an opposing Force is Exhausted."
+    },
+    {
+      "id": "the-late-banner",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers Name discount only while Bonded."
+    },
+    {
+      "id": "the-banner-singers",
+      "premium": 1,
+      "rationale": "Named Middle Captain continuously taxes enemy Tactics against allies."
+    },
+    {
+      "id": "thirty-spears",
+      "premium": 0,
+      "rationale": "Basic 3-Strength body without printed ability."
+    },
+    {
+      "id": "a-hundred-shields",
+      "premium": 1,
+      "rationale": "High-Strength Guard retains Guard-class basic Rear screening; avoids strictly dominating The Fifty Men at equal cost."
+    },
+    {
+      "id": "the-vardai",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers paid repositioning ACTION."
+    },
+    {
+      "id": "the-aradai",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers basic Raider Attack; no printed text."
+    },
+    {
+      "id": "the-ilyri",
+      "premium": 1,
+      "rationale": "Free on-PLAY movement of a low-Strength Skirmisher."
+    },
+    {
+      "id": "the-damar",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers one conditional allied Frontline Move."
+    },
+    {
+      "id": "the-serekh",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers narrow Frontline Tactic tax on ally behind."
+    },
+    {
+      "id": "the-relief-column",
+      "premium": 1,
+      "rationale": "Persistent forward movement support while Exhausted."
+    },
+    {
+      "id": "the-field-train",
+      "premium": 1,
+      "rationale": "Prepared-layer attachment and +2 completion Strength on PLAY."
+    },
+    {
+      "id": "the-signal-company",
+      "premium": 1,
+      "rationale": "Captain/Scout supplies ongoing no-Name Maneuver permission to Force ahead."
+    },
+    {
+      "id": "the-ash-bowmen",
+      "premium": 1,
+      "rationale": "Skirmisher can force an opposing Frontline unit toward Rear."
+    },
+    {
+      "id": "the-lantern-scouts",
+      "premium": 1,
+      "rationale": "Repeatable hidden-plan inspection and hand filter while positioned."
+    },
+    {
+      "id": "the-river-raiders",
+      "premium": 1,
+      "rationale": "Raider can remove an attachment after Frontline opens, through paid ACTION."
+    },
+    {
+      "id": "the-kings-spears",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers a conditional row exchange on PLAY."
+    },
+    {
+      "id": "the-salt-road-fleet",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers one-position friendly Rear Move."
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "premium": 0,
+      "rationale": "Odd-Strength budget covers the paid once-per-Battle reconnaissance ACTION."
+    }
+  ]
+}
