@@ -138,11 +138,13 @@ def main() -> None:
             assert after[card_id]["text"] == before[card_id]["text"], card_id
 
     # Verify representative counterplay and cost changes, not just text counts.
-    # Phase 1: retain the intentional plain-text baseline, including its
-    # print-only Strength change; Oren retains its per-Battle usage marker.
+    # Odd Strength must earn its rounded-up half-point by conditional value
+    # or a documented discount (Thirty Spears).
     assert after["the-fifty-men"]["strength"] == 5
-    assert not after["the-fifty-men"]["effects"]
-    assert after["the-fifty-men"]["text"] == "No special rules."
+    assert after["the-fifty-men"]["command_cost"] == 4
+    assert "+1 Strength this Battle" in after["the-fifty-men"]["text"]
+    assert "Frontline" in after["the-aradai"]["text"]
+    assert after["the-damar"]["command_cost"] == 4
     assert after["stood-fast-with"]["effects"][0]["exposed"]
     assert after["oren"]["effects"][1]["limit"] == "once_per_battle"
     assert after["the-thornbow-hunters"]["effects"][0]["timing"] == "rear"
