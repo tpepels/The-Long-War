@@ -3,13 +3,64 @@
 > **Scope:** all **131** identities in `cards/cards.json` assembled with the **physical print** overlay `cards/print-overrides.json`. No changes to the native/Webgame engine. The old-cost column compares with the immediately preceding **print-only** pool, not the old unmodified executable card text. **These are tabletop design judgments, not measured win rates.**
 
 
+## Phases 4–5: meaningful surprises and reliable combos (9 October 2026)
+
+**Phase 4** changes **14** printed card identities, keeping the 131-card
+catalogue and all baseline combat rules. The goal is to turn conditional
+information, movement or extra Actions into a concrete Strength, defence,
+attachment or Command choice:
+
+| Cards | Consequential change | Main balancing guard |
+| --- | --- | --- |
+| No Step Back | Can cancel one eligible hostile Attack affliction, not only Tactics | Hidden 2C plan, used once, still needs legal target/trigger |
+| The Ground Was Held | Tie or initial one-point deficit can become a narrow win | Requires own Named and no opposing Named; single reveal window |
+| The Scouts Had Warned Them / Before Sunset, the Ford Would Be Ours | Seeing a newly set Stratagem grants Guarded or +2 Strength | Scout/Seer or Scout/Ship placement, actual new hostile plan |
+| The Wall Did Not Break | Guarded on PLAY plus +1 Strength to Rear supported by Middle Guards/Strongholds | 2C Narrative, requires a proper two-rank defensive line |
+| The Long March | Rider formations get temporary Strength immediately; free Maneuvers remain optional | 2C Narrative, must actually control Riders |
+| No Road Was Too Long | Full adjacent-Front exchange on PLAY, +2 to a moved Named formation | 3C, both column swaps fully legal, specific Named payoff |
+| They Knew the Ground | Immediate +1 Strength and optional Move; Seer aura strengthens nearby Named stacks | Seer and genuinely completed formations |
+| They Were Gathering There / The Muster Was False | Scout-enabled Exhaustion→Shaken / anti-attachment alternative | Requires Scout/Seer target and legal marker/layer |
+| They Had Gone Too Far / They Let Them Through / The Line Was Baited | Forced movement with Shaken or Depleted consequences; suppression also weakens Named | Class, placement, target, ACTION or Named requirements |
+| Fresh Orders | Leadership grants +1 temporary Strength before optional Move | Requires a King/Captain plus another formation |
+
+**Phase 5** rebuilds four 48-card decks with 27–29 different card identities
+and **10–14 singletons per deck**, versus 32–36 before this phase. Three
+separate coverage decks test Riders, Seers/hidden plans and Full-Front exchange.
+No new card identity or unique-copy limit is introduced.
+
+| Main deck | Copies | Distinct titles | Singletons | Printed Force Strength | Sum of printed Command |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Banner & Blood | 48 | 27 | 12 | 64 | 80 |
+| Crown of Crows | 48 | 27 | 10 | 50 | 78 |
+| Oathforge | 48 | 27 | 11 | 53 | 81 |
+| Blood & Spoils | 48 | 29 | 14 | 67 | 91 |
+
+The [current deck guide](playtest-decks.md) reports exact no-mulligan
+probabilities of having at least **one enabler and one payoff** among the first
+10 and 20 cards seen for each of 12 defined packages. These probabilities
+range from about **47% to 74%** for the first 10 cards and **87% to 98%** for
+the first 20. They do **not** include rank legality, attachment completion,
+Command, timing, opponent decisions, win rates or even the chance a combo is
+actually activated.
+
+**Balance risks needing play:** repeated 2C defensive hidden plans; a one-point
+Ground Was Held reveal; zero-Command Baited Depletion; the full-Front swap
+creating an overwhelming surprise; Rear congestion in Archer/Stronghold decks;
+Phase 2 lost-Front Exhaustion snowballing. Monitor unused Stratagems, wasted
+Narratives, card-action efficiency, actual Front-result changes, and 34-card
+versus 48-card consistency before adjusting costs.
+
+**Verification:** static physical contracts now cover **59 defined
+situations** (45 before Phase 4), plus four main combo deck and three
+diagnostic deck composition checks. These are not gameplay simulations.
+
 ## 9 October decision pass (supersedes earlier effect descriptions below)
 
 **Scope:** 12 physical-card effect revisions, a physical-only Rider Attack rank
 restriction, and a single controlled way to free a persistent position.
 The pool remains **131 identities**. This pass **did not change printed Command
 costs** or native/Webgame rules. The old four decks were subsequently replaced
-by four combo-driven decks; their **new aggregate costs appear below**. The 8 October rationale is
+by four combo-driven decks; the **current Phase 5 costs appear above**. The 8 October rationale is
 retained as historical context where effects have since changed.
 
 | Card | Revised decision and balancing guard |
@@ -35,7 +86,7 @@ attached Bond/Name and their markers, opening a persistent position. It does
 not create generic Retreat.
 
 **Verification:** `tools/check_physical_cost_balance.py` contained **27
-paper-state contracts** before the earlier revisions and now contains **45** covering the earlier 15 cases plus the 12 new
+paper-state contracts** before the earlier revisions and now contains **59** (after Phases 4–5) covering the earlier 15 cases plus the 12 new
 decisions. They remain syntax/rules assertions rather than observed gameplay.
 `tools/physical_playtest_metrics.py` accepts event logs and reports per-card
 playability, utility, triggers, actions, occupancy and deck outcomes. Use the
@@ -158,7 +209,7 @@ Costs are deliberately **not** uniformly lowered. Most revised effects keep thei
 | The Lines Held | 2 | **1** | Single Front transfer and +2 at Battle resolution needs an empty Frontline |
 | The Center Must Hold | 2 | **1** | Temporary +1 to at most two other formations needs a King/Captain |
 | The Trap Closed | 3 | **2** | Delayed two-Action raid now removes an attachment rather than +2 Strength |
-| No Road Was Too Long | 4 | **3** | Big one-time geography exchange still costs three Command and activation Action |
+| No Road Was Too Long | 4 | **3** | Historical reduction retained; Phase 4 now resolves the full-Front exchange on PLAY, no additional activation Action |
 | The King Had Given the Order | 3 | **2** | Historical cost reduction retained by Phase 1 immediate PLAY replacement |
 
 ## Effect replacements with a concrete purpose
@@ -192,10 +243,10 @@ protection, or attack-linked Strength/Command pressure.
 
 | Deck | 48 cards | Force count | Printed Force Strength | Sum of all printed Command costs |
 | --- | ---: | ---: | ---: | ---: |
-| Banner & Blood | 48 | 16 | 59 | 78 |
-| Crown of Crows | 48 | 16 | 56 | 78 |
-| Oathforge | 48 | 16 | 52 | 79 |
-| Blood & Spoils | 48 | 17 | 65 | 91 |
+| Banner & Blood | 48 | 16 | 64 | 80 |
+| Crown of Crows | 48 | 16 | 50 | 78 |
+| Oathforge | 48 | 16 | 53 | 81 |
+| Blood & Spoils | 48 | 17 | 67 | 91 |
 
 **Interpretation:** the values above are sums over all cards in a deck, not
 expenditure or expected winning Strength in a game. Blood & Spoils deliberately
@@ -206,7 +257,7 @@ rates are **unmeasured**. See [actual lists and signature combinations](playtest
 
 ## Paper-state usefulness tests
 
-The complementary executable check `python tools/check_physical_cost_balance.py` verifies **45 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
+The complementary executable check `python tools/check_physical_cost_balance.py` verifies **59 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
 
 Suggested hands-on measurements for actual sessions:
 
