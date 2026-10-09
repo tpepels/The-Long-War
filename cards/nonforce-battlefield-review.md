@@ -1,6 +1,6 @@
 # Non-Force battlefield-agency audit
 
-**9 October 2026 — printed paper game only.** This is the missing
+**Historical October 9 review — superseded by [the full 131-card Opening Orders audit](whole-pool-opening-audit.json).** This is the missing
 design-philosophy review following the Incursion and Force-price passes.
 Its purpose is **not** to check only economic coherence: the question is
 whether a card causes an actual **Attack, Maneuver, threat, interception,
@@ -37,7 +37,7 @@ choices, **not maximum rules text on every card**.
 | Bond | **Rallied Behind** | Command-behind recovery can also reposition a friendly formation |
 | Bond | **Carried Messages For** | Scout/Captain can scout a face-down enemy plan and reposition a formation |
 | Bond | **Watched the Skies For** | View a nearby opposing hidden plan before hand filtering |
-| Name | **Iria** | On Named completion, scout a nearby plan and reposition an ally |
+| Name | **Iria** | Current: redirects one declared Opening Strike after the two players reveal their orders |
 | Name | **Lysa the Listener** | Hand knowledge plus immediate Guarded protection |
 | Name | **Elian** | Paid Move with the formation's **unused** basic Attack, without another Action |
 | Hero | **Kael — Name** | On Named completion, examine opposing plans and Move |
@@ -46,8 +46,8 @@ choices, **not maximum rules text on every card**.
 | Hero | **Serai — Name** | Paid Archer repositioning instead of an ineffectual −1 Strength ACTION |
 | Tactic | **They Returned With Names** | Shake a Named Force while suppressing its Name text this Battle |
 | Stratagem | **The Lines Held** | Hidden resolution Move; the moved formation receives +2 Strength |
-| Stratagem | **The Center Must Hold** | King's/Captain's hidden reallocation of a formation with +2 Strength |
-| Stratagem | **The Flank Was Refused** | Outer-Front defender may reposition before scoring and gain +2 Strength |
+| Stratagem | **The Center Must Hold** | Current: King/Captain enables a legal same-rank exchange across adjacent Fronts |
+| Stratagem | **The Flank Was Refused** | Current: cancels the flanking penalty and adds +2 to one flanked outer Frontline Force |
 | Narrative | **They Knew the Ground** | Immediate Move and conditional Seer Guarded, not a passive cross-Front aura |
 | Narrative | **The Raiders Came Home Loaded** | Immediate Move of up to two Raiders/Skirmishers instead of repeated Tactic discounts and movement triggers |
 | Order | **Send a Runner** | Move a Rear Scout and draw a card, rather than only filtering the hand |
