@@ -215,10 +215,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if you have a King or Captain here, choose another friendly formation here. You may Move it one legal position. Give it +2 Strength this Battle."
+          "text": "At resolution, if you have a King or Captain here, swap one friendly formation here with one in an adjacent active Front in the same rank, if legal."
         }
       ],
-      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules.",
+      "design_note": "Distinct leadership-led cross-Front formation exchange after Opening Orders; no generic Move plus +2 duplicates.",
       "command_cost": 1
     },
     {
@@ -226,10 +226,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution in an outer Front, choose a friendly Archer, Guard or Stronghold here. You may Move it one legal position. It gets +2 Strength this Battle."
+          "text": "At resolution in an outer Front, a friendly flanked Frontline Force here ignores its flank penalty and gets +2 Strength this Battle."
         }
       ],
-      "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
+      "design_note": "Distinct outer-Front anti-flank defence, not another late Move and +2."
     },
     {
       "id": "the-trap-closed",
@@ -307,11 +307,11 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "This Force may Maneuver while Unnamed or Exhausted. After it Maneuvers, it may make its unused basic Rider Attack without another Action.",
-          "exposed": "May Maneuver Unnamed/Exhausted; then Rider Attack"
+          "text": "This Force may Maneuver while Exhausted. After it Maneuvers, it may make its unused basic Rider Attack without another Action.",
+          "exposed": "Exhausted Maneuver; then Rider Attack"
         }
       ],
-      "design_note": "Fast cavalry combines legal Maneuver and an unused basic Rider Attack in one Action; retains both prior mobility exceptions.",
+      "design_note": "4C premium pays for Exhausted movement and one unused Rider Attack after its Maneuver, not meaningless Unnamed access.",
       "command_cost": 4
     },
     {
@@ -415,10 +415,10 @@
         },
         {
           "timing": "continuous",
-          "text": "Your Riders may Maneuver without being Named and pay 0 Command to Maneuver this Battle."
+          "text": "Your Riders pay 0 Command for their ordinary Maneuvers this Battle."
         }
       ],
-      "design_note": "Riders gain a tangible 1–2 Strength payoff alongside optional zero-Command unnamed mobility."
+      "design_note": "2C Rider doctrine retains two on-PLAY +1 bonuses and a real Command saving on Rider Maneuvers; it no longer claims to waive a Named requirement."
     },
     {
       "id": "the-wall-did-not-break",
@@ -1102,6 +1102,28 @@
         }
       ],
       "design_note": "Proactive 1C Archer Narrative: one alternate target for an already declared Opening Strike; no bonus Attack or passive Strength."
+    },
+    {
+      "id": "the-dust-riders",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While Bonded, this formation's first Maneuver each Battle costs 0 Command.",
+          "exposed": "Bonded: first Maneuver free"
+        }
+      ],
+      "design_note": "3C odd-Strength Force keeps its conditional mobility payoff as one Command saved, not redundant Unnamed permission.",
+      "command_cost": 3
+    },
+    {
+      "id": "teren",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "If you have not set a Stratagem this Battle, set one from your hand here without another Action. Pay its Command cost."
+        }
+      ],
+      "design_note": "1C Name can save the Action of setting the player's single Stratagem, but never introduces a second Stratagem."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1114,7 +1136,7 @@
     {
       "id": "the-dust-riders",
       "index": 0,
-      "exposed": "Bonded: Maneuver without Name"
+      "exposed": "Bonded: first Maneuver free"
     },
     {
       "id": "the-late-banner",

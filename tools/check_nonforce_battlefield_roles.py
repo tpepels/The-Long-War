@@ -105,7 +105,12 @@ def run() -> None:
                 "the-flank-was-refused"):
         assert len(effects(catalogue[cid])) == 1
         assert effects(catalogue[cid])[0]["timing"] == "hidden"
-        assert has(catalogue, cid, "At resolution", "Move", "+2 Strength")
+        assert has(catalogue, cid, "At resolution")
+    assert has(catalogue, "the-lines-held", "Move", "+2 Strength")
+    assert has(catalogue, "the-center-must-hold", "swap", "King or Captain",
+               "adjacent active Front")
+    assert has(catalogue, "the-flank-was-refused", "flanked Frontline Force",
+               "ignores its flank penalty")
     assert len(effects(catalogue["they-knew-the-ground"])) == 1
     assert has(catalogue, "they-knew-the-ground", "Move", "Seer", "Guarded")
     assert len(effects(catalogue["the-raiders-came-home-loaded"])) == 1

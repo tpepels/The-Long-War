@@ -121,14 +121,14 @@
       "title": "The Grey Riders",
       "price": 4,
       "role": "rider",
-      "purpose": "Maneuver flexibly and exploit a newly reachable flanked target.",
+      "purpose": "Still Maneuvers while Exhausted and may use one unused Rider Attack after Maneuver.",
       "review": "watch",
       "order_interaction": "opening_maneuver_trigger",
-      "printed_effect_max_chars": 137,
+      "printed_effect_max_chars": 126,
       "in_test_decks": [
         "rider-flank-lab"
       ],
-      "watch_reason": "Opening Maneuver can trigger the printed unused Rider Attack for free; a later Strike with that Force must fail.",
+      "watch_reason": "Card-granted Move plus unused Rider Attack became easier to use now any Force may initiate an ordinary Maneuver.",
       "printed_strength": 3
     },
     {
@@ -137,10 +137,10 @@
       "title": "The Dust Riders",
       "price": 3,
       "role": "rider",
-      "purpose": "Choose Rider or Skirmisher pressure while Bonded.",
+      "purpose": "Bonded first Maneuver saves one Command this Battle; any Force can already initiate Maneuver.",
       "review": "coherent_on_paper",
       "order_interaction": "ordinary_turn_maneuver",
-      "printed_effect_max_chars": 63,
+      "printed_effect_max_chars": 74,
       "in_test_decks": [
         "rider-flank-lab"
       ],
@@ -791,10 +791,10 @@
       "title": "Teren",
       "price": 1,
       "role": "logistics",
-      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "purpose": "BecOMES NAMED saves an Action on the player's one permitted Stratagem set this Battle.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 99,
+      "printed_effect_max_chars": 118,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -1333,15 +1333,15 @@
       "title": "The Center Must Hold",
       "price": 1,
       "role": "maneuver",
-      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "purpose": "Late King/Captain same-rank cross-Front friendly swap, not a second Move-plus-2.",
       "review": "watch",
       "order_interaction": "front_resolution",
-      "printed_effect_max_chars": 159,
+      "printed_effect_max_chars": 148,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge"
       ],
-      "watch_reason": "Leader-gated version of late Move/+2, partially overlapping with Lines Held."
+      "watch_reason": "The late adjacent-Front formation swap must be legal and change at least one Front result to repay the Stratagem slot."
     },
     {
       "id": "the-flank-was-refused",
@@ -1349,14 +1349,14 @@
       "title": "The Flank Was Refused",
       "price": 1,
       "role": "maneuver",
-      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
+      "purpose": "At resolution an outer flanked Frontline Force ignores the flank penalty and gets +2.",
       "review": "watch",
       "order_interaction": "front_resolution",
-      "printed_effect_max_chars": 153,
+      "printed_effect_max_chars": 132,
       "in_test_decks": [
         "rider-flank-lab"
       ],
-      "watch_reason": "Outer-Front class-gated version of late Move/+2, partially overlapping with Lines Held."
+      "watch_reason": "A live flanked Frontline in an outer Front is a specific setup; monitor dead reveals."
     },
     {
       "id": "the-trap-closed",
@@ -1425,14 +1425,14 @@
       "title": "The Long March",
       "price": 2,
       "role": "maneuver",
-      "purpose": "Global free Rider Maneuvers can overshadow class-specific movement cards.",
+      "purpose": "Riders get +1 Strength on PLAY and pay no Command for their ordinary Maneuvers this Battle.",
       "review": "watch",
       "order_interaction": "ordinary_turn_maneuver",
       "printed_effect_max_chars": 95,
       "in_test_decks": [
         "rider-flank-lab"
       ],
-      "watch_reason": "Global free Rider Maneuvers can overshadow class-specific movement cards."
+      "watch_reason": "Repeated free Rider Maneuvers may still overshadow single-use movement cards, though Action costs remain."
     },
     {
       "id": "the-wall-did-not-break",

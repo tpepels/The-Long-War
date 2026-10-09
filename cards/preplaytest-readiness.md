@@ -229,3 +229,7 @@ They replace existing effects, not cards: the pool stays at 131,
 and the six standard and four diagnostic deck compositions remain
 intact. The full audit and Stratagem timing table are at
 [full-card-coherence-audit.md](full-card-coherence-audit.md).
+
+## 131-card follow-up: less Maneuver/Stratagem overhead
+
+Ordinary **Maneuver is available to Named and Unnamed formations** for one Action and 1 Command (Exhaustion still blocks initiation). The **single Stratagem limit now counts all set methods**, including Teren, rather than only cards from hand; a revealed or returned plan does not restore it. We kept the three PR #149 Opening Order card replacements and their existing decks. Dust Riders, Grey Riders, The Long March, and Teren were revalued by replacing redundant permissions or tightening conditions without adjusting their printed Command costs. The two late Move/+2 Stratagem duplicates were differentiated into a cross-Front leadership swap and outer-Front anti-flank protection. Audit source: [full-card-coherence-audit.json](full-card-coherence-audit.json), with physical scenarios above.

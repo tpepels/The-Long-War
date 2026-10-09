@@ -8,7 +8,7 @@
 >
 # Non-Force battlefield-agency audit
 
-**9 October 2026 — printed paper game only.** This is the missing
+**Historical 9 October review — superseded for current printed card text by [the complete 131-card audit](full-card-coherence-audit.md).** This is the missing
 design-philosophy review following the Incursion and Force-price passes.
 Its purpose is **not** to check only economic coherence: the question is
 whether a card causes an actual **Attack, Maneuver, threat, interception,
@@ -54,8 +54,8 @@ choices, **not maximum rules text on every card**.
 | Hero | **Serai — Name** | Paid Archer repositioning instead of an ineffectual −1 Strength ACTION |
 | Tactic | **They Returned With Names** | Shake a Named Force while suppressing its Name text this Battle |
 | Stratagem | **The Lines Held** | Hidden resolution Move; the moved formation receives +2 Strength |
-| Stratagem | **The Center Must Hold** | King's/Captain's hidden reallocation of a formation with +2 Strength |
-| Stratagem | **The Flank Was Refused** | Outer-Front defender may reposition before scoring and gain +2 Strength |
+| Stratagem | **The Center Must Hold** | Current: late King/Captain same-rank exchange across adjacent active Fronts |
+| Stratagem | **The Flank Was Refused** | Current: remove the outer Frontline flanking penalty and add +2 Strength |
 | Narrative | **They Knew the Ground** | Immediate Move and conditional Seer Guarded, not a passive cross-Front aura |
 | Narrative | **The Raiders Came Home Loaded** | Immediate Move of up to two Raiders/Skirmishers instead of repeated Tactic discounts and movement triggers |
 | Order | **Send a Runner** | Move a Rear Scout and draw a card, rather than only filtering the hand |
