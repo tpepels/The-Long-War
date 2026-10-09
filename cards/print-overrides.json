@@ -44,7 +44,7 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "While in the Middle row, this Force screens the friendly Rear Force from basic Archer Attacks even while Shaken, but not while Depleted.",
+          "text": "While in Middle, this Force screens the friendly Rear Force from basic Archer Attacks even while Shaken, but not while Depleted.",
           "exposed": "Screens Rear even if Shaken; not Depleted"
         }
       ],
@@ -167,7 +167,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if your Frontline is empty, Move one friendly Middle formation into it, if legal. It gets +2 Strength this Battle."
+          "text": "At resolution, if your Frontline is empty, Move one friendly Middle formation into it, if legal. Give that formation +2 Strength this Battle."
         }
       ],
       "design_note": "One-time +2 and row transfer at resolution has a real setup and hidden-plan Action cost. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
@@ -187,7 +187,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, with a Named Formation here and none opposite, reveal if tied or losing by 1 Strength. If tied, win only if still tied after other reveals; if losing by 1, give one Named Formation here +2 Strength this Battle."
+          "text": "At resolution, if you have a Named Formation here and your opponent has none, reveal if tied or behind by exactly 1 Strength. If tied, win if still tied after other reveals. If behind by 1, give one of your Named Formations here +2 Strength this Battle."
         }
       ],
       "design_note": "Close Fronts matter, including a one-point loss. Eligibility is checked only once against the pre-reveal totals."
@@ -197,7 +197,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "When an opposing Tactic targets your formation here, ignore its effects on that formation. Or, when an opposing Attack would give your Force here an affliction, prevent that affliction."
+          "text": "When an opposing Tactic targets your formation here, ignore its effect on that formation. Alternatively, prevent one affliction from an opposing Attack on your Force here."
         }
       ],
       "design_note": "Wider defensive trap: protects against one hostile Tactic or an Attack affliction in the assigned Front, not both. The reveal consumes the one plan."
@@ -207,7 +207,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, if you have a King or Captain, up to two other friendly formations get +1 Strength this Battle."
+          "text": "At resolution, if you have a King or Captain here, give up to two other friendly formations here +1 Strength this Battle."
         }
       ],
       "design_note": "2 temporary Strength on two other formations still requires a King/Captain and a set Stratagem Action. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged.",
@@ -218,7 +218,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, in an outer Front, one friendly Archer, Guard or Stronghold formation gets +2 Strength this Battle."
+          "text": "At resolution, if this is an outer Front, give one friendly Archer, Guard or Stronghold formation here +2 Strength this Battle."
         }
       ],
       "design_note": "Assigned-Front Stratagem phrasing. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
@@ -228,7 +228,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "After your Raider or Skirmisher gives an opposing Force a negative marker, return an attached Bond or Name on that Force to its owner's hand."
+          "text": "After your Raider or Skirmisher gives an opposing Force here a negative marker, return one of that Force's attached Bonds or Names to its owner's hand."
         }
       ],
       "design_note": "2C positional ambush replaces transient +2 with attachment disruption after actual pressure. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged.",
@@ -249,7 +249,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "When one of your formations becomes Named, either Move it up to two adjacent legal empty positions or return an opposing attached Bond to hand."
+          "text": "When your formation here becomes Named, either Move it up to two adjacent legal empty positions or return an opposing attached Bond here to its owner's hand."
         }
       ],
       "design_note": "Named completion creates either a repositioning or an attachment-raid threat. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
@@ -269,7 +269,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "After an opposing Force Attacks, one of your Archers that has not Attacked may make a legal basic Archer Attack for free. Mark its Attack used."
+          "text": "After an opposing Force Attacks here, one of your Archers here that has not Attacked may make a legal basic Archer Attack for free. Mark its Attack used."
         }
       ],
       "design_note": "A triggered counterattack instead of a temporary Strength bonus. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
@@ -279,7 +279,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "When your opponent sets a Stratagem here while you have a Scout or Seer, look at it, then give one friendly Force here Guarded."
+          "text": "When your opponent sets a Stratagem here and you have a Scout or Seer here, look at that Stratagem. Give one friendly Force here Guarded."
         }
       ],
       "design_note": "Foreknowledge now creates actual protective counterplay; requires a Scout/Seer and a newly set plan."
@@ -289,7 +289,7 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "Every friendly Hero formation or Named Formation gets +1 Strength this Battle. A formation that qualifies as both gets this bonus only once."
+          "text": "Each friendly Hero or Named Formation gets +1 Strength this Battle, once per formation even if it qualifies as both."
         }
       ],
       "design_note": "One application per formation, other card effects still stack."
@@ -373,7 +373,7 @@
         },
         {
           "timing": "action",
-          "text": "Choose an opposing Exhausted Force in a Front containing one of your Archers. Give it Shaken.",
+          "text": "Choose an opposing Exhausted Force in a Front containing your Archer. Give it Shaken.",
           "limit": "once_per_battle"
         }
       ],
@@ -384,7 +384,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose one friendly formation. Give it +1 Strength this Battle; you may Move it one legal orthogonally adjacent position."
+          "text": "Choose a friendly formation. Give it +1 Strength this Battle. You may Move it one legal orthogonally adjacent position."
         },
         {
           "timing": "continuous",
@@ -402,7 +402,7 @@
         },
         {
           "timing": "continuous",
-          "text": "When you play a Tactic targeting a card or formation in a Front with your Raider or Skirmisher, it costs 1 less Command (minimum 0). Afterward, you may Move one of your Raiders or Skirmishers there one legal position."
+          "text": "When you play a Tactic targeting a card or formation in a Front containing your Raider or Skirmisher, it costs 1 less Command (minimum 0). Afterward, you may Move one of your Raiders or Skirmishers there one legal position."
         }
       ],
       "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
@@ -473,7 +473,7 @@
       "effects": [
         {
           "timing": "rear",
-          "text": "While this formation is in Rear, other friendly Archer formations in this Front get +1 Strength.",
+          "text": "While in Rear, other friendly Archer formations in this Front get +1 Strength.",
           "exposed": "REAR · Other Archers in this Front +1 Strength"
         }
       ],
@@ -531,7 +531,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Attach a prepared Bond or Name here or in an adjacent active Front to the friendly formation directly ahead, if legal. If it becomes Named, give it +2 Strength this Battle."
+          "text": "Attach a prepared Bond or Name from this or an adjacent active Front to the friendly formation directly ahead, if legal. If this completes a Named Formation, it gets +2 Strength this Battle."
         }
       ],
       "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
@@ -595,7 +595,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Exchange the attached Bonds of two friendly Bonded Formations in any active Fronts. Each of those formations that is Named after the exchange gets +1 Strength this Battle."
+          "text": "Exchange the Bonds of two friendly Bonded Formations in any active Fronts. Give each that remains Named afterward +1 Strength this Battle."
         }
       ],
       "design_note": "One Action and 2 Command for an immediate formation exchange and up to two temporary Strength; no repeatable two-Action setup."
@@ -609,7 +609,7 @@
         },
         {
           "timing": "action",
-          "text": "Attach up to two prepared Bonds or Names to friendly formations in this Front, one at a time. Each formation made Named this way gains Guarded.",
+          "text": "Attach up to two prepared Bonds or Names to friendly formations in this Front, one at a time. Give Guarded to each formation that becomes Named this way.",
           "limit": "once_per_battle",
           "exposed": "ACTION · 1/B: attach up to 2 prepared; newly Named Guarded"
         }
@@ -693,7 +693,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Return an opposing prepared Bond or Name to its owner's hand. Alternatively, in a Front containing your Scout or Seer, return an opposing attached Bond there to its owner's hand."
+          "text": "Return an opposing prepared Bond or Name to its owner's hand. Alternatively, return an opposing attached Bond in a Front containing your Scout or Seer to its owner's hand."
         }
       ],
       "design_note": "Preparation punish remains, but Scouts/Seers can also sabotage a completed formation."
@@ -703,7 +703,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Frontline or Middle formation in a Front with your Scout or Skirmisher. Move it one row toward Rear if legal and empty; otherwise give its Force Shaken."
+          "text": "Choose an opposing Frontline or Middle Force in a Front containing your Scout or Skirmisher. Move it one row toward Rear, if legal and empty. Otherwise, give it Shaken."
         }
       ],
       "design_note": "A positional dilemma: an eligible opponent yields space or takes −2 and loses Guard screening, but only under Scout/Skirmisher pressure."
@@ -713,7 +713,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing formation. It cannot use printed ACTION abilities this Battle. If it is Named, its Name contributes no Strength this Battle."
+          "text": "Choose an opposing formation. Its ACTION abilities cannot be used this Battle. If Named, its Name contributes no Strength this Battle."
         }
       ],
       "design_note": "Suppresses ACTION abilities but remains useful against Named stacks through lost Name modifier."
@@ -723,7 +723,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Frontline or Middle Force in a Front with your Skirmisher. Move it one row toward Rear if legal and empty. If it moved, give it Depleted."
+          "text": "Choose an opposing Frontline or Middle Force in a Front containing your Skirmisher. Move it one row toward Rear, if legal and empty. If it moves, give it Depleted."
         }
       ],
       "design_note": "Requires a real legal displacement to apply Depleted (−1 and disabled formation ACTIONs), giving the 0C Tactic a tactical payoff with counterplay."
