@@ -64,10 +64,16 @@
       "failure_signal": "If permanent deployment plus this cheap Strength multiplier dominates counterattacks, reconsider the bonus or prerequisites."
     },
     {
+      "id": "had-been-ordered-forward",
+      "opportunity": "A Bonded formation could profitably traverse two legal adjacent steps during one of the two simultaneously chosen Opening Maneuvers.",
+      "comparison": "Compare a 1C 0-Strength Bond for two-step movement with one normal one-step Opening Maneuver and a separate +1 Strength Bond.",
+      "failure_signal": "If the extra step cannot change Front totals, flanking or Attack legality, the zero-Strength Bond was overvalued."
+    },
+    {
       "id": "iria",
-      "opportunity": "A formation becomes Named with Iria while an opposing Stratagem is set and a local legal Move could change which Front is threatened.",
-      "comparison": "Compare the 1C Name's peek plus friendly Move with a regular Maneuver on that Named Formation and a 1C scouting-only Name.",
-      "failure_signal": "If peeking never changes the intended Move, record the positional effect separately from the information payoff."
+      "opportunity": "Iria is attached to a Named Formation when two secret Opening Orders are revealed, including one of your Strikes targeting this Front.",
+      "comparison": "Compare the ability to redirect that already-chosen Strike after seeing opposing orders with leaving its original target and with a dedicated face-down Stratagem.",
+      "failure_signal": "If opponents almost never change Strike targets after reveal, Iria remains a straightforward 1C +1-Strength Name rather than meaningful intrigue."
     },
     {
       "id": "kael-the-roadless",
@@ -221,9 +227,9 @@
     },
     {
       "id": "the-center-must-hold",
-      "opportunity": "A King or Captain supports a Front with another friendly formation that could shift ranks or neighboring active Fronts during resolution.",
-      "comparison": "Compare the 1C hidden plan's commanded Move and +2 with the broader 2C Every Banner Turned Toward Them mass Strength reward.",
-      "failure_signal": "If moving at the simultaneous window produces unclear eligibility or dominates both neighboring Fronts, narrow the effect."
+      "opportunity": "A King or Captain occupies an assigned Front and one friendly formation can legally exchange with another friendly formation across an adjacent active Front in the same rank.",
+      "comparison": "Compare the hidden two-Front formation exchange after Opening Orders with a single Opening Maneuver and the wider leadership Strength Stratagem.",
+      "failure_signal": "If legal exchanges are too rare after troops deploy, reconsider the 1C + Action cost rather than giving another generic +2 bonus."
     },
     {
       "id": "the-crows-came-down",
@@ -239,9 +245,9 @@
     },
     {
       "id": "the-dust-riders",
-      "opportunity": "A Bonded but Unnamed Rider/Skirmisher has an adjacent Front with a legal better position.",
-      "comparison": "Compare one-Command Maneuver to completing a Name before moving.",
-      "failure_signal": "If the Bond-only permission does not save an Action or Command, flag."
+      "opportunity": "A Bonded Dust Riders formation makes its first ordinary Maneuver of a Battle, with enough Command to spend on another useful card.",
+      "comparison": "Compare saving the first 1 Command with a normal 3C Rider and another Force ability that opens an unused Rider Attack.",
+      "failure_signal": "If the Command saving never changes an affordable next Action or score, the 3C odd-Strength ability is mostly flavor."
     },
     {
       "id": "the-field-train",
@@ -257,15 +263,15 @@
     },
     {
       "id": "the-flank-was-refused",
-      "opportunity": "An outer Front is active with a Guard, Archer or Stronghold that could Move before scoring and change local or adjacent Front results.",
-      "comparison": "Compare the 1C secret reposition-and-+2 with a simple +2 defence that leaves the formation fixed and the Rider flank unchanged.",
-      "failure_signal": "If the outer-Front timing gate produces no legal meaningful Move, note the dead setup rather than calling the card useful."
+      "opportunity": "An outer active Front contains a friendly flanked Frontline Force at final resolution, after Opening Orders may have changed which Fronts are exposed.",
+      "comparison": "Compare a one-use 1C hidden counterflank that ignores the penalty and adds +2 Strength to a generic Commit costing 1C and an Opening Order.",
+      "failure_signal": "If the prerequisite is almost never met, the defensive Stratagem has a dead reveal rather than unique counterplay."
     },
     {
       "id": "the-grey-riders",
-      "opportunity": "An Unnamed or Exhausted Grey Rider Maneuvers across an active Front boundary, causing an opposing Frontline to become flanked and eligible for its basic Rider Attack.",
-      "comparison": "Compare Grey Riders' single paid Maneuver plus unused Rider Attack with an ordinary Named Rider's two separate Actions and permanent Strength deployment.",
-      "failure_signal": "If new legal Rider targets rarely appear, the expensive combined tempo does not earn its 4C printed price."
+      "opportunity": "A Grey Riders formation Maneuvers while Exhausted or toward a newly legal flanked Frontline Rider target and still has an unused Attack.",
+      "comparison": "Compare the 4C combined Maneuver-plus-unused-Attack with a separately paid ordinary Maneuver and normal Attack by a 3C Rider.",
+      "failure_signal": "If free Rider Attacks never become legal, the retained 1C premium over the 3C Force tariff is questionable."
     },
     {
       "id": "the-ground-was-held",
@@ -317,9 +323,9 @@
     },
     {
       "id": "the-long-march",
-      "opportunity": "At least two Riders have legal winning Maneuvers before resolution.",
-      "comparison": "Compare 2C Narrative plus moves/Actions with ordinary 1C Maneuvers and permanent strengthening.",
-      "failure_signal": "If players never Maneuver after playing it, static +Strength alone may not justify."
+      "opportunity": "Two different Riders can legally change rows or Fronts during the post-Pass Opening Orders and the 2C Narrative is already face-up.",
+      "comparison": "Compare moving two Riders with one opening order and a temporary Strength boost against choosing two separate Maneuver orders without paying the Narrative.",
+      "failure_signal": "If only one Rider can move usefully, the double-Maneuver effect fails and players should weigh the +1 Strength benefit against another card."
     },
     {
       "id": "the-old-guard",
