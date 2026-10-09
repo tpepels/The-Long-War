@@ -418,7 +418,7 @@ def run() -> None:
     case("P4: defensive Stratagem answers Tactic or Attack affliction",
          cost("no-step-back") == 2
          and has("no-step-back", "Tactic", "ignore", "Attack",
-                 "prevent that affliction")
+                 "prevent one affliction")
          and "reveal before applying that affliction" in rulebook,
          "No Step Back provides actual combat prevention, not only Tactic immunity")
 
