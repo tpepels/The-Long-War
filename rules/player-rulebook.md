@@ -93,11 +93,11 @@ Classifications come from the **Force and attached Name together**. They determi
 
 ## Maneuver and card movement {#maneuver}
 
-A **Named Formation** may Maneuver for **one Action and 1 Command**: move one step forward/back in its Front or left/right to an active adjacent Front in the same row. No diagonals.
+**Any formation**, Named or Unnamed, may Maneuver for **one Action and 1 Command**: move one step forward/back in its Front or left/right to an active adjacent Front in the same row. No diagonals.
 
 Move the complete formation and its markers. It can enter a position without a Force and attach compatible prepared layers. It may instead **swap** with a friendly formation if both positions remain legal; only the initiator must qualify. An **Exhausted** Force cannot initiate a normal Maneuver unless a card permits it, but can be swapped by another formation.
 
-Printed **Move** and **swap** effects are different from Maneuver: they do not require a Name, usually cost no Maneuver Command, and can move Exhausted Forces. Follow their stated range and targets. A two-step Move takes two legal adjacent steps, never jumping over an occupied or inactive position. A free *Maneuver* remains a Maneuver with its normal restrictions.
+Printed **Move** and **swap** effects are different from Maneuver: they usually cost no Maneuver Command, and can move Exhausted Forces. Follow their stated range and targets. A two-step Move takes two legal adjacent steps, never jumping over an occupied or inactive position. A free *Maneuver* remains a Maneuver with its normal restrictions.
 
 **Empty** means no Force (prepared layers may be present); **completely empty** means no cards. A movement cannot duplicate layers, violate a row restriction or enter an inactive Front.
 
@@ -146,7 +146,7 @@ Boons do not stack with themselves. Guarded stops one affliction, not a sequence
 
 **Narratives** stay face-up **until Battle end**. You can have at most **4** in play. Resolve PLAY immediately; CONTINUOUS and ACTION abilities work while present. Playing an ACTION later costs its own Action.
 
-**Stratagems** are hidden plans. Play at most **one from hand per Battle**, face-down beside a publicly chosen **active Front**, for one Action and its printed cost. When their REVEAL condition occurs, you may reveal and resolve them. Unless specified otherwise, their effects refer to that Front. Each revealed Stratagem resolves once and is discarded; unrevealed ones are discarded at Battle end. Opposing reveals at the same event are simultaneous.
+**Stratagems** are hidden plans. You may **set one Stratagem total per player per Battle**, including free sets from card effects. Set it face-down beside a publicly chosen **active Front**, for one Action and its printed cost unless an ability saves that Action. Revealing or returning it does not let you set a different Stratagem that Battle. When their REVEAL condition occurs, you may reveal and resolve them. Unless specified otherwise, their effects refer to that Front. Each revealed Stratagem resolves once and is discarded; unrevealed ones are discarded at Battle end. Opposing reveals at the same event are simultaneous.
 
 **Heroes** are Unique cards played as **Force or Name**. Their Command seal has two centred prices: **Force on top, Name below**. Choose the mode when played, pay that price and use only its corresponding Strength and abilities. You may play **one Hero as Force and one as Name from hand per Battle**; Heroes remaining from earlier Battles do not use those allowances.
 
@@ -172,7 +172,7 @@ Neither closing turn may Pass. If the war continues, the player **who did not Pa
 
 After the two closing turns following the first **Pass**, but before settling the Fronts, both players secretly write **two orders**, numbered 1 and 2. You may choose the same order twice:
 
-- **Maneuver:** Maneuver one friendly formation one legal step, even if Unnamed. No Action or Command cost. An Exhausted Force still cannot initiate.
+- **Maneuver:** Maneuver one friendly formation one legal step. No Action or Command cost. An Exhausted Force still cannot initiate.
 - **Commit:** Pay **1 Command** to give **+2 Strength** to one active Front containing one of your Forces this Battle. This adds to the **Front total**, not an individual Force; it counts only while you have a Force there.
 - **Strike:** Make one legal **basic Attack** with a chosen Force against a chosen target. It uses that Force's normal once-per-Battle Attack.
 - **Hold:** Do nothing.
