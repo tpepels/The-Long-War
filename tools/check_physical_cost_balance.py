@@ -117,7 +117,7 @@ def run() -> None:
     case("B3: defence support versus Rider pressure",
          cost("the-wall-did-not-break") == cost("the-long-march") == 2
          and has("the-wall-did-not-break", "Guarded", "Rear", "+1 Strength")
-         and has("the-long-march", "Rider", "+1 Strength", "0 Command"),
+         and has("the-long-march", "Rider", "+1 Strength", "Opening Maneuver", "two different"),
          "One card protects Rear and the other boosts Riders before Maneuver")
 
     # A prepared opponent's Bond is vulnerable only after pressure connects.
@@ -132,9 +132,9 @@ def run() -> None:
     case("B3: hidden plans reposition before Front scoring",
          cost("the-center-must-hold") == 1
          and cost("the-lines-held") == 1
-         and has("the-center-must-hold", "King or Captain", "Move", "+2 Strength")
+         and has("the-center-must-hold", "King or Captain", "swap", "adjacent active Front")
          and has("the-lines-held", "Move", "If it moved", "+2 Strength"),
-         "Hidden plans can move a Force and change Front scoring without new phases")
+         "Only one Stratagem can provide a late leadership swap, unlike the free opening Move")
 
     # Taxing an opponent's next card in a Front is avoidable: the card can be
     # played in another Front or the player can choose other Actions.
@@ -180,8 +180,8 @@ def run() -> None:
          and cost("the-center-must-hold") == 1
          and has("every-banner-turned-toward-them", "adjacent active Front",
                  "three other", "Human")
-         and has("the-center-must-hold", "Move", "King or Captain"),
-         "Mass leadership across Fronts differs from one hidden Move")
+         and has("the-center-must-hold", "swap", "King or Captain"),
+         "Mass leadership across Fronts differs from one hidden same-rank adjacent swap")
 
     case("B2: Rider plan changes position, not just Strength",
          cost("the-battle-turned-east") == 1
@@ -497,7 +497,7 @@ def run() -> None:
                  and "+1 Strength" in e["text"]
                  for e in cards["the-long-march"]["effects"])
          and any(e["timing"] == "continuous" for e in cards["the-long-march"]["effects"]),
-         "Rider Strength is the payoff; movement remains a supporting option")
+         "Rider Strength has an immediate floor and its Opening Maneuver can move two different Riders")
 
     case("P4: full-Front exchange now happens in the PLAY Action",
          cost("no-road-was-too-long") == 3
