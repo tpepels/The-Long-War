@@ -10,9 +10,11 @@
       "focus": "Rider Attacks, exposed Frontline, and whether +1 Strength and forced placement reward worthwhile positioning.",
       "setup": "Deliberately form a flank in Battle II/III, test Rider Attack from Middle versus Rear, and compare Long March's +1 Strength payoff to repeated Maneuvers.",
       "observations": [
-        "Rider Attack can only start in Frontline/Middle and needs an opposing flanked Frontline target",
-        "New Rider Stratagem changes an actual Front result versus one more Force",
-        "0-Command Maneuver does not eclipse the raw Strength plan"
+        "All formations, including Unnamed Forces, may initiate a normal Maneuver for 1 Action and 1 Command unless Exhausted",
+        "Dust Riders save one Command on their first Bonded Maneuver each Battle",
+        "Grey Riders retain an Exhausted-Maneuver exception and may make one unused Rider Attack after Maneuver",
+        "The Long March waives the Command cost of Rider normal Maneuvers but not their Action",
+        "One Stratagem can be set per player per Battle; The Flank Was Refused is now outer-Front anti-flanking"
       ],
       "cards": [
         {
@@ -131,7 +133,7 @@
       "focus": "Seer and Scout classification support, hidden-plan responses, and meaningful counterplay after viewing a plan.",
       "setup": "Use a Scout or Seer with a set The Scouts Had Warned Them to redirect an Opening Maneuver after order reveal; compare pre-reveal feints, reactive prevention and the Ground Was Held tie/down-by-one condition.",
       "observations": [
-        "At least one Scout and one Seer can be deployed and completed",
+        "Only one Stratagem can be set per player per Battle; Scout/Seer reactions must earn that allowance",
         "Scouts Had Warned Them redirects one Opening Maneuver after both players reveal orders; Iria and Kael-as-Name still inspect hidden plans before their own Move effects",
         "Before Sunset has a same/adjacent Front trigger and changes Strength",
         "Ground Was Held reveals only from an eligible pre-reveal total"
@@ -256,7 +258,7 @@
         "Two prepared layers can attach without replaying PLAY or exceeding slot capacity",
         "A swapped Front retains each card's matching row and marker ownership",
         "No Road Was Too Long costs 3 Command and only one Action",
-        "Line Held reveal requires an empty friendly Frontline"
+        "Lines Held still grants final Move/+2; Center Must Hold grants a leader-led cross-Front swap"
       ],
       "cards": [
         {
