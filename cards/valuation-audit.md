@@ -1,5 +1,8 @@
 # Command-cost valuation audit
 
+> **Historical diagnostic, not current printed prices.** This model predates the 9 October 2026 Force/Hero pricing overhaul. For current 131-card physical costs and comparisons, see [the final balance audit](final-balance-audit-2026-10-09.md) and the printed overlay in `print-overrides.json`. The native/Webgame rules and costs are separate.
+
+
 This audit applies the provisional arithmetic in `value-model.md` to the **128-card baseline**. The three newer Middle-only support Forces (The Relief Column, The Field Train, and The Signal Company) are intentionally pending a fresh valuation pass. The numbers are comparative diagnostics, not automatic pricing: class synergy, topology and repeatability are too contextual for a single scalar to set final Command cost.
 
 - **IN BAND**: estimated value is within ±0.9 of the type/cost target.
