@@ -336,12 +336,20 @@ def run() -> None:
          and "duplicate markers of the same condition do not stack" in rulebook,
          "No negative front contribution; independent afflictions compound")
 
-    case("P2: weakened defeated Fronts persist exactly one subsequent Battle",
-         "Place one new Exhaustion token" in rulebook
+    case("P2: only one chosen Force suffers defeat Exhaustion per Front",
+         "losing player chooses one of their Forces in each lost Front" in rulebook
+         and "maximum one per lost Front" in rulebook
          and "persists throughout the next Battle" in rulebook
-         and "−1 Strength" in rulebook
-         and "Guarded prevents one incoming affliction at a time" in rulebook,
-         "Keep defeat penalties and prevention timing readable")
+         and "−1 Strength" in rulebook,
+         "One loss scar per Front persists one Battle, not one per Force")
+
+    case("P2: Guarded choice, empty Front and cleanup are explicit",
+         "You may choose a **Guarded** Force" in rulebook
+         and "**Do not choose another Force**" in rulebook
+         and "A lost Front with no friendly Force gives no Exhaustion" in rulebook
+         and "Clear all old Exhausted, Shaken and Depleted markers" in rulebook
+         and "Place one new Exhaustion token on each chosen, unprotected Force" in rulebook,
+         "No replacement selection or token on empty lost Front")
 
     # Phase 3: preparing a layer should be able to contribute immediately
     # without replaying old PLAY effects on eventual attachment.
