@@ -1021,7 +1021,8 @@
           "text": "If played into Frontline, give the opposing Frontline formation −1 Strength this Battle, if any."
         }
       ],
-      "design_note": "Odd 3 Strength Raider gains modest entry pressure that can open a Raider Incursion on a locally tied line."
+      "design_note": "Odd 3 Strength Raider gains modest entry pressure that can open a Raider Incursion on a locally tied line.",
+      "command_cost": 3
     },
     {
       "id": "brannoc",
@@ -1032,8 +1033,7 @@
         },
         {
           "timing": "action",
-          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.",
-          "limit": "once_per_battle"
+          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand."
         }
       ],
       "design_note": "Named-completion attachment disruption now uses the common Shaken battlefield condition, not former Archer-enabled Exhaustion; retains Brannoc's paid preparation-tax ACTION."
@@ -1121,11 +1121,6 @@
     {
       "id": "a-hundred-shields",
       "command_cost": 5,
-      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
-    },
-    {
-      "id": "the-aradai",
-      "command_cost": 3,
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     }
   ],
