@@ -76,7 +76,7 @@ def run() -> None:
         assert "Strength difference" in source or "Strength deficit" in source
         assert "Commit" in source
     assert "winning margin does not matter" not in DETAILED.lower()
-    assert "one Force in each lost Front" in DETAILED
+    assert "chooses one of their Forces in each lost Front" in DETAILED
     assert "before recovery" in SHORT
 
     # Recheck that opening Strikes do not grant unlimited normal attacks,
