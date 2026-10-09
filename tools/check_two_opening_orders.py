@@ -34,7 +34,7 @@ def run() -> None:
     # or added turn Actions.
     for source in (SHORT, DETAILED):
         assert "## Opening Orders {#opening-orders}" in source
-        opening = source.split("## Opening Orders {#opening-orders}", 1)[1].split("## Your turn {#turn}", 1)[0]
+        opening = source.split("## Opening Orders {#opening-orders}", 1)[1].split("## Resolving a Battle {#scoring}", 1)[0]
         assert "**two" in opening.lower() or "**2" in opening
         for choice in ("Maneuver", "Commit", "Strike", "Hold"):
             assert choice in opening
@@ -60,6 +60,8 @@ def run() -> None:
     assert "The same sequence applies to every Battle, including Battle I" in DETAILED
     assert "No initial deployment turn, skipped order phase, or Battle I exception" in DETAILED
     assert "after both closing turns" in DETAILED
+    assert "two closing turns following the first **Pass**" in SHORT
+    assert "after the first Pass and the **two closing turns**" in DETAILED
     assert "before the single Stratagem reveal window" in DETAILED
     assert SHORT.index("## Passing and ending a Battle") < SHORT.index("## Opening Orders") < SHORT.index("## Resolving a Battle")
     assert DETAILED.index("## Passing and ending a Battle") < DETAILED.index("## Opening Orders") < DETAILED.index("## Resolving a Battle")
