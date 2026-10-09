@@ -1112,7 +1112,8 @@
           "exposed": "Bonded: first Maneuver free"
         }
       ],
-      "design_note": "3C odd-Strength Force keeps its conditional mobility payoff as one Command saved, not redundant Unnamed permission."
+      "design_note": "3C odd-Strength Force keeps its conditional mobility payoff as one Command saved, not redundant Unnamed permission.",
+      "command_cost": 3
     },
     {
       "id": "teren",
