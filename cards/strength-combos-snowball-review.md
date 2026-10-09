@@ -61,6 +61,46 @@ If raw Strength repeatedly dominates, first strengthen **decisions and
 reliable payoffs** in the losing deck, or improve counterplay. Do not just
 inflate all costs or add another keyword without knowing the cause.
 
+## Keeping simple high-Strength Forces from dominating without Attack/Defence stats
+
+**These are noncanonical balance experiments**. We should not introduce an
+Attack and Defence number for every card before establishing whether the
+existing Strength, ranks, Guard screening, basic Attacks and named-layer
+interactions can create enough distinct strategic value.
+
+| Candidate | One-line rule or adjustment | Benefit | Main risk |
+| --- | --- | --- | --- |
+| **A — Named formation bonus** | Every completed Named Formation gets **+1 persistent Strength** while Named; test +2 separately | Rewards investing an extra Action and occupying just one position | High-Strength plain bodies may become the best chassis for Names; increases runaway persistent Strength |
+| **B — improved specialist Force abilities** | Selectively replace weak Move/peek effects with useful Guarded, Exhausted, Shaken, attached-card interaction or +Strength conditional on position | Encourages a specialist even at 2–3 less raw Strength, with meaningful counterplay | Ability text density, and some specialists may become efficient regardless of setup |
+| **C — adjust over-efficient vanilla bodies** | Test The Fifty Men at **5 Strength / 3 Command** rather than 5 / 2; leave its one-Action Strength unchanged | Reduces cost efficiency without adding a stat | Command frequently recovers early; does not address Force-play Action advantage |
+| **D — speed up assembly (experimental)** | Allow one Bond to be played together with a Force for the same Action, still paying both Command costs | Lets formations compete with extra Force plays in the first two Battles | Changes Action economy widely and may strengthen large vanilla Forces even more |
+
+**Suggested order:** First benchmark the **current** Raw Strength Control
+against the four core decks with mirrored deals. If it dominates, test
+*A at +1* and *B through targeted card changes* **separately**. Only if
+those fail should we consider a cost change or the much more disruptive
+one-Action Bond attachment. Do not apply A/B/C/D simultaneously. Pay
+attention to the fact that the biggest Force also benefits from a Named
+bonus: the goal is **meaningful strategic decisions** and worthwhile
+classifications, not simply making the largest number even larger.
+
+### One concrete Action-equivalence example
+
+Current printed cards: The Fifty Men (5 Strength, 2 Command), Followed
+(+1 Strength and another +1 when Named, 1 Command), and an eligible
++1 Name (often 1 Command). In three plays the resulting formation has
+**8 permanent Strength in one position for 4 Command**. Add candidate A:
+with +1 universal Named, it would have 9; with +2, it would have 10.
+In comparison A Hundred Shields (6 Strength, 3 Command) plus Thirty
+Spears (3 Strength, 1 Command) supplies **9 Strength in two positions
+for 4 Command and only two Actions**. Which is preferable depends on
+Front occupancy, access to Named-completion triggers, Attack screening
+and the cost of another Force in hand.
+
+This contrast is why Attack/Defence is not the first required mechanism.
+First establish whether the **third Action** spent building a Name
+produces a fair, lasting payoff or a hard tactical choice.
+
 ## The updated loss rule reduces the attrition feedback loop
 
 **Current, approved rule:** after losing a Front and paying the normal 1 Command (with Collapse checked before recovery), the losing player chooses **one Force** in that lost Front, if any, to become Exhausted for the next Battle. Exhaustion gives **−1 Strength** and restricts ordinary Maneuvers. If the chosen Force has Guarded, that Guarded prevents the Exhaustion and is consumed; the loser does not choose a substitute. A Front with no surviving Force causes no loss-based Exhaustion. Old afflictions/Boons clear before the unprevented new token is applied.
