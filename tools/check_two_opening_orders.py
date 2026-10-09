@@ -43,7 +43,7 @@ def run() -> None:
         assert "closing turns" in opening
         assert "Pass" in opening
         assert "before" in opening.lower() and "Stratagem" in opening
-        assert "Unnamed" in opening or "without a Name" in opening
+        assert "Maneuver" in opening and "no" in opening.lower()
         assert "Exhausted" in opening
         assert "once-per-Battle" in opening or "one Attack per Battle" in opening
         assert "two Commits" in opening or "Two Commits" in opening
@@ -56,6 +56,10 @@ def run() -> None:
     assert "Simultaneous Strikes check legal attackers and targets before either Strike" in DETAILED
     assert "If both Strikes use the same Force, the second cannot Attack again" in DETAILED
     assert "does **not** help a Raider" in DETAILED
+    assert "**Any formation** may initiate an ordinary **Maneuver**" in DETAILED
+    assert "**Any formation**, Named or Unnamed, may Maneuver" in SHORT
+    assert "set only one Stratagem card total per Battle" in DETAILED
+    assert "set one Stratagem total per player per Battle" in SHORT
     assert "identical in every Battle, including Battle I" in SHORT
     assert "The same sequence applies to every Battle, including Battle I" in DETAILED
     assert "No initial deployment turn, skipped order phase, or Battle I exception" in DETAILED
@@ -96,7 +100,7 @@ def run() -> None:
     assert "all valid Commit costs" in DETAILED
     assert "two Commits" in SHORT or "Two Commits" in SHORT
     assert "followed by Strikes" in SHORT
-    print("PASS: two secret Opening Orders/player, repeated types and simultaneous steps")
+    print("PASS: two secret Opening Orders/player, unrestricted formation Maneuvers, single Stratagem cap")
     print("PASS: identical post-Pass/post-closing-turn timing for every Battle; Commit and Attack limits")
     print("PASS: independent full-margin Command loss, tie=0, Collapse-before-recovery")
     print("LIMIT: tabletop balance and native AI are not verified by this static contract")
