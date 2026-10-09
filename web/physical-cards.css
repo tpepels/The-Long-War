@@ -97,6 +97,46 @@ CARD ICON SIZES — TUNING PANEL
   --icon-footer-mark-size: 3.3mm;
   --icon-command-seal-size: 12.5mm;
 
+  /*
+   * HERO COST SEAL - EDIT THESE VALUES
+   * The Force pair sits at the upper-left; Name at the lower-right.
+   * Move the PAIRS with force-left/top and name-right/bottom.
+   * Adjust individual glyphs and numbers with their own X/Y offsets.
+   * Positive X moves right; positive Y moves down. All sizes are print mm.
+   * These values change appearance only, never gameplay Command costs.
+   */
+  --hero-cost-fraction-inset: 1.5mm;
+
+  /* Force (upper-left numerator) */
+  --hero-cost-force-left: 0mm;
+  --hero-cost-force-top: 0mm;
+  --hero-cost-force-gap: 0.16mm;
+  --hero-cost-force-symbol-size: 1.9mm;
+  --hero-cost-force-symbol-x: 0mm;
+  --hero-cost-force-symbol-y: 0mm;
+  --hero-cost-force-number-size: 2.9mm;
+  --hero-cost-force-number-x: 0mm;
+  --hero-cost-force-number-y: 0mm;
+
+  /* Name (lower-right denominator) */
+  --hero-cost-name-right: 0mm;
+  --hero-cost-name-bottom: 0mm;
+  --hero-cost-name-gap: 0.16mm;
+  --hero-cost-name-symbol-size: 1.9mm;
+  --hero-cost-name-symbol-x: 0mm;
+  --hero-cost-name-symbol-y: 0mm;
+  --hero-cost-name-number-size: 2.9mm;
+  --hero-cost-name-number-x: 0mm;
+  --hero-cost-name-number-y: 0mm;
+
+  /* Diagonal dividing stroke; X/Y are percentages of the inner seal */
+  --hero-cost-slash-x: 50%;
+  --hero-cost-slash-y: 50%;
+  --hero-cost-slash-length: 6.3mm;
+  --hero-cost-slash-thickness: 0.2mm;
+  --hero-cost-slash-angle: -45deg;
+  --hero-cost-slash-opacity: 0.8;
+
   /* Once-per-Battle markers */
   --icon-used-marker-size: 2.35mm;
   --icon-hero-used-size: 2mm;
@@ -794,6 +834,15 @@ EXPOSED TOP ROW - TUNING PANEL
   max-height: 100%;
   flex: none;
 }
+/* The same per-family treatment as the decorative PNG frame applies to icon
+ * PNGs. Leave illustrations, text and SVG fallback untouched. Never filter
+ * the card element itself: doing so would tint the whole card artwork. */
+.physical-card img.glyph-png {
+  filter: sepia(var(--card-shell-sepia)) saturate(var(--card-shell-saturate))
+    grayscale(var(--card-shell-grayscale)) hue-rotate(var(--card-shell-hue))
+    brightness(var(--card-shell-brightness))
+    contrast(var(--card-shell-contrast));
+}
 /* Per-symbol visual scale: does not resize the slot or shift neighbours.
  * data-icon is supplied by CardSymbols for both SVG and PNG versions. */
 .physical-card :is(svg, img.glyph-png)[data-icon] {
@@ -1398,29 +1447,27 @@ EXPOSED TOP ROW - TUNING PANEL
   font-variant-numeric: lining-nums;
 }
 
-/* Hero Command costs use a diagonal fraction: Force/shield above-left
-   and Name/banner below-right. Reuse the existing heraldic SVG glyphs
-   rather than F/N abbreviations. Sizes are physical mm for print parity. */
+/* Hero prices stay in the Command seal only. Every element's dimensions
+   and placement can be tuned in :root, without editing these selectors.
+   Force/shield = upper-left; Name/banner = lower-right. */
 .cost-gem-hero {
   padding-bottom: 0;
 }
 .hero-cost-fraction {
   position: absolute;
-  inset: 1.5mm;
+  inset: var(--hero-cost-fraction-inset);
   display: block;
-  /* The old full-seal box put the lower-right glyph and number onto
-     the octagon border. Reserve a genuine inner content area. */
 }
 .hero-cost-fraction::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 6.3mm;
-  height: 0.2mm;
-  transform: translate(-50%, -50%) rotate(-45deg);
+  top: var(--hero-cost-slash-y);
+  left: var(--hero-cost-slash-x);
+  width: var(--hero-cost-slash-length);
+  height: var(--hero-cost-slash-thickness);
+  transform: translate(-50%, -50%) rotate(var(--hero-cost-slash-angle));
   background: currentColor;
-  opacity: 0.8;
+  opacity: var(--hero-cost-slash-opacity);
   pointer-events: none;
 }
 .hero-cost-part {
@@ -1428,25 +1475,34 @@ EXPOSED TOP ROW - TUNING PANEL
   z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: 0.16mm;
   line-height: 1;
   white-space: nowrap;
 }
 .hero-cost-force {
-  top: 0;
-  left: 0;
+  top: var(--hero-cost-force-top);
+  left: var(--hero-cost-force-left);
+  gap: var(--hero-cost-force-gap);
 }
 .hero-cost-name {
-  right: 0;
-  bottom: 0;
+  right: var(--hero-cost-name-right);
+  bottom: var(--hero-cost-name-bottom);
+  gap: var(--hero-cost-name-gap);
 }
 .hero-cost-symbol {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.9mm;
-  height: 1.9mm;
   flex: none;
+}
+.hero-cost-force .hero-cost-symbol {
+  width: var(--hero-cost-force-symbol-size);
+  height: var(--hero-cost-force-symbol-size);
+  translate: var(--hero-cost-force-symbol-x) var(--hero-cost-force-symbol-y);
+}
+.hero-cost-name .hero-cost-symbol {
+  width: var(--hero-cost-name-symbol-size);
+  height: var(--hero-cost-name-symbol-size);
+  translate: var(--hero-cost-name-symbol-x) var(--hero-cost-name-symbol-y);
 }
 .hero-cost-symbol svg,
 .hero-cost-symbol img.glyph-png {
@@ -1456,8 +1512,15 @@ EXPOSED TOP ROW - TUNING PANEL
   flex: none;
 }
 .cost-gem .hero-cost-part b {
-  font: 700 2.9mm/1 var(--card-cost-font-family);
+  font: 700 var(--hero-cost-force-number-size)/1 var(--card-cost-font-family);
   font-variant-numeric: lining-nums;
+}
+.cost-gem .hero-cost-force b {
+  translate: var(--hero-cost-force-number-x) var(--hero-cost-force-number-y);
+}
+.cost-gem .hero-cost-name b {
+  font-size: var(--hero-cost-name-number-size);
+  translate: var(--hero-cost-name-number-x) var(--hero-cost-name-number-y);
 }
 /* Give the prose room before reducing its type size. */
 .dense,
