@@ -71,3 +71,33 @@ selection, player experience and opening-hand luck.
 Do not tune numerical card costs based on the analyzer's synthetic self-test.
 No automated game-balance evidence exists until real matches or a physical
 rules-compatible simulation are supplied.
+
+## Conditions and preparation: Phase 2/3 playtest measurements
+
+Record the following alongside ordinary card plays and game results:
+
+- The **before/after Front Strength** for each Exhausted or Depleted effect.
+  An Exhausted Force contributes −1 Strength and a Depleted Force another −1;
+  when combined with Shaken (−2), the penalty can be −4 before flanking.
+- Whether a **Guarded** prevention or condition removal actually changed the
+  Front winner, rather than merely avoiding a marker.
+- **Lost-Front follow-up:** for each Force Exhausted at the end of Battle N,
+  whether it remains present and whether it causes a loss in Battle N+1.
+  Check repeated-defeat spirals against turns with unprotected Forces.
+- **Baggage/Crows overpressure:** both may impose Exhausted and Shaken for a
+  potential combined −3 Strength. Record how often this is achieved and
+  whether that single threat forces too much Command or protection.
+- **Prepared layer effectiveness:** count Bonds/Names played without a Force,
+  how often their immediate PLAY effect mattered, how many were later
+  attached, and how often House of Reed or Field Train produced a Named
+  completion reward. Record instances where preparation cost more Actions
+  than a simpler direct attachment sequence.
+- **Named-completion diversity:** count completed formations and whether a
+  +2 temporary Strength or Guarded reward actually altered a Front.
+  Distinguish stable formation Strength from Battle-only spikes.
+
+Use the manual scenarios in
+[physical-rule-playtest-scenarios.md](physical-rule-playtest-scenarios.md) to
+catch timing errors. The existing JSONL analyzer does **not** automatically
+infer which card caused a Front to change hands: this requires observed logs
+or a future physical rules-compatible simulator.
