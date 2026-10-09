@@ -404,7 +404,7 @@
         },
         {
           "timing": "continuous",
-          "text": "Your Tactics targeting cards or formations in a Front with your Raider or Skirmisher cost 1 less Command (minimum 0). After each, you may Move one Raider or Skirmisher there one legal position."
+          "text": "Tactics targeting cards or formations in a Front with your Raider or Skirmisher cost 1 less Command (minimum 0). After each, you may Move one of your Raiders or Skirmishers there one legal position."
         }
       ],
       "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
@@ -533,7 +533,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Attach a prepared Bond or Name from here or an adjacent active Front to the friendly formation directly ahead, if legal. If that completes a Named Formation, give it +2 Strength this Battle."
+          "text": "Attach a prepared Bond or Name from here or an adjacent active Front to the formation directly ahead, if legal. If it becomes Named, it gets +2 Strength this Battle."
         }
       ],
       "design_note": "Phase 3: one-shot logistics now rewards arranging a prepared component to complete a Named Formation with +2 temporary Strength."
