@@ -222,15 +222,13 @@ cdef double _packed_traverse(
     cdef double cumulative = 0.0
 
     if _sg_terminal(state):
-        if _sg_winner(state) < 0:
-            return 0.0
-        return 1.0 if _sg_winner(state) == traverser else -1.0
+        return _sg_terminal_reward(state, traverser)
 
     if (
         turn_depth >= max_depth
         and not _sg_forced_substep(state)
     ):
-        return tanh(evaluator.evaluate_fast(state, traverser) / leaf_scale)
+        return _sg_leaf_value(evaluator, state, traverser, leaf_scale)
 
     actor = _sg_actor(state)
     n = _sg_legal_actions(engine, state, &actions[0])
