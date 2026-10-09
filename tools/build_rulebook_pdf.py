@@ -405,7 +405,7 @@ def markdown_to_typst(source: str, version: str) -> str:
                 accent = "#986448" if resolution_index % 2 == 0 else "#293c47"
                 fill = "#f5ece4" if resolution_index % 2 == 0 else "#e9eeec"
                 out.append(
-                    '#block(width: 100%, breakable: true, inset: (x: 11pt, y: 10pt),'
+                    '#block(width: 100%, breakable: false, inset: (x: 11pt, y: 10pt),'
                     ' fill: rgb("' + fill + '"),'
                     ' stroke: (left: 3pt + rgb("' + accent + '")))['
                 )
