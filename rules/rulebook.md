@@ -112,7 +112,12 @@ For movement, a printed **empty position** means a position with no Force. It ma
 
 An **Exhausted** Force contributes to Battle normally but usually stays where it is: it can move through a card's **Move** effect or be the non-initiating partner in a swap, while an explicit card exception can let it initiate a Maneuver. Each Force carries at most one Exhaustion token. Each formation may initiate at most one Maneuver during the resolution of a single Action or effect; no automatic Maneuver occurs between Battles.
 
-**Move** and **swap** printed on cards are not ordinary Maneuvers. Unless a card explicitly says *Maneuver*, Move normally means repositioning the complete formation to an adjacent active position that is empty or contains only compatible prepared layers. It costs no Maneuver Command, needs no Name, and is not prevented by Exhaustion. A printed **swap** exchanges the full contents of the specified positions and their markers, checking legality for both. To move up to two positions, take up to two legal adjacent steps, never jumping over an occupied or inactive space. A card may give a free **Maneuver**, in which case all Maneuver restrictions still apply except those it explicitly waives.
+**Move** and **swap** printed on cards are not ordinary Maneuvers. The distinction matters:
+
+- **Move:** Unless a card explicitly says *Maneuver*, Move normally means repositioning the complete formation to an adjacent active position that is empty or contains only compatible prepared layers. It costs no Maneuver Command, needs no Name, and is not prevented by Exhaustion.
+- **Swap:** A printed **swap** exchanges the full contents of the specified positions and their markers, checking legality for both.
+- **Moving farther:** To move up to two positions, take up to two legal adjacent steps, never jumping over an occupied or inactive space.
+- **Free Maneuver:** A card may give a free **Maneuver**, in which case all Maneuver restrictions still apply except those it explicitly waives.
 
 ## Attacking {#attacking}
 
@@ -219,7 +224,13 @@ Check Command **before recovery**. If only one player has **0 or less Command**,
 
 Before removing Boons, check **Guarded** on Forces in each lost Front: a Guarded Force uses up Guarded to prevent that Front-loss Exhaustion. Remember which Forces it protected for this resolution.
 
-Now clear all old Exhausted, Shaken and Depleted markers, all remaining Boons, used-Attack markers, temporary Strength and suppression effects, and other Battle-only effects. Discard Narratives and unrevealed Stratagems. Then **place one new Exhaustion token on each unprotected Force in every Front its player lost** (maximum one per Force). This new Exhaustion **persists throughout the next Battle**, unless a card removes it earlier. At the end of that next Battle it clears during cleanup; losing a Front again gives a new token afterward.
+After checking Guarded, follow this cleanup order:
+
+1. Clear all old Exhausted, Shaken and Depleted markers, all remaining Boons, used-Attack markers, temporary Strength and suppression effects, and other Battle-only effects.
+2. Discard Narratives and unrevealed Stratagems.
+3. **Place one new Exhaustion token on each unprotected Force in every Front its player lost** (maximum one per Force).
+
+This new Exhaustion **persists throughout the next Battle**, unless a card removes it earlier. At the end of that next Battle it clears during cleanup; losing a Front again gives a new token afterward.
 
 This sequence distinguishes Exhaustion caused by Attacks **during** a Battle from Exhaustion caused by **losing** it. The same type of token is used for both; no second Exhaustion marker is required. An Exhausted Force still contributes Strength and can Attack, but normally cannot initiate Maneuvers.
 
@@ -243,7 +254,13 @@ When a played card completes a Named Formation, resolve that played card's **PLA
 
 ### Simultaneous Stratagems
 
-When both players can reveal eligible Stratagems **at the same event**, each chooses privately whether to reveal, then they reveal simultaneously. Eligibility is checked against the **same board state before either reveal**. Prevention overrides the action it prevents; incompatible simultaneous attempts to move the **same formation** cancel, while independent effects both apply. If necessary, apply each effect's independent portions after cancelling the conflicting movement. No player gains a timing advantage from who Passed.
+When both players can reveal eligible Stratagems **at the same event**, use this procedure:
+
+1. Each chooses privately whether to reveal, then they reveal simultaneously. Eligibility is checked against the **same board state before either reveal**.
+2. Prevention overrides the action it prevents; incompatible simultaneous attempts to move the **same formation** cancel, while independent effects both apply.
+3. If necessary, apply each effect's independent portions after cancelling the conflicting movement.
+
+No player gains a timing advantage from who Passed.
 
 During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. This deliberate single-window rule keeps the final outcome unambiguous.
 
@@ -275,7 +292,15 @@ A **Tax marker** belongs to its marked Front and increases the next matching car
 
 ### Positions and card movement
 
-**Empty position** means no Force is there; compatible prepared Bonds and Names may be present. **Completely empty** means no cards are there. **Adjacent position** means a shared edge on your side: left/right one active Front in the same rank, or forward/back one rank in the same Front. **Adjacent Front** means the active Front immediately left or right; it does not mean another rank within the same Front. **Directly ahead** is the position one rank nearer your Frontline; **directly behind** is one rank nearer your Rear. No position exists beyond the Frontline or Rear, and an inactive Front is never adjacent for card purposes.
+Use these position terms literally:
+
+- **Empty position:** No Force is there; compatible prepared Bonds and Names may be present.
+- **Completely empty:** No cards are there.
+- **Adjacent position:** A shared edge on your side: left/right one active Front in the same rank, or forward/back one rank in the same Front.
+- **Adjacent Front:** The active Front immediately left or right; it does not mean another rank within the same Front.
+- **Directly ahead / directly behind:** One rank nearer your Frontline / one rank nearer your Rear, respectively.
+
+No position exists beyond the Frontline or Rear, and an inactive Front is never adjacent for card purposes.
 
 Components leave the battlefield only when a card specifically makes them do so:
 
