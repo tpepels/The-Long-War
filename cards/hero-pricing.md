@@ -35,7 +35,7 @@ This pricing is **physical-print only**. The native/Webgame engine and the canon
 
 ## Validation and outstanding balance questions
 
-The printed card shows both labelled prices in its mode headings and split Command seal. The Force and Name versions each contribute only their chosen Strength and abilities.
+The printed card shows both mode prices **only in its diagonal Command seal**, with the Force shield and Name banner beside their respective amounts. The Force and Name rules headings identify the modes without repeating Command costs. The Force and Name versions each contribute only their chosen Strength and abilities.
 
 Test the prices with six combo decks and four mechanic-coverage decks, mirroring first player and comparable hands. Track whether **both modes are sometimes chosen**, when a Hero is stranded in hand, the actions to reach a Named Formation, Command at each Battle boundary, and actual effects on Front winners. Prices are design appraisals, **not proven win rates**. Name costs may need further adjustment once how often their abilities trigger is observed.
 
