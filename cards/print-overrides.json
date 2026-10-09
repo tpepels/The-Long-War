@@ -464,13 +464,12 @@
       "id": "the-thornbow-hunters",
       "effects": [
         {
-          "timing": "reaction",
-          "text": "Once per Battle, when an opponent sets a Stratagem in this Front or an adjacent active Front while this formation is in Rear, you may look at it.",
-          "limit": "once_per_battle",
-          "exposed": "REAR · Peek adjacent new plan 1/B"
+          "timing": "rear",
+          "text": "While this formation is in Rear, other friendly Archer formations in this Front get +1 Strength.",
+          "exposed": "REAR · Other Archers in this Front +1 Strength"
         }
       ],
-      "design_note": "Limited local early warning, not permanent access to all existing face-down plans."
+      "design_note": "Rear Archer/Scout promotes another Archer's persistent Front Strength rather than only inspecting hidden Stratagems. Requires a second Archer in the same Front."
     },
     {
       "id": "the-lantern-scouts",
@@ -549,11 +548,53 @@
         }
       ],
       "design_note": "Information has an immediate, visible optional response, not another scouting ACTION."
+    },
+    {
+      "id": "the-fifty-men",
+      "strength_value": 5,
+      "effects": [],
+      "design_note": "5 Strength at 2 Command and no ability: high per-position baseline versus specialist Guards/Raiders. Flag for playtest; no class/combat tricks."
+    },
+    {
+      "id": "stood-fast-with",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While this formation is Bonded and in Frontline, this Bond contributes +1 additional Strength and this formation cannot be flanked.",
+          "exposed": "FRONTLINE · +1 Strength; cannot be flanked"
+        }
+      ],
+      "design_note": "Trade the Named-only +1 of Followed for Frontline-only +1 and protection from flanking and Rider targeting; other ranks gain neither."
+    },
+    {
+      "id": "oren",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Draw 2 cards, then discard 1 card."
+        },
+        {
+          "timing": "action",
+          "text": "As this Action, play a Bond from your hand onto a friendly formation with no Bond in this Front. Pay 1 less Command (minimum 0). If that play completes a Named Formation, draw 1 card.",
+          "limit": "once_per_battle"
+        }
+      ],
+      "design_note": "A real alternative to ordinary Bond play: 1 Command discount and a card on successful completion, for the same Action. Limited once per Battle."
+    },
+    {
+      "id": "the-king-had-given-the-order",
+      "command_cost": 2,
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Exchange the attached Bonds of two friendly Bonded Formations in any active Fronts. Each of those formations that is Named after the exchange gets +1 Strength this Battle."
+        }
+      ],
+      "design_note": "One Action and 2 Command for an immediate formation exchange and up to two temporary Strength; no repeatable two-Action setup."
     }
   ],
   "once_per_battle_text_fixes": [
-    "no-road-was-too-long",
-    "the-king-had-given-the-order"
+    "no-road-was-too-long"
   ],
   "exposed_only": [
     {
@@ -682,11 +723,6 @@
       "id": "no-road-was-too-long",
       "command_cost": 3,
       "reason": "Strong one-use board transformation, but 4C plus two Actions delayed it too far."
-    },
-    {
-      "id": "the-king-had-given-the-order",
-      "command_cost": 2,
-      "reason": "Bond exchange once/Battle requires 2 Actions and two Bonded formations."
     }
   ]
 }

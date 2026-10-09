@@ -34,13 +34,35 @@ other card effects. Explicit **Force discard** from Re-form the Line removes
 attached Bond/Name and their markers, opening a persistent position. It does
 not create generic Retreat.
 
-**Verification:** `tools/check_physical_cost_balance.py` now contains **27
-paper-state contracts** covering the earlier 15 cases plus the 12 new
+**Verification:** `tools/check_physical_cost_balance.py` contained **27
+paper-state contracts** before Phase 1 covering the earlier 15 cases plus the 12 new
 decisions. They remain syntax/rules assertions rather than observed gameplay.
 `tools/physical_playtest_metrics.py` accepts event logs and reports per-card
 playability, utility, triggers, actions, occupancy and deck outcomes. Use the
 [playtest evidence guide](physical-playtest-evidence.md); no true win-rate claims
 are made without logged games or a rules-compatible simulation.
+
+## Phase 1: ineffective-card repairs (9 October 2026)
+
+Five physical-print identities revised; **131 cards and four 48-card decks
+retained**. No global condition or combat rules changed.
+
+| Card | New physical card choice | Tradeoff |
+| --- | --- | --- |
+| The Fifty Men | 2C, 5 Strength, no ability | Strong baseline body; no Guard screening, tax or attack classification |
+| Stood Fast With | Base +1; while Bonded in Frontline, another +1 Strength and cannot be flanked | Protects Frontline from −1 and basic Rider targeting, while Followed works Named in any rank |
+| Oren | Once/Battle ACTION plays a Bond in same Front for −1C (minimum 0); draw 1 if the play completes Named | Needs a Bond in hand and legal target, and retains his original completion trigger |
+| The Thornbow Hunters | While in Rear, other friendly Archers here gain +1 Strength | Needs another Archer in its Front; no longer inspects Stratagems |
+| The King Had Given the Order | 2C PLAY exchanges two attached Bonds, then gives each affected Named formation +1 Strength this Battle | Needs two Bonded formations; no longer requires a second ACTION |
+
+The King's historical 3→2C reduction is now carried directly in its effect
+override instead of a separate cost-only adjustment. Printed Command totals
+are unchanged. **New printed Force Strength totals**: Banner & Blood 59,
+Crown of Crows 56, Oathforge 52, Blood & Spoils 65.
+
+**Open risk:** Fifty Men at 5S/2C may outclass some specialized 3C bodies,
+especially late when battlefield positions are scarce. None of these
+changes has been validated with actual physical-game win rates.
 
 ## Cost model: Command alone is not the price
 
@@ -80,7 +102,7 @@ Costs are deliberately **not** uniformly lowered. Most revised effects keep thei
 | The Center Must Hold | 2 | **1** | Temporary +1 to at most two other formations needs a King/Captain |
 | The Trap Closed | 3 | **2** | Delayed two-Action raid now removes an attachment rather than +2 Strength |
 | No Road Was Too Long | 4 | **3** | Big one-time geography exchange still costs three Command and activation Action |
-| The King Had Given the Order | 3 | **2** | Once/Battle Bond exchange has a large two-Action setup |
+| The King Had Given the Order | 3 | **2** | Historical cost reduction retained by Phase 1 immediate PLAY replacement |
 
 ## Effect replacements with a concrete purpose
 
@@ -99,7 +121,8 @@ Costs are deliberately **not** uniformly lowered. Most revised effects keep thei
 | The Long March | Riders Maneuver unnamed and pay 0C | 2C Narrative plus one Action; other movement constraints still apply |
 | The Wall Did Not Break | Exhausted Guards/Strongholds can Maneuver at 0C | 2C Narrative; the Named requirement remains |
 | The Trap Closed | Return an attached component after a successful affliction | 2C to set, an affliction trigger, an attached target, and counterplay via Guarded |
-| Watchtowers / Thornbow / Lantern | Paid global reconnaissance versus limited local reactions | No permanent free visibility of hidden Stratagems |
+| Watchtowers / Lantern | Global ACTION inspection versus limited local reaction | Information needs an actionable consequence |
+| Thornbow Hunters | Rear Archer now boosts other Archers in its Front | Requires at least one other Archer in that Front |
 | Namar | One orchestration Action gives a 2C attachment discount + card | 4C Name, must become Named, once/Battle |
 
 **Core safeguards:** The 131 identities, Hero modes, existing formation/attachment combinations, one-Front assigned hidden Stratagems, voluntary Pass, and the physical-only/native split all remain. The three new Frontline-only restrictions make good Force placement a deliberate opportunity cost.
@@ -112,9 +135,9 @@ protection, or attack-linked Strength/Command pressure.
 
 | Deck | 48 cards | Force count | Printed Force Strength | Sum of all printed Command costs |
 | --- | ---: | ---: | ---: | ---: |
-| Banner & Blood | 48 | 16 | 58 | 78 |
-| Crown of Crows | 48 | 16 | 55 | 78 |
-| Oathforge | 48 | 16 | 51 | 79 |
+| Banner & Blood | 48 | 16 | 59 | 78 |
+| Crown of Crows | 48 | 16 | 56 | 78 |
+| Oathforge | 48 | 16 | 52 | 79 |
 | Blood & Spoils | 48 | 17 | 65 | 91 |
 
 **Interpretation:** the values above are sums over all cards in a deck, not
@@ -126,7 +149,7 @@ rates are **unmeasured**. See [actual lists and signature combinations](playtest
 
 ## Paper-state usefulness tests
 
-The complementary executable check `python tools/check_physical_cost_balance.py` verifies **27 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
+The complementary executable check `python tools/check_physical_cost_balance.py` verifies **32 defined decision situations**: first-Battle Frontline placement, gaps, screened Archers, next-Battle exhaustion, competing Boons, dual-target Archer pressure, geography changing after Front expansion, exhausted defensive Maneuvers, attachment ambushes, single-window secret plans, Command Tax, distinct reconnaissance, the King's two-Action combo, and persistent-formation row legality. These tests validate printed-cost/trigger contracts; they do **not** assert sampled games were played.
 
 Suggested hands-on measurements for actual sessions:
 
@@ -155,7 +178,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 
 | Card | Prior C | Current C | Status |
 | --- | ---: | ---: | --- |
-| The Fifty Men | 2 | 2 | Retained |
+| The Fifty Men | 2 | 2 | Strength 4→5 (Phase 1) |
 | Seven Black Ships | 3 | 3 | Retained |
 | The White Hands of Elara | 1 | 1 | Retained |
 | The Red Shields | 2 | 2 | Retained |
@@ -195,7 +218,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | --- | ---: | ---: | --- |
 | Followed | 1 | 1 | Retained |
 | Guarded | 1 | 1 | Effect rebalanced |
-| Stood Fast With | 1 | 1 | Retained |
+| Stood Fast With | 1 | 1 | Effect rebalanced (Phase 1) |
 | Marched With | 1 | 1 | Retained |
 | Kept Pace With | 1 | 1 | Retained |
 | Covered the Withdrawal of | 1 | 1 | Retained |
@@ -224,7 +247,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | --- | ---: | ---: | --- |
 | Namar | 4 | 4 | Effect rebalanced |
 | Iria | 1 | 1 | Retained |
-| Oren | 2 | 2 | Retained |
+| Oren | 2 | 2 | Effect rebalanced (Phase 1) |
 | Elian | 1 | 1 | Retained |
 | Teren | 1 | 1 | Retained |
 | Mara | 1 | 1 | Retained |
@@ -306,7 +329,7 @@ This ledger is the audit's full accounting scope. **Prior** means the last physi
 | No Road Was Too Long | 4 | 3 | Cost adjusted |
 | The Battle Had Chosen Them | 2 | 2 | Retained |
 | No One Would Be First to Leave | 2 | 2 | Effect rebalanced |
-| The King Had Given the Order | 3 | 2 | Cost adjusted |
+| The King Had Given the Order | 3 | 2 | PLAY effect rebalanced (Phase 1) |
 | Every Bow Was Strung | 1 | 1 | Retained |
 | They Knew the Ground | 1 | 1 | Effect rebalanced |
 | The Raiders Came Home Loaded | 1 | 1 | Effect rebalanced |

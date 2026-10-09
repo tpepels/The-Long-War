@@ -32,7 +32,15 @@ def main() -> None:
         card_id = source["id"]
         changed.add(card_id)
         card = after[card_id]
-        assert card["text"] != before[card_id]["text"], "Replacement not applied: " + card_id
+        # A pure printed-Strength revision can deliberately retain the same
+        # 'No special rules' text (e.g. The Fifty Men). Do not force a fake
+        # ability onto a baseline Force merely to satisfy a text diff.
+        assert (card["text"] != before[card_id]["text"]
+                or card.get("strength") != before[card_id].get("strength")
+                or card.get("strength_modifier") != before[card_id].get("strength_modifier")
+                or card.get("command_cost") != before[card_id].get("command_cost")
+                or card.get("allowed_rows") != before[card_id].get("allowed_rows")), (
+                    "Replacement not applied: " + card_id)
         assert len(card["effects"]) == len(card["rule_blocks"]), "Rule blocks mismatch: " + card_id
         assert all(effect["text"] == block["text"]
                    for effect, block in zip(card["effects"], card["rule_blocks"])), card_id
@@ -71,6 +79,17 @@ def main() -> None:
             assert after[card_id]["text"] == before[card_id]["text"], card_id
 
     # Verify representative counterplay and cost changes, not just text counts.
+    # Phase 1: retain the intentional plain-text baseline, including its
+    # print-only Strength change; Oren retains its per-Battle usage marker.
+    assert after["the-fifty-men"]["strength"] == 5
+    assert not after["the-fifty-men"]["effects"]
+    assert after["the-fifty-men"]["text"] == "No special rules."
+    assert after["stood-fast-with"]["effects"][0]["exposed"]
+    assert after["oren"]["effects"][1]["limit"] == "once_per_battle"
+    assert after["the-thornbow-hunters"]["effects"][0]["timing"] == "rear"
+    assert after["the-king-had-given-the-order"]["command_cost"] == 2
+    assert after["the-king-had-given-the-order"]["effects"][0]["timing"] == "play"
+
     assert after["the-first-spear"]["allowed_rows"] == ["front"]
     assert after["the-iron-boars"]["allowed_rows"] == ["front"]
     assert after["the-red-duelists"]["allowed_rows"] == ["front"]
