@@ -383,10 +383,10 @@ def markdown_to_typst(source: str, version: str) -> str:
             current_section = re.sub(
                 r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip()
             )
+            open_columns()
             if current_section == "The battlefield":
                 out.append(f"== {current_section}")
-                # The formation anatomy is a compact stacked key inside a
-                # column. A three-column grid would be unreadable here.
+                # A small illustrated key stays with the explanation.
                 out.append(
                     '#block(fill: rgb("#f0e8dc"), width: 100%,'
                     ' inset: 8pt, stroke: (left: 2pt + rgb("#ad8a50")))['
@@ -394,9 +394,6 @@ def markdown_to_typst(source: str, version: str) -> str:
                     '#v(3pt)'
                     '#text(size: 8pt)[Name (top) · Bond (middle) · Force (base)]'
                     ']'
-                    ' [#block(fill: rgb("#e7ebea"), inset: 9pt, stroke: (bottom: 2pt + rgb("#293c47")))[#text(weight: "bold")[NAME] #linebreak() #text(size: 8pt)[Top · identity]]],'
-                    ' [#block(fill: rgb("#f0e8dc"), inset: 9pt, stroke: (bottom: 2pt + rgb("#986448")))[#text(weight: "bold")[BOND] #linebreak() #text(size: 8pt)[Middle · attachment]]],'
-                    ' [#block(fill: rgb("#f3e8d6"), inset: 9pt, stroke: (bottom: 2pt + rgb("#ad8a50")))[#text(weight: "bold")[FORCE] #linebreak() #text(size: 8pt)[Base · Strength]]])'
                 )
             else:
                 out.append(f"== {current_section}")
