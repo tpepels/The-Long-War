@@ -1407,32 +1407,65 @@ EXPOSED TOP ROW - TUNING PANEL
   font-variant-numeric: lining-nums;
 }
 
-/* One physical Hero has two mutually exclusive prices, not a blended price.
-   The existing Command seal carries both, while the two rule-panel headings
-   spell out which price to pay. Keep these values configurable for print. */
+/* Hero Command costs use a diagonal fraction: Force/shield above-left
+   and Name/banner below-right. Reuse the existing heraldic SVG glyphs
+   rather than F/N abbreviations. Sizes are physical mm for print parity. */
 .cost-gem-hero {
   padding-bottom: 0;
 }
-.hero-cost-stack {
-  display: flex;
-  flex-direction: column;
+.hero-cost-fraction {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.hero-cost-fraction::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8mm;
+  height: 0.22mm;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  background: currentColor;
+  opacity: 0.8;
+  pointer-events: none;
+}
+.hero-cost-part {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.15mm;
+  gap: 0.25mm;
   line-height: 1;
+  white-space: nowrap;
 }
-.hero-cost-stack > span {
-  display: flex;
+.hero-cost-force {
+  top: 1.7mm;
+  left: 1.3mm;
+}
+.hero-cost-name {
+  right: 1.2mm;
+  bottom: 1.8mm;
+}
+.hero-cost-symbol {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45mm;
+  width: 2.3mm;
+  height: 2.3mm;
+  flex: none;
 }
-.hero-cost-stack small {
-  font: 700 1.85mm/1 var(--card-label-font-family);
-  text-transform: uppercase;
+.hero-cost-symbol svg,
+.hero-cost-symbol img.glyph-png {
+  display: block;
+  width: 100%;
+  height: 100%;
+  flex: none;
 }
-.cost-gem .hero-cost-stack b {
-  font: 700 3mm/1 var(--card-cost-font-family);
+.cost-gem .hero-cost-part b {
+  font: 700 3.2mm/1 var(--card-cost-font-family);
+  font-variant-numeric: lining-nums;
 }
 .card-hero .mode-command-cost {
   margin-left: 0.7mm;
