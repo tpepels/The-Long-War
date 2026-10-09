@@ -124,3 +124,24 @@ actual Hero Force/Name selection, Command consumed/recouped, ability activations
 number of targets or affected formations, Front outcomes genuinely changed,
 Battle number, occupied positions, and final war result. Do not interpret the
 old native/Webgame tournament results as evidence for this printed ruleset.
+
+## Addendum — support effects revised after this historical price audit
+
+The calculations above record the October 9 **pre-revision** support abilities.
+A later pre-playtest effectiveness pass replaces those weak abilities while
+preserving their existing printed Strength, Command and physical-only status:
+
+- **The Field Train (2 Strength / 3 Command)** now plays a Bond or Name from
+  hand without a second Action, with adjacent-Front reach and Guarded on
+  Named completion; it no longer consumes already-prepared layers.
+- **The Signal Company (2 Strength / 3 Command)** now moves an existing
+  friendly formation immediately, with card draw if flank status changes;
+  it no longer merely allows an Unnamed Force ahead to Maneuver.
+- **The Relief Column (3 Strength / 3 Command)** now removes all negative
+  markers from another friendly Force in its Front and gives it Guarded on PLAY;
+  it no longer merely allows a Force ahead to Maneuver while Exhausted.
+
+The Force tariff/premium accounting is unchanged; its rationale is updated in
+`force-pricing.json`. These are **design improvements and defined opportunity
+tests**, not evidence from actual play. The earlier explanations of the narrow
+passive permissions are historical, not current rules.
