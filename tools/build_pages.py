@@ -34,7 +34,8 @@ from longwar.rules import GameRules
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
 DIST = ROOT / "dist"
-RULEBOOK = ROOT / "rules" / "rulebook.md"
+RULEBOOK = ROOT / "rules" / "player-rulebook.md"
+DETAILED_REFERENCE = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
 PLAYTEST_DECKS = ROOT / "cards" / "playtest-decks.json"
 REFERENCE_DECKS = REFERENCE_DECK_PATHS
@@ -528,6 +529,36 @@ def main() -> None:
     rendered = template.replace("{{RULEBOOK}}", rulebook_html)
     (DIST / "rulebook.html").write_text(rendered, encoding="utf-8")
     (DIST / "rulebook.template.html").unlink(missing_ok=True)
+
+    # The shorter player guide is the entry point. The full technical rules
+    # remain separately accessible, not crammed into the learn-to-play path.
+    detailed_md = render_rule_tokens(
+        DETAILED_REFERENCE.read_text(encoding="utf-8"),
+        GameRules.standard(),
+    )
+    detailed_html = markdown.markdown(
+        detailed_md, extensions=["extra", "sane_lists", "attr_list"]
+    )
+    detailed_html = enrich_rulebook_layout(group_rulebook_sections(detailed_html))
+    detailed_page = template.replace("{{RULEBOOK}}", detailed_html)
+    detailed_page = detailed_page.replace(
+        "<title>Rules — The Long War</title>",
+        "<title>Detailed Reference — The Long War</title>",
+    )
+    detailed_page = detailed_page.replace(
+        '<p>In this guide</p>',
+        '<p>Complete rules</p>',
+    )
+    detailed_page = detailed_page.replace(
+        '<main class="rulebook">',
+        '<main class="rulebook">'
+        '<p class="reference-backlink"><a href="rulebook.html">'
+        '← Back to the concise player rulebook</a></p>',
+        1,
+    )
+    (DIST / "advanced-reference.html").write_text(
+        detailed_page, encoding="utf-8"
+    )
 
     render_site_navigation()
     print_version = print_build_version()

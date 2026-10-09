@@ -22,7 +22,7 @@ from longwar.rules import GameRules
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RULEBOOK = ROOT / "rules" / "rulebook.md"
+RULEBOOK = ROOT / "rules" / "player-rulebook.md"
 DIST = ROOT / "dist"
 TYPST_SOURCE = DIST / "rulebook.typ"
 OUTPUT = DIST / "rulebook.pdf"
@@ -102,7 +102,15 @@ def markdown_to_typst(source: str, version: str) -> str:
   margin: (top: 14mm, bottom: 15mm, x: 14mm),
   fill: rgb("#faf7ef"),
   header: [
-    #text(size: 7pt, weight: "bold", fill: rgb("#53636a"))[THE LONG WAR   /   FIELD MANUAL]
+    #grid(
+      columns: (1fr, auto),
+      [#text(size: 7pt, weight: "bold", fill: rgb("#53636a"))[THE LONG WAR / FIELD MANUAL]],
+      align(right)[
+        #text(size: 7pt)[
+          #link("https://tpepels.github.io/The-Long-War/advanced-reference.html")[Full rules ↗]
+        ]
+      ],
+    )
     #v(3pt)
     #line(length: 100%, stroke: .55pt + rgb("#c5b9a4"))
   ],
@@ -155,32 +163,7 @@ def markdown_to_typst(source: str, version: str) -> str:
   #v(3pt)
   #text(size: 10pt, style: "italic", fill: rgb("#f6edda"))[Fight now. Live with it later.]
 ]
-#v(6pt)
-#grid(
-  columns: (1fr, 1fr, 1fr, 1fr),
-  gutter: 4pt,
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[20]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[STARTING COMMAND]
-  ]],
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[2]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[ACTIONS PER TURN]
-  ]],
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[4]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[FRONTS BY BATTLE III]
-  ]],
-  [#block(fill: rgb("#ece5d7"), inset: 5pt, width: 100%, stroke: (bottom: 2pt + rgb("#ad8a50")))[
-    #text(size: 18pt, weight: "bold", fill: rgb("#293c47"))[3]
-    #v(1.2pt)
-    #text(size: 6.6pt, weight: "bold")[FORMATION LAYERS]
-  ]],
-)
-#v(6pt)
+#v(3pt)
 """
     out.append(preamble)
 
@@ -204,9 +187,7 @@ def markdown_to_typst(source: str, version: str) -> str:
 
         cards = {
             ("The shape of the war", "bullet"): (2, "BATTLE", "#e8e8e1", "#293c47"),
-            ("What you need", "bullet"): (2, "PREPARE", "#f0e8d9", "#ad8a50"),
             ("Setup", "numbered"): (2, "STEP", "#f0e8d9", "#986448"),
-            ("Your turn", "bullet"): (2, "ACTION", "#e8eeed", "#293c47"),
             ("Conditions and protection", "bullet"): (2, "CONDITION", "#f3e8df", "#986448"),
             ("Passing and ending a Battle", "numbered"): (3, "CLOSING TURN", "#e8eeed", "#293c47"),
         }
@@ -274,10 +255,6 @@ def markdown_to_typst(source: str, version: str) -> str:
             raise ValueError("Rulebook Markdown table has inconsistent column counts")
         headings = rows[0]
         if width == 2:
-            # Keep the final short definitions on a balanced second column.
-            # This is one deliberate last-page break, not a forced new page.
-            if headings[0].strip().lower() == "event":
-                out.append("#colbreak()")
             # A true compact table is far denser and easier to scan than
             # repeating "MEANING:" or "RESULT:" inside every shaded card.
             cells = []
