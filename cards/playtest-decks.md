@@ -382,7 +382,7 @@ the number of copies drawn together.
 
 This deck composition is unchanged, but card **roles** evolved: the
 1C **Rallied Behind** also Moves a formation when Command is behind;
-**The Center Must Hold** may reposition a formation at resolution;
+**The Center Must Hold** may swap two friendly formations across adjacent Fronts at resolution;
 **The Raiders Came Home Loaded** immediately Moves up to two
 Raiders/Skirmishers rather than recurring Tactic discounts. **Lysa**
 now combines hand information and Guarded; **Kael-as-Name** inspects
