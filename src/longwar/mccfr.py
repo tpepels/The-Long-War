@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .agents.heuristic_agent import HeuristicAgent
+from .algorithms.generic_mccfr import traverse_game
+from .search_adapters import LongWarSearchGame
 from .game.actions import Action, action_key
 from .game.engine import GameEngine, all_positions
 from .game.model import Front, GameState, Phase, other_player
@@ -259,6 +261,7 @@ class MCCFRTrainer:
         self._used_primitive_training = False
         self.iterations = 0
         self._leaf_agent = HeuristicAgent(seed=seed, exploration=0.0)
+        self._search_game = LongWarSearchGame(engine, self._leaf_agent)
 
     def train(self, iterations: int) -> TrainingSummary:
         if iterations <= 0:
@@ -425,67 +428,16 @@ class MCCFRTrainer:
         depth: int,
         scratch_by_depth: dict[int, GameState],
     ) -> float:
-        raw_depth_by_state_id = {id(state): 0}
-        turn_depth_by_state_id = {id(state): depth}
-
-        def next_state(current: GameState, action: Action) -> GameState:
-            raw_child_depth = raw_depth_by_state_id[id(current)] + 1
-            child = self._search_child(
-                current,
-                action,
-                raw_child_depth,
-                scratch_by_depth,
-            )
-            turn_completed = self.engine.transition_completed_turn(
-                current,
-                child,
-                action,
-            )
-            raw_depth_by_state_id[id(child)] = raw_child_depth
-            turn_depth_by_state_id[id(child)] = (
-                turn_depth_by_state_id[id(current)] + int(turn_completed)
-            )
-            return child
-
-        def is_frontier(current: GameState) -> bool:
-            if current.phase is Phase.COMPLETE:
-                return True
-            if (
-                current.pending_effects
-                or current.pending_draw_discard_for is not None
-            ):
-                return False
-            return turn_depth_by_state_id[id(current)] >= self.max_depth
-
-        def frontier_utility(current: GameState, player: int) -> float:
-            if current.phase is Phase.COMPLETE:
-                if current.winner is None:
-                    return 0.0
-                return 1.0 if current.winner == player else -1.0
-            return self._leaf_value(current, player)
-
-        # external_sampling_traverse keeps its own recursion depth only for
-        # generic traversal mechanics. Long War's strategic horizon is enforced
-        # by is_frontier() from completed-turn state above.
-        return external_sampling_traverse(
+        return traverse_game(
+            self._search_game,
             state,
             traverser,
-            depth=0,
-            max_depth=None,
+            depth=depth,
+            max_turn_depth=self.max_depth,
             nodes=self.nodes,
             rng=self.rng,
-            is_terminal=is_frontier,
-            terminal_utility=frontier_utility,
-            current_player=lambda current: current.active_player,
-            legal_actions=self.engine.legal_actions,
-            action_key=action_key,
-            information_set_id=lambda current, actor: search_information_set_id(
-                self.engine,
-                current,
-                actor,
-            ),
-            next_state=next_state,
-            leaf_value=None,
+            frontier_value=self._leaf_value,
+            scratch_by_depth=scratch_by_depth,
         )
 
     def _leaf_value(self, state: GameState, traverser: int) -> float:

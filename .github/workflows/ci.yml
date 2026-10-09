@@ -27,6 +27,77 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  search-contract:
+    name: Generic search correctness (required)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Verify generic alpha-beta, ISMCTS, MCCFR and hidden-information contracts
+        run: python -m pytest -q tests/test_generic_search.py tests/test_mccfr_reference.py
+
+  native-search-performance:
+    name: Native throughput, base vs adapter (measured)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: baseline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: candidate/pyproject.toml
+      - name: Install common benchmark environment
+        run: pip install -e './candidate[dev]'
+      - name: Build and measure baseline engine
+        run: |
+          cd baseline
+          PYTHONPATH="$PWD/src" make native-build WORKERS=2
+          PYTHONPATH="$PWD/src" python ../candidate/tools/benchmark_native_search.py --root "$PWD" --output ../baseline.json
+      - name: Build and measure adapter engine
+        run: |
+          cd candidate
+          PYTHONPATH="$PWD/src" make native-build WORKERS=2
+          PYTHONPATH="$PWD/src" python tools/benchmark_native_search.py --root "$PWD" --output ../candidate.json
+      - name: Publish throughput and per-run distribution
+        run: |
+          python candidate/tools/compare_native_search_benchmarks.py baseline.json candidate.json --report search-throughput.md
+          cat search-throughput.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-search-throughput
+          path: |
+            baseline.json
+            candidate.json
+            search-throughput.md
+          if-no-files-found: ignore
+          retention-days: 14
+  native-search-parity:
+    name: Native search/reference parity (required)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Build native algorithms with current adapter
+        run: make native-build WORKERS=2
+      - name: Compare native and reference search and information contracts
+        run: python -m pytest -q --tb=short tests/test_native_search_parity.py
+
   sanity:
     name: Repository sanity
     runs-on: ubuntu-latest
