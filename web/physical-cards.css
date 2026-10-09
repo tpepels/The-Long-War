@@ -48,6 +48,7 @@ CARD ICON SIZES — TUNING PANEL
     --icon-rule-timing-size       Action/Play/Trigger/etc. above rules
     --icon-rule-placement-size    Three-bar placement symbol above rules
     --icon-inline-class-size      Symbol referenced inside a rule sentence
+    --icon-inline-term-size       Symbol before gameplay terms such as Force/Bond
     --icon-mode-heading-size      Force/Name next to a mode heading
     --icon-hero-mode-size         Compact Hero Force/Name mode headings
     --icon-footer-mark-size       Legacy footer mark (currently hidden)
@@ -89,7 +90,8 @@ CARD ICON SIZES — TUNING PANEL
   --icon-family-size: 3.2mm;
   --icon-rule-timing-size: 3.3mm;
   --icon-rule-placement-size: 3.3mm;
-  --icon-inline-class-size: 1em;
+  --icon-inline-class-size: 0.95em;
+  --icon-inline-term-size: 0.95em;
   --icon-mode-heading-size: 3.2mm;
   --icon-hero-mode-size: 2.8mm;
   --icon-footer-mark-size: 3.3mm;
@@ -1224,18 +1226,35 @@ EXPOSED TOP ROW - TUNING PANEL
 .placement-rule-text .rule-referent {
   font-style: normal;
 }
-.inline-class-ref {
+/* Keep the icon and its glossary term together on one text line.
+ * Neither the PNG asset nor the SVG fallback should force a new rule line. */
+.inline-rule-ref {
   display: inline-flex;
-  align-items: center;
-  gap: 0.18em;
-  vertical-align: -0.08em;
+  align-items: baseline;
+  gap: 0.13em;
+  vertical-align: -0.12em;
   white-space: nowrap;
+  max-width: 100%;
 }
-.inline-class-ref svg,
-.inline-class-ref img.glyph-png {
+.inline-rule-ref svg,
+.inline-rule-ref img.glyph-png {
+  display: inline-block;
+  width: var(--icon-inline-term-size);
+  height: var(--icon-inline-term-size);
+  min-width: var(--icon-inline-term-size);
+  flex: 0 0 auto;
+  align-self: center;
+  vertical-align: middle;
+}
+.inline-rule-ref.inline-class-ref svg,
+.inline-rule-ref.inline-class-ref img.glyph-png {
   width: var(--icon-inline-class-size);
   height: var(--icon-inline-class-size);
-  flex: none;
+  min-width: var(--icon-inline-class-size);
+}
+.inline-rule-ref > span {
+  display: inline;
+  white-space: nowrap;
 }
 .effect-reminder {
   margin-top: 0.55mm;
@@ -1427,11 +1446,19 @@ EXPOSED TOP ROW - TUNING PANEL
   margin-top: 0.2mm;
 }
 .card-hero .effect-head {
-  display: inline;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3mm;
+  white-space: nowrap;
+  vertical-align: -0.1em;
   margin: 0 0.6mm 0 0;
 }
 .card-hero .effect-timing-icon {
-  display: none;
+  display: inline-flex;
+  width: var(--icon-hero-mode-size);
+  height: var(--icon-hero-mode-size);
+  align-self: center;
+  flex: none;
 }
 .card-hero .effect-use {
   display: inline-flex;
@@ -1461,7 +1488,9 @@ EXPOSED TOP ROW - TUNING PANEL
   font-size: var(--card-hero-mode-heading-font-size);
 }
 .card-hero .mode-heading-core {
-  display: inline;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 .card-hero .mode-heading-core::after {
   content: " ·";
