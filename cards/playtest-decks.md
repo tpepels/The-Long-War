@@ -388,3 +388,7 @@ Raiders/Skirmishers rather than recurring Tactic discounts. **Lysa**
 now combines hand information and Guarded; **Kael-as-Name** inspects
 hidden plans and Moves. The percentages above still measure card
 co-draw only, not how often these tactical opportunities exist.
+
+## Simplified Maneuver and Stratagem playtesting
+
+All existing 48-card deck lists and the original **three Opening Order specialties** remain unchanged. A Name is no longer required to Maneuver; track the real saved Action/Command value of printed Move effects separately. Each player may set **only one Stratagem card per Battle**, even with Teren's free-set ability. Multiple Stratagem cards **in a deck** provide draw-time alternatives, not permission to set multiple in play. The current detailed 131-card audit is [here](full-card-coherence-audit.md).
