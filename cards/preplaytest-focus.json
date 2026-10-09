@@ -58,6 +58,12 @@
       "failure_signal": "If an ordinary Attack was already possible or the next Action is always spent on Force deployment, the card-granted combination may be too powerful or unnecessary."
     },
     {
+      "id": "every-banner-turned-toward-them",
+      "opportunity": "A King or Captain leads multiple Human formations across two active adjacent Fronts at the post-Opening-Orders resolution reveal.",
+      "comparison": "Compare 2C cross-Front Strength from Every Banner with a 1C single-Front opening Commit, The Center Must Hold, and using the Action to deploy another Force earlier.",
+      "failure_signal": "If the final simultaneous Strength swing decides several full-margin Front losses with no viable earlier response, revise reach or price."
+    },
+    {
       "id": "every-bow-was-strung",
       "opportunity": "One Bonded Archer can declare an Opening Strike against an opposing Middle Force while an ordinary Archer Strike against Rear would be screened or less relevant.",
       "comparison": "Compare paying 1C and a Narrative PLAY Action for one Middle-target Opening Strike with relying on The Crow Archers when the opposing Frontline is empty.",
@@ -200,6 +206,12 @@
       "opportunity": "A 3-Strength Aradai is played into Frontline opposite a 3-Strength defender with an opposing Rear target; its temporary -1 permits an immediate later Raider Incursion.",
       "comparison": "Compare Aradai's 3C baseline body and one-Battle defender -1 with Thirty Spears at 2C (no Attack) and a stronger 4C Raider.",
       "failure_signal": "If the local -1 seldom opens a legal Raider Attack before Shaken clears, its odd-Strength compensation is too situational."
+    },
+    {
+      "id": "the-archers-were-ready",
+      "opportunity": "A player planned an Archer Opening Strike in slot 2, while an opponent Strikes an allied Force in slot 1 and The Archers Were Ready could counterattack.",
+      "comparison": "Compare using the Archer's Attack in response to the first Strike versus preserving it for the planned second Strike, checking Guard screening and legal targets after Maneuvers.",
+      "failure_signal": "If players can make both the reactive Archer Attack and the later Strike with the same Force, the once-per-Battle Attack allowance was implemented incorrectly."
     },
     {
       "id": "the-banner-singers",
@@ -382,6 +394,12 @@
       "failure_signal": "If the extra movement reach and possible flank draw never compensate for one less Strength versus Damar, this remains a poor deployment choice."
     },
     {
+      "id": "the-trap-closed",
+      "opportunity": "A Raider or Skirmisher Opening Strike Shakes or Depletes an enemy carrying a costly Bond/Name, with The Trap Closed set face-down at that Front.",
+      "comparison": "Compare 2C paid hidden attachment-bounce after the negative marker with directly using Seized the Standard Of or saving Command while inflicting just the affliction.",
+      "failure_signal": "If the revealed trap routinely removes more permanent Strength than the opponent can recover before the uncapped margin penalty, limit its swing rather than adding more counters."
+    },
+    {
       "id": "the-vardai",
       "opportunity": "A Vardai can legally Move an adjacent empty position and then make a newly positioned basic Rider Attack; its once-per-Battle ACTION is unused.",
       "comparison": "Compare its 1C once-per-Battle Move plus unused Rider Attack within one Action against a Named Rider Maneuver followed by a second Attack Action.",
@@ -398,6 +416,12 @@
       "opportunity": "A Force directly ahead is Shaken before Front resolution and the Middle/Rear Healer can clear it.",
       "comparison": "Compare spending an ACTION to remove the condition versus playing a +Strength card and retaining tempo.",
       "failure_signal": "If its healing ACTION is repeatedly weaker, the 3-Strength body alone may not justify it."
+    },
+    {
+      "id": "they-had-gone-too-far",
+      "opportunity": "A friendly Scout or Skirmisher is present while an opposing Middle/Frontline Force can or cannot legally move one row toward Rear.",
+      "comparison": "Compare 1C They Had Gone Too Far (Scout or Skirmisher, Shaken fallback) with zero-Command The Line Was Baited (Skirmisher-only, Depleted on successful retreat).",
+      "failure_signal": "If successful movement dominates the situation and the Shaken fallback/Scout eligibility rarely matters, the two Tactics may be redundant."
     },
     {
       "id": "they-knew-the-ground",
