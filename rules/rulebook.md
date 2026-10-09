@@ -49,19 +49,6 @@ You can play without a dedicated playmat. Set out four Front columns with three 
 
 Hands and decks are hidden. The battlefield, discard piles, each hand and deck size, Command totals, face-up Narratives, and the existence and **assigned Front** of a face-down Stratagem are public. A face-down Stratagem's identity is hidden.
 
-## Opening Orders {#opening-orders}
-
-Each player secretly records **two Opening Orders**, numbered **1** and **2**, choosing freely from the four types below; repeating a type is allowed. Record the chosen Force or formation, destination, target or Front as appropriate.
-
-- **Maneuver:** Maneuver a friendly formation one orthogonally adjacent legal position, **even without a Name**, for **no Action and no Command**. Other Maneuver rules still apply: an Exhausted Force cannot initiate without an exception, movement respects active Fronts and row restrictions, and a legal friendly swap is possible.
-- **Commit:** Select an **active Front where you currently have at least one Force**. Pay **1 Command** for **+2 to your total Strength in that Front this Battle**. This is not a bonus to any individual formation and does **not** help a Raider outmatch a Frontline defender for an Incursion. The bonus only counts while you still have a Force in that Front. Two Commits may target the same Front and their bonuses add. You must be able to pay for all chosen Commits.
-- **Strike:** Select one of your Forces and a basic Attack target. After the Maneuvers have resolved, make the Attack **if its target is still legal**. It uses the Force's **one Attack per Battle**, with the usual row, screening, Incursion, flanking and Depleted restrictions. An unsuccessful attempt to find a legal target does not use its Attack.
-- **Hold:** No effect.
-
-Both players **reveal all four orders simultaneously**. Check that committed Fronts contained a friendly Force when orders were revealed and pay all valid Commit costs; record their Battle-only Front bonus. Then execute the **Maneuvers**, numbered **1 before 2**, with matching opposing steps simultaneous. Finally execute the **Strikes**, also **1 before 2**, with matching opposing steps simultaneous. Check legality immediately before each step, on the board after earlier steps. Simultaneous Strikes check legal attackers and targets before either Strike's effects are applied. A failed order has no effect; it does not become a different order. If both Strikes use the same Force, the second cannot Attack again. All Opening Orders use **no normal-turn Actions**; Commit costs Command as stated.
-
-**Battle I:** As setup currently places no Force on the battlefield, the players first take **one normal turn each**. Then issue Opening Orders before the first player's second turn, unless a Pass has already started the closing sequence (in which case skip them). For **Battle II onward**, issue Opening Orders after opening the new Front and resetting Battle uses, **before the first turn**. Opening Orders are not a second reveal window for Stratagems, and they do not alter the Pass closing sequence.
-
 ## Your turn {#turn}
 
 At the start of each turn, decide whether to **Pass** or play normally. To Pass, announce it **before drawing**; your turn ends immediately. This starts the Battle's two-turn closing sequence, described under *Passing and ending a Battle*.
@@ -213,15 +200,28 @@ The first Pass starts the closing sequence:
 
 1. The **other player** takes one full normal turn: draw 1 and take up to 2 Actions.
 2. The **player who Passed** takes one full normal turn: draw 1 and take up to 2 Actions.
-3. The Battle **ends immediately** and its Fronts are resolved.
+3. **Opening Orders** are revealed and resolved; then resolve the Battle's Stratagems and Fronts.
 
 There is no second Pass during these closing turns and neither player can extend the sequence. The player who **did not Pass** starts the next Battle, if the war continues.
 
 > **Passing example:** If you Pass before drawing, your opponent still has one full turn to Attack, play a card or respond to your position. You then have your own full closing turn. Choosing when to initiate this sequence is part of the strategy.
 
+## Opening Orders {#opening-orders}
+
+After the first Pass and the **two closing turns**, but **before** the Stratagem reveal window and Front comparison, each player secretly records **two Opening Orders**, numbered **1** and **2**. Choose freely from the four types below; repeating a type is allowed. Record the chosen Force or formation, destination, target or Front as appropriate.
+
+- **Maneuver:** Maneuver a friendly formation one orthogonally adjacent legal position, **even without a Name**, for **no Action and no Command**. Other Maneuver rules still apply: an Exhausted Force cannot initiate without an exception, movement respects active Fronts and row restrictions, and a legal friendly swap is possible.
+- **Commit:** Select an **active Front where you currently have at least one Force**. Pay **1 Command** for **+2 to your total Strength in that Front this Battle**. This is not a bonus to any individual formation and does **not** help a Raider outmatch a Frontline defender for an Incursion. The bonus only counts while you still have a Force in that Front. Two Commits may target the same Front and their bonuses add. You must be able to pay for all chosen Commits.
+- **Strike:** Select one of your Forces and a basic Attack target. After the Maneuvers have resolved, make the Attack **if its target is still legal**. It uses the Force's **one Attack per Battle**, with the usual row, screening, Incursion, flanking and Depleted restrictions. An unsuccessful attempt to find a legal target does not use its Attack.
+- **Hold:** No effect.
+
+Both players **reveal all four orders simultaneously**. Check that committed Fronts contained a friendly Force when orders were revealed and pay all valid Commit costs; record their Battle-only Front bonus. Then execute the **Maneuvers**, numbered **1 before 2**, with matching opposing steps simultaneous. Finally execute the **Strikes**, also **1 before 2**, with matching opposing steps simultaneous. Check legality immediately before each step, on the board after earlier steps. Simultaneous Strikes check legal attackers and targets before either Strike's effects are applied. A failed order has no effect; it does not become a different order. If both Strikes use the same Force, the second cannot Attack again. All Opening Orders use **no normal-turn Actions**; Commit costs Command as stated.
+
+**The same sequence applies to every Battle, including Battle I.** Forces can be played during normal and closing turns before Opening Orders. There is **one Opening Orders window per Battle**, after both closing turns and before the single Stratagem reveal window. No initial deployment turn, skipped order phase, or Battle I exception is needed.
+
 ## Resolving a Battle {#scoring}
 
-After the final closing turn, follow this order for all active Fronts.
+After both closing turns and **Opening Orders**, follow this order for all active Fronts.
 
 ### 1. The single Stratagem reveal window
 
