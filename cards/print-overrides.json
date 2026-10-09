@@ -1357,7 +1357,7 @@
     {
       "id": "stood-fast-with",
       "index": 0,
-      "cue": "BONDED/FRONT"
+      "cue": "FRONTLINE"
     },
     {
       "id": "covered-the-withdrawal-of",
@@ -1382,7 +1382,7 @@
     {
       "id": "marched-beneath-the-banner-of",
       "index": 0,
-      "cue": "BONDED/LEADER"
+      "cue": "BONDED"
     },
     {
       "id": "carried-the-oath-of",
@@ -1432,17 +1432,17 @@
     {
       "id": "supported-by",
       "index": 0,
-      "cue": "BONDED/MIDDLE"
+      "cue": "MIDDLE"
     },
     {
       "id": "serai-queen-of-crows",
       "index": 0,
-      "cue": "BONDED/ARCHER"
+      "cue": "BONDED"
     },
     {
       "id": "doros-the-last-spear",
       "index": 0,
-      "cue": "BONDED/FRONT"
+      "cue": "FRONTLINE"
     }
   ],
   "edge_cue_policy": "Print layout only: upper-right text reminds players when to consult the card body; never summarises rules, outcomes, costs or Strength. Text is CHECK + short trigger. Do not insert timing/condition icon glyphs."
