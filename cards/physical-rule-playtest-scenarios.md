@@ -271,13 +271,14 @@ not change the native/Webgame data.
 
 ### Simple Forces against Named formation investment
 
-Set two active Fronts with room. Player A has Thirty Spears (3S, 1C),
-Fifty Men (5S, 2C) and Hundred Shields (6S, 3C). Player B has Fifty
-Men with Followed and a Name (8S after Named completion, 4C total).
-Record number of *card-play Actions*, total Command, occupied ranks and
-Strength at the moment of each Battle resolution. In a late saturated
-board, compare replacing one plain Force with a Bond+Name improvement
-to an existing Force.
+Set two active Fronts with room. Player A has Thirty Spears (3S, 3C),
+Fifty Men (5S, 4C) and Hundred Shields (6S, 5C). Player B has Fifty
+Men with Followed and a +1 Name (8S after Named completion, 6C total).
+Record *card-play Actions*, paid Command, occupied ranks and effective
+Strength at Battle resolution. In a saturated late board, compare a
+new Force with a Bond+Name improvement to an existing one. Test
+whether high Command costs make Forces stranded in late Battles when
+recovery falls to 3, then 1.
 
 Repeat using [Raw Strength Control](mechanic-coverage-decks.md#raw-strength-control)
 against each core deck with mirrored hand/deal order. The simple deck
