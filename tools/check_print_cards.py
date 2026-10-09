@@ -78,8 +78,11 @@ def main() -> None:
     assert "Guarded" in after["guarded"]["text"]
     assert "Inspired" in after["endured-with"]["text"]
     assert "Depleted" in after["the-iron-boars"]["text"]
-    assert after["no-one-would-be-first-to-leave"]["effects"][0]["limit"] == "once_per_battle"
-    assert after["the-crows-came-down"]["effects"][0]["limit"] == "once_per_battle"
+    for card_id in ("no-one-would-be-first-to-leave", "the-crows-came-down"):
+        effects = after[card_id]["effects"]
+        assert effects[0]["timing"] == "play", card_id
+        assert any(e["timing"] == "action" and e.get("limit") == "once_per_battle"
+                   for e in effects), card_id
 
     for card_id in set(before) - changed:
         # Existing rules, stats and identities stay unchanged. Exposed-strip
