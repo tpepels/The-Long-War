@@ -167,7 +167,7 @@ Classifications grant the basic Attacks and Guard screening defined in the ruleb
 
 **Name** - visible personality and repeatable decision layer. Names are a good home for Actions, Reactions, movement, transfers, targeted disruption and odd exceptions.
 
-**Hero** - the highest-complexity formation card. Force mode should remain readable when buried; Name mode may carry the stranger ability.
+**Hero** - one Unique card with **two separately priced modes**. When played as a Force, pay the printed Force cost and use only its Force Strength and abilities. When played as a Name (including prepared), pay the printed Name cost and use only its +1 Name modifier and Name abilities. Force mode follows the ordinary Force tariff; Name mode is priced relative to other Names. Choosing either does not activate the other. Force mode should remain readable when buried; Name mode may carry the stranger ability.
 
 **Tactic** - immediate hostile interaction. Tactics should change the opponent's position, resources, components, Exhaustion or options. Avoid using “gets -2 Strength” as the default hostile effect.
 
