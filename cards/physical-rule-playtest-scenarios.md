@@ -52,13 +52,13 @@ Attach a King Name to a Force and resolve a completed-Named Command gain. An opp
 
 Both players set one face-down Stratagem publicly at the same active Front. Before comparison, provisional Strength would tie at 5–5. One player has **The Ground Was Held** and is the only player with a Named Formation there; the other has **The Lines Held**, with an eligible Middle formation to move and an empty Frontline. Both privately choose to reveal, and both choices are shown at once. The Lines Held moves its formation and gives +2; the Front no longer ties, so The Ground Was Held does **not** override that final result. No later tie-break window opens.
 
-Repeat from a provisional 5–4 non-tie that becomes 5–5 because of a reveal: The Ground Was Held was not eligible beforehand and cannot reveal in response.
+Repeat from a provisional 5–4 non-tie in which the *Ground Was Held* owner is leading by 1: it is **not** eligible merely because another reveal later creates a 5–5 tie. Now reverse the scores so its owner **loses 4–5** with a Named Formation and the opponent has none. It may reveal, giving +2 Strength to that Named Formation and winning 6–5. Eligibility is evaluated before any reveal, and the two branches are not interchangeable.
 
 **Watch for:** meaningful hidden information versus a single lucky reveal determining the result with no counterplay.
 
 ## 9. Front-assigned scouting and reactions
 
-Set **The Scouts Had Warned Them** face-down at a Front containing one of your Scouts or Seers. When your opponent sets a Stratagem **in that same Front**, you may reveal yours and inspect theirs, draw 1 and discard 1. If your opponent sets a Stratagem elsewhere, this trigger does not fire. Try **The Scouts Found the Gap** to reveal an opposing face-down Stratagem involuntarily; its opponent may pay to set it down again as the Tactic specifies.
+Set **The Scouts Had Warned Them** face-down at a Front containing one of your Scouts or Seers. When your opponent sets a Stratagem **in that same Front**, you may reveal yours, inspect theirs, and give one friendly Force there Guarded. If your opponent sets a Stratagem elsewhere, this trigger does not fire. Try **The Scouts Found the Gap** to reveal an opposing face-down Stratagem involuntarily; its opponent may pay to set it down again as the Tactic specifies.
 
 **Watch for:** Front assignment being genuinely meaningful without revealing hidden identity prematurely.
 
@@ -166,3 +166,94 @@ with **Guarded** on one of A's Forces. The goal is to establish whether
 lost-Front Exhaustion's −1 per Force compounds too severely. Record
 actual Front results and Command totals; do not infer balance from these
 written scenarios alone.
+
+## Phases 4–5: surprise interactions and combo consistency
+
+These are **physical tabletop scripts**, not results of automated matches.
+
+### Hidden protection: Tactic or Attack, never both
+
+Player A sets **No Step Back** at Front 2. Player B declares a legal Archer
+Attack that would Exhaust A's Rear Force there. A may reveal the plan
+**before** applying Exhausted. The Attack is still spent; the Exhaustion
+is prevented and the plan is discarded. Repeat with a Tactic targeting that
+formation: the plan can instead ignore that Tactic's effect on the formation.
+It cannot be revealed twice or cancel unrelated effects on another Front.
+
+**Record:** was either branch consequential to a Strength result, and was
+the timing evident without looking up the rules?
+
+### The Ground Was Held: down by exactly one
+
+Set the Ground Was Held for a Front in which A has a Named Formation, B has
+no Named Formation, and provisional Front totals are A=5, B=6. A may reveal
+and give one Named Formation +2 to make A=7. Repeat from A=5, B=7:
+**not eligible**. From A=6, B=6, the tie-break wins only if the Front
+remains tied after the other simultaneous reveal effects. Do not open a new
+reveal window.
+
+**Record:** did the hidden one-point comeback create meaningful counterplay?
+
+### Scout and Seer react with actual protection
+
+A's Scout occupies Front 2 and sets **The Scouts Had Warned Them** there.
+When B sets a new hidden Stratagem at Front 2, A can reveal, look, and give
+one friendly Force there Guarded. With **Before Sunset, the Ford Would Be
+Ours** face up, a newly set Stratagem in Front 3 (adjacent to that Scout)
+may instead produce +2 temporary Strength on one friendly formation in
+Front 3. If no formation is present in Front 3, looking still occurs but
+that +2 is unavailable.
+
+**Record:** was the revealed information worth paying an Action/Command,
+and was its protective effect used?
+
+### Whole-Front exchange must be all-or-nothing
+
+In Battle II (three active Fronts), place differently sized and marked
+formations in Fronts 1 and 2, with a prepared Bond in one empty rank.
+Play **No Road Was Too Long** for 3 Command. Exchange each matching rank
+between the adjacent active Fronts, taking entire stacks and attached
+markers and preserving prepared layers without replaying PLAY effects.
+Choose one moved Named Formation to gain +2 temporary Strength. The full
+exchange must be legal before starting. Neither player's opponent-side
+cards move. Re-test with a Frontline-only Force and with incompatible
+prepared/attachment arrangements.
+
+**Record:** did the exchange change a Front winner enough to justify its
+3 Command and Action without making it an automatic winner?
+
+### Suppression and forced retreat
+
+With a Scout or Skirmisher in Front 2, play **They Had Gone Too Far**
+against B's opposing Frontline Force. If its matching Middle position is
+empty and the Force can legally occupy it, Move it there. Otherwise
+apply Shaken (−2 Strength). With a Skirmisher use **The Line Was Baited**:
+only a *successful* move into the Rearward adjacent legal position gives
+Depleted; if blocked it inflicts nothing. With **They Let Them Through**,
+target an opposing Named Formation and suppress its printed ACTION
+abilities plus the attached Name's Strength modifier for the Battle.
+
+**Record:** effect success, legal counterplay, any unexpectedly
+unconditional −2 Strength or condition suppression.
+
+### Main-deck combo availability versus actual usefulness
+
+Use all four Phase 5 decks. For each one, track three printed combo
+packages: first legal opportunity to combine an enabler and payoff, whether
+the two cards were jointly useful that Battle, real changes to Front winners,
+and Command/Actions spent. The [deck guide](playtest-decks.md) includes
+hypergeometric baseline probabilities for *seeing* both categories in
+10/20 cards; those numbers are **not** the expected activation rate.
+Run mirrored opening hands and starting players, paying particular attention
+to Rear congestion in Crown of Crows and prepared-layer congestion in
+Oathforge.
+
+### Three isolated coverage lists
+
+Use [Rider & Flank, Seer & Hidden Plans, and Front Exchange &
+Preparation](mechanic-coverage-decks.md) as separate diagnostic lists.
+Do not force their rare classifications into the main decks. Run the
+same layouts with Battle I, II, III and a saturated late board. Record
+Stratagems discarded unrevealed, number of legal Riders' flanked targets,
+Seer-supported Named formations, and successful Front exchanges.
+
