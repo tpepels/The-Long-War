@@ -142,3 +142,133 @@ def test_native_information_key_respects_player_observation(small_real_game):
     visible = state.clone()
     visible.players[0].command -= 1
     assert fast.information_key(fast.from_game_state(visible), 0) != original
+
+
+@pytest.mark.parametrize("seed", (123, 456, 789, 20261009))
+def test_observation_redacts_opponent_hand_composition(
+    small_real_game, seed
+):
+    """Switch a hidden card between opponent hand/deck, preserving counts."""
+    from longwar.game.actions import action_key
+
+    engine, deck = small_real_game
+    state = engine.new_game(
+        deck, deck, seed=seed, first_player=0, opening_bonus=False
+    )
+    fast_type, *_ = strategic_backend()
+    native = fast_type(engine)
+    previous = native.from_game_state(state)
+    before = native.information_key(previous, 0)
+    before_hash = native.information_hash(previous, 0)
+    before_legal = {
+        native.action_key(code) for code in native.legal_actions(previous)
+    }
+
+    hidden = state.clone()
+    opponent = hidden.players[1]
+    assert opponent.hand and opponent.deck
+    # Exchange a card rather than changing observable zone lengths.
+    replacement = next(
+        (c for c in opponent.deck if c not in opponent.hand), None
+    )
+    if replacement is None:
+        pytest.skip("Deck has no hidden alternative for this seed")
+    removed = opponent.hand[0]
+    opponent.hand[0] = replacement
+    opponent.deck.remove(replacement)
+    opponent.deck.append(removed)
+
+    observed = native.from_game_state(hidden)
+    assert native.information_key(observed, 0) == before
+    assert native.information_hash(observed, 0) == before_hash
+    assert native.information_key(observed, 1) != native.information_key(
+        previous, 1
+    )
+    assert {
+        native.action_key(code) for code in native.legal_actions(observed)
+    } == before_legal
+    assert {action_key(a) for a in engine.legal_actions(hidden)} == {
+        action_key(a) for a in engine.legal_actions(state)
+    }
+
+
+def test_hidden_stratagem_identity_is_private_until_reveal_or_known(
+    small_real_game,
+):
+    from longwar.game.model import StratagemState
+
+    engine, deck = small_real_game
+    state = engine.new_game(
+        deck, deck, seed=112, first_player=0, opening_bonus=False
+    )
+    native_type, *_ = strategic_backend()
+    native = native_type(engine)
+    ground = state.clone()
+    ground.stratagems[1] = StratagemState("the-ground-was-held", revealed=False)
+    lines = state.clone()
+    lines.stratagems[1] = StratagemState("the-lines-held", revealed=False)
+
+    def key(current, player):
+        return native.information_key(native.from_game_state(current), player)
+
+    assert key(ground, 0) == key(lines, 0)
+    assert key(ground, 1) != key(lines, 1)
+
+    revealed = ground.clone()
+    revealed.stratagems[1].revealed = True
+    assert key(revealed, 0) != key(lines, 0)
+
+    explicitly_known = ground.clone()
+    explicitly_known.stratagems[1].known_to_mask |= 1 << 0
+    assert key(explicitly_known, 0) != key(lines, 0)
+
+
+@pytest.mark.parametrize("seed", (17, 23, 37))
+def test_observation_key_stable_under_private_deck_permutations(
+    small_real_game, seed
+):
+    import random
+
+    engine, deck = small_real_game
+    state = engine.new_game(
+        deck, deck, seed=seed, first_player=0, opening_bonus=False
+    )
+    native_type, *_ = strategic_backend()
+    native = native_type(engine)
+    original = native.from_game_state(state)
+    baseline = (native.information_key(original, 0),
+                native.information_hash(original, 0))
+    for shuffle_seed in range(12):
+        altered = state.clone()
+        random.Random(shuffle_seed).shuffle(altered.players[1].deck)
+        changed = native.from_game_state(altered)
+        assert (native.information_key(changed, 0),
+                native.information_hash(changed, 0)) == baseline
+
+
+def test_observation_distinguishes_public_and_owned_resources(small_real_game):
+    engine, deck = small_real_game
+    state = engine.new_game(
+        deck, deck, seed=451, first_player=0, opening_bonus=False
+    )
+    native_type, *_ = strategic_backend()
+    native = native_type(engine)
+    reference = native.from_game_state(state)
+    key = native.information_key(reference, 0)
+
+    hand_changed = state.clone()
+    player = hand_changed.players[0]
+    alternate = next(card for card in player.deck if card not in player.hand)
+    old = player.hand[0]
+    player.hand[0] = alternate
+    player.deck.remove(alternate)
+    player.deck.append(old)
+    assert native.information_key(native.from_game_state(hand_changed), 0) != key
+
+    command_changed = state.clone()
+    command_changed.players[1].command -= 1
+    assert native.information_key(native.from_game_state(command_changed), 0) != key
+
+    turn_changed = state.clone()
+    turn_changed.turn_number += 1
+    assert native.information_key(native.from_game_state(turn_changed), 0) != key
