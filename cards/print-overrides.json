@@ -404,7 +404,7 @@
         },
         {
           "timing": "continuous",
-          "text": "Tactics targeting cards or formations in a Front with your Raider or Skirmisher cost 1 less Command (minimum 0). After each, you may Move one of your Raiders or Skirmishers there one legal position."
+          "text": "Your Tactics targeting cards or formations in a Front with your Raider or Skirmisher cost 1 less Command (minimum 0). Afterward, you may Move one of those troops one legal position."
         }
       ],
       "design_note": "Modest immediate card selection plus existing tactical discount and reposition engine."
