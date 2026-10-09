@@ -184,7 +184,7 @@ Shake, Deplete and displace opposing Forces, then exploit weakened defenders wit
 ### Combinations to test
 
 - Iron Boars x3 and Red Duelists x3 give tangible initial penalties; The Stores Were Taken x2 and Trap Closed x2 follow up with layer loss or Command taxation.
-- Two Baggage Was Abandoned and two Crows Came Down still create Exhaustion; three Salt-Road Reavers instead exploit Shaken for Depleted. Shared the Spoils With retains a separate conditional Command-transfer option.
+- Two Baggage Was Abandoned and two Crows Came Down still create Exhaustion; three Salt-Road Reavers instead exploit Shaken for Depleted. Shared the Spoils With now uses Shaken to Move a Raider or Skirmisher instead of stealing Command.
 - Black Company x2 and River Raiders x2 punish opponent attachment investment. Two Seized the Standard Of Bonds can remove a Bond even without waiting for an enemy condition.
 - The Line Was Baited now gives Depleted only on a legal forced retreat by your Skirmisher. Raider bodies and Rovan remain useful when no affliction combo appears.
 
@@ -192,7 +192,7 @@ Shake, Deplete and displace opposing Forces, then exploit weakened defenders wit
 
 | Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
-| Exhaustion/raid follow-up (card co-draw only) | 6 | 6 | 58.9% | 93.9% |
+| Disruption/raid follow-up (card co-draw only) | 6 | 6 | 58.9% | 93.9% |
 | Breakthrough-to-attachment raid | 7 | 6 | 63.2% | 95.3% |
 | Reusable raid pressure | 6 | 4 | 46.8% | 86.6% |
 
@@ -306,7 +306,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 - Seven Black Ships and River Raiders can remove attached layers after winning the Raider Strength check, even against an occupied enemy Frontline; Seized the Standard Of and The Muster Was False provide alternative attachment pressure.
 - Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward enables opportunistic Maneuvers.
 - Lantern Scouts and Lysa support They Were Gathering There, The Scouts Had Warned Them and Before Sunset for actual Strength or Guarded counterplay, not merely looking at cards.
-- Bloodied Raider/Skirmisher pressure makes Shared the Spoils With and The Trap Closed useful; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
+- Shaken Raider/Skirmisher pressure enables Shared the Spoils With to Move a formation, and The Trap Closed to remove an attachment; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
 
 ### Card availability, not playable-combo probability
 
@@ -360,3 +360,20 @@ The **core four** build around distinct *interactions*: leadership/Bond multipli
 **The Last Watch** and **Broken Oaths** test recovery/defensive Bonds and bluff/raid tools that were absent from every previous list. Their higher singleton rates are intentional **coverage**, not proof of competitive consistency. For the simplest alternative, compare the [Raw Strength Control](mechanic-coverage-decks.md#raw-strength-control) in mirrored games: it uses 16 ability-free Force cards and may have better immediate Strength-per-Action than intricate formation setups.
 
 **Actual validation:** track card playability, Commands/Actions invested, Named completions, legal target rates, unused hidden Stratagems, and Fronts whose winner changes because of an effect. If the combo decks consistently lose to the simple Force control, improve the combo decisions rather than simply inflate card text.
+
+## October 9 economy correction: printed card abilities changed
+
+The above distribution/count statistics describe the same six **unchanged**
+48-card lists. The latest printed abilities change the *purpose* of certain
+enablers, not their number of copies. **The Damar costs 4C** rather than 3C
+for Move plus newly enabled Attack. The Fifty Men and Aradai gain small
+conditional one-Battle effects to compensate their odd-Strength base tariff.
+A Volley Before Dawn now Shakes a Force at any opposing rank with an Archer
+present. Shared the Spoils With no longer steals Command, instead moving
+a Raider/Skirmisher after enemy Shaken. Brannoc's completion payoff now
+targets Shaken (its separately paid repeatable ACTION is unchanged).
+
+The static co-draw percentages cannot establish how often these conditions
+will be satisfied. In matched playtests, measure **legal openings, Actions
+saved, local Front reversals, and impact on losing-side Command**, not only
+the number of copies drawn together.
