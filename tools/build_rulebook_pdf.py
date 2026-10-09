@@ -376,10 +376,9 @@ def markdown_to_typst(source: str, version: str) -> str:
             current_section = re.sub(
                 r"\s+\{#[A-Za-z0-9_-]+\}\s*$", "", line[3:].strip()
             )
-            open_columns()
-            out.append(f"== {current_section}")
             if current_section == "The battlefield":
                 close_columns()
+                out.append(f"== {current_section}")
                 out.append(
                     '#grid(columns: (1fr, 1fr, 1fr), gutter: 6pt,'
                     ' [#block(fill: rgb("#e7ebea"), inset: 9pt, stroke: (bottom: 2pt + rgb("#293c47")))[#text(weight: "bold")[NAME] #linebreak() #text(size: 8pt)[Top · identity]]],'
@@ -387,6 +386,9 @@ def markdown_to_typst(source: str, version: str) -> str:
                     ' [#block(fill: rgb("#f3e8d6"), inset: 9pt, stroke: (bottom: 2pt + rgb("#ad8a50")))[#text(weight: "bold")[FORCE] #linebreak() #text(size: 8pt)[Base · Strength]]])'
                 )
                 open_columns()
+            else:
+                open_columns()
+                out.append(f"== {current_section}")
             continue
 
         if line.startswith("### "):
