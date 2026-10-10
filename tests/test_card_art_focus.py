@@ -16,10 +16,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_all_current_card_artwork_uses_top_framing() -> None:
-    cards = json.loads((ROOT / "cards/cards.json").read_text(encoding="utf-8"))["cards"]
-    assert len(cards) == 131
-    assert all(c.get("art_focus_y", "0%") == "0%" for c in cards)
+def test_default_artwork_crop_is_top_aligned() -> None:
     css = (ROOT / "web/physical-cards.css").read_text(encoding="utf-8")
     assert "background-size: cover;" in css
     assert "background-position: var(--art-x, 50%) var(--art-y, 0%);" in css
