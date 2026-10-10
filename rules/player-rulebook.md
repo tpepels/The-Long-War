@@ -199,7 +199,7 @@ Resolve Battle-end card effects, then for **each lost Front lose Command equal t
 
 ### 4. Check Collapse
 
-Check **before recovery**. A player at 0 or less loses the war. If both collapse, the **lower total** loses; if equal, the **passer** loses.
+Check **before recovery**. A player at 0 or less loses the war. If both collapse, the **lower total** loses; if equal, the **passer** loses. If Command falls below 0, write the negative total beside the track for this comparison.
 
 ### 5. Clean up and Exhaust defenders
 
