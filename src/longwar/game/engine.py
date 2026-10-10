@@ -8,7 +8,7 @@ from ..decks import InvalidDeckDefinition, validate_deck_definition
 from ..rules import GameRules
 from ..protocol import CardField, Direction, DirectionCode, ObservationZone, PendingResume, PLAYER_COUNT
 from ..native_engine import create_fast_engine, create_heuristic_evaluator
-from .actions import Action, Cycle, Discard, EffectChoice, EndTurn, Pass, action_from_key, action_key
+from .actions import Action, BeginTurn, Cycle, Discard, EffectChoice, EndTurn, Pass, action_from_key, action_key
 from .model import (
     ConstraintKind,
     Front,
@@ -193,7 +193,7 @@ class GameEngine:
             return False
         if state.pending_draw_discard_for is not None:
             return False
-        if isinstance(action, (Pass, EndTurn, Discard, EffectChoice)):
+        if isinstance(action, (Pass, BeginTurn, EndTurn, Discard, EffectChoice)):
             return False
         return isinstance(action, (Cycle,)) or not isinstance(action, (Discard, EffectChoice))
 
@@ -435,6 +435,7 @@ class GameEngine:
         state.completion_count_this_battle[:] = data["completion_count_this_battle"]
         state.operations_this_battle[:] = data["operations_this_battle"]
         state.actions_this_turn = int(data.get("actions_this_turn", 0))
+        state.turn_draw_pending = bool(data.get("turn_draw_pending", False))
         state.closing_turns_remaining = int(
             data.get("closing_turns_remaining", 0)
         )
