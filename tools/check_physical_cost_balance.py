@@ -366,7 +366,7 @@ def run() -> None:
          and marker_strength(5, exhausted=True, depleted=True,
                              shaken=True, flanked=True) == 0
          and marker_strength(1, exhausted=True, depleted=True) == 0
-         and "duplicate markers of the same condition do not stack" in rulebook,
+         and "identical condition markers do not stack" in rulebook,
          "No negative front contribution; independent afflictions compound")
 
     case("P2: only one chosen Force suffers defeat Exhaustion per Front",
