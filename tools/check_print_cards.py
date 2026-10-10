@@ -63,6 +63,16 @@ def main() -> None:
     assert replacement_ids.isdisjoint(exposed_only_ids), (
         "Full replacements cannot also carry exposed-only patches"
     )
+    # A print replacement that sets its price owns the entire Command cost.
+    priced_replacements = {
+        c["id"] for c in overrides["replacements"] if "command_cost" in c
+    }
+    cost_adjustment_ids = [c["id"] for c in overrides["cost_adjustments"]]
+    assert len(cost_adjustment_ids) == len(set(cost_adjustment_ids))
+    assert priced_replacements.isdisjoint(cost_adjustment_ids), (
+        "Printed prices cannot be overridden twice"
+    )
+    assert "the-dust-riders" not in cost_adjustment_ids
     assert "the-dust-riders" in replacement_ids
     assert "the-dust-riders" not in exposed_only_ids
     assert all(e.get("exposed") for e in
