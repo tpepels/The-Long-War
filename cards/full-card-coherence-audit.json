@@ -1701,7 +1701,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 166,
+      "printed_effect_max_chars": 144,
       "in_test_decks": [
         "seer-hidden-lab"
       ]
