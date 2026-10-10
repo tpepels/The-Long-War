@@ -398,7 +398,8 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
     # without adding it to the stable public policy observation below.
     i += U32_BYTES
     actions_this_turn = data[i]
-    closing_turns_remaining = data[i + 1]
+    turn_draw_pending = bool(data[i + 1])
+    closing_turns_remaining = data[i + 2]
     i += INFO_TURN_FLOW_BYTES
 
     passed = [bool(data[i + offset]) for offset in range(PLAYER_COUNT)]
@@ -629,6 +630,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
         "battle": battle,
         "active_player": active_player,
         "actions_this_turn": actions_this_turn,
+        "turn_draw_pending": turn_draw_pending,
         "closing_turns_remaining": closing_turns_remaining,
         "passed": passed,
         "pass_order": pass_order,
