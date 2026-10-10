@@ -128,6 +128,7 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     fast.turn_number = state.turn_number
     fast.shuffle_seed = state.shuffle_seed
     fast.actions_this_turn = int(state.actions_this_turn)
+    fast.turn_draw_pending = bool(state.turn_draw_pending)
     fast.closing_turns_remaining = int(state.closing_turns_remaining)
     fast.pass_len = len(state.pass_order)
     fast.cleanup_pending = (
@@ -649,6 +650,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             for p in range(PLAYER_COUNT)
         ],
         "actions_this_turn": state.actions_this_turn,
+        "turn_draw_pending": bool(state.turn_draw_pending),
         "closing_turns_remaining": state.closing_turns_remaining,
         "maneuvers_this_battle": [
             state.player_maneuver_count[p]
@@ -851,6 +853,7 @@ cdef dict _fe_debug_snapshot(FastEngine self, FastState state):
         "command": [state.command[0], state.command[1]],
         "operations_this_battle": [state.operations_this_battle[0], state.operations_this_battle[1]],
         "actions_this_turn": state.actions_this_turn,
+        "turn_draw_pending": bool(state.turn_draw_pending),
         "closing_turns_remaining": state.closing_turns_remaining,
         "pending_draw_discard_for": state.active_player if state.cleanup_pending else None,
         "pending_draw_count": state.pending_draw_count,
