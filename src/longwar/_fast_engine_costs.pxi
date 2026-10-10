@@ -619,7 +619,7 @@ cdef inline int _fe_command_cost_fast(
     cdef uint32_t extra
     cdef int player = state.active_player
     kind = action_kind(action)
-    if kind == TYPE_PASS or kind == TYPE_END_TURN or kind == TYPE_CYCLE:
+    if kind == TYPE_PASS or kind == TYPE_BEGIN_TURN or kind == TYPE_END_TURN or kind == TYPE_CYCLE:
         return 0
     if kind == TYPE_EFFECT:
         if (
