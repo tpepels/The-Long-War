@@ -170,6 +170,8 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.bond[dest] = state.bond[source]
     state.name[dest] = state.name[source]
     state.exhausted[dest] = state.exhausted[source]
+    state.conditions[dest] = state.conditions[source]
+    state.used_attack[dest] = state.used_attack[source]
     state.temporary[dest] = state.temporary[source]
     state.negative_one_markers[dest] = state.negative_one_markers[source]
     state.negative_two_markers[dest] = state.negative_two_markers[source]
@@ -186,6 +188,8 @@ cdef void _fe_move_slot(FastEngine self, FastState state, int source, int dest) 
     state.bond[source] = -1
     state.name[source] = -1
     state.exhausted[source] = 0
+    state.conditions[source] = 0
+    state.used_attack[source] = 0
     state.temporary[source] = 0
     state.negative_one_markers[source] = 0
     state.negative_two_markers[source] = 0
@@ -215,6 +219,8 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     cdef int8_t bond = state.bond[a]
     cdef int8_t name = state.name[a]
     cdef uint8_t exhausted = state.exhausted[a]
+    cdef uint8_t conditions = state.conditions[a]
+    cdef uint8_t used_attack = state.used_attack[a]
     cdef int16_t temporary = state.temporary[a]
     cdef uint8_t negative_one = state.negative_one_markers[a]
     cdef uint8_t negative_two = state.negative_two_markers[a]
@@ -231,6 +237,8 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.bond[a] = state.bond[b]
     state.name[a] = state.name[b]
     state.exhausted[a] = state.exhausted[b]
+    state.conditions[a] = state.conditions[b]
+    state.used_attack[a] = state.used_attack[b]
     state.temporary[a] = state.temporary[b]
     state.negative_one_markers[a] = state.negative_one_markers[b]
     state.negative_two_markers[a] = state.negative_two_markers[b]
@@ -247,6 +255,8 @@ cdef void _fe_swap_slots(FastEngine self, FastState state, int a, int b) noexcep
     state.bond[b] = bond
     state.name[b] = name
     state.exhausted[b] = exhausted
+    state.conditions[b] = conditions
+    state.used_attack[b] = used_attack
     state.temporary[b] = temporary
     state.negative_one_markers[b] = negative_one
     state.negative_two_markers[b] = negative_two
