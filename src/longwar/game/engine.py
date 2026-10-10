@@ -111,8 +111,13 @@ class GameEngine:
         card_data: dict[str, Any],
         *,
         rules: GameRules | None = None,
+        use_printed_numeric_values: bool = True,
     ):
         validate_card_data(card_data)
+        if use_printed_numeric_values:
+            from ..physical_values import apply_printed_numeric_values
+            card_data = apply_printed_numeric_values(card_data)
+            validate_card_data(card_data)
         if rules is None:
             rules = GameRules.standard()
 
@@ -150,8 +155,13 @@ class GameEngine:
         raise AttributeError(name)
 
     @classmethod
-    def from_file(cls, path: str) -> "GameEngine":
-        return cls(load_card_file(path))
+    def from_file(
+        cls, path: str, *, use_printed_numeric_values: bool = True,
+    ) -> "GameEngine":
+        return cls(
+            load_card_file(path),
+            use_printed_numeric_values=use_printed_numeric_values,
+        )
 
     def _build_native_core(self):
         return create_fast_engine(self)
