@@ -236,10 +236,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "After your Raider or Skirmisher gives an opposing Force here a negative marker, return one of that Force's attached Bonds or Names to its owner's hand."
+          "text": "After your Raider or Skirmisher, or a Tactic you play while one is here, gives an opposing Force here a negative marker, return its Bond or Name to its owner's hand."
         }
       ],
-      "design_note": "2C positional ambush replaces transient +2 with attachment disruption after actual pressure. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged.",
+      "design_note": "2C hidden attachment disruption now rewards Raider/Skirmisher-inflicted negative markers OR your Tactic in that assigned Front while you control a Raider/Skirmisher there (e.g. The Line Was Baited). Tactic is still the source, not the Skirmisher; one set Stratagem per Battle and marker/attachment legality still apply.",
       "command_cost": 2
     },
     {
