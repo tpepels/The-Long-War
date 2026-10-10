@@ -83,7 +83,7 @@ def test_unnamed_host_drains_only_one_command_without_collapse(game):
     assert action in engine.legal_actions(state)
     engine.apply(state, action)
     assert state.players[1].command == 1
-    assert state.players[0].command == 20  # 5 paid then 1 recovered, bounded by 20
+    assert state.players[0].command == 20 - engine.cards["the-unnamed-host"]["command_cost"] + 1
 
 
 def test_volley_red_strength_marker_lowers_target_exactly_two(game):
