@@ -604,7 +604,7 @@
       "type": "narrative",
       "role": "defence",
       "decision": "keep",
-      "reason": "Battle-limited 1/Battle recovery now offers an optional legal Move after removing Exhaustion; other temporary negatives still become Inspired. Links persistent defeat to positioning without replacing No One Would Be First to Leave.",
+      "reason": "Battle-limited Narrative ACTION recovery now offers an optional legal Move after removing Exhaustion; other temporary negatives still become Inspired. Links persistent defeat to positioning without replacing No One Would Be First to Leave.",
       "effect_length_max": 173
     },
     {
