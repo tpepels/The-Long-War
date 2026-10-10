@@ -8,6 +8,7 @@ from .agents.ismcts_agent import ISMCTSAgent
 from .belief import DeckHypothesis, HypothesisDeckPrior
 from .game.actions import (
     Action,
+    BeginTurn,
     BoardTarget,
     Cycle,
     Discard,
@@ -667,8 +668,10 @@ class PlaySession:
     ) -> str:
         prefix = f"Player {actor + 1}"
 
+        if isinstance(action, BeginTurn):
+            return f"{prefix} draws and begins the normal turn."
         if isinstance(action, Pass):
-            return f"{prefix} Passes and begins the closing sequence."
+            return f"{prefix} Passes before drawing and begins the closing sequence."
         if isinstance(action, EndTurn):
             return f"{prefix} ends the turn."
         if isinstance(action, Cycle):
@@ -816,11 +819,16 @@ class PlaySession:
         return repr(action)
 
     def _legal_reason(self, action: Action) -> str:
+        if isinstance(action, BeginTurn):
+            return (
+                "Draw 1 card and begin your normal turn. You can no longer "
+                "Pass once this draw has started."
+            )
         if isinstance(action, Pass):
             return (
-                "Pass is available only because no legal Action remains after "
-                "the turn's draw. The opponent gets one full closing turn, "
-                "then you get one full closing turn, then the Battle ends."
+                "You may voluntarily Pass before drawing, even when you "
+                "could take Actions. You draw nothing; the opponent gets a "
+                "full closing turn, then you get one full closing turn."
             )
         if isinstance(action, EndTurn):
             return (
@@ -832,8 +840,8 @@ class PlaySession:
             return "Spend one Action to discard two cards, then draw one card."
         if isinstance(action, Discard):
             return (
-                "Your hand is already at the 10-card limit. Discard one card, "
-                "then make the normal start-of-turn draw."
+                "Your hand is above the 10-card limit after a draw. Discard "
+                "one card before continuing the turn."
             )
         if isinstance(action, EffectChoice):
             if action.skip:
