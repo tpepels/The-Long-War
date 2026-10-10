@@ -57,6 +57,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed(&h, <uint8_t>(state.bond[slot] + 1))
         _info_hash_feed(&h, <uint8_t>(state.name[slot] + 1))
         _info_hash_feed(&h, state.exhausted[slot])
+        _info_hash_feed(&h, state.conditions[slot])
+        _info_hash_feed(&h, state.used_attack[slot])
         _info_hash_feed_u16(
             &h,
             <uint16_t>state.temporary[slot],
@@ -179,6 +181,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
+    # v19 adds public Force conditions/used Attack and a five-bit Action kind.
     # v18 separates the pre-draw voluntary Pass decision from the Action segment.
     # v17 adds explicit Battle-long -3 Strength marker state.
     # v15 adds public persistent per-Force Exhaustion state.
@@ -314,6 +317,8 @@ cdef int _fe__information_state_encode(
                 <uint8_t>(state.name[slot] + 1),
             )
             _info_emit(buf, &n, h, state.exhausted[slot])
+            _info_emit(buf, &n, h, state.conditions[slot])
+            _info_emit(buf, &n, h, state.used_attack[slot])
             _info_emit_u16(
                 buf,
                 &n,
@@ -623,6 +628,15 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
                 f"{_fe_rank_key(rank_from_slot(pos))}"
             )
         return key
+    if kind == TYPE_ATTACK:
+        choice = <int>extra
+        key = "archer" if choice == ATTACK_ARCHER else "skirmisher" if choice == ATTACK_SKIRMISHER else "raider" if choice == ATTACK_RAIDER else "rider"
+        return (
+            f"attack:{key}:{front_from_slot(pos)}:"
+            f"{_fe_rank_key(rank_from_slot(pos))}:"
+            f"{front_from_slot(dest)}:"
+            f"{_fe_rank_key(rank_from_slot(dest))}"
+        )
     if kind == TYPE_MANEUVER:
         return (
             f"maneuver:{front_from_slot(pos)}:"
