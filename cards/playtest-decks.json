@@ -6,13 +6,13 @@
     {
       "id": "banner-and-blood",
       "title": "Banner & Blood",
-      "playstyle": "Reliable leadership and permanent Strength: Captain/King formations amplify Bonded stacks and convert close Fronts through repeatable hidden plans.",
-      "hypothesis": "With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?",
+      "playstyle": "Leadership and persistent Named Formations with a Rider mobility branch: maneuvering Grey Riders/Vardai and a concealed Battle Turned East can challenge an opponent's rank commitments.",
+      "hypothesis": "Can leadership and Named investments coexist with an actionable Rider flank threat, and does a player choose between a Rider-move Stratagem and a leadership-resolution Stratagem under the one-plan limit?",
       "combo_notes": [
-        "Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them offer a hidden positional surprise versus broad leadership Strength.",
-        "Followed x3 and The Battle Had Chosen Them x2 reward any of six different Names; the large Fifty Men, Hundred Shields and First Spear remain useful even before Named completion.",
-        "Stood Fast With x2 protects a critical Frontline from flanking and helps the Grey Riders, whose Maneuvers can lead into their unused Rider Attack. First Spear x3 can Guard Middle support.",
-        "The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed repositioning versus broad Strength swings."
+        "Late Banner and Banner Singers support Captains/Kings and Named completion; Marched Beneath the Banner Of x3 amplifies a formation containing those classifications. Center Must Hold and Every Banner Turned Toward Them now offer distinct, competing one-Stratagem-per-Battle choices (one copy each).",
+        "Followed x3 and The Battle Had Chosen Them x1 reward Named formations. Fifty Men x1, Hundred Shields x2 and First Spear x3 provide physical presence while attachments and Names develop.",
+        "Grey Riders x2 can make a basic Rider Attack after their own Maneuver if a legal flanked target exists; Vardai x2 instead spends an ACTION to Move and potentially use its Rider Attack. The Long March x2 waives normal Maneuver Command for Riders, not Actions.",
+        "The Battle Turned East x2 can extend a Rider Move (including an Opening Maneuver) once its trigger fires, but competes with the leadership Stratagems for the single hidden plan. Stood Fast With x2 prevents flanking of its Bonded Frontline formation; it does not create a flank or grant an Attack."
       ],
       "combo_packages": [
         {
@@ -48,7 +48,8 @@
           "enablers": [
             "the-late-banner",
             "the-red-shields",
-            "the-first-spear"
+            "the-first-spear",
+            "the-grey-riders"
           ],
           "payoffs": [
             "stood-fast-with",
@@ -74,12 +75,16 @@
           "copies": 2
         },
         {
+          "id": "the-vardai",
+          "copies": 2
+        },
+        {
           "id": "a-hundred-shields",
           "copies": 2
         },
         {
           "id": "the-fifty-men",
-          "copies": 3
+          "copies": 1
         },
         {
           "id": "the-banner-singers",
@@ -147,18 +152,26 @@
         },
         {
           "id": "the-center-must-hold",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "every-banner-turned-toward-them",
+          "copies": 1
+        },
+        {
+          "id": "the-battle-turned-east",
           "copies": 2
         },
         {
           "id": "the-battle-had-chosen-them",
-          "copies": 2
+          "copies": 1
         },
         {
           "id": "the-king-had-given-the-order",
+          "copies": 1
+        },
+        {
+          "id": "the-long-march",
           "copies": 2
         },
         {
