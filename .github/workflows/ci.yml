@@ -109,6 +109,22 @@ jobs:
       - name: Verify native alpha-beta, ISMCTS and MCCFR against exact oracles
         run: python -m pytest -q --tb=short tests/test_native_solver_oracles.py
 
+  engine-pre-draw-pass:
+    name: Engine pre-draw Pass and closing (required)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Build updated native engine and search
+        run: make native-build WORKERS=2
+      - name: Verify voluntary Pass before draw and two closing turns
+        run: python -m pytest -q --tb=short tests/test_pre_draw_pass.py
+
   native-search-parity:
     name: Native search/reference parity (required)
     runs-on: ubuntu-latest
