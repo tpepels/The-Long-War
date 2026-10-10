@@ -103,6 +103,11 @@ V2_EFFECT_OPS = frozenset({
     "status_strength_aura",
     "steal_command",
     "exhaust",
+    "grant_condition",
+    "afflict_condition",
+    "exhaust_then_shaken",
+    "archer_middle_open_front",
+    "reliable_guard_screen",
     "flank_guard",
     "return_component",
     "swap_fronts",
@@ -128,6 +133,7 @@ V2_EFFECT_OPS = frozenset({
 
 V2_TIMINGS = frozenset({
     "play",
+    "attack",
     "action",
     "becomes_named",
     "bonded",
