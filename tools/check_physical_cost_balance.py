@@ -120,12 +120,15 @@ def run() -> None:
          and has("the-long-march", "Rider", "+1 Strength", "pay 0 Command"),
          "One card protects Rear and the other boosts Riders before Maneuver")
 
-    # A prepared opponent's Bond is vulnerable only after pressure connects.
-    case("B3: ambush damages a formation rather than adding Strength",
+    # A hidden class-supported response now recognizes a marker from a
+    # Raider/Skirmisher OR a Tactic while controlling one in the set Front.
+    # Its attachment return is not a second Attack or a free extra Stratagem.
+    case("B3: class-supported ambush returns an attachment",
          cost("the-trap-closed") == 2
-         and has("the-trap-closed", "Raider", "negative marker",
-                 "Bonds or Names", "hand"),
-         "Hidden plan requires a preceding tactical move and attached target")
+         and has("the-trap-closed", "Raider or Skirmisher",
+                 "a Tactic you play while one is here", "negative marker",
+                 "Bond or Name", "owner's hand"),
+         "Trap requires an eligible negative marker, earlier set plan and attached target")
 
     # Delayed plan versus direct Tactic; Stratagem can wait but costs an Action
     # to set, and its chosen Front and existence are public.

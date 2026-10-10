@@ -1364,15 +1364,15 @@
       "title": "The Trap Closed",
       "price": 2,
       "role": "disruption",
-      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "purpose": "Convert negative markers from Raider/Skirmisher effects or a Tactic played beside one into a concealed attachment return.",
       "review": "watch",
       "order_interaction": "negative_marker_reaction",
-      "printed_effect_max_chars": 151,
+      "printed_effect_max_chars": 165,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths"
       ],
-      "watch_reason": "Attachment removal during Opening Strike can magnify uncapped Strength-margin Command loss."
+      "watch_reason": "Hidden plan is limited to its chosen Front and one Stratagem per Battle; Tactic must apply the negative marker while an allied Raider/Skirmisher is here, and target must have an attachment."
     },
     {
       "id": "the-battle-turned-east",

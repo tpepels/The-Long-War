@@ -45,10 +45,10 @@
     {
       "id": "the-trap-closed",
       "window": "negative_marker_reaction",
-      "trigger": "After friendly Raider/Skirmisher inflicts negative marker, including through Opening Strike",
-      "effect": "Return affected opposing Force attachment",
-      "distinct": "Attachment disruption, not another Attack or a general anti-Move effect",
-      "watch": "Persistent attachment attrition watch"
+      "trigger": "After an opposing Force in the set Front receives a negative marker from your Raider/Skirmisher, or from a Tactic played while you control one there",
+      "effect": "Return that opposing Force's attached Bond or Name, if it has one",
+      "distinct": "A Skirmisher enabling a Tactic is not itself the marker source; this printed card now covers either source under the class-in-Front restriction",
+      "watch": "Must have been set beforehand; no trigger if The Line Was Baited cannot legally move and therefore does not Deplete"
     },
     {
       "id": "the-archers-were-ready",

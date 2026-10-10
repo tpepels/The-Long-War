@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "scope": "Current physical-print effects and paper rules; no executable/native engine claims",
+  "review": "2026-10-10 pre-print false-friend review",
+  "interpretation": "fixed is an authored printed effect change; keep is an intentional legal restriction, trade-off, or alternate line of play; all 14 have targeted regression scenarios, not win-rate evidence",
+  "cases": [
+    {
+      "id": "duelists-boars",
+      "card_a": "The Red Duelists",
+      "card_b": "The Iron Boars",
+      "status": "keep",
+      "reason": "Frontline-only Forces compete for the same position and both apply Shaken (which does not stack). Move Duelists away if sequential deployment is wanted; there is no automatic payoff for chaining them.",
+      "gameplay_decision": "Both may be drawn, but they cannot simultaneously occupy one Frontline. It is a choice between a Skirmisher and a Raider deployment, not a two-card buff."
+    },
+    {
+      "id": "grey-kept-pace",
+      "card_a": "The Grey Riders",
+      "card_b": "Kept Pace With",
+      "status": "keep",
+      "reason": "Kept Pace With grants Move, not Maneuver; Grey Riders' optional post-Maneuver Attack must not trigger.",
+      "gameplay_decision": "Choose between card-enabled tempo Move and an ordinary Maneuver with potential free Attack. A separate normal Attack still needs an Action."
+    },
+    {
+      "id": "grey-no-one",
+      "card_a": "The Grey Riders",
+      "card_b": "No One Would Be First to Leave",
+      "status": "keep",
+      "reason": "The Narrative's ACTION moves formations; it does not grant Maneuvers. Grey Riders' post-Maneuver Attack does not trigger.",
+      "gameplay_decision": "Recovery and coordinated Moves are different from paying for a Maneuver, even though both reposition formations."
+    },
+    {
+      "id": "dust-long-march",
+      "card_a": "The Dust Riders",
+      "card_b": "The Long March",
+      "status": "keep",
+      "reason": "Dust Riders' first Bonded normal Maneuver and The Long March both save its one Command; cost cannot go below zero. A printed ACTION Move is not a Maneuver.",
+      "gameplay_decision": "Long March continues to help subsequent Rider Maneuvers and other Riders; Dust can be useful without drawing the Narrative."
+    },
+    {
+      "id": "opening-bond-long-march",
+      "card_a": "Had Been Ordered Forward",
+      "card_b": "The Long March",
+      "status": "keep",
+      "reason": "Opening Maneuvers are already free of Command. Long March does not further discount them; the Bond still adds one legal Move.",
+      "gameplay_decision": "Meaningful trade-off: a Bonded formation's additional positioning versus spending normal-turn Actions/Command for ordinary Rider Maneuvers."
+    },
+    {
+      "id": "prepared-swore-house",
+      "card_a": "Swore Again To",
+      "card_b": "The House of Reed",
+      "status": "keep",
+      "reason": "PLAY occurs when the Bond is prepared. House of Reed moving it into an existing Force can complete Named but never replays PLAY +2.",
+      "gameplay_decision": "Players can choose direct-play Strength burst or a prepared-layer assembly route; the latter may still trigger Name completion and Guarded from House."
+    },
+    {
+      "id": "archer-extension",
+      "card_a": "Every Bow Was Strung",
+      "card_b": "The Crow Archers",
+      "status": "keep",
+      "reason": "Crow Archers extend ordinary Archer targeting to Middle only while opposing Frontline is empty. Every Bow Was Strung permits a Bonded Archer's Opening Strike to target Middle even when occupied.",
+      "gameplay_decision": "The Narrative is a situational bypass, not a second Attack. Preserve the difference between a permanent gap ability and a Battle-specific opening plan."
+    },
+    {
+      "id": "baited-trap",
+      "card_a": "The Line Was Baited",
+      "card_b": "The Trap Closed",
+      "status": "fixed",
+      "reason": "The Line Was Baited is a Tactic, not the Skirmisher's own marker source. The Trap Closed now expressly includes a Tactic played while its controller has a Raider/Skirmisher in the assigned Front.",
+      "gameplay_decision": "Trigger only after a legal rearward Move gives Depleted, with a previously set trap and an opponent's attached Bond or Name. No effect if rear is unavailable."
+    },
+    {
+      "id": "bond-swap-named",
+      "card_a": "The King Had Given the Order",
+      "card_b": "BECOMES NAMED (mechanic)",
+      "status": "keep",
+      "reason": "Swapping Bonds between already-Named formations preserves their Named state, so no completion trigger occurs.",
+      "gameplay_decision": "Bond swaps change exposed ongoing effects and position-based decisions without farming Name-completion bonuses."
+    },
+    {
+      "id": "action-lock-iven",
+      "card_a": "They Let Them Through",
+      "card_b": "Iven",
+      "status": "keep",
+      "reason": "The Tactic disables formation ACTION abilities and can remove Name Strength, not CONTINUOUS text. Iven's Tactic discount persists.",
+      "gameplay_decision": "Suppression of ongoing Name text is the distinct job of other opposing cards, such as They Returned With Names."
+    },
+    {
+      "id": "ground-narrative",
+      "card_a": "The Ground Was Held",
+      "card_b": "The Battle Had Chosen Them",
+      "status": "keep",
+      "reason": "Continuous +1 Named Strength is included in provisional scoring before Stratagem eligibility. It can turn a tie into a lead and eliminate the tie branch.",
+      "gameplay_decision": "Choosing sustained Narratives versus keeping a close-result trap eligible is a real strategic tension."
+    },
+    {
+      "id": "no-step-wall",
+      "card_a": "No Step Back",
+      "card_b": "The Wall Did Not Break",
+      "status": "keep",
+      "reason": "Guarded prevents one affliction; No Step Back can prevent an Attack affliction or ignore a qualifying Tactic. Its reveal is optional, and spending both against one marker is usually wasteful.",
+      "gameplay_decision": "Preserve the difference between face-up renewable/multi-unit protection and a scarce concealed answer to a specific hostile effect."
+    },
+    {
+      "id": "two-strats",
+      "card_a": "The Lines Held",
+      "card_b": "The Center Must Hold",
+      "status": "keep",
+      "reason": "Only one Stratagem card may be set per player each Battle; the same player cannot combine these reveals.",
+      "gameplay_decision": "The two Stratagems compete in deck construction and hand decisions. Opposing players may each use their own plan."
+    },
+    {
+      "id": "crows-archers-ready",
+      "card_a": "The Crows Came Down",
+      "card_b": "The Archers Were Ready",
+      "status": "keep",
+      "reason": "The Narrative ACTION gives Shaken to an Exhausted enemy without using the Archer's basic Attack. A counterattack via a pre-set Stratagem still needs a legal unused Archer Attack and an opponent's Attack trigger.",
+      "gameplay_decision": "This pair can coexist; the issue is tracking the Archer's Attack marker and timing, not a need to rewrite either card."
+    }
+  ]
+}
