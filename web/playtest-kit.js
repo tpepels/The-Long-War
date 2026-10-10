@@ -11,12 +11,14 @@ function expandDeck(deck){
 }
 async function preloadArt(ids){
   const unique=[...new Set(ids)];
-  await Promise.all(unique.map(id=>new Promise(resolve=>{
+  const results=await Promise.all(unique.map(id=>new Promise(resolve=>{
     const image=new Image();
-    image.onload=resolve;
-    image.onerror=resolve;
+    image.onload=()=>resolve({id,ok:true});
+    image.onerror=()=>resolve({id,ok:false});
     image.src=window.PhysicalCards.cardArtURL(id,true);
   })));
+  const missing=results.filter(result=>!result.ok).map(result=>result.id);
+  if(missing.length)throw new Error("Print artwork failed to load for "+missing.join(", ")+". Reload the page before printing.");
 }
 async function main(){
   const [cardsResponse,decksResponse]=await Promise.all([
@@ -47,9 +49,9 @@ async function main(){
     const rows=[
       ["TURN / PASS","Before drawing, either Pass (whole turn, no draw) or draw 1 and take up to 2 Actions: play, ACTION, Maneuver, Attack, Cycle. After Pass: opponent full turn, passer full turn, secret Opening Orders, then resolve."],
       ["OPENING ORDERS","Secretly choose two orders per player, 1 then 2 (duplicates allowed): Maneuver one formation, free; Commit 1 Command for +2 to an active occupied Front's total Strength; Strike with an unused basic Attack; or Hold. Reveal together: opening-reveal Stratagems, Commit, numbered Maneuvers, numbered Strikes. Reaction Stratagems respond within movement/Attack steps; resolution plans wait until orders finish. In every Battle: after a Pass and both closing turns, before Stratagem reveals and Front scoring."],
-      ["STRENGTH","Force plus Bond and Name modifiers plus effects, minimum 0 per formation. Sum across all 3 ranks in each Front, plus its Commit bonus while occupied. Attached Name classifications combine with Force classes."],
+      ["STRENGTH","Force plus Bond and Name modifiers and effects, minimum 0 per formation. Sum all 3 ranks per Front, adding Commit while occupied. Name classifications combine with Force classes; 'here' means this Front."],
       ["STACKING","Force below Bond below Name, exposing the buried 10.5 mm strips. PLAY resolves when played; BECOMES NAMED can retrigger after rebuilding."],
-      ["PREPARED","Compatible prepared layers attach to legal formations. PLAY resolves when prepared, never replays on later attachment; House of Reed and Field Train reward completing Named formations."],
+      ["PREPARED","PLAY resolves immediately when prepared, never on later attachment. A prepared Name has no ACTION, TRIGGER, REACTION or CONTINUOUS until attached to a Force. WHILE NAMED still needs Force, Bond and Name."],
       ["MANEUVER","One Action and 1 Command; Any formation moves one orthogonally adjacent active position, or swaps with another friendly formation. Exhausted cannot initiate unless exempt."],
       ["MOVE","Card effects move a formation into an adjacent active empty or compatible prepared position, with no Maneuver cost or Named requirement. Respect legal rows."],
       ["ATTACK","One Action per Force per Battle; Force and attached Name class types combine. No damage; Depleted cannot Attack. ATTACK text modifies an existing Attack."],
@@ -60,11 +62,11 @@ async function main(){
       ["FLANKING","Enemy Frontline in an adjacent active Front without a matching friendly Frontline there: flanked Force has −1 Strength while exposed (no marker)."],
       ["EXHAUSTED","−1 Strength; cannot initiate ordinary Maneuver. Can still Attack unless Depleted. Clear old Exhaustion at Battle end; defeated Forces receive new Exhaustion for the next Battle."],
       ["SHAKEN / DEPLETED","Shaken: −2 Strength and no Guard screening. Depleted: −1 Strength, no Attack or ACTION abilities on any layer of its formation, and no Guard screening. Penalties stack."],
-      ["BOONS","Guarded blocks next affliction, including lost-Front Exhaustion; Inspired prevents Shaken; Empowered bypasses Archer screening for next Attack."],
+      ["BOONS / MARKERS","Guarded blocks the next affliction, including lost-Front Exhaustion; Inspired prevents Shaken; Empowered bypasses screening for the next Attack. Recovery removes actual harmful Force markers, not bare suppression."],
       ["HERO","Choose Force or Name when playing a Hero and pay the price printed for that mode. Only that mode contributes Strength and effects; a prepared Hero Name costs its Name price. Limit one Hero as Force and one as Name from hand per Battle."],
-      ["NARRATIVE","Up to 4 face-up per player; all last through the current Battle, then discard."],
+      ["NARRATIVE / TAX","Up to 4 face-up Narratives per player, lasting through Battle end. A Tactic or Order selects its target Front before paying; targeting a Force also targets its formation. Global cards do not use a Front. Unspent Tax markers expire at Battle end."],
       ["STRATAGEM","Only one Stratagem card can be set per player per Battle, including free effects. Returning or revealing it does not refill the allowance. Assign an active Front publicly; identity hidden. Reveal on an eligible trigger. One pre-comparison simultaneous window; a tie or one-point deficit must exist before reveals, not arise during them."],
-      ["RESOLUTION","Compare Fronts; lose Command equal to the Strength difference in each lost Front, then check Collapse. The loser chooses one Force per lost Front to Exhaust next Battle; Guarded on it prevents this. Clear old effects, apply new Exhaustion, then recover."],
+      ["RESOLUTION","Compare Fronts; lose Command equal to the Strength difference in each lost Front, then check Collapse. Choose one Force per lost Front for next-Battle Exhaustion; Guarded prevents it. Clear old effects and unspent Taxes, apply new Exhaustion, then recover."],
     ].filter(([,value])=>value);
     reference.innerHTML='<h1>Card mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
@@ -152,11 +154,17 @@ async function main(){
     const selectedIds=chosenDecks.flatMap(deck=>expandedByDeck.get(deck.id));
     const selectedArtIds=selectedIds.map(id=>index.get(id)?.art_id||id);
     readyPromise=(async()=>{
-      await preloadArt(selectedArtIds);
-      if(document.fonts?.ready)await document.fonts.ready;
-      if(generation!==renderGeneration)return;
-      printButton.disabled=false;
-      summary.textContent=selectionSummary(chosenDecks,false);
+      try{
+        await preloadArt(selectedArtIds);
+        if(document.fonts?.ready)await document.fonts.ready;
+        if(generation!==renderGeneration)return;
+        printButton.disabled=false;
+        summary.textContent=selectionSummary(chosenDecks,false);
+      }catch(error){
+        if(generation!==renderGeneration)return;
+        printButton.disabled=true;
+        summary.textContent=error.message;
+      }
     })();
     await readyPromise;
   }
