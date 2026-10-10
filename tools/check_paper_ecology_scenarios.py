@@ -251,13 +251,14 @@ def scenario_scouter_action_and_defensive_choices():
     kael = CARDS["kael-the-roadless"]["modes"]["name"]["effects"][1]["text"]
     assert "Stratagem" in kael and "if any" in kael and "Move this formation" in kael
     assert "one adjacent legal position" in kael
-    assert not any(e.get("limit") == "once_per_battle"
-                   for e in CARDS["kael-the-roadless"]["modes"]["name"]["effects"][1:])
+    assert CARDS["kael-the-roadless"]["modes"]["name"]["effects"][1]["limit"] == "once_per_battle"
 
     alda = CARDS["alda-keeper-of-the-ford"]["modes"]["name"]["effects"][1]["text"]
     asha = CARDS["asha-the-shield-bearer"]["effects"][1]["text"]
-    assert "Once per Battle" in alda and "give its Force Guarded" in alda
+    assert "give its Force Guarded" in alda
     assert "before that Tactic resolves" in alda
+    assert CARDS["alda-keeper-of-the-ford"]["modes"]["name"]["effects"][1]["limit"] == "once_per_battle"
+    assert CARDS["asha-the-shield-bearer"]["effects"][1]["limit"] == "once_per_battle"
     assert "make it target this formation instead" in asha
     assert "make it target this formation instead" not in alda
     # An affliction is prevented by Guarded, not the entire Tactic or layer return.
