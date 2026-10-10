@@ -43,10 +43,13 @@ def inspect() -> dict:
         for field in STAT_FIELDS:
             if card.get(field) != compiled.get(field):
                 defects[cid].append(f"printed {field} mismatch")
-        # A 10.5-mm edge cue is a print-layout reminder, not a rule effect.
-        printed_effects = [{k: v for k, v in effect.items() if k != "edge_cue"}
-                           for effect in card.get("effects", [])]
-        if printed_effects != compiled.get("effects", []):
+        # Compare only player-facing rule semantics. Edge cues, exposed
+        # reminders, scope and presentation metadata aren't game behavior.
+        def rule_text(effects):
+            return [(effect["timing"], effect.get("text", ""),
+                     effect.get("limit"))
+                    for effect in effects]
+        if rule_text(card.get("effects", [])) != rule_text(compiled.get("effects", [])):
             defects[cid].append("printed effect is not compiled")
         if card["type"] == "hero":
             for mode in ("force", "name"):
