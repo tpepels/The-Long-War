@@ -1133,7 +1133,7 @@
           "text": "While Bonded, Names played onto this formation cost 1 less Command (minimum 1).",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · NAME -1"
+          "exposed": "Bonded: Name costs -1 (min 1) here"
         }
       ],
       "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
@@ -1146,7 +1146,7 @@
           "text": "While this formation is Named, this Bond contributes +1 Strength.",
           "scope": "self",
           "memory": [],
-          "exposed": "NAMED · +1"
+          "exposed": "Named: Bond contributes +1 more Strength"
         }
       ],
       "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
@@ -1159,7 +1159,7 @@
           "text": "While Bonded, the friendly Force directly ahead may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · Ahead Maneuvers Exhausted"
+          "exposed": "Bonded: ahead may Maneuver while Exhausted"
         }
       ],
       "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
@@ -1172,7 +1172,7 @@
           "text": "While Bonded, opposing Tactics targeting this formation cost 1 additional Command.",
           "scope": "self",
           "memory": [],
-          "exposed": "BONDED · Enemy Tactics cost +1"
+          "exposed": "Bonded: enemy Tactics targeting this cost +1"
         }
       ],
       "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
@@ -1197,7 +1197,7 @@
           "text": "While Named, this formation may Maneuver while Exhausted.",
           "scope": "self",
           "memory": [],
-          "exposed": "NAMED · Maneuver while Exhausted"
+          "exposed": "Named: this Force may Maneuver while Exhausted"
         }
       ],
       "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
@@ -1210,7 +1210,7 @@
           "text": "While Bonded, if this formation contains a Captain or King, this Bond contributes +1 Strength.",
           "scope": "self",
           "memory": [],
-          "exposed": "CAPTAIN/KING · +1"
+          "exposed": "Bonded with Captain/King: Bond gives +1 Strength"
         }
       ],
       "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
@@ -1369,36 +1369,6 @@
       "id": "the-white-hands-of-elara",
       "index": 0,
       "exposed": "ACTION: remove 1 negative marker directly ahead"
-    },
-    {
-      "id": "the-late-banner",
-      "index": 0,
-      "exposed": "Bonded: Name costs -1 (min 1) here"
-    },
-    {
-      "id": "followed",
-      "index": 0,
-      "exposed": "Named: Bond contributes +1 more Strength"
-    },
-    {
-      "id": "covered-the-withdrawal-of",
-      "index": 0,
-      "exposed": "Bonded: ahead may Maneuver while Exhausted"
-    },
-    {
-      "id": "held-the-line-for",
-      "index": 0,
-      "exposed": "Bonded: enemy Tactics targeting this cost +1"
-    },
-    {
-      "id": "trusted",
-      "index": 0,
-      "exposed": "Named: this Force may Maneuver while Exhausted"
-    },
-    {
-      "id": "marched-beneath-the-banner-of",
-      "index": 0,
-      "exposed": "Bonded with Captain/King: Bond gives +1 Strength"
     },
     {
       "id": "kept-the-gate-for",
