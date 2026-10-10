@@ -825,7 +825,7 @@ cdef int _fe_legal_pending_effect_actions(
                         ),
                     )
 
-        elif v2_effect.op == V2_OP_DISCARD_DRAW:
+        elif v2_effect.op in (V2_OP_DISCARD_DRAW, V2_OP_DRAW_DISCARD):
             for card in range(self.n_cards):
                 if state.hand[player][card] > 0:
                     n = _append_action(
