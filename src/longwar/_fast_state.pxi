@@ -79,6 +79,7 @@ cdef class FastState:
     cdef int16_t command[PLAYER_COUNT]
     cdef uint16_t operations_this_battle[PLAYER_COUNT]
     cdef uint8_t actions_this_turn
+    cdef uint8_t turn_draw_pending
     cdef uint8_t closing_turns_remaining
     cdef uint8_t cards_played_this_turn_front_mask[PLAYER_COUNT]
     cdef uint8_t cards_played_this_battle_front_mask[PLAYER_COUNT]
@@ -218,6 +219,7 @@ cdef class FastState:
         memset(self.command, 0, sizeof(self.command))
         memset(self.operations_this_battle, 0, sizeof(self.operations_this_battle))
         self.actions_this_turn = 0
+        self.turn_draw_pending = 0
         self.closing_turns_remaining = 0
         memset(self.cards_played_this_turn_front_mask, 0, sizeof(self.cards_played_this_turn_front_mask))
         memset(self.cards_played_this_battle_front_mask, 0, sizeof(self.cards_played_this_battle_front_mask))
@@ -354,6 +356,7 @@ cdef class FastState:
         memcpy(self.command, other.command, sizeof(self.command))
         memcpy(self.operations_this_battle, other.operations_this_battle, sizeof(self.operations_this_battle))
         self.actions_this_turn = other.actions_this_turn
+        self.turn_draw_pending = other.turn_draw_pending
         self.closing_turns_remaining = other.closing_turns_remaining
         memcpy(self.cards_played_this_turn_front_mask, other.cards_played_this_turn_front_mask, sizeof(self.cards_played_this_turn_front_mask))
         memcpy(self.cards_played_this_battle_front_mask, other.cards_played_this_battle_front_mask, sizeof(self.cards_played_this_battle_front_mask))
