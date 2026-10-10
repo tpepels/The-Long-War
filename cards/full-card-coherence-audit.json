@@ -1005,8 +1005,8 @@
       "title": "Kael, the Roadless",
       "price": "Force 3 / Name 1",
       "role": "intrigue",
-      "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "review": "coherent_on_paper",
+      "purpose": "Name mode can inspect an opposing set Stratagem and reposition this formation in one Action; the Move remains useful when no hidden plan exists, while Force mode offers a longer two-step Move.",
+      "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 104,
       "in_test_decks": [
@@ -1036,8 +1036,8 @@
       "title": "Alda, Keeper of the Ford",
       "price": "Force 4 / Name 2",
       "role": "logistics",
-      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "review": "coherent_on_paper",
+      "purpose": "Name mode preserves a full marker cleanse on Named completion; once per Battle it can give Guarded before an enemy Tactic on an ally resolves, unlike Asha's unlimited redirection of a Tactic's target.",
+      "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 136,
       "in_test_decks": [
