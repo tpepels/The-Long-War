@@ -90,8 +90,8 @@ def run() -> None:
          cost("guarded") == cost("endured-with") == 1
          and cards["guarded"]["strength_modifier"] == 0
          and cards["endured-with"]["strength_modifier"] == 0
-         and has("guarded", "give", "Guarded")
-         and has("endured-with", "give", "Inspired"),
+         and has("guarded", "Guarded")
+         and has("endured-with", "Inspired"),
          "Named Boons must agree with their actual protective abilities")
 
     # Crows now Exhaust on PLAY and can Shake an already Exhausted target later.
@@ -149,7 +149,7 @@ def run() -> None:
     # Information still exists on Lantern/Watchtowers, but Thornbow now
     # directly strengthens an Archer position instead of another peek.
     case("B3: information and Archer Strength are distinct alternatives",
-         has("the-lantern-scouts", "once per Battle", "this Front", "draw 1")
+         has("the-lantern-scouts", "Once per Battle", "this Front", "draw 1")
          and has("the-thornbow-hunters", "other friendly Archer", "+1 Strength")
          and has("the-watchtowers-of-eren", "any active Front", "draw 1")
          and used_once("the-watchtowers-of-eren"),
@@ -158,7 +158,7 @@ def run() -> None:
     # King discount uses a second Action to exploit; card-flow compensates.
     case("B2+: King's orchestration pays for timing",
          cost("namar") == 4 and used_once("namar")
-         and has("namar", "Regain 2 Command", "2 less Command", "Draw 1"),
+         and has("namar", "Regain 2 Command", "2 less Command", "draw 1"),
          "High-cost Named completion earns a distinct two-Action combo")
 
     # Full 12-position battlefield: the 3 new restricted Frontline Forces may
@@ -216,7 +216,7 @@ def run() -> None:
 
     case("B2: Field Train saves a Bond/Name play Action",
          cost("the-field-train") == 3 and cost("the-house-of-reed") == 4
-         and has("the-field-train", "from hand", "adjacent active Front",
+         and has("the-field-train", "from your hand", "adjacent active Front",
                  "without another Action", "Guarded")
          and any(e["timing"] == "play"
                  for e in cards["the-field-train"]["effects"])
@@ -238,7 +238,7 @@ def run() -> None:
          and cards["the-relief-column"]["strength"] == 3
          and row("the-relief-column") == ["middle"]
          and has("the-relief-column", "another friendly Force",
-                 "all its temporary negative markers", "Guarded"),
+                 "all temporary negative markers", "Guarded"),
          "Recovery must change an actual condition or prevent the next affliction")
 
     case("B1: Terrain rewards a Seer's protected movement",
@@ -250,7 +250,7 @@ def run() -> None:
     case("B4: sacrifice releases a persistent position",
          cost("re-form-the-line") == 0
          and has("re-form-the-line", "Captain",
-                 "discard one friendly Force", "Bond and Name",
+                 "discard a friendly Force", "Bond and Name",
                  "regain 2 Command")
          and "That position becomes empty" in rulebook,
          "Withdrawal discards entire formation and vacates its slot")
@@ -274,7 +274,7 @@ def run() -> None:
     case("B2: completion plan offers two tactical payoffs",
          cost("there-was-no-road-back") == 1
          and has("there-was-no-road-back", "becomes Named",
-                 "two adjacent legal", "opposing attached Bond"),
+                 "two adjacent empty positions", "opposing attached Bond"),
          "Completion plan offers reposition or attachment disruption")
 
     # Odd baseline Forces must earn their half-Strength rounding margin.
@@ -306,9 +306,9 @@ def run() -> None:
          cost("stood-fast-with") == cost("followed") == 1
          and cards["stood-fast-with"]["strength_modifier"] == 1
          and cards["followed"]["strength_modifier"] == 1
-         and has("stood-fast-with", "Frontline", "+1 additional Strength",
+         and has("stood-fast-with", "Frontline", "+1 Strength",
                  "cannot be flanked")
-         and has("followed", "Named", "+1 additional Strength")
+         and has("followed", "Named", "+1 Strength")
          and cards["stood-fast-with"]["effects"][0]["timing"] == "bonded",
          "Stood Fast wins on Frontline protection; Followed works Named in any rank")
 
@@ -366,7 +366,7 @@ def run() -> None:
          and marker_strength(5, exhausted=True, depleted=True,
                              shaken=True, flanked=True) == 0
          and marker_strength(1, exhausted=True, depleted=True) == 0
-         and "duplicate markers of the same condition do not stack" in rulebook,
+         and "identical condition markers do not stack" in rulebook,
          "No negative front contribution; independent afflictions compound")
 
     case("P2: only one chosen Force suffers defeat Exhaustion per Front",
@@ -400,8 +400,8 @@ def run() -> None:
     case("P3: Field Train plays a card from hand without another Action",
          row("the-field-train") == ["middle"]
          and cost("the-field-train") == 3
-         and has("the-field-train", "from hand", "adjacent active Front",
-                 "paying its Command cost", "without another Action",
+         and has("the-field-train", "from your hand", "adjacent active Front",
+                 "Pay that card\'s Command cost", "without another Action",
                  "becomes Named", "Guarded")
          and cards["the-field-train"]["effects"][0]["timing"] == "play",
          "Cross-Front Bond/Name play saves an Action, not its Command cost")
@@ -419,7 +419,7 @@ def run() -> None:
          cost("guarded") == cost("endured-with") == 1
          and has("guarded", "friendly Force in this Front", "Give it Guarded")
          and has("endured-with", "friendly Force in this Front",
-                 "Give it Inspired"),
+                 "Inspired"),
          "Protection Bonds do not require a Force in their own position")
 
     case("P3: prepared Name transfer no longer requires a local Force",
@@ -429,17 +429,17 @@ def run() -> None:
          "One PLAY effect supports attaching another prepared Name")
 
     case("P3: scouting Bonds grant positioning or actionable intelligence",
-         has("kept-pace-with", "Rider or Scout", "Move", "adjacent legal position")
+         has("kept-pace-with", "Rider or Scout", "Move", "one position")
          and has("carried-messages-for", "Scout or Captain", "Stratagem",
-                 "Move", "legal position")
-         and has("watched-the-skies-for", "Stratagem", "Draw 1 card", "discard 1 card"),
+                 "Move", "one position")
+         and has("watched-the-skies-for", "Stratagem", "draw 1 card", "discard 1"),
          "Support Bonds respond to enemy plans or create immediate repositioning")
 
     case("P3: Shaken Raider Bond trades raw Strength for repositioning",
          cost("shared-the-spoils-with") == 1
          and cards["shared-the-spoils-with"]["strength_modifier"] == 0
          and has("shared-the-spoils-with", "Shaken", "Raider or Skirmisher",
-                 "Move", "adjacent legal position")
+                 "Move", "one position")
          and "opponent loses" not in cards["shared-the-spoils-with"]["text"],
          "Battle pressure should produce a temporary positioning decision, not extra Command attrition")
 
@@ -521,7 +521,7 @@ def run() -> None:
     case("P4: Scout exhaustion converts into Shaken at a threshold",
          cost("they-were-gathering-there") == 1
          and has("they-were-gathering-there", "Scout",
-                 "If it is Exhausted", "Shaken", "Otherwise, Exhaust"),
+                 "If it is Exhausted", "Shaken", "otherwise, Exhaust"),
          "Scout Tactic either deals -1 now or -2 to existing Exhaustion")
 
     case("P4: Muster False raids a Scout- or Seer-held Bond",
@@ -533,7 +533,7 @@ def run() -> None:
     case("P4: retreat-or-Shaken is conditional on actual pressure",
          cost("they-had-gone-too-far") == 1
          and has("they-had-gone-too-far", "Scout or Skirmisher",
-                 "Frontline or Middle", "if legal and empty",
+                 "Frontline or Middle", "destination is legal and empty",
                  "otherwise", "Shaken"),
          "An opponent can offer empty Rear space to avoid Shaken")
 

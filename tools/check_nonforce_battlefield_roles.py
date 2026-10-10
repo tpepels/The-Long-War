@@ -89,12 +89,12 @@ def run() -> None:
                 "carried-messages-for"):
         assert "Move" in content(catalogue[cid]), cid
     assert has(catalogue, "watched-the-skies-for",
-               "Stratagem", "Draw 1 card")
+               "Stratagem", "draw 1 card")
     assert has(catalogue, "rallied-behind",
                "If you have less Command than your opponent",
                "regain 1 Command and Move")
     assert has(catalogue, "carried-messages-for",
-               "With a friendly Scout or Captain here", "Move", "Stratagem")
+               "your Scout or Captain here", "Move", "Stratagem")
     assert has(catalogue, "iria", "Stratagem", "Move")
     assert has(catalogue, "lysa-the-listener", "opponent's hand", "Guarded")
     assert has(catalogue, "elian", "Pay 1 Command", "unused basic Attack",
@@ -117,7 +117,7 @@ def run() -> None:
     assert has(catalogue, "the-raiders-came-home-loaded",
                "up to two", "Raider", "Skirmisher", "adjacent legal position")
     assert has(catalogue, "send-a-runner", "Scout in Rear",
-               "Move", "Draw 1 card")
+               "Move", "draw 1 card")
 
     # Hero price and mode timings remain untouched. New exceptions live on
     # their printed Force/Name panel and never grant a second Attack use.
@@ -127,7 +127,7 @@ def run() -> None:
     assert has(catalogue, "neris-the-ferryman",
                "unused basic Rider Attack", "without another Action")
     assert has(catalogue, "serai-queen-of-crows",
-               "Pay 1 Command", "Move one friendly Archer")
+               "Pay 1 Command", "Move a friendly Archer")
     for cid in ("elian", "neris-the-ferryman"):
         assert "unused basic" in content(catalogue[cid])
     assert has(catalogue, "had-been-ordered-forward",

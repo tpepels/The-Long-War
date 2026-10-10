@@ -158,9 +158,9 @@ def run() -> None:
     assert "The Archers Were Ready" in detailed and "No Step Back" in detailed
     assert "before either Strike's effects" not in detailed or "start of their paired Strike step" in detailed
     assert "resolution Stratagems wait until Opening Orders are complete" in simple
-    assert "**Any formation** may initiate an ordinary **Maneuver**" in detailed
+    assert "**Any formation** may Maneuver" in detailed
     assert "set only one Stratagem card in total per Battle" in detailed
-    assert "set only one Stratagem card per Battle" in simple
+    assert "set **one per Battle**" in simple
     assert "while Exhausted" in " ".join(e["text"] for e in effects(cards["the-grey-riders"]))
     assert "first Maneuver each Battle costs 0 Command" in " ".join(e["text"] for e in effects(cards["the-dust-riders"]))
     assert "pay 0 Command" in " ".join(e["text"] for e in effects(cards["the-long-march"]))

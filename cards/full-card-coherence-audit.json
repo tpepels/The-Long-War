@@ -72,7 +72,7 @@
       "purpose": "Hold the line and tax hostile targeting.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 88,
+      "printed_effect_max_chars": 90,
       "in_test_decks": [
         "banner-and-blood",
         "crown-of-crows",
@@ -91,7 +91,7 @@
       "purpose": "Shake Rear threats, bypass screening, or reach Middle through a gap.",
       "review": "coherent_on_paper",
       "order_interaction": "opening_strike_target",
-      "printed_effect_max_chars": 119,
+      "printed_effect_max_chars": 127,
       "in_test_decks": [
         "crown-of-crows",
         "blood-and-spoils"
@@ -107,7 +107,7 @@
       "purpose": "Complete prepared formations rather than simply add Strength.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 153,
+      "printed_effect_max_chars": 149,
       "in_test_decks": [
         "crown-of-crows",
         "oathforge",
@@ -140,7 +140,7 @@
       "purpose": "Bonded first Maneuver saves one Command this Battle; any Force can already initiate Maneuver.",
       "review": "coherent_on_paper",
       "order_interaction": "ordinary_turn_maneuver",
-      "printed_effect_max_chars": 74,
+      "printed_effect_max_chars": 79,
       "in_test_decks": [
         "rider-flank-lab"
       ],
@@ -155,7 +155,7 @@
       "purpose": "Exploit a Shaken target by removing a valuable attachment.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 96,
+      "printed_effect_max_chars": 115,
       "in_test_decks": [
         "blood-and-spoils"
       ],
@@ -203,7 +203,7 @@
       "purpose": "Break weaker Frontlines and create incursion opportunities.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 98,
+      "printed_effect_max_chars": 76,
       "in_test_decks": [
         "blood-and-spoils"
       ],
@@ -218,7 +218,7 @@
       "purpose": "Protect friendly formations from incoming afflictions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 107,
+      "printed_effect_max_chars": 85,
       "in_test_decks": [
         "banner-and-blood",
         "crown-of-crows",
@@ -236,7 +236,7 @@
       "purpose": "Continue screening an Archer target even while Shaken.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 128,
+      "printed_effect_max_chars": 122,
       "in_test_decks": [
         "crown-of-crows",
         "the-last-watch",
@@ -268,7 +268,7 @@
       "purpose": "Accelerate building a Named formation.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 104,
+      "printed_effect_max_chars": 79,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -332,7 +332,7 @@
       "purpose": "Spend one Action to Move and make an unused Rider Attack.",
       "review": "coherent_on_paper",
       "order_interaction": "ordinary_turn_paid_attack",
-      "printed_effect_max_chars": 140,
+      "printed_effect_max_chars": 136,
       "in_test_decks": [
         "rider-flank-lab"
       ],
@@ -347,7 +347,7 @@
       "purpose": "Apply brief Frontline pressure to enable a Raider Incursion after a local Strength tie.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 96,
+      "printed_effect_max_chars": 100,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths",
@@ -364,7 +364,7 @@
       "purpose": "Swap occupied ranks to protect and reposition defenders.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 162,
+      "printed_effect_max_chars": 135,
       "in_test_decks": [
         "broken-oaths"
       ],
@@ -394,7 +394,7 @@
       "purpose": "Protect a formation behind against hostile Tactics.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 112,
+      "printed_effect_max_chars": 123,
       "in_test_decks": [
         "the-last-watch"
       ],
@@ -409,7 +409,7 @@
       "purpose": "Restore a Force and make it Guarded.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 117,
+      "printed_effect_max_chars": 110,
       "in_test_decks": [
         "the-last-watch"
       ],
@@ -424,7 +424,7 @@
       "purpose": "Play a Bond or Name from hand without another Action.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 186,
+      "printed_effect_max_chars": 207,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab"
@@ -440,7 +440,7 @@
       "purpose": "Reposition an ally and earn a draw on a flank swing.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 181,
+      "printed_effect_max_chars": 146,
       "in_test_decks": [
         "seer-hidden-lab"
       ],
@@ -455,7 +455,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 76,
+      "printed_effect_max_chars": 65,
       "in_test_decks": [
         "banner-and-blood",
         "crown-of-crows",
@@ -493,7 +493,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 131,
+      "printed_effect_max_chars": 101,
       "in_test_decks": [
         "banner-and-blood",
         "crown-of-crows",
@@ -510,7 +510,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 83,
+      "printed_effect_max_chars": 72,
       "in_test_decks": [
         "rider-flank-lab",
         "raw-strength-control"
@@ -525,7 +525,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 93,
+      "printed_effect_max_chars": 76,
       "in_test_decks": [
         "broken-oaths",
         "rider-flank-lab",
@@ -541,7 +541,7 @@
       "purpose": "Only useful when an Exhausted Force directly ahead could otherwise make a Maneuver.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 95,
+      "printed_effect_max_chars": 77,
       "in_test_decks": [
         "the-last-watch"
       ],
@@ -570,7 +570,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 88,
+      "printed_effect_max_chars": 82,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -584,7 +584,7 @@
       "purpose": "Returning a persistent Bond for 1C may outvalue the opposing Action and attachment.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 95,
+      "printed_effect_max_chars": 90,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths"
@@ -600,7 +600,7 @@
       "purpose": "Prepared-Name attachment requires a staging decision that may be uncommon.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 107,
+      "printed_effect_max_chars": 96,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab"
@@ -616,7 +616,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 139,
+      "printed_effect_max_chars": 127,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab"
@@ -631,7 +631,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 64,
+      "printed_effect_max_chars": 53,
       "in_test_decks": [
         "crown-of-crows"
       ]
@@ -645,7 +645,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 131,
+      "printed_effect_max_chars": 125,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -659,7 +659,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 58,
+      "printed_effect_max_chars": 49,
       "in_test_decks": [
         "broken-oaths"
       ]
@@ -673,7 +673,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 70,
+      "printed_effect_max_chars": 57,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -687,7 +687,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 123,
+      "printed_effect_max_chars": 94,
       "in_test_decks": [
         "banner-and-blood"
       ]
@@ -701,7 +701,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 67,
+      "printed_effect_max_chars": 62,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -729,7 +729,7 @@
       "purpose": "A 4C Name needs substantial post-completion Action savings to justify its cost.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 150,
+      "printed_effect_max_chars": 155,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -746,7 +746,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 138,
+      "printed_effect_max_chars": 144,
       "in_test_decks": [
         "seer-hidden-lab",
         "raw-strength-control"
@@ -761,7 +761,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 183,
+      "printed_effect_max_chars": 165,
       "in_test_decks": [
         "banner-and-blood",
         "crown-of-crows",
@@ -780,7 +780,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 128,
+      "printed_effect_max_chars": 113,
       "in_test_decks": [
         "rider-flank-lab"
       ]
@@ -794,7 +794,7 @@
       "purpose": "BecOMES NAMED saves an Action on the player's one permitted Stratagem set this Battle.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 118,
+      "printed_effect_max_chars": 121,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -812,7 +812,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 125,
+      "printed_effect_max_chars": 110,
       "in_test_decks": [
         "broken-oaths",
         "rider-flank-lab",
@@ -828,7 +828,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 130,
+      "printed_effect_max_chars": 122,
       "in_test_decks": [
         "crown-of-crows",
         "blood-and-spoils",
@@ -894,7 +894,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 96,
+      "printed_effect_max_chars": 95,
       "in_test_decks": [
         "crown-of-crows",
         "blood-and-spoils",
@@ -927,7 +927,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 52,
+      "printed_effect_max_chars": 45,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths"
@@ -957,7 +957,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 124,
+      "printed_effect_max_chars": 115,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab",
@@ -1008,7 +1008,7 @@
       "purpose": "Name mode can inspect an opposing set Stratagem and reposition this formation in one Action; the Move remains useful when no hidden plan exists, while Force mode offers a longer two-step Move.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 104,
+      "printed_effect_max_chars": 132,
       "in_test_decks": [
         "broken-oaths",
         "rider-flank-lab",
@@ -1024,7 +1024,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 154,
+      "printed_effect_max_chars": 148,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths"
@@ -1039,7 +1039,7 @@
       "purpose": "Name mode preserves a full marker cleanse on Named completion; once per Battle it can give Guarded before an enemy Tactic on an ally resolves, unlike Asha's once-per-Battle redirection of a Tactic's target.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 136,
+      "printed_effect_max_chars": 145,
       "in_test_decks": [
         "banner-and-blood",
         "crown-of-crows",
@@ -1056,7 +1056,7 @@
       "purpose": "Recurring Bond/Name discounts could accelerate formation growth disproportionately.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 109,
+      "printed_effect_max_chars": 95,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab"
@@ -1072,7 +1072,7 @@
       "purpose": "Prepared-layer payoff may be hard to set up compared with simply attaching cards directly.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 80,
+      "printed_effect_max_chars": 84,
       "in_test_decks": [
         "oathforge",
         "the-last-watch",
@@ -1089,7 +1089,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 119,
+      "printed_effect_max_chars": 104,
       "in_test_decks": [
         "rider-flank-lab"
       ]
@@ -1118,7 +1118,7 @@
       "purpose": "Narrative recovery from discard requires an appropriate card and further actions.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 99,
+      "printed_effect_max_chars": 110,
       "in_test_decks": [
         "broken-oaths",
         "seer-hidden-lab",
@@ -1135,7 +1135,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 63,
+      "printed_effect_max_chars": 52,
       "in_test_decks": [
         "crown-of-crows",
         "blood-and-spoils"
@@ -1150,7 +1150,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 95,
+      "printed_effect_max_chars": 85,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -1164,7 +1164,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 111,
+      "printed_effect_max_chars": 117,
       "in_test_decks": [
         "broken-oaths"
       ]
@@ -1178,7 +1178,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 171,
+      "printed_effect_max_chars": 159,
       "in_test_decks": [
         "broken-oaths",
         "seer-hidden-lab",
@@ -1194,7 +1194,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 168,
+      "printed_effect_max_chars": 186,
       "in_test_decks": [
         "broken-oaths",
         "rider-flank-lab"
@@ -1210,7 +1210,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 176,
+      "printed_effect_max_chars": 183,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -1224,7 +1224,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 115,
+      "printed_effect_max_chars": 116,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -1241,7 +1241,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 134,
+      "printed_effect_max_chars": 140,
       "in_test_decks": [
         "seer-hidden-lab",
         "raw-strength-control"
@@ -1256,7 +1256,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 90,
+      "printed_effect_max_chars": 86,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -1273,7 +1273,7 @@
       "purpose": "Tax marker is avoidable and may not force a response; measure activations.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 106,
+      "printed_effect_max_chars": 114,
       "in_test_decks": [
         "broken-oaths"
       ],
@@ -1305,7 +1305,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "watch",
       "order_interaction": "front_resolution",
-      "printed_effect_max_chars": 130,
+      "printed_effect_max_chars": 115,
       "in_test_decks": [
         "front-exchange-lab"
       ],
@@ -1352,7 +1352,7 @@
       "purpose": "Reveal in any active flanked Frontline to cancel its flank penalty; an outer Front adds the distinctive +2 Strength follow-up.",
       "review": "watch",
       "order_interaction": "front_resolution",
-      "printed_effect_max_chars": 138,
+      "printed_effect_max_chars": 146,
       "in_test_decks": [
         "rider-flank-lab"
       ],
@@ -1383,7 +1383,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "watch",
       "order_interaction": "move_reaction",
-      "printed_effect_max_chars": 142,
+      "printed_effect_max_chars": 127,
       "in_test_decks": [
         "rider-flank-lab"
       ],
@@ -1398,7 +1398,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "named_completion",
-      "printed_effect_max_chars": 157,
+      "printed_effect_max_chars": 151,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab"
@@ -1428,7 +1428,7 @@
       "purpose": "Riders get +1 Strength on PLAY and pay no Command for their ordinary Maneuvers this Battle.",
       "review": "watch",
       "order_interaction": "ordinary_turn_maneuver",
-      "printed_effect_max_chars": 95,
+      "printed_effect_max_chars": 82,
       "in_test_decks": [
         "rider-flank-lab"
       ],
@@ -1443,7 +1443,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 124,
+      "printed_effect_max_chars": 123,
       "in_test_decks": [
         "crown-of-crows",
         "the-last-watch"
@@ -1458,7 +1458,7 @@
       "purpose": "PLAY Exhaustion plus later Action to Shake asks for multiple steps; measure payoffs.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 85,
+      "printed_effect_max_chars": 79,
       "in_test_decks": [
         "blood-and-spoils"
       ],
@@ -1473,7 +1473,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "during_turn_set_reaction",
-      "printed_effect_max_chars": 188,
+      "printed_effect_max_chars": 186,
       "in_test_decks": [
         "broken-oaths",
         "seer-hidden-lab"
@@ -1488,7 +1488,7 @@
       "purpose": "Narrative ACTION recovery turns lost-Front Exhaustion into optional tactical movement, whereas other negative-marker removal grants Inspired.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 173,
+      "printed_effect_max_chars": 164,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -1502,7 +1502,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 180,
+      "printed_effect_max_chars": 187,
       "in_test_decks": [
         "front-exchange-lab"
       ]
@@ -1516,7 +1516,7 @@
       "purpose": "Wide Hero/Named Strength aura is powerful but static; preserve only if it anchors a clear archetype.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 110,
+      "printed_effect_max_chars": 122,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -1533,7 +1533,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 91,
+      "printed_effect_max_chars": 63,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -1547,7 +1547,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 148,
+      "printed_effect_max_chars": 138,
       "in_test_decks": [
         "banner-and-blood",
         "oathforge",
@@ -1563,7 +1563,7 @@
       "purpose": "Push an opposing Frontline out of position.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 99,
+      "printed_effect_max_chars": 109,
       "in_test_decks": [
         "broken-oaths"
       ],
@@ -1578,7 +1578,7 @@
       "purpose": "Inspect hidden Stratagems and choose safer commitments.",
       "review": "coherent_on_paper",
       "order_interaction": "during_turn_set_reaction",
-      "printed_effect_max_chars": 166,
+      "printed_effect_max_chars": 164,
       "in_test_decks": [
         "broken-oaths",
         "seer-hidden-lab"
@@ -1610,7 +1610,7 @@
       "purpose": "Rearrange existing defense at Frontline deployment.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 142,
+      "printed_effect_max_chars": 114,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab"
@@ -1626,7 +1626,7 @@
       "purpose": "Move friendly formations back to escape pressure or open a rank.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 86,
+      "printed_effect_max_chars": 96,
       "in_test_decks": [
         "broken-oaths"
       ],
@@ -1657,7 +1657,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 118,
+      "printed_effect_max_chars": 116,
       "in_test_decks": [
         "seer-hidden-lab"
       ]
@@ -1686,7 +1686,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 117,
+      "printed_effect_max_chars": 109,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths"
@@ -1701,7 +1701,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 156,
+      "printed_effect_max_chars": 144,
       "in_test_decks": [
         "seer-hidden-lab"
       ]
@@ -1715,7 +1715,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 134,
+      "printed_effect_max_chars": 125,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -1761,7 +1761,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 84,
+      "printed_effect_max_chars": 82,
       "in_test_decks": [
         "broken-oaths",
         "rider-flank-lab",
@@ -1777,7 +1777,7 @@
       "purpose": "Attachment removal can create long-term value; monitor loss-side recovery.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 119,
+      "printed_effect_max_chars": 125,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths"
@@ -1838,7 +1838,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 75,
+      "printed_effect_max_chars": 64,
       "in_test_decks": [
         "crown-of-crows"
       ]
@@ -1852,7 +1852,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "during_turn_inspection",
-      "printed_effect_max_chars": 175,
+      "printed_effect_max_chars": 190,
       "in_test_decks": [
         "seer-hidden-lab"
       ]
@@ -1866,7 +1866,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 179,
+      "printed_effect_max_chars": 181,
       "in_test_decks": [
         "blood-and-spoils"
       ]
@@ -1880,7 +1880,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 163,
+      "printed_effect_max_chars": 181,
       "in_test_decks": [
         "blood-and-spoils",
         "rider-flank-lab"
@@ -1971,7 +1971,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 180,
+      "printed_effect_max_chars": 181,
       "in_test_decks": [
         "banner-and-blood",
         "blood-and-spoils",
@@ -2003,7 +2003,7 @@
       "purpose": "Discarding an entire persistent Force may be too costly except during Command emergencies.",
       "review": "watch",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 171,
+      "printed_effect_max_chars": 169,
       "in_test_decks": [
         "banner-and-blood",
         "blood-and-spoils"
@@ -2019,7 +2019,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 104,
+      "printed_effect_max_chars": 114,
       "in_test_decks": [
         "the-last-watch"
       ]
@@ -2033,7 +2033,7 @@
       "purpose": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 81,
+      "printed_effect_max_chars": 69,
       "in_test_decks": [
         "broken-oaths",
         "seer-hidden-lab"
@@ -2048,7 +2048,7 @@
       "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 143,
+      "printed_effect_max_chars": 154,
       "in_test_decks": [
         "oathforge",
         "front-exchange-lab"

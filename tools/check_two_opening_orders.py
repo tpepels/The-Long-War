@@ -41,7 +41,7 @@ def run() -> None:
         assert "simultaneous" in opening.lower()
         assert "Battle I" in opening
         assert "closing turns" in opening
-        assert "Pass" in opening
+        assert "Pass" in source.split("## Passing and ending a Battle", 1)[1].split("## Opening Orders", 1)[0]
         assert "before" in opening.lower() and "Stratagem" in opening
         assert "Maneuver" in opening
         assert "Exhausted" in opening
@@ -50,22 +50,22 @@ def run() -> None:
         assert "+2" in opening and "1 Command" in opening
         assert "Front" in opening
         assert "no" in opening.lower() and "Action" in opening
-    assert "You may choose the same order twice" in SHORT
+    assert "You may repeat a type" in SHORT
     assert "repeating a type is allowed" in DETAILED
     assert "both players" in DETAILED.lower()
     assert "Check Attack legality for **both** sides at the start of their paired Strike step" in DETAILED
     assert "A second Strike by the same Force fails after its one Attack is spent" in DETAILED
-    assert "does **not** help a Raider" in DETAILED
-    assert "**Any formation** may initiate an ordinary **Maneuver**" in DETAILED
-    assert "**Any formation**, Named or Unnamed, may Maneuver" in SHORT
+    assert "does not boost a particular formation or its Raider Incursion" in DETAILED
+    assert "**Any formation** may Maneuver" in DETAILED
+    assert "**Any formation**, Named or not, may Maneuver" in SHORT
     assert "set only one Stratagem card in total per Battle" in DETAILED
-    assert "set only one Stratagem card per Battle" in SHORT
+    assert "set **one per Battle**" in SHORT
     assert "identical in every Battle, including Battle I" in SHORT
     assert "The same sequence applies to every Battle, including Battle I" in DETAILED
     assert "No initial deployment turn, skipped order phase, or Battle I exception" in DETAILED
     assert "after both closing turns" in DETAILED
-    assert "two closing turns following the first **Pass**" in SHORT
-    assert "After the first Pass and the **two closing turns**" in DETAILED
+    assert "After the two closing turns" in SHORT
+    assert "After both closing turns" in DETAILED
     assert "before the single Stratagem reveal window" in DETAILED
     assert SHORT.index("## Passing and ending a Battle") < SHORT.index("## Opening Orders") < SHORT.index("## Resolving a Battle")
     assert DETAILED.index("## Passing and ending a Battle") < DETAILED.index("## Opening Orders") < DETAILED.index("## Resolving a Battle")

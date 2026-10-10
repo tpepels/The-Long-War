@@ -17,7 +17,7 @@ Inactive Fronts cannot be used. In each Battle, players take turns until someone
 
 ## The battlefield {#battlefield}
 
-Each Front has **three positions per player**: **Frontline**, **Middle**, and **Rear**. Frontline faces the opponent; adjacent Fronts sit to the left and right.
+Each Front has **three positions per player**: Frontline nearest the opponent, then Middle and Rear. Fronts run from left to right.
 
 A position holds at most **one Force, one Bond, and one Name**. Together they form a **formation**; all three layers make a **Named Formation**. Stack Force at the bottom, Bond in the middle, and Name on top, leaving the exposed strips visible. Each Force's row symbols restrict where it may stand.
 
@@ -41,7 +41,7 @@ Hands, decks and face-down Stratagem identities are hidden. Command, card counts
 
 ## Your turn {#turn}
 
-Before drawing, choose whether to **Pass** (see *Passing*). Otherwise:
+Before drawing, you may **Pass** (see *Passing*). Otherwise, take your normal turn:
 
 1. **Draw 1 card.**
 2. Take **up to 2 Actions**, in any combination:
@@ -60,7 +60,7 @@ A printed **1/BATTLE** ability can be used once per physical card per Battle, ev
 
 You may play a **Force, Bond or Name** in any order into its empty layer slot, in a legal active position. Playing a card normally costs **one Action plus its printed Command**.
 
-A Force anchors a formation. A Force with a Bond is **Bonded**; with both Bond and Name it becomes **Named**. A Name alone does not make a Force Named. A Bond without a Name is an **open Bond**.
+A Force anchors a formation. Add a Bond to make it **Bonded**; add both a Bond and Name to make it **Named**. A Name alone does not make it Named; a Bond without a Name is an **open Bond**.
 
 A Bond or Name placed without a Force is **prepared**: face-up, with no Strength. It attaches when a legal Force arrives. You cannot simply replace an existing Bond or Name; a card effect must remove, return or exchange it.
 
@@ -93,7 +93,7 @@ Classifications come from the **Force and attached Name together**. They determi
 
 ## Maneuver and card movement {#maneuver}
 
-**Any formation**, Named or Unnamed, may Maneuver for **one Action and 1 Command**: move one step forward/back in its Front or left/right to an active adjacent Front in the same row. No diagonals.
+**Any formation**, Named or not, may Maneuver for **one Action and 1 Command**: move one position forward/back in the same Front or left/right to an adjacent active Front in the same rank. No diagonals.
 
 Move the complete formation and its markers. It can enter a position without a Force and attach compatible prepared layers. It may instead **swap** with a friendly formation if both positions remain legal; only the initiator must qualify. An **Exhausted** Force cannot initiate a normal Maneuver unless a card permits it, but can be swapped by another formation.
 
@@ -144,9 +144,9 @@ Boons do not stack with themselves. Guarded stops one affliction, not a sequence
 
 **Tactics** target the opponent; **Orders** help you. Play each for one Action and its printed cost, resolve PLAY, then discard.
 
-**Narratives** stay face-up **until Battle end**. You can have at most **4** in play. Resolve PLAY immediately; CONTINUOUS and ACTION abilities work while present. Playing an ACTION later costs its own Action.
+**Narratives** stay face-up until Battle end (up to **4** at a time). Resolve PLAY when you play one; CONTINUOUS text operates while it remains, and ACTION text costs an Action when used.
 
-**Stratagems** are hidden plans. Each player may **set only one Stratagem card per Battle**, including free sets from card effects. Set it face-down beside a publicly chosen **active Front**, for one Action and its printed cost unless a card saves the Action. Returning or revealing it does not allow a different Stratagem that Battle. When their REVEAL condition occurs, you may reveal and resolve them. Unless specified otherwise, their effects refer to that Front. Each revealed Stratagem resolves once and is discarded; unrevealed ones are discarded at Battle end. Opposing reveals at the same event are simultaneous.
+**Stratagems** are hidden plans. You may set **one per Battle** for an Action and its cost (or through a card that saves the Action). Place it face-down beside a publicly chosen **active Front**. When its condition is met, you may reveal it. It resolves once, then is discarded; unrevealed plans leave at Battle end. Opposing plans with the same trigger reveal simultaneously.
 
 **Heroes** are Unique cards played as **Force or Name**. Their Command seal has two centred prices: **Force on top, Name below**. Choose the mode when played, pay that price and use only its corresponding Strength and abilities. You may play **one Hero as Force and one as Name from hand per Battle**; Heroes remaining from earlier Battles do not use those allowances.
 
@@ -170,7 +170,7 @@ Neither closing turn may Pass. If the war continues, the player **who did not Pa
 
 ## Opening Orders {#opening-orders}
 
-After the two closing turns following the first **Pass**, but before settling the Fronts, both players secretly write **two orders**, numbered 1 and 2. You may choose the same order twice:
+After the two closing turns, each player secretly writes **two Opening Orders**, numbered 1 and 2. You may repeat a type:
 
 - **Maneuver:** Maneuver one friendly formation one legal step. No Action or Command cost. An Exhausted Force still cannot initiate.
 - **Commit:** Pay **1 Command** to give **+2 Strength** to one active Front containing one of your Forces this Battle. This adds to the **Front total**, not an individual Force; it counts only while you have a Force there.
@@ -212,7 +212,7 @@ New Exhaustion lasts through the next Battle unless removed by a card. Layers re
 
 ### 6. Recover and continue
 
-If neither player collapsed, recover **12, 9, 6, 3, then 1 Command per subsequent Battle**, to a maximum of 20. Refill hands to **10**, reset once-per-Battle uses, open the next scheduled Front, and let the non-passer begin.
+If neither player collapsed, recover **12, 9, 6, 3, then 1 Command per subsequent Battle**, to a maximum of 20. Refill hands to **10** and reset once-per-Battle uses. Open the next scheduled Front, then the player who did not Pass begins the next Battle.
 
 ## Reference {#reference}
 
