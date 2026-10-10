@@ -14,9 +14,9 @@ This pricing is **physical-print only**. The native/Webgame engine and the canon
 | Hero | Force Strength | Previous single cost | Force cost | Name cost | Pricing focus |
 | --- | ---: | ---: | ---: | ---: | --- |
 | Avaros, the Bronze King | 5 | 3 | **5** | **4** | King Name immediately regains 2 Command and offers a once-per-Battle classification-wide Strength bonus |
-| Kael, the Roadless | 3 | 3 | **3** | **1** | Name brings information from a hidden plan and a paid once-per-Battle second peek |
+| Kael, the Roadless | 3 | 3 | **3** | **1** | Name combines optional hidden-plan inspection with a once-per-Battle one-step self Move |
 | Rovan, the Gatebreaker | 5 | 4 | **5** | **3** | Name suppresses an attached effect on completion and can impose a one-use local Tax |
-| Alda, Keeper of the Ford | 3 | 2 | **4** | **2** | Name removes harmful markers when completed and redirects one hostile Tactic when eligible |
+| Alda, Keeper of the Ford | 3 | 2 | **4** | **2** | Name removes harmful markers on completion and can give a Tactic's intended target Guarded once per Battle |
 | Tovan, the Quartermaster | 2 | 3 | **3** | **4** | Name regains 2 Command and provides persistent global Bond/Name price reductions |
 | Nara, Builder of Walls | 3 | 3 | **4** | **3** | Name recovers a discarded Bond and attaches prepared layers once per Battle |
 | Neris, the Ferryman | 4 | 3 | **4** | **2** | Name repositions an ally on completion and has a once-per-Battle Move Action |
