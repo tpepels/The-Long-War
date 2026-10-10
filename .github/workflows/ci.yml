@@ -117,6 +117,9 @@ jobs:
         run: python tools/check_nonforce_battlefield_roles.py
       - name: Verify two simultaneous Opening Orders and strength-margin loss
         run: python tools/check_two_opening_orders.py
+      - name: Verify paper ecology scenarios (advisory)
+        continue-on-error: true
+        run: python tools/check_paper_ecology_scenarios.py
       - name: Audit all 131 printed cards and Stratagem interactions (advisory)
         continue-on-error: true
         run: python tools/check_full_card_coherence.py
