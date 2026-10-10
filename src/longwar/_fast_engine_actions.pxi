@@ -1206,6 +1206,16 @@ cdef int _fe_legal_actions_into(
 
     player = state.active_player
 
+    # A pre-draw Pass is an entire turn and is available regardless of hand,
+    # Command or the Actions that would be legal after drawing. During the
+    # final two closing turns players must proceed with their normal draw.
+    if state.turn_draw_pending:
+        actions[0] = encode_action(TYPE_BEGIN_TURN, -1, -1, -1, player)
+        if state.closing_turns_remaining == 0:
+            actions[1] = encode_action(TYPE_PASS, -1, -1, -1, player)
+            return 2
+        return 1
+
     # Hand-limit overflow must be cleaned up before play continues.
     # This substep is not one of the turn's Actions.
     if state.cleanup_pending:
@@ -1686,27 +1696,12 @@ cdef int _fe_legal_actions_into(
         self, state, player, actions, n, &constraint_enforced
     )
 
-    # Pass is never voluntary. It exists only at the start of an ordinary
-    # turn when no Action is legal and starts the fixed two-turn closing
-    # sequence. EndTurn is separate: a player may always stop before using
-    # both Actions, and a closing/no-second-Action turn ends without Passing.
-    if n == 0:
-        actions[0] = encode_action(
-            TYPE_END_TURN
-            if state.closing_turns_remaining > 0 or state.actions_this_turn > 0
-            else TYPE_PASS,
-            -1,
-            -1,
-            -1,
-            player,
-        )
-        n = 1
-    else:
-        n = _append_action(
-            actions,
-            n,
-            encode_action(TYPE_END_TURN, -1, -1, -1, player),
-        )
+    # Ending the Action segment, even without taking an Action, is always
+    # EndTurn. It is never a Pass and cannot initiate Battle closing.
+    n = _append_action(
+        actions, n,
+        encode_action(TYPE_END_TURN, -1, -1, -1, player),
+    )
 
     return n
 
