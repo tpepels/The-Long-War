@@ -613,6 +613,11 @@ function actionForTurnEnd() {
   return state.legal_actions.find((action) => action.kind === ACTION_KIND.END_TURN) || null;
 }
 
+function attackActions() {
+  if (!state || state.phase === SESSION_PHASE.MULLIGAN) return [];
+  return state.legal_actions.filter((action) => action.kind === ACTION_KIND.ATTACK);
+}
+
 function cycleActions() {
   if (!state || state.phase === SESSION_PHASE.MULLIGAN) return [];
   return state.legal_actions.filter((action) => action.kind === ACTION_KIND.CYCLE);
@@ -922,6 +927,7 @@ function renderStrip() {
       ' · choose up to 2 returns</div>';
     $("begin-turn-button").hidden = true;
     $("pass-button").hidden = true;
+    $("attack-button").hidden = true;
     $("cycle-button").hidden = true;
     return;
   }
@@ -960,6 +966,11 @@ function renderStrip() {
   passButton.disabled = !turnControl || state.viewer == null;
   passButton.classList.toggle("danger-pass", !!pass);
   passButton.textContent = endTurn ? "End turn" : "Pass";
+
+  const attacks = attackActions();
+  const attackButton = $("attack-button");
+  attackButton.hidden = !attacks.length || state.viewer == null;
+  attackButton.disabled = !attacks.length || state.viewer == null;
 
   const cycles = cycleActions();
   const cycleButton = $("cycle-button");
@@ -1225,6 +1236,11 @@ function choiceLabel(action) {
     return "Cycle " + ids.map((id) => cardTitle(id)).join(" + ");
   }
   if (action.kind === ACTION_KIND.DISCARD) return "Discard for hand limit";
+  if (action.kind === ACTION_KIND.ATTACK) {
+    const src = action.source || {};
+    const dest = action.destination || {};
+    return (action.attack_classification || "Basic") + " · Front " + ((src.front ?? 0) + 1) + " " + (src.rank || "") + " → Front " + ((dest.front ?? 0) + 1) + " " + (dest.rank || "");
+  }
   if (card?.hero && action.kind === ACTION_KIND.PLAY_FORCE) {
     return "Deploy as Force";
   }
@@ -1918,6 +1934,14 @@ $("cancel-selection").addEventListener("click", () => {
 $("card-inspector-close").addEventListener("click", closeCardInspector);
 document.querySelectorAll("[data-inspector-close]").forEach((el) => {
   el.addEventListener("click", closeCardInspector);
+});
+
+$("attack-button").addEventListener("click", () => {
+  const attacks = attackActions();
+  if (!attacks.length) return;
+  choiceActions = attacks;
+  renderChoiceTray();
+  $("choice-tray").querySelector("button")?.focus();
 });
 
 $("cycle-button").addEventListener("click", () => {
