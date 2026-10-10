@@ -152,6 +152,8 @@ def test_rider_requires_active_adjacent_flanked_frontline(engine, deck):
     a = Attack(rider, target, "rider")
     assert a not in engine.legal_actions(s)  # Third Front is inactive in Battle I
     s.battle = 3
+    assert a not in engine.legal_actions(s)  # Middle Rider does not itself create a flank
+    place(s, 0, 2, Rank.FRONT, "the-red-shields")  # Adjacent opposing Frontline creates flank
     assert a in engine.legal_actions(s)
     s.slot(1, Position(Front.THIRD, Rank.FRONT)).force = "the-red-shields"
     assert a not in engine.legal_actions(s)
