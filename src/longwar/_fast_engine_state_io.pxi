@@ -219,11 +219,13 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
         lost_masks = resolution_state.get("lost_masks", (0, 0))
         drive_masks = resolution_state.get("drive_masks", (0, 0))
         protected_masks = resolution_state.get("protected_masks", (0, 0))
+        exhaust_choices = resolution_state.get("exhaust_choices", (255, 255))
         front_loss_command_penalty = resolution_state.get("front_loss_command_penalty", (0, 0))
         for p in range(PLAYER_COUNT):
             fast.resolution_lost_mask[p] = int(lost_masks[p])
             fast.resolution_drive_mask[p] = int(drive_masks[p])
             fast.resolution_protected_mask[p] = int(protected_masks[p])
+            fast.resolution_exhaust_choice[p] = int(exhaust_choices[p])
             fast.resolution_front_loss_command_penalty[p] = int(front_loss_command_penalty[p])
         fast.resolution_suppressed_mask = int(
             resolution_state.get("suppressed_mask", 0)
@@ -798,6 +800,7 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                 "lost_masks": [state.resolution_lost_mask[0], state.resolution_lost_mask[1]],
                 "drive_masks": [state.resolution_drive_mask[0], state.resolution_drive_mask[1]],
                 "protected_masks": [state.resolution_protected_mask[0], state.resolution_protected_mask[1]],
+                "exhaust_choices": [state.resolution_exhaust_choice[0], state.resolution_exhaust_choice[1]],
                 "front_loss_command_penalty": [state.resolution_front_loss_command_penalty[0], state.resolution_front_loss_command_penalty[1]],
                 "suppressed_mask": state.resolution_suppressed_mask,
                 "contribution_front": [state.resolution_contribution_front[i] for i in range(SLOT_COUNT)],
