@@ -244,7 +244,8 @@ function artFocus(value,fallback){
 }
 function artStyle(card,options={}){
   const x=artFocus(card.art_focus_x,"50%");
-  const y=artFocus(card.art_focus_y,"50%");
+  // Preserve the top of every illustration; the bottom may be cropped by cover.
+  const y=artFocus(card.art_focus_y,"0%");
   const artBase=options.printArt?"art/cards-print/":"art/cards/";
   const artExt=options.printArt?".webp":".png";
   const artId=String(card.art_id||card.id);
