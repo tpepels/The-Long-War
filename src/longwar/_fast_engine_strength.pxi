@@ -305,6 +305,10 @@ cdef int _v2_position_strength_no_reserve(
     value = self.strength[force]
     value += state.temporary[slot]
     value -= state.negative_one_markers[slot]
+    if state.conditions[slot] & COND_SHAKEN:
+        value -= 2
+    if state.conditions[slot] & COND_DEPLETED:
+        value -= 1
     value -= 2 * state.negative_two_markers[slot]
     value -= 3 * state.negative_three_markers[slot]
     if _fe_frontline_is_flanked(self, state, slot):
