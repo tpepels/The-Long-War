@@ -344,7 +344,7 @@
       "role": "logistics",
       "decision": "keep",
       "reason": "Guard Hero Name restores an ally on completion and can Guard its intended Tactic target once each Battle, unlike Asha's Tactic redirection.",
-      "effect_length_max": 150
+      "effect_length_max": 136
     },
     {
       "id": "tovan-the-quartermaster",
