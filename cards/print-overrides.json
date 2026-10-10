@@ -1134,11 +1134,6 @@
       "exposed": "ACTION: remove 1 negative marker directly ahead"
     },
     {
-      "id": "the-dust-riders",
-      "index": 0,
-      "exposed": "Bonded: first Maneuver free"
-    },
-    {
       "id": "the-late-banner",
       "index": 0,
       "exposed": "Bonded: Name costs -1 (min 1) here"
@@ -1187,11 +1182,6 @@
     },
     {
       "id": "the-white-hands-of-elara",
-      "command_cost": 3,
-      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
-    },
-    {
-      "id": "the-dust-riders",
       "command_cost": 3,
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     },

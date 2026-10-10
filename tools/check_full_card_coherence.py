@@ -58,6 +58,18 @@ def run() -> None:
     rows = {row["id"]: row for row in audit["cards"]}
     plans = {row["id"]: row for row in matrix["stratagems"]}
     assert len(cards) == len(rows) == 131
+    # Print-only cards may not keep legacy Named-only Maneuver exceptions.
+    # Canonical executable engine text is intentionally a separate source.
+    obsolete = (
+        "maneuver without being named",
+        "maneuver without a name",
+        "maneuver while unnamed",
+        "may maneuver even if unnamed",
+    )
+    for cid, card in cards.items():
+        effect_text = " ".join(e["text"] for e in effects(card)).lower()
+        assert not any(s in effect_text for s in obsolete), cid
+
     assert set(cards) == set(rows)
     assert Counter(c["type"] for c in cards.values()) == FAMILIES
     assert Counter(r["review"] for r in rows.values()) == {
