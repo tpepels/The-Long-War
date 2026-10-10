@@ -79,7 +79,7 @@ def losing_board(engine, deck):
     a = place(state, 0, front, Rank.FRONT, "the-fifty-men")
     b = place(state, 0, front, Rank.MIDDLE, "the-white-hands-of-elara")
     place(state, 1, front, Rank.FRONT, "a-hundred-shields")
-    place(state, 1, front, Rank.MIDDLE, "the-iron-boars")
+    place(state, 1, front, Rank.MIDDLE, "the-unnamed-host")
     assert engine.front_strength(state, 0, Front(front)) < engine.front_strength(state, 1, Front(front))
     return state, a, b
 
