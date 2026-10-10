@@ -10,59 +10,65 @@ The supplemental decks deliberately include more singletons to test uncommon car
 
 ## Banner & Blood
 
-Reliable leadership and permanent Strength: Captain/King formations amplify Bonded stacks and convert close Fronts through repeatable hidden plans.
+Leadership and persistent Named Formations with a Rider mobility branch. This revision deliberately makes movement a **choice alongside**, not a replacement for, leadership and formation construction.
 
-**Test question:** With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?
+**Test question:** Can leadership and Named investments coexist with an actionable Rider flank threat, and does the player choose between a Rider-move Stratagem and a leadership-resolution Stratagem under the **one-Stratagem-per-Battle** limit?
 
-48 cards · 16 Forces · 28 titles · 13 one-copy titles · 108–115 total printed Command (Hero mode-dependent) · 64 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 31 titles · 18 one-copy titles · 105–112 total printed Command (Hero mode-dependent) · 60 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
-- Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them offer a hidden positional surprise versus broad leadership Strength.
-- Followed x3 and The Battle Had Chosen Them x2 reward any of six different Names; the large Fifty Men, Hundred Shields and First Spear remain useful even before Named completion.
-- Stood Fast With x2 protects a critical Frontline from flanking and helps the Grey Riders, whose Maneuvers can lead into their unused Rider Attack. First Spear x3 can Guard Middle support.
-- The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed repositioning versus broad Strength swings.
+- Late Banner x3 and Banner Singers x2 support Captains, Kings and Named formations. Marched Beneath the Banner of x3 remains a Bonded leadership payoff. Center Must Hold x1 and Every Banner Turned Toward Them x1 offer **alternative** hidden leadership responses, not simultaneous traps.
+- Followed x3 and The Battle Had Chosen Them x1 reward completed formations. Fifty Men x1, Hundred Shields x2 and First Spear x3 maintain a substantial non-Rider Front presence.
+- Grey Riders x2 may Maneuver while Exhausted and then use their **unused basic Rider Attack**, but only against a legally flanked adjacent Frontline. Vardai x2 instead use an **ACTION** to Move and potentially Attack; ordinary Move is **not** Maneuver.
+- The Long March x2 waives the **Command cost** of a Rider's ordinary Maneuver, not its Action. The Battle Turned East x2 is a set, face-down Stratagem that may extend a Rider's move (including an Opening Maneuver) and compete with leadership plans for the single allowed set this Battle.
+- Stood Fast With x2 prevents a Bonded Frontline formation from *being flanked*; it does not cause the opponent to be flanked or create an Attack target. During Opening Orders, Maneuver has no Command cost even without The Long March. A movement-triggered Stratagem can still create a distinct extension, if one was set in time.
 
 ### Card availability, not playable-combo probability
 
 | Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
-| Leadership Strength spike | 9 | 7 | 74.1% | 98.0% |
-| Named persistent Strength | 8 | 5 | 60.5% | 93.5% |
-| Bond exchange and defended ranks | 7 | 4 | 50.2% | 88.0% |
+| Leadership Strength spike | 9 | 5 | 63.0% | 93.9% |
+| Named persistent Strength | 6 | 4 | 46.8% | 86.6% |
+| Bond exchange and defended ranks | 9 | 3 | 45.4% | 80.7% |
+
+These figures only indicate that a card from *each* package subgroup was drawn. Rider positioning, an unused Attack, the right Front and the unused single-Stratagem allowance are additional requirements.
 
 ### Cards
 
 | Copies | Card | Type |
 |---:|---|---|
-| 3 | The Late Banner | force |
-| 3 | The First Spear | force |
-| 1 | The Red Shields | force |
-| 2 | The Grey Riders | force |
-| 2 | A Hundred Shields | force |
-| 3 | The Fifty Men | force |
-| 2 | The Banner Singers | force |
-| 3 | Marched Beneath the Banner of | bond |
-| 3 | Followed | bond |
-| 2 | Stood Fast With | bond |
-| 1 | Guarded | bond |
-| 1 | Namar | name |
-| 1 | Arel | name |
-| 1 | Oren | name |
-| 1 | Teren | name |
-| 1 | Meren | name |
-| 1 | Edrin | name |
-| 1 | Avaros, the Bronze King | hero |
-| 1 | Doros, the Last Spear | hero |
-| 1 | Alda, Keeper of the Ford | hero |
-| 2 | All Reserves Forward | tactic |
-| 2 | The Line Wheeled | tactic |
-| 2 | The Center Must Hold | stratagem |
-| 2 | Every Banner Turned Toward Them | stratagem |
-| 2 | The Battle Had Chosen Them | narrative |
-| 2 | The King Had Given the Order | narrative |
-| 1 | Re-form the Line | order |
-| 1 | Fresh Orders | order |
+| 3 | The Late Banner | Force |
+| 3 | The First Spear | Force |
+| 1 | The Red Shields | Force |
+| 2 | The Grey Riders | Force |
+| 2 | The Vardai | Force |
+| 2 | A Hundred Shields | Force |
+| 1 | The Fifty Men | Force |
+| 2 | The Banner Singers | Force |
+| 3 | Marched Beneath the Banner of | Bond |
+| 3 | Followed | Bond |
+| 2 | Stood Fast With | Bond |
+| 1 | Guarded | Bond |
+| 1 | Namar | Name |
+| 1 | Arel | Name |
+| 1 | Oren | Name |
+| 1 | Teren | Name |
+| 1 | Meren | Name |
+| 1 | Edrin | Name |
+| 1 | Avaros, the Bronze King | Hero |
+| 1 | Doros, the Last Spear | Hero |
+| 1 | Alda, Keeper of the Ford | Hero |
+| 2 | All Reserves Forward | Tactic |
+| 2 | The Line Wheeled | Tactic |
+| 1 | The Center Must Hold | Stratagem |
+| 1 | Every Banner Turned Toward Them | Stratagem |
+| 2 | The Battle Turned East | Stratagem |
+| 1 | The Battle Had Chosen Them | Narrative |
+| 1 | The King Had Given the Order | Narrative |
+| 2 | The Long March | Narrative |
+| 1 | Re-form the Line | Order |
+| 1 | Fresh Orders | Order |
 
 ## Crown of Crows
 
