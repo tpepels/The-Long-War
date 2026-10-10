@@ -199,6 +199,16 @@ def test_battle_end_resets_temporary_afflictions_and_attack_use(engine, deck):
         while s.pending_draw_discard_for is not None:
             engine.apply(s, next(a for a in engine.legal_actions(s) if isinstance(a, Discard)))
         engine.apply(s, EndTurn())
+    # Battle-end loss Exhaustion is a mandatory player choice, so the Battle
+    # may remain in its resolution phase until each lost Front is assigned.
+    for _ in range(8):
+        if s.battle >= 2 or s.winner is not None:
+            break
+        choices = [a for a in engine.legal_actions(s)
+                   if isinstance(a, EffectChoice)
+                   and a.effect == "lost-front-exhaust"]
+        assert choices, engine.legal_actions(s)
+        engine.apply(s, choices[0])
     assert s.battle >= 2 or s.winner is not None
     if s.winner is None:
         assert not s.slot(0, origin).used_attack
