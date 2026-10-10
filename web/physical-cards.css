@@ -78,12 +78,12 @@ CARD ICON SIZES — TUNING PANEL
 */
 :root {
   /* Exposed edge symbols */
-  --icon-edge-type-size: 4.5mm;
-  --icon-edge-hero-force-size: 4.5mm;
-  --icon-edge-hero-name-size: 4.5mm;
-  --icon-edge-class-size: 4.5mm;
-  --icon-edge-row-size: 4.5mm;
-  --icon-edge-event-size: 4.5mm;
+  --icon-edge-type-size: 5.5mm;
+  --icon-edge-hero-force-size: 5.5mm;
+  --icon-edge-hero-name-size: 5.5mm;
+  --icon-edge-class-size: 5.5mm;
+  --icon-edge-row-size: 5.5mm;
+  --icon-edge-event-size: 5.5mm;
 
   /* Body and footer */
   --icon-classification-size: 3.2mm;
@@ -607,8 +607,8 @@ EXPOSED TOP ROW - TUNING PANEL
   --edge-left-width: 16mm;
   --edge-middle-width: 16mm;
   --edge-special-event-side-width: 10mm; /* symmetric sides keep middle truly centred */
-  --edge-pad-top: 2.2mm;
-  --edge-pad-right: 7mm;
+  --edge-pad-top: 3.5mm;
+  --edge-pad-right: 5mm;
   --edge-pad-bottom: 0.7mm;
   --edge-pad-left: 7mm;
   --edge-zone-padding-x: 0.7mm;
@@ -1477,8 +1477,12 @@ EXPOSED TOP ROW - TUNING PANEL
   white-space: nowrap;
   line-height: 1;
 }
-.hero-cost-force { top: var(--hero-cost-force-top); }
-.hero-cost-name { bottom: var(--hero-cost-name-bottom); }
+.hero-cost-force {
+  top: var(--hero-cost-force-top);
+}
+.hero-cost-name {
+  bottom: var(--hero-cost-name-bottom);
+}
 .cost-gem .hero-cost-part b {
   font: 600 var(--hero-cost-force-number-size)/1 var(--card-cost-font-family);
   font-variant-numeric: lining-nums;
