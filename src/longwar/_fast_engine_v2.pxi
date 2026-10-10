@@ -1603,6 +1603,10 @@ cdef void _v2_enqueue_effect(
         _v2_pending_aux(mode, effect_index),
         0,
         0,
-        source_flags,
+        source_flags | (
+            EFFECT_OPTIONAL
+            if self.v2_effects[card][mode][effect_index].flags & V2_FLAG_OPTIONAL
+            else 0
+        ),
         card,
     )
