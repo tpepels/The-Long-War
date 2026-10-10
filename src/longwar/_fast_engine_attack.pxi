@@ -19,7 +19,8 @@ cdef inline bint _fe_attack_legal(
         return False
     if state.conditions[source] & COND_DEPLETED:
         return False
-    classes = self.class_mask[force]
+    # An attached Name (including a Hero as Name) contributes its classes.
+    classes = _v2_slot_class_mask(self, state, source)
     own_front = front_from_slot(source)
     other_front = front_from_slot(target)
     rank = rank_from_slot(source)
@@ -31,7 +32,7 @@ cdef inline bint _fe_attack_legal(
         middle = slot_index(other_player(player), own_front, RANK_MIDDLE)
         if state.force[middle] >= 0 and not (state.conditions[source] & COND_EMPOWERED):
             if (
-                self.class_mask[state.force[middle]] & (1 << 3)
+                _v2_slot_class_mask(self, state, middle) & (1 << 3)
                 and not (state.conditions[middle] & (COND_SHAKEN | COND_DEPLETED))
             ):
                 return False
