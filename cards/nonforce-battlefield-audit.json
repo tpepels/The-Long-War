@@ -325,8 +325,8 @@
       "type": "hero",
       "role": "intrigue",
       "decision": "revised",
-      "reason": "Replace passive, low-payoff or purely numeric text with direct positioning, pressure or usable hidden information.",
-      "effect_length_max": 104
+      "reason": "Scout Hero Name combines information with one-step self movement; unlike static peeking, it provides a live spatial Action even without a hidden enemy Stratagem.",
+      "effect_length_max": 140
     },
     {
       "id": "rovan-the-gatebreaker",
@@ -343,8 +343,8 @@
       "type": "hero",
       "role": "logistics",
       "decision": "keep",
-      "reason": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "effect_length_max": 136
+      "reason": "Guard Hero Name restores an ally on completion and can Guard its intended Tactic target once each Battle, unlike Asha's Tactic redirection.",
+      "effect_length_max": 150
     },
     {
       "id": "tovan-the-quartermaster",
