@@ -913,6 +913,13 @@ cdef int _fe_legal_pending_effect_actions(
                 encode_action(TYPE_EFFECT, -1, source, -1, player, kind),
             )
 
+    elif kind == EFFECT_LOST_FRONT_EXHAUST:
+        for source in range(player * POSITIONS_PER_PLAYER, (player + 1) * POSITIONS_PER_PLAYER):
+            if (source_mask & (<uint32_t>1 << source)) and state.force[source] >= 0:
+                n = _append_action(
+                    actions, n,
+                    encode_action(TYPE_EFFECT, -1, source, -1, player, kind),
+                )
     elif kind == EFFECT_FREE_MANEUVER:
         for source in range(player * POSITIONS_PER_PLAYER, player * POSITIONS_PER_PLAYER + POSITIONS_PER_PLAYER):
             if not (source_mask & (1 << source)):
