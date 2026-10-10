@@ -359,6 +359,8 @@ cdef void _v2_compile_effect(
         value = [effect.get("requires_other_friendly_class")]
     out.class_mask2 = _v2_class_mask(value)
 
+    if effect.get("optional"):
+        out.flags |= V2_FLAG_OPTIONAL
     if effect.get("all"):
         out.flags |= V2_FLAG_ALL
     if effect.get("same_front"):
