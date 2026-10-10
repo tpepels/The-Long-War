@@ -133,7 +133,7 @@ def test_baggage_affliction_order_consumes_guarded_before_shaken(engine, deck):
     target = pos(1, Rank.REAR)
     s.slot(1, target).force = "the-fifty-men"
     s.slot(1, target).guarded = True
-    engine.apply(s, next(a for a in engine.legal_actions(s) if isinstance(a, PlayTactic) and a.card_id == "the-baggage-was-abandoned" and a.targets[0].position == target))
+    engine.apply(s, next(a for a in engine.legal_actions(s) if isinstance(a, PlayTactic) and a.card_id == "the-baggage-was-abandoned" and a.target is not None and a.target.position == target))
     assert not s.slot(1, target).guarded
     assert not s.slot(1, target).exhausted
     assert s.slot(1, target).shaken
