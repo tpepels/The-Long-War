@@ -127,7 +127,7 @@ cdef int TYPE_EFFECT = 12
 cdef int TYPE_CYCLE = 13
 cdef int TYPE_END_TURN = 14
 cdef int TYPE_ABILITY = 15
-cdef int TYPE_BEGIN_TURN = 16
+cdef int TYPE_BEGIN_TURN = 9  # Vacant four-bit action kind
 
 cdef int EFFECT_NONE = 0
 cdef int EFFECT_FREE_MANEUVER = 1
