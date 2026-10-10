@@ -388,8 +388,17 @@ cdef void _v2_apply_immediate_play_effects(
         effect = &self.v2_effects[card][mode][i]
         if effect.timing != V2_TIMING_PLAY:
             continue
-        if not _v2_slot_effect_condition(self, state, origin, effect):
-            continue
+        if origin >= 0:
+            if effect.op == V2_OP_DRAW_DISCARD and effect.class_mask:
+                # Conditional Bonds name a qualifying troop elsewhere in
+                # this Front, not necessarily their own formation.
+                if not _v2_front_contains_class_mask(
+                    self, state, player, front_from_slot(origin), effect.class_mask
+                ):
+                    continue
+            elif not _v2_slot_effect_condition(self, state, origin, effect):
+                continue
+        # Narratives have no battlefield slot; never read a negative slot.
         if effect.op == V2_OP_GAIN_COMMAND:
             _fe_gain_command_fast(
                 self,
@@ -441,6 +450,10 @@ cdef void _v2_apply_immediate_play_effects(
         elif effect.op in (
             V2_OP_ATTACH_PREPARED,
             V2_OP_CHOOSE_STRENGTH_TARGETS,
+            V2_OP_DRAW,
+            V2_OP_DRAW_DISCARD,
+            V2_OP_ADD_STRENGTH_MARKER,
+            V2_OP_REMOVE_EXHAUSTION,
             V2_OP_DISCARD_DRAW,
             V2_OP_MOVE,
             V2_OP_EXHAUST,
@@ -1538,6 +1551,13 @@ cdef void _v2_enqueue_effect(
     int origin=-1,
     int source_flags=0,
 ) except *:
+    # This effect is ordered DRAW, THEN DISCARD. Draw before offering
+    # the discard selection, including mandatory hand-limit cleanup.
+    if self.v2_effects[card][mode][effect_index].op == V2_OP_DRAW_DISCARD:
+        _fe_queue_battle_draws(
+            self, state, player,
+            self.v2_effects[card][mode][effect_index].draw_count,
+        )
     _fe_enqueue_effect(
         self,
         state,
