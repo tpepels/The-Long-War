@@ -248,7 +248,7 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 
 ### Combinations to test
 
-- Relief Column and White Hands heal or enable a recovery line; They Lived to Tell It, No One Would Be First to Leave, Bind the Wound and Catch Your Breath provide alternative ways to lift conditions.
+- Relief Column and White Hands heal or enable a recovery line; They Lived to Tell It turns an Exhaustion removal into an optional legal Move instead of Inspired (other marker removal still grants Inspired). No One Would Be First to Leave offers a different PLAY-plus-ACTION route; Bind the Wound and Catch Your Breath provide alternative recovery.
 - Old Guard in Middle screens friendly Rear Archers. Serekh in Frontline protects the formation directly behind against Tactics, while First Spear can give the Force directly behind Guarded on PLAY.
 - Covered the Withdrawal Of, Kept the Gate For and Trusted let Exhausted Forces Maneuver when necessary. Crow Archers x2 can Shake an opposing Rear Force while Healers preserve the supporting line.
 - Rallied Behind can now recover Command and Move a formation when behind; No Step Back and The Ground Was Held remain hidden comeback plans.

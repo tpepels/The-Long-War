@@ -1349,14 +1349,14 @@
       "title": "The Flank Was Refused",
       "price": 1,
       "role": "maneuver",
-      "purpose": "At resolution an outer flanked Frontline Force ignores the flank penalty and gets +2.",
+      "purpose": "Reveal in any active flanked Frontline to cancel its flank penalty; an outer Front adds the distinctive +2 Strength follow-up.",
       "review": "watch",
       "order_interaction": "front_resolution",
-      "printed_effect_max_chars": 132,
+      "printed_effect_max_chars": 138,
       "in_test_decks": [
         "rider-flank-lab"
       ],
-      "watch_reason": "A live flanked Frontline in an outer Front is a specific setup; monitor dead reveals."
+      "watch_reason": "Still requires a flanked friendly Frontline Force in the assigned active Front at the single simultaneous resolution reveal; early inner eligibility and outer reward are separately testable."
     },
     {
       "id": "the-trap-closed",
@@ -1485,10 +1485,10 @@
       "title": "They Lived to Tell It",
       "price": 1,
       "role": "defence",
-      "purpose": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
+      "purpose": "Narrative ACTION recovery turns lost-Front Exhaustion into optional tactical movement, whereas other negative-marker removal grants Inspired.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
-      "printed_effect_max_chars": 107,
+      "printed_effect_max_chars": 173,
       "in_test_decks": [
         "the-last-watch"
       ]

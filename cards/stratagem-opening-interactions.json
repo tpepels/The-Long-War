@@ -85,10 +85,10 @@
     {
       "id": "the-flank-was-refused",
       "window": "front_resolution",
-      "trigger": "One final resolution reveal, after Opening Orders",
-      "effect": "At resolution in an outer Front, ignore a friendly flanked Frontline Force's flank penalty and give it +2 Strength",
-      "distinct": "Conditional outer Front counterflank; no movement or ordinary Commit",
-      "watch": "Flanked outer Frontline eligibility after Opening Orders"
+      "trigger": "At the single resolution reveal, a friendly Frontline Force is flanked in the Stratagem's assigned active Front",
+      "effect": "Ignore that Force's flank penalty; if this is an outer Front, also give it +2 Strength this Battle",
+      "distinct": "Works in initial central Fronts as a flank answer but retains its stronger outer-front payoff",
+      "watch": "Conditional on an actually flanked Force before simultaneous reveals; one set Stratagem per player per Battle"
     },
     {
       "id": "every-banner-turned-toward-them",

@@ -523,8 +523,8 @@
       "type": "stratagem",
       "role": "defence",
       "decision": "revised",
-      "reason": "Outer-Front flanking denial and +2; distinct from a hidden Move or Opening Commit.",
-      "effect_length_max": 132
+      "reason": "Hidden flanking denial in any active Front, with the additional Strength benefit reserved for an outer Front; eligible only with a flanked friendly Frontline Force at resolution.",
+      "effect_length_max": 138
     },
     {
       "id": "the-trap-closed",
@@ -604,8 +604,8 @@
       "type": "narrative",
       "role": "defence",
       "decision": "keep",
-      "reason": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "effect_length_max": 107
+      "reason": "Battle-limited Narrative ACTION recovery now offers an optional legal Move after removing Exhaustion; other temporary negatives still become Inspired. Links persistent defeat to positioning without replacing No One Would Be First to Leave.",
+      "effect_length_max": 173
     },
     {
       "id": "no-road-was-too-long",

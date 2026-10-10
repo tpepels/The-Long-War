@@ -125,6 +125,9 @@ jobs:
       - name: Audit fourteen physical false-friend interactions (advisory)
         continue-on-error: true
         run: python tools/check_print_false_friends.py
+      - name: Check recovery-to-position and flank counterplay (advisory)
+        continue-on-error: true
+        run: python tools/check_recovery_flank_cohesion.py
       - name: Audit all 131 printed cards and Stratagem interactions (advisory)
         continue-on-error: true
         run: python tools/check_full_card_coherence.py
