@@ -1485,7 +1485,7 @@
       "title": "They Lived to Tell It",
       "price": 1,
       "role": "defence",
-      "purpose": "Once-per-Battle Narrative recovery turns lost-Front Exhaustion into optional tactical movement, whereas other negative-marker removal grants Inspired.",
+      "purpose": "Narrative ACTION recovery turns lost-Front Exhaustion into optional tactical movement, whereas other negative-marker removal grants Inspired.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 173,
