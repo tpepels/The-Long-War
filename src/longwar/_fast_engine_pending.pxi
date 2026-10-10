@@ -297,6 +297,13 @@ cdef void _v2_apply_resolved_effect(
             )
         ):
             _fe_return_to_hand(self, state, player, selected_card)
+    elif effect.op == V2_OP_DRAW_DISCARD:
+        # The draw was already resolved when this effect was queued.
+        if selected_card >= 0 and state.hand[player][selected_card] > 0:
+            _fe_take_from_hand(
+                self, state, player, selected_card, HIDDEN_KNOWN_SINGLE_CARD,
+            )
+            _fe_append_discard(self, state, player, selected_card, True)
     elif effect.op == V2_OP_DISCARD_DRAW:
         if selected_card >= 0 and state.hand[player][selected_card] > 0:
             _fe_take_from_hand(
@@ -852,7 +859,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_take_from_hand(self, state, actor, card, 0)
         if self.v2_effect_count[card][V2_MODE_DEFAULT] > 0:
             v2_effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
-            if v2_effect.op == V2_OP_DISCARD_DRAW:
+            if v2_effect.op in (V2_OP_DISCARD_DRAW, V2_OP_DRAW_DISCARD):
                 _v2_enqueue_effect(
                     self, state, actor, card, V2_MODE_DEFAULT, 0, pos
                 )
@@ -1031,6 +1038,11 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         state.narrative_target_slot[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = dest
         if self.narrative_choice_kind[card] == NARRATIVE_CHOICE_NAMED_DIRECTION:
             state.narrative_direction[actor * NARRATIVE_SLOTS_PER_PLAYER + pos] = <uint8_t>extra
+        # Face-up Narratives can resolve PLAY effects before their
+        # continuous abilities and ACTION abilities become relevant.
+        _v2_apply_immediate_play_effects(
+            self, state, actor, card, V2_MODE_DEFAULT, -1
+        )
         if self.narrative_forced_named_direction[card]:
             _fe_add_constraint(
                 state,
