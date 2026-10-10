@@ -73,7 +73,7 @@ def run() -> None:
     # Editorial confirmations: free Attack restrictions; simultaneous
     # The Ground Was Held eligibility; shared classification.
     assert "The same is true when *The Vardai*, *Elian*" in rules
-    assert "The Ground Was Held" in rules and "pre-reveal" in rules
+    assert "The Ground Was Held" in rules and "**before the reveals**" in rules
     assert "If a card such as *Arel* or *Avaros*" in rules
     assert "If it needs a Force or other legal target" in rules
 
