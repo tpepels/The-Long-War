@@ -81,7 +81,7 @@ Move **this formation** one legal adjacent position. This gives the Name a
 strategic decision even against an opponent who sets no Stratagem.
 
 Distinctions remain:
-- Kael as Force can use an ACTION for up to two-step self movement.
+- Kael as Force can use a **1/BATTLE ACTION** for up to two-step self movement.
 - Kael as Name uses one-step self movement and can inspect a hidden plan.
 - Watchtowers can inspect a plan **and filter cards**, but not reposition itself
   on that ACTION.
@@ -89,13 +89,13 @@ Distinctions remain:
 - Neris as Name may Move this or another friendly formation in its Front, but
   offers no inspection.
 
-This can create *repeated* one-Action self Moves while Kael survives. That is
-deliberate and should be observed in the opening two Battles; it is not free
-movement, does not replay PLAY text, and cannot ignore row restrictions.
+Kael's Name-mode ACTION is **once per Battle** (as printed in its timing label).
+It spends an Action, does not replay PLAY text, and cannot ignore row restrictions.
+Test whether that single move-plus-inspection is worth playing as Name.
 
 ### 4. Protection includes a different decision, not another redirect
 
-Asha's Name TRIGGER still **redirects** a hostile Tactic to herself *if legal*.
+Asha's **1/BATTLE Name TRIGGER** still **redirects** a hostile Tactic to herself *if legal*.
 Alda Hero in Name mode instead may **once per Battle** grant Guarded to the
 targeted ally's Force **before** an opposing Tactic resolves.
 
@@ -106,7 +106,7 @@ These are not interchangeable:
 | Shaken or Depleted affliction | Can take the effect instead if a legal target | Target's next affliction can be prevented | Prevents a qualifying Attack affliction or ignores targeted Tactic |
 | Attached Bond returned to hand | May redirect only if targeting remains legal | Guarded does **not** stop layer return | Can ignore qualifying Tactic on that formation |
 | No hostile Tactic is played | No trigger | No trigger | May remain concealed and be discarded |
-| Opportunity cost | Name investment, valid replacement target | Unique Hero in Name mode; 1/Battle only | Consumes sole set Stratagem of that Battle |
+| Opportunity cost | Name investment, legal replacement target; 1/Battle only | Unique Hero in Name mode; 1/Battle only | Consumes sole set Stratagem of that Battle |
 
 Leave Red Shields, Serekh, Supported By and Maelin as distinct **positional**
 Tactic taxes for now. They apply to different recipients and require different
