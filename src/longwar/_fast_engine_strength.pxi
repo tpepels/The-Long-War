@@ -303,6 +303,8 @@ cdef int _v2_position_strength_no_reserve(
         return 0
 
     value = self.strength[force]
+    if state.exhausted[slot]:
+        value -= 1
     value += state.temporary[slot]
     value -= state.negative_one_markers[slot]
     if state.conditions[slot] & COND_SHAKEN:
