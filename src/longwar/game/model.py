@@ -67,6 +67,12 @@ class Slot:
     bond: str | None = None
     name: str | None = None
     exhausted: bool = False
+    shaken: bool = False
+    depleted: bool = False
+    guarded: bool = False
+    inspired: bool = False
+    empowered: bool = False
+    used_attack: bool = False
     temporary_strength: int = 0
     negative_strength_markers: list[int] = field(default_factory=list)
     suppression_mask: int = 0
@@ -299,6 +305,12 @@ class GameState:
                         bond=slot.bond,
                         name=slot.name,
                         exhausted=slot.exhausted,
+                        shaken=slot.shaken,
+                        depleted=slot.depleted,
+                        guarded=slot.guarded,
+                        inspired=slot.inspired,
+                        empowered=slot.empowered,
+                        used_attack=slot.used_attack,
                         temporary_strength=slot.temporary_strength,
                         negative_strength_markers=list(slot.negative_strength_markers),
                         suppression_mask=slot.suppression_mask,
@@ -475,6 +487,12 @@ class GameState:
                     target_slot.bond = source_slot.bond
                     target_slot.name = source_slot.name
                     target_slot.exhausted = source_slot.exhausted
+                    target_slot.shaken = source_slot.shaken
+                    target_slot.depleted = source_slot.depleted
+                    target_slot.guarded = source_slot.guarded
+                    target_slot.inspired = source_slot.inspired
+                    target_slot.empowered = source_slot.empowered
+                    target_slot.used_attack = source_slot.used_attack
                     target_slot.temporary_strength = source_slot.temporary_strength
                     target_slot.negative_strength_markers[:] = source_slot.negative_strength_markers
                     target_slot.suppression_mask = source_slot.suppression_mask
