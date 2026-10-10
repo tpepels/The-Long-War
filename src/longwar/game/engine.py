@@ -117,6 +117,8 @@ class GameEngine:
         if use_printed_numeric_values:
             from ..physical_values import apply_printed_numeric_values
             card_data = apply_printed_numeric_values(card_data)
+            from ..physical_effects import apply_reviewed_physical_effects
+            card_data = apply_reviewed_physical_effects(card_data)
             validate_card_data(card_data)
         if rules is None:
             rules = GameRules.standard()
