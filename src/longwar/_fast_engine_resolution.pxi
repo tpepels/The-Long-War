@@ -319,16 +319,7 @@ cdef void _fe_compare_battle_fronts(FastEngine self, FastState state) noexcept:
     state.last_lost_mask[0] = state.resolution_lost_mask[0] & FRONT_MASK
     state.last_lost_mask[1] = state.resolution_lost_mask[1] & FRONT_MASK
 
-    # Losing a Front exhausts every Force currently in that Front. Exhaustion
-    # is persistent and boolean, so repeated losses cannot stack extra tokens.
-    for p in range(PLAYER_COUNT):
-        for front in range(FRONT_COUNT):
-            if not (state.resolution_lost_mask[p] & (1 << front)):
-                continue
-            for rank in range(RANK_COUNT):
-                slot = slot_index(p, front, rank)
-                if state.force[slot] >= 0:
-                    state.exhausted[slot] = 1
+    # New Exhaustion is selected after the Command Collapse check.
 
     losses0 = popcount16(state.resolution_lost_mask[0] & FRONT_MASK)
     losses1 = popcount16(state.resolution_lost_mask[1] & FRONT_MASK)
@@ -522,6 +513,8 @@ cdef void _fe_clear_resolution_state(FastEngine self, FastState state) noexcept:
     state.resolution_drive_mask[1] = 0
     state.resolution_protected_mask[0] = 0
     state.resolution_protected_mask[1] = 0
+    state.resolution_exhaust_choice[0] = 255
+    state.resolution_exhaust_choice[1] = 255
     state.resolution_front_loss_command_penalty[0] = 0
     state.resolution_front_loss_command_penalty[1] = 0
     state.resolution_suppressed_mask = 0
@@ -579,13 +572,13 @@ cdef void _fe_drop_nonpersistent_constraints(
         i -= 1
 
 
-cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
-    cdef int p, base_recovery, actual, target, starter, front
+cdef bint _fe_apply_battle_attrition(FastEngine self, FastState state) except *:
+    """Apply Front penalties and Collapse once, before Exhaustion choices."""
+    cdef int p
 
     _fe_resolve_battle_end_operation_constraints(self, state)
     _fe_drop_nonpersistent_constraints(state)
 
-    base_recovery = _fe_command_recovery_for_battle(self, state.battle)
     for p in range(PLAYER_COUNT):
         # Lost Fronts reduce current Command after Battle-end effects and
         # before Collapse. The per-Front amount is a rule parameter; card
@@ -630,7 +623,13 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
         state.pending_resume = RESUME_NONE
         state.pending_resume_player = -1
         _fe_clear_resolution_state(self, state)
-        return
+        return True
+    return False
+
+
+cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
+    cdef int p, base_recovery, actual, target, starter, front
+    base_recovery = _fe_command_recovery_for_battle(self, state.battle)
 
     # Only a continuing war receives recovery.
     # Front losses have already reduced current Command; they do not reduce
@@ -687,6 +686,53 @@ cdef void _fe_finish_battle_recovery(FastEngine self, FastState state) except *:
     state.pending_resume_player = -1
     _fe_begin_next_battle_fast(self, state, starter)
 
+cdef void _fe_queue_lost_front_exhaust_choice(
+    FastEngine self, FastState state,
+) except *:
+    """The losing player chooses one surviving Force per lost Front."""
+    cdef int cursor = state.resolution_cursor
+    cdef int player, front, rank, slot
+    cdef uint32_t candidates
+    while cursor < PLAYER_COUNT * FRONT_COUNT:
+        player = cursor // FRONT_COUNT
+        front = cursor % FRONT_COUNT
+        cursor += 1
+        state.resolution_cursor = cursor
+        if not (state.resolution_lost_mask[player] & (1 << front)):
+            continue
+        candidates = 0
+        for rank in range(RANK_COUNT):
+            slot = slot_index(player, front, rank)
+            if state.force[slot] >= 0:
+                candidates |= <uint32_t>1 << slot
+        if candidates:
+            _fe_enqueue_effect(
+                self, state, EFFECT_LOST_FRONT_EXHAUST,
+                player, -1, -1, front, candidates, 0, 0,
+            )
+            return
+    state.resolution_stage = RESOLUTION_RECOVERY
+    state.resolution_cursor = 0
+
+
+cdef void _fe_apply_chosen_lost_front_exhaustions(
+    FastEngine self, FastState state,
+) noexcept:
+    """After temporary cleanup, apply chosen Exhaustions once."""
+    cdef int player, front, rank, slot
+    for player in range(PLAYER_COUNT):
+        for front in range(FRONT_COUNT):
+            rank = (state.resolution_exhaust_choice[player] >> (2 * front)) & 3
+            if rank == 3 or not (state.resolution_lost_mask[player] & (1 << front)):
+                continue
+            slot = slot_index(player, front, rank)
+            if state.force[slot] >= 0:
+                if state.conditions[slot] & COND_GUARDED:
+                    state.conditions[slot] &= <uint8_t>~COND_GUARDED
+                else:
+                    state.exhausted[slot] = 1
+
+
 cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except *:
     # Any choice queued here must return control to this state machine.
     state.pending_resume = RESUME_BATTLE_RESOLUTION
@@ -719,8 +765,24 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
             # Stratagems and temporary Strength still exist. Only after all
             # such effects are complete do Battle-only effects leave play.
             _fe_discard_battle_stratagems(self, state)
-            _fe_clear_battle_temporary_strength(self, state)
-            state.resolution_stage = RESOLUTION_RECOVERY
+            state.resolution_stage = RESOLUTION_ATTRITION
+            continue
+
+        if state.resolution_stage == RESOLUTION_ATTRITION:
+            if _fe_apply_battle_attrition(self, state):
+                return
+            state.resolution_stage = RESOLUTION_EXHAUST_CHOICE
+            state.resolution_cursor = 0
+            continue
+
+        if state.resolution_stage == RESOLUTION_EXHAUST_CHOICE:
+            _fe_queue_lost_front_exhaust_choice(self, state)
+            if state.pending_len > 0:
+                return
+            if state.resolution_stage == RESOLUTION_RECOVERY:
+                # Preserve Guarded until its selected loss affliction resolves.
+                _fe_clear_battle_temporary_strength(self, state)
+                _fe_apply_chosen_lost_front_exhaustions(self, state)
             continue
 
         if state.resolution_stage == RESOLUTION_RECOVERY:
@@ -764,6 +826,8 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
     state.resolution_drive_mask[1] = 0
     state.resolution_protected_mask[0] = 0
     state.resolution_protected_mask[1] = 0
+    state.resolution_exhaust_choice[0] = 255
+    state.resolution_exhaust_choice[1] = 255
     state.resolution_front_loss_command_penalty[0] = 0
     state.resolution_front_loss_command_penalty[1] = 0
     for slot in range(SLOT_COUNT):
