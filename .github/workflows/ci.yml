@@ -127,6 +127,9 @@ jobs:
         run: python tools/check_physical_combo_decks.py
       - name: Smoke-check inline card icons (advisory)
         run: node tools/check_physical_rule_icons.cjs
+      - name: Check printed card body and strip overflow (advisory)
+        continue-on-error: true
+        run: python tools/check_card_layout.py --surface print --require-browser
       - name: Verify Hero price and rule geometry in Chromium
         run: python tools/check_hero_seal_layout.py
       - name: Verify compact exposed-edge cue geometry in Chromium
