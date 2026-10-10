@@ -80,6 +80,14 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
                 if py_slot.name is not None:
                     fast.name[slot] = self.id_to_code[py_slot.name]
                 fast.exhausted[slot] = bool(py_slot.exhausted)
+                fast.conditions[slot] = (
+                    (COND_SHAKEN if py_slot.shaken else 0)
+                    | (COND_DEPLETED if py_slot.depleted else 0)
+                    | (COND_GUARDED if py_slot.guarded else 0)
+                    | (COND_INSPIRED if py_slot.inspired else 0)
+                    | (COND_EMPOWERED if py_slot.empowered else 0)
+                )
+                fast.used_attack[slot] = bool(py_slot.used_attack)
                 fast.temporary[slot] = py_slot.temporary_strength
                 fast.negative_one_markers[slot] = sum(
                     1 for marker in py_slot.negative_strength_markers if int(marker) == -1
@@ -536,6 +544,12 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
                         "exhausted": bool(
                             state.exhausted[slot_index(p, f, r)]
                         ),
+                        "shaken": bool(state.conditions[slot_index(p, f, r)] & COND_SHAKEN),
+                        "depleted": bool(state.conditions[slot_index(p, f, r)] & COND_DEPLETED),
+                        "guarded": bool(state.conditions[slot_index(p, f, r)] & COND_GUARDED),
+                        "inspired": bool(state.conditions[slot_index(p, f, r)] & COND_INSPIRED),
+                        "empowered": bool(state.conditions[slot_index(p, f, r)] & COND_EMPOWERED),
+                        "used_attack": bool(state.used_attack[slot_index(p, f, r)]),
                         "temporary_strength": (
                             state.temporary[slot_index(p, f, r)]
                         ),
