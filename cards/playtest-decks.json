@@ -518,10 +518,10 @@
       "playstyle": "Shake, Deplete and displace opposing Forces, then exploit weakened defenders with Raider Incursions and attachment disruption while retaining strong Frontline bodies.",
       "hypothesis": "Can repeated Raiders and Shaken/Depleted enablers generate more sustainable Command and effective Strength than direct King/Captain stacking?",
       "combo_notes": [
-        "Iron Boars x3 and Red Duelists x3 give tangible initial penalties; The Stores Were Taken x2 and Trap Closed x2 follow up with layer loss or Command taxation.",
+        "Iron Boars x3 and Red Duelists x3 are alternative Frontline-only ways to Shake an opposing Frontline; they cannot share one Frontline. A prior Shaken marker is not a second bonus for Boars. With a Raider/Skirmisher here, The Trap Closed x2 can now respond to a negative marker from a legal Tactic such as The Line Was Baited, provided the trap was already set.",
         "The Baggage Was Abandoned Exhausts and Shakes a Rear Force; The Crows Came Down can Exhaust an enemy on PLAY and later Shake an Exhausted Force. Salt-Road Reavers convert Shaken to Depleted, while Shared the Spoils With permits movement.",
         "Black Company x2 and River Raiders x2 punish opponent attachment investment. Two Seized the Standard Of Bonds can remove a Bond even without waiting for an enemy condition.",
-        "The Line Was Baited now gives Depleted only on a legal forced retreat by your Skirmisher. Raider bodies and Rovan remain useful when no affliction combo appears."
+        "The Line Was Baited gives Depleted only after a legal rearward Move by a Skirmisher-enabled Tactic. If it cannot move the target, neither Depleted nor The Trap Closed triggers. Raider bodies and Rovan provide independent pressure."
       ],
       "combo_packages": [
         {
@@ -537,7 +537,7 @@
           ]
         },
         {
-          "label": "Breakthrough-to-attachment raid",
+          "label": "Alternative frontline pressure into attachment raid",
           "enablers": [
             "the-iron-boars",
             "the-red-duelists",
@@ -894,7 +894,7 @@
         "Seven Black Ships and River Raiders can remove attached layers after winning the Raider Strength check, even against an occupied enemy Frontline; Seized the Standard Of and The Muster Was False provide alternative attachment pressure.",
         "Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward makes a Bonded formation's Opening Maneuver extend by one legal Move, not a second order.",
         "Lantern Scouts and Lysa use enemy information to choose Guarded protection; The Scouts Had Warned Them now lets a Scout/Seer redirect an Opening Maneuver after seeing both commanders' orders.",
-        "Shaken Raider/Skirmisher pressure makes Shared the Spoils With and The Trap Closed useful; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills."
+        "Shaken pressure from Raiders and Skirmishers makes Shared the Spoils With's one-step Move relevant. The Trap Closed can remove an attachment after their marker effect, or after a Tactic's negative marker if you control a Raider/Skirmisher in that Front; it must be set beforehand. The Line Had Begun to Move taxes a crowded Front, while Bought Time For refills."
       ],
       "combo_packages": [
         {
