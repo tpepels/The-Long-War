@@ -58,7 +58,7 @@ DEF MAX_CARDS = 192
 # 254-card deck rule.
 DEF MAX_DECK = MAX_CARDS * 4
 DEF MAX_ACTIONS = 1024
-DEF INFORMATION_KEY_VERSION = 18
+DEF INFORMATION_KEY_VERSION = 19
 DEF MAX_TAX_MARKERS = 16
 DEF MAX_SLOT_DISCOUNTS = 16
 
@@ -72,7 +72,7 @@ DEF INFO_PENDING_RESUME_BYTES = 2
 DEF INFO_MANEUVER_COUNT_BYTES = PLAYER_COUNT * U16_BYTES
 DEF INFO_CONSTRAINT_BYTES = 12
 DEF INFO_RESOLUTION_FIXED_BYTES = 17
-DEF INFO_BOARD_SLOT_BASE_BYTES = 5
+DEF INFO_BOARD_SLOT_BASE_BYTES = 7
 DEF INFO_NARRATIVE_SEARCH_BYTES = 5
 DEF INFO_STRATAGEM_SEARCH_BYTES = 7
 
@@ -83,7 +83,7 @@ DEF NONE = -1
 
 # Packed action wire format. Keep shifts/masks here so layout changes are atomic.
 DEF ACTION_KIND_SHIFT = 0
-DEF ACTION_KIND_BITS = 4
+DEF ACTION_KIND_BITS = 5
 DEF ACTION_CARD_SHIFT = ACTION_KIND_SHIFT + ACTION_KIND_BITS
 DEF ACTION_CARD_BITS = 8
 DEF ACTION_POSITION_SHIFT = ACTION_CARD_SHIFT + ACTION_CARD_BITS
@@ -112,6 +112,20 @@ DEF ALT_HASH_MIX_SHIFT = 29
 cdef int PHASE_BATTLE = 0
 cdef int PHASE_COMPLETE = 2
 
+# Per-Force conditions; non-stacking bits travel with the formation.
+cdef uint8_t COND_SHAKEN = 1
+cdef uint8_t COND_DEPLETED = 2
+cdef uint8_t COND_GUARDED = 4
+cdef uint8_t COND_INSPIRED = 8
+cdef uint8_t COND_EMPOWERED = 16
+
+# Attack classification selected in the action payload.
+cdef int ATTACK_ARCHER = 1
+cdef int ATTACK_SKIRMISHER = 2
+cdef int ATTACK_RAIDER = 3
+cdef int ATTACK_RIDER = 4
+
+
 cdef int TYPE_PASS = 0
 cdef int TYPE_TACTIC = 1
 cdef int TYPE_FORCE = 2
@@ -127,7 +141,8 @@ cdef int TYPE_EFFECT = 12
 cdef int TYPE_CYCLE = 13
 cdef int TYPE_END_TURN = 14
 cdef int TYPE_ABILITY = 15
-cdef int TYPE_BEGIN_TURN = 9  # Vacant four-bit action kind
+cdef int TYPE_BEGIN_TURN = 9
+cdef int TYPE_ATTACK = 16  # Five-bit packed Action kind
 
 cdef int EFFECT_NONE = 0
 cdef int EFFECT_FREE_MANEUVER = 1
