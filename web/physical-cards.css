@@ -105,10 +105,10 @@ CARD ICON SIZES — TUNING PANEL
    */
   --hero-cost-seal-size: 14mm;
   --hero-cost-inset: 0.55mm;
-  --hero-cost-force-top: 0mm;
-  --hero-cost-name-bottom: 0mm;
-  --hero-cost-force-number-size: 4.5mm;
-  --hero-cost-name-number-size: 4.5mm;
+  --hero-cost-force-top: 0.35mm;
+  --hero-cost-name-bottom: 0.35mm;
+  --hero-cost-force-number-size: 5mm;
+  --hero-cost-name-number-size: 5mm;
   --hero-cost-force-number-x: 0mm;
   --hero-cost-force-number-y: 0mm;
   --hero-cost-name-number-x: 0mm;
