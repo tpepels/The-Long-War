@@ -718,19 +718,29 @@ cdef void _fe_queue_lost_front_exhaust_choice(
 cdef void _fe_apply_chosen_lost_front_exhaustions(
     FastEngine self, FastState state,
 ) noexcept:
-    """After temporary cleanup, apply chosen Exhaustions once."""
+    """Select Guarded protection before cleanup, then place new Exhaustion."""
     cdef int player, front, rank, slot
+    cdef uint32_t guarded = 0
     for player in range(PLAYER_COUNT):
         for front in range(FRONT_COUNT):
             rank = (state.resolution_exhaust_choice[player] >> (2 * front)) & 3
             if rank == 3 or not (state.resolution_lost_mask[player] & (1 << front)):
                 continue
             slot = slot_index(player, front, rank)
-            if state.force[slot] >= 0:
-                if state.conditions[slot] & COND_GUARDED:
-                    state.conditions[slot] &= <uint8_t>~COND_GUARDED
-                else:
-                    state.exhausted[slot] = 1
+            if state.force[slot] >= 0 and state.conditions[slot] & COND_GUARDED:
+                guarded |= <uint32_t>1 << slot
+
+    # Old Attack Exhaustion and all temporary boons/afflictions expire first.
+    _fe_clear_battle_temporary_strength(self, state)
+
+    for player in range(PLAYER_COUNT):
+        for front in range(FRONT_COUNT):
+            rank = (state.resolution_exhaust_choice[player] >> (2 * front)) & 3
+            if rank == 3 or not (state.resolution_lost_mask[player] & (1 << front)):
+                continue
+            slot = slot_index(player, front, rank)
+            if state.force[slot] >= 0 and not (guarded & (<uint32_t>1 << slot)):
+                state.exhausted[slot] = 1
 
 
 cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except *:
@@ -780,8 +790,6 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
             if state.pending_len > 0:
                 return
             if state.resolution_stage == RESOLUTION_RECOVERY:
-                # Preserve Guarded until its selected loss affliction resolves.
-                _fe_clear_battle_temporary_strength(self, state)
                 _fe_apply_chosen_lost_front_exhaustions(self, state)
             continue
 
