@@ -454,6 +454,12 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             bond_code = data[i + 1] - 1
             name_code = data[i + 2] - 1
             exhausted = bool(data[i + 3])
+            shaken = bool(data[i + 4] & 1)
+            depleted = bool(data[i + 4] & 2)
+            guarded = bool(data[i + 4] & 4)
+            inspired = bool(data[i + 4] & 8)
+            empowered = bool(data[i + 4] & 16)
+            used_attack = bool(data[i + 5])
             temporary = data[i + 4] | (data[i + 5] << 8)
             if temporary >= 32768:
                 temporary -= 65536
@@ -468,6 +474,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
                 None if name_code < 0 else card_ids[name_code],
                 temporary,
                 exhausted,
+                shaken, depleted, guarded, inspired, empowered, used_attack,
             ])
 
     narratives = [[] for _ in range(PLAYER_COUNT)]
