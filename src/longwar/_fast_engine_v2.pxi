@@ -1158,11 +1158,19 @@ cdef uint32_t _v2_target_mask(
 
         elif target == V2_TARGET_OPPOSING_EXHAUSTED_SAME_FRONT:
             if (
-                origin >= 0
-                and owner_from_slot(slot) == opponent
-                and front == front_from_slot(origin)
+                owner_from_slot(slot) == opponent
                 and state.force[slot] >= 0
                 and state.exhausted[slot]
+                and (
+                    (origin >= 0 and front == front_from_slot(origin))
+                    or (
+                        origin < 0
+                        and effect.class_mask2 != 0
+                        and _v2_front_contains_class_mask(
+                            self, state, player, front, effect.class_mask2
+                        )
+                    )
+                )
             ):
                 mask |= <uint32_t>(1 << slot)
 
