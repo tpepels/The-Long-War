@@ -123,7 +123,7 @@ jobs:
       - name: Compile current native engine
         run: make native-build WORKERS=2
       - name: Verify chosen Exhaustion, Guarded, Collapse and class inheritance
-        run: python -m pytest -q --tb=short tests/test_printed_numerics.py tests/test_paper_battle_exhaustion.py tests/test_basic_attack_conditions.py tests/test_pre_draw_pass.py
+        run: python -m pytest -q --tb=short tests/test_printed_condition_effects.py tests/test_printed_numerics.py tests/test_paper_battle_exhaustion.py tests/test_basic_attack_conditions.py tests/test_pre_draw_pass.py
 
   engine-basic-attacks:
     name: Native basic Attacks and conditions (required)
