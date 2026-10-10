@@ -20,6 +20,14 @@ cdef inline bint _fe_card_move_destination_legal(
     cdef int owner = owner_from_slot(source)
     if force < 0:
         return False
+    if controller != owner and state.bond[source] >= 0:
+        # Opposing card effects may not Move a formation protected by this
+        # Bond; the same owner can still voluntarily Maneuver or Move it.
+        if _v2_component_has_live_op(
+            self, state, source, state.bond[source], V2_MODE_DEFAULT,
+            V2_OP_RESIST_OPPOSING_MOVE, SUPPRESS_BOND_TEXT,
+        ):
+            return False
     if not front_is_active(state.battle, front_from_slot(source)):
         return False
     if owner_from_slot(dest) != owner:
@@ -878,7 +886,9 @@ cdef int _fe_legal_pending_effect_actions(
                             | (V2_OPTION_BOND << V2_EFFECT_OPTION_SHIFT),
                         ),
                     )
-                if state.name[dest] >= 0:
+                if state.name[dest] >= 0 and not (
+                    v2_effect.flags & V2_FLAG_COMPONENT_BOND
+                ):
                     n = _append_action(
                         actions, n,
                         encode_action(
