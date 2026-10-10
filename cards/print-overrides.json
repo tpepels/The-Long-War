@@ -226,10 +226,10 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution in an outer Front, a friendly flanked Frontline Force here ignores its flank penalty and gets +2 Strength this Battle."
+          "text": "At resolution, a flanked friendly Frontline Force here ignores its flank penalty. In an outer Front, it also gets +2 Strength this Battle."
         }
       ],
-      "design_note": "Distinct outer-Front anti-flank defence, not another late Move and +2."
+      "design_note": "Hidden flank protection can be used in any active Front when an allied Frontline Force is actually flanked; retains the additional +2 Strength only in outer Fronts. Assigned Front and single Stratagem timing unchanged."
     },
     {
       "id": "the-trap-closed",
@@ -439,10 +439,10 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Choose one friendly Force. Remove one temporary negative marker from it, if present, then give it Inspired."
+          "text": "Remove one temporary negative marker from a friendly Force, if any. If it was Exhaustion, you may Move its formation one adjacent legal position; otherwise give it Inspired."
         }
       ],
-      "design_note": "1C ongoing defense Narrative introduces underused Inspired and can work even without a removable marker."
+      "design_note": "Recover from a temporary marker, converting lost-Front Exhaustion into an optional legal Move instead of Inspired. A printed Move does not trigger Maneuver effects; the Narrative ACTION still costs an Action and is once per Battle."
     },
     {
       "id": "guarded",
