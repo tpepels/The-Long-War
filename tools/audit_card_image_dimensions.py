@@ -20,7 +20,7 @@ PRINT_WINDOW_ASPECT = 2.4
 def dimensions(path: Path) -> tuple[int, int]:
     with path.open("rb") as stream:
         header = stream.read(24)
-    if len(header) != 24 or header[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or header[12:16] != b"IHDR":
+    if len(header) != 24 or header[:8] != bytes.fromhex("89504e470d0a1a0a") or header[12:16] != b"IHDR":
         raise ValueError(f"Not a valid PNG header: {path}")
     return struct.unpack(">II", header[16:24])
 
