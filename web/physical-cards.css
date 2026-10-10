@@ -104,17 +104,17 @@ CARD ICON SIZES — TUNING PANEL
    * Positive X shifts right; positive Y shifts down. Appearance only.
    */
   --hero-cost-seal-size: 14mm;
-  --hero-cost-inset: 0.55mm;
+  --hero-cost-inset: 0.9mm;
   --hero-cost-force-top: 0.35mm;
   --hero-cost-name-bottom: 0.35mm;
-  --hero-cost-force-number-size: 5mm;
-  --hero-cost-name-number-size: 5mm;
+  --hero-cost-force-number-size: 5.5mm;
+  --hero-cost-name-number-size: 5.5mm;
   --hero-cost-force-number-x: 0mm;
   --hero-cost-force-number-y: 0mm;
   --hero-cost-name-number-x: 0mm;
   --hero-cost-name-number-y: 0mm;
   --hero-cost-divider-width: 5.2mm;
-  --hero-cost-divider-thickness: 0.16mm;
+  --hero-cost-divider-thickness: 0.18mm;
   --hero-cost-divider-y: 50%;
   --hero-cost-divider-opacity: 0.8;
 
