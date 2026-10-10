@@ -55,6 +55,20 @@ def main() -> None:
                 assert "1/BATTLE" in block["label"], card_id
     # Every live Force/Bond or Hero-Force ability gets a short cue.
     # It tells players when to check the body text without summarising payoff.
+    # A full print replacement owns its exposed strip. An overlapping
+    # exposed-only patch fails later in the Pages print assembler.
+    replacement_ids = {change["id"] for change in overrides["replacements"]}
+    exposed_only_ids = [change["id"] for change in overrides["exposed_only"]]
+    assert len(exposed_only_ids) == len(set(exposed_only_ids))
+    assert replacement_ids.isdisjoint(exposed_only_ids), (
+        "Full replacements cannot also carry exposed-only patches"
+    )
+    assert "the-dust-riders" in replacement_ids
+    assert "the-dust-riders" not in exposed_only_ids
+    assert all(e.get("exposed") for e in
+               next(c for c in overrides["replacements"]
+                    if c["id"] == "the-dust-riders")["effects"])
+
     edge_cues = overrides["edge_cues"]
     assert len(edge_cues) == printed["print_edge_cue_count"] == 32
     assert len({(x["id"], x["index"]) for x in edge_cues}) == len(edge_cues)
