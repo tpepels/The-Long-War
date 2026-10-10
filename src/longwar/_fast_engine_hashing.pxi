@@ -147,6 +147,8 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, state.resolution_drive_mask[1])
     _info_hash_feed(&h, state.resolution_protected_mask[0])
     _info_hash_feed(&h, state.resolution_protected_mask[1])
+    _info_hash_feed(&h, state.resolution_exhaust_choice[0])
+    _info_hash_feed(&h, state.resolution_exhaust_choice[1])
     _info_hash_feed_u16(
         &h, <uint16_t>state.resolution_front_loss_command_penalty[0]
     )
@@ -181,6 +183,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
+    # v20 tracks loss-Exhaustion choices after Command Collapse and before cleanup.
     # v19 adds public Force conditions/used Attack and a five-bit Action kind.
     # v18 separates the pre-draw voluntary Pass decision from the Action segment.
     # v17 adds explicit Battle-long -3 Strength marker state.
@@ -282,6 +285,8 @@ cdef int _fe__information_state_encode(
     _info_emit(buf, &n, h, state.resolution_drive_mask[1])
     _info_emit(buf, &n, h, state.resolution_protected_mask[0])
     _info_emit(buf, &n, h, state.resolution_protected_mask[1])
+    _info_emit(buf, &n, h, state.resolution_exhaust_choice[0])
+    _info_emit(buf, &n, h, state.resolution_exhaust_choice[1])
     _info_emit_u16(
         buf, &n, h,
         <uint16_t>state.resolution_front_loss_command_penalty[0]
@@ -562,6 +567,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key = "effect:transfer-component"
         elif choice == EFFECT_SUCCESSION:
             key = "effect:succession"
+        elif choice == EFFECT_LOST_FRONT_EXHAUST:
+            key = "effect:lost-front-exhaust"
         else:
             key = f"effect:unknown-{choice}"
         if card < 0 and pos < 0 and dest < 0:
