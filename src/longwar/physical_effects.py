@@ -27,6 +27,12 @@ THIRD_COMPILED_EFFECTS = json.loads(r'''{"kept-pace-with":[{"timing":"play","sco
 PRINTED_EFFECTS.update(THIRD_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(THIRD_COMPILED_EFFECTS)
 
+# Fourth pass: destination-validated forced/optional directional movement.
+FOURTH_PRINTED_EFFECTS = json.loads(r'''{"the-damar":[{"timing":"play","text":"You may move another friendly formation in this Front one row toward its Frontline into an empty legal position."}],"the-ash-bowmen":[{"timing":"play","text":"You may Move an opposing Frontline formation in this Front one row toward Rear, if legal and empty.","scope":"opponent","memory":[]}],"marched-with":[{"timing":"play","text":"Choose a friendly formation in this Front, if any. It gets +1 Strength this Battle."}]}''')
+FOURTH_COMPILED_EFFECTS = json.loads(r'''{"the-damar":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"move","target":"other_friendly_same_front","direction":"front","optional":true}],"the-ash-bowmen":[{"timing":"play","scope":"opponent","limit":null,"memory":[],"op":"move","target":"opposing_frontline_same_front","direction":"rear","optional":true}],"marched-with":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"add_strength_marker","target":"friendly_same_front","amount":1,"duration":"battle"}]}''')
+PRINTED_EFFECTS.update(FOURTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(FOURTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

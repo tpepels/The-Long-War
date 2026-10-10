@@ -135,6 +135,23 @@ cdef void _v2_apply_resolved_effect(
                     _fe_resolve_force_pair_narratives(
                         self, state, move_owner
                     )
+        elif effect.flags & V2_FLAG_DIRECTION_FRONT and target >= 0:
+            move_rank = rank_from_slot(target)
+            if move_rank > RANK_FRONT:
+                move_owner = owner_from_slot(target)
+                move_dest = slot_index(
+                    move_owner, front_from_slot(target), move_rank - 1,
+                )
+                if _fe_card_move_destination_legal(
+                    self, state, player, target, move_dest
+                ):
+                    _fe_move_slot(self, state, target, move_dest)
+                    _fe_resolve_force_move_triggers(
+                        self, state, move_owner, target, move_dest
+                    )
+                    _fe_resolve_force_pair_narratives(
+                        self, state, move_owner
+                    )
         elif effect.target == V2_TARGET_SELF and source >= 0 and dest >= 0:
             _fe_move_slot(self, state, source, dest)
             _fe_resolve_force_move_triggers(self, state, player, source, dest)

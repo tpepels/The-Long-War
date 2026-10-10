@@ -1040,6 +1040,16 @@ cdef uint32_t _v2_target_mask(
             ):
                 mask |= <uint32_t>(1 << slot)
 
+        elif target == V2_TARGET_OPPOSING_FRONTLINE_SAME_FRONT:
+            if (
+                origin >= 0
+                and owner_from_slot(slot) == opponent
+                and front == front_from_slot(origin)
+                and rank == RANK_FRONT
+                and state.force[slot] >= 0
+            ):
+                mask |= <uint32_t>(1 << slot)
+
         elif target == V2_TARGET_OPPOSING_SAME_FRONT_WITHOUT_NEGATIVE_STRENGTH:
             if (
                 origin >= 0
@@ -1221,6 +1231,23 @@ cdef uint32_t _v2_target_mask(
                 owner_from_slot(slot),
                 front_from_slot(slot),
                 rank + 1,
+            )
+            if not _fe_card_move_destination_legal(
+                self, state, player, slot, rear
+            ):
+                mask &= <uint32_t>(~(<uint32_t>1 << slot))
+    if effect.op == V2_OP_MOVE and effect.flags & V2_FLAG_DIRECTION_FRONT:
+        for slot in range(SLOT_COUNT):
+            if not (mask & (<uint32_t>1 << slot)):
+                continue
+            rank = rank_from_slot(slot)
+            if rank <= RANK_FRONT:
+                mask &= <uint32_t>(~(<uint32_t>1 << slot))
+                continue
+            rear = slot_index(
+                owner_from_slot(slot),
+                front_from_slot(slot),
+                rank - 1,
             )
             if not _fe_card_move_destination_legal(
                 self, state, player, slot, rear
@@ -1576,6 +1603,10 @@ cdef void _v2_enqueue_effect(
         _v2_pending_aux(mode, effect_index),
         0,
         0,
-        source_flags,
+        source_flags | (
+            EFFECT_OPTIONAL
+            if self.v2_effects[card][mode][effect_index].flags & V2_FLAG_OPTIONAL
+            else 0
+        ),
         card,
     )

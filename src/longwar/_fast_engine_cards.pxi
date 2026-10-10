@@ -226,6 +226,7 @@ cdef void _v2_compile_effect(
         "friendly_pair_same_front_with_class": V2_TARGET_FRIENDLY_PAIR_SAME_FRONT_WITH_CLASS,
         "friendly_front_of_source_class": V2_TARGET_FRIENDLY_FRONT_OF_SOURCE_CLASS,
         "opposing_exhausted_same_front": V2_TARGET_OPPOSING_EXHAUSTED_SAME_FRONT,
+        "opposing_frontline_same_front": V2_TARGET_OPPOSING_FRONTLINE_SAME_FRONT,
         "opposing_support_open_front": V2_TARGET_OPPOSING_SUPPORT_OPEN_FRONT,
         "friendly_any": V2_TARGET_FRIENDLY_ANY,
     }
@@ -358,6 +359,8 @@ cdef void _v2_compile_effect(
         value = [effect.get("requires_other_friendly_class")]
     out.class_mask2 = _v2_class_mask(value)
 
+    if effect.get("optional"):
+        out.flags |= V2_FLAG_OPTIONAL
     if effect.get("all"):
         out.flags |= V2_FLAG_ALL
     if effect.get("same_front"):
@@ -380,6 +383,8 @@ cdef void _v2_compile_effect(
         out.flags |= V2_FLAG_REQUIRES_OPPOSING_SUPPLY
     if effect.get("direction") == "rear":
         out.flags |= V2_FLAG_DIRECTION_REAR
+    if effect.get("direction") == "front":
+        out.flags |= V2_FLAG_DIRECTION_FRONT
     if effect.get("component") == "bond":
         out.flags |= V2_FLAG_COMPONENT_BOND
     for value in effect.get("statuses", []):
