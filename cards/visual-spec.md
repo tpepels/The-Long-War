@@ -62,25 +62,28 @@ inline to save vertical space. Vanilla cards leave their rules area empty.
 
 ## Exposed information and symbols
 
-The exposed strip uses one fixed three-zone layout on every card: **left,
-middle, right**. Left holds the family/Strength information, middle holds only
-functional classification and row icons, and right holds only the exposed reminder
-or status text. The three zones keep the same boundaries on every card, including
-Heroes and cards with an empty middle zone.
+The exposed strip retains **left, middle, right** order on every card. Left
+holds family/Strength information; middle holds functional classifications and
+legal-row icons; right holds a short visible reminder or status. For formations,
+left and middle take the width their actual contents require, and the right
+uses the remaining width. The zones do not have fixed boundaries across cards.
+The strip itself remains **10.5 mm** high, so physical stacking is unchanged.
 
 All top-row text uses one font size and all primary top-row icons use one icon size.
-Long reminders wrap within the right zone at that same size; there is no compact or
-very-compact typography fallback. The strip keeps fixed outer padding and clips
-nothing outside its own zone. Heroes show separate Force and Name values in the
-left zone.
+Long reminders wrap in the available right space at that same size; there is no
+compact or very-compact typography fallback. The zones must not cut off their
+contents at arbitrary column boundaries. Text remains confined to the fixed
+physical strip height. Heroes show separate Force and Name values in the left
+zone.
 
 Human uses a profile medallion; remaining kinds retain circular outlines,
 while roles and ranks use unframed silhouettes. The classification line repeats the symbols alongside their words.
 Action uses a circled cross. These are functional SVGs, not decorative frames.
 
 The exposed strip uses a single **2.45 mm** text scale and a single **3.8 mm**
-primary icon scale. The fixed zones are **14 mm / 19 mm / remaining width** after
-3 mm outer padding. Long reminders wrap in the right zone without shrinking.
+primary icon scale. Formation zone widths are **content / content / remaining**.
+Event family labels occupy their intrinsic width while the side columns share
+remaining room. Long reminders wrap in the right zone without shrinking.
 Timing words and once-per-Battle sockets remain visible; hard row restrictions are
 represented by same-size row icons in the middle zone. Full rules stay in the body.
 The reference's sample wording does not replace the current card's wording or
@@ -100,7 +103,10 @@ or additional scene is overlaid on the illustration.
 Canonical illustrations remain under `web/art/cards/`; retained originals remain
 in `cards/art-sources/`. Default focus is centered. Existing `art_focus_x` and
 `art_focus_y` escape hatches accept percentages from 0% to 100%; invalid values
-fall back to the center. No artwork is regenerated for this extension. The complete 128-card review found
+fall back to the center. Portraits and story images reported to lose faces in
+the wide landscape art-window use `art_focus_y: "0%"` to keep their heads in view.
+The illustration keeps the existing fixed-height `background-size: cover` window:
+shifting a focus never stretches the physical card or changes the image file. No artwork is regenerated for this extension. The complete 128-card review found
 16 portraits whose available faces were lost by the shorter window. Those cards
 use `art_focus_y: "0%"` through the existing escape hatch; the other 112 remain
 centered. These presentation fields do not alter any card wording or mechanics.
