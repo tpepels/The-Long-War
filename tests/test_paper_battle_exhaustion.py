@@ -92,11 +92,12 @@ def test_player_selects_one_force_from_lost_front(engine, deck):
     options = lost_front_choices(engine, state)
     assert len(options) == 2, options
     assert {choice.source.position for choice in options} == {a, b}
-    assert state.players[0].command == 20  # Penalty before recovery, capped afterward
+    assert state.players[0].command == 19  # Penalty and Collapse precede recovery
     assert state.battle == 1
 
     engine.apply(state, next(choice for choice in options if choice.source.position == b))
     assert state.battle == 2
+    assert state.players[0].command == 20  # Recovery after player choice
     assert not state.slot(0, a).exhausted
     assert state.slot(0, b).exhausted
 
