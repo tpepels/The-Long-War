@@ -120,6 +120,9 @@ jobs:
       - name: Verify paper ecology scenarios (advisory)
         continue-on-error: true
         run: python tools/check_paper_ecology_scenarios.py
+      - name: Audit fourteen physical false-friend interactions (advisory)
+        continue-on-error: true
+        run: python tools/check_print_false_friends.py
       - name: Audit all 131 printed cards and Stratagem interactions (advisory)
         continue-on-error: true
         run: python tools/check_full_card_coherence.py
