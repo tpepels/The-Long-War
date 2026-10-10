@@ -175,6 +175,22 @@ cdef void _v2_apply_resolved_effect(
         if target >= 0:
             _fe_afflict(state, target, 0)
             _fe_afflict(state, target, COND_SHAKEN)
+    elif effect.op == V2_OP_CLEANSE_GUARD:
+        if target >= 0 and state.force[target] >= 0:
+            state.exhausted[target] = 0
+            state.conditions[target] &= <uint8_t>~(COND_SHAKEN | COND_DEPLETED)
+            state.negative_one_markers[target] = 0
+            state.negative_two_markers[target] = 0
+            state.negative_three_markers[target] = 0
+            if state.temporary[target] < 0:
+                state.temporary[target] = 0
+            state.conditions[target] |= <uint8_t>COND_GUARDED
+    elif effect.op == V2_OP_SHAKE_OR_EXHAUST:
+        if target >= 0 and state.force[target] >= 0:
+            if state.exhausted[target]:
+                _fe_afflict(state, target, COND_SHAKEN)
+            else:
+                _fe_afflict(state, target, 0)
     elif effect.op == V2_OP_RETURN_COMPONENT:
         if target >= 0:
             owner = owner_from_slot(target)
@@ -202,6 +218,13 @@ cdef void _v2_apply_resolved_effect(
             component = state.bond[source]
             state.bond[source] = state.bond[dest]
             state.bond[dest] = component
+            # The King Had Given the Order rewards formations that remain
+            # Named after their Bonds are exchanged; no new completion event.
+            if effect.amount:
+                if _v2_slot_named(state, source):
+                    state.temporary[source] += effect.amount
+                if _v2_slot_named(state, dest):
+                    state.temporary[dest] += effect.amount
     elif effect.op == V2_OP_SUPPRESS_BOND_STRENGTH:
         if target >= 0:
             state.suppression_mask[target] |= SUPPRESS_BOND_STRENGTH
@@ -872,6 +895,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 V2_OP_EXHAUST,
                 V2_OP_AFFLICT_CONDITION,
                 V2_OP_EXHAUST_THEN_SHAKEN,
+                V2_OP_SHAKE_OR_EXHAUST,
                 V2_OP_RETURN_COMPONENT,
                 V2_OP_PREPARED_PAY_OR_RETURN,
                 V2_OP_TAX,
