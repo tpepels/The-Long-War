@@ -144,6 +144,11 @@ cdef void _v2_compile_effect(
         "status_strength_aura": V2_OP_STATUS_STRENGTH_AURA,
         "steal_command": V2_OP_STEAL_COMMAND,
         "exhaust": V2_OP_EXHAUST,
+        "grant_condition": V2_OP_GRANT_CONDITION,
+        "afflict_condition": V2_OP_AFFLICT_CONDITION,
+        "exhaust_then_shaken": V2_OP_EXHAUST_THEN_SHAKEN,
+        "archer_middle_open_front": V2_OP_ARCHER_MIDDLE_OPEN_FRONT,
+        "reliable_guard_screen": V2_OP_RELIABLE_GUARD_SCREEN,
         "flank_guard": V2_OP_FLANK_GUARD,
         "return_component": V2_OP_RETURN_COMPONENT,
         "swap_fronts": V2_OP_SWAP_FRONTS,
@@ -168,6 +173,7 @@ cdef void _v2_compile_effect(
     }
     cdef dict timing_map = {
         "play": V2_TIMING_PLAY,
+        "attack": V2_TIMING_ATTACK,
         "action": V2_TIMING_ACTION,
         "becomes_named": V2_TIMING_BECOMES_NAMED,
         "bonded": V2_TIMING_BONDED,
@@ -290,6 +296,20 @@ cdef void _v2_compile_effect(
     out.reveal = reveal_map.get(effect.get("reveal"), V2_REVEAL_NONE)
     out.condition = condition_map.get(effect.get("condition"), V2_CONDITION_NONE)
     out.amount = int(effect.get("amount", effect.get("cost", 0)))
+    if out.op in (V2_OP_GRANT_CONDITION, V2_OP_AFFLICT_CONDITION):
+        status = effect.get("status")
+        if status == "shaken":
+            out.amount = COND_SHAKEN
+        elif status == "depleted":
+            out.amount = COND_DEPLETED
+        elif status == "guarded":
+            out.amount = COND_GUARDED
+        elif status == "inspired":
+            out.amount = COND_INSPIRED
+        elif status == "empowered":
+            out.amount = COND_EMPOWERED
+        else:
+            raise ValueError(f"Unknown physical condition effect status: {status!r}")
     out.amount2 = int(effect.get("amount2", 0))
     out.count = int(effect.get("count", 0))
     out.steps = int(effect.get("steps", 0))
