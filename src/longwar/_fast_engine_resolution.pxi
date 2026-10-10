@@ -494,12 +494,12 @@ cdef bint _fe_resolve_one_battle_end_narrative(
                     state, player, CARD_BOND, True
                 )
 
-            # These cards all end at Battle end whether or not their
-            # condition succeeded.
-            if self.narrative_end_discard[card]:
-                _fe_discard_ongoing_narrative(self, 
-                    state, player, narrative_slot
-                )
+            # The paper rulebook ends every Narrative at Battle end.
+            # A result-triggered Narrative must not loop or survive as a
+            # persistent old-design card.
+            _fe_discard_ongoing_narrative(
+                self, state, player, narrative_slot
+            )
             return True
     return False
 
@@ -744,6 +744,7 @@ cdef void _fe_apply_chosen_lost_front_exhaustions(
 
 
 cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except *:
+    cdef int player, narrative_slot
     # Any choice queued here must return control to this state machine.
     state.pending_resume = RESUME_BATTLE_RESOLUTION
     state.pending_resume_player = -1
@@ -774,6 +775,13 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
             # Printed Battle-end effects resolve while the Battle's public
             # Stratagems and temporary Strength still exist. Only after all
             # such effects are complete do Battle-only effects leave play.
+            # PLAY, ACTION and CONTINUOUS Narratives all occupy a slot only
+            # until this Battle ends, including Narratives with no end trigger.
+            for player in range(PLAYER_COUNT):
+                for narrative_slot in range(self.ongoing_narrative_limit - 1, -1, -1):
+                    _fe_discard_ongoing_narrative(
+                        self, state, player, narrative_slot
+                    )
             _fe_discard_battle_stratagems(self, state)
             state.resolution_stage = RESOLUTION_ATTRITION
             continue
