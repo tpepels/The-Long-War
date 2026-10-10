@@ -216,7 +216,7 @@ def run() -> None:
 
     case("B2: Field Train saves a Bond/Name play Action",
          cost("the-field-train") == 3 and cost("the-house-of-reed") == 4
-         and has("the-field-train", "from hand", "adjacent active Front",
+         and has("the-field-train", "from your hand", "adjacent active Front",
                  "without another Action", "Guarded")
          and any(e["timing"] == "play"
                  for e in cards["the-field-train"]["effects"])
