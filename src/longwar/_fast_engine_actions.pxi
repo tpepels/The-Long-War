@@ -241,6 +241,13 @@ cdef inline bint _fe_action_affects_front(
         if extra & V2_ABILITY_NARRATIVE_FLAG:
             return True
         return pos >= 0 and front_from_slot(pos) == front
+    if kind == TYPE_ATTACK:
+        return (
+            pos >= 0 and dest >= 0
+            and bool(active & (1 << front_from_slot(pos)))
+            and bool(active & (1 << front_from_slot(dest)))
+        )
+
     if kind == TYPE_MANEUVER:
         return (
             (pos >= 0 and front_from_slot(pos) == front)
@@ -1499,6 +1506,8 @@ cdef int _fe_legal_actions_into(
             v2_effect = &self.v2_effects[card][mode][effect_index]
             if v2_effect.timing != V2_TIMING_ACTION:
                 continue
+            if state.conditions[slot] & COND_DEPLETED:
+                continue
             if state.suppression_mask[slot] & (
                 SUPPRESS_ACTION_TURN | SUPPRESS_ACTION_BATTLE
             ):
@@ -1541,6 +1550,8 @@ cdef int _fe_legal_actions_into(
             for effect_index in range(self.v2_effect_count[card][mode]):
                 v2_effect = &self.v2_effects[card][mode][effect_index]
                 if v2_effect.timing != V2_TIMING_ACTION:
+                    continue
+                if state.conditions[slot] & COND_DEPLETED:
                     continue
                 if state.suppression_mask[slot] & (
                     SUPPRESS_ACTION_TURN | SUPPRESS_ACTION_BATTLE
@@ -1611,6 +1622,19 @@ cdef int _fe_legal_actions_into(
                     ),
                 ),
             )
+
+    # Each Force may use one legal basic Attack per Battle. A multi-role
+    # Force chooses exactly one classification and marks the Force spent.
+    for local in range(POSITIONS_PER_PLAYER):
+        source = player * POSITIONS_PER_PLAYER + local
+        if state.force[source] < 0 or state.used_attack[source] or (state.conditions[source] & COND_DEPLETED):
+            continue
+        for dest in range(opponent * POSITIONS_PER_PLAYER, (opponent + 1) * POSITIONS_PER_PLAYER):
+            if state.force[dest] < 0:
+                continue
+            for choice in (ATTACK_ARCHER, ATTACK_SKIRMISHER, ATTACK_RAIDER, ATTACK_RIDER):
+                if _fe_attack_legal(self, state, source, dest, choice):
+                    n = _append_action(actions, n, encode_action(TYPE_ATTACK, -1, source, dest, player, <uint32_t>choice))
 
     # Maneuver moves to an empty position or swaps with any own occupied
     # position, including a prepared-only Bond/Name position.
