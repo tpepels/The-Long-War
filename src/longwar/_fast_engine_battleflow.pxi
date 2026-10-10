@@ -292,6 +292,7 @@ cdef inline void _fe_clear_battle_temporary_strength(
 ) noexcept:
     cdef int slot
     for slot in range(SLOT_COUNT):
+        state.exhausted[slot] = 0
         state.temporary[slot] = 0
         state.conditions[slot] = 0
         state.used_attack[slot] = 0
