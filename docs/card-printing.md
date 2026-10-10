@@ -41,6 +41,11 @@ catalogue and playtest-kit preload that resolved artwork ID.
 The Pages build publishes optimized WebP derivatives under
 `dist/art/cards-print/`. Raw illustration sources remain in
 `cards/art-sources/`. Do not replace authoring PNGs with deployed derivatives.
+New artwork uploaded to `web/art/cards/<card-id>.png` is used automatically on
+the next Pages build; the catalogue and deck printer share that card identity.
+The build's asset revision now includes the generated WebP illustrations, so
+replacing a PNG changes the revision on rendered image URLs and preloads. This
+avoids browsers retaining old artwork for unchanged card filenames.
 
 `tools/build_pages.py` also publishes lossless WebP versions of the four frame
 rasters and rewrites built CSS to use them. Frame assets participate in the build

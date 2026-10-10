@@ -217,7 +217,7 @@ def version_static_assets() -> str:
         if path.is_file()
         and (
             path.suffix in {".js", ".mjs", ".css", ".whl"}
-            or (path.parent == DIST / "art" / "card-frame" and path.suffix == ".webp")
+            or (path.parent in {DIST / "art" / "card-frame", DIST / "art" / "cards-print"} and path.suffix == ".webp")
             or path.relative_to(DIST).as_posix()
             in {"data/cards.json", "data/print-cards.json", "data/playtest-decks.json", "data/reference-decks.json"}
         )

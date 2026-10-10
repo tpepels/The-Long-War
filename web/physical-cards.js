@@ -242,14 +242,16 @@ function artFocus(value,fallback){
   if(/^\d+(?:\.\d+)?%$/.test(text)&&parseFloat(text)<=100)return text;
   return fallback;
 }
+function cardArtURL(id,printArt=false){
+  const base=printArt?"art/cards-print/":"art/cards/";
+  const ext=printArt?".webp":".png";
+  return base+encodeURIComponent(String(id))+ext+"?v="+encodeURIComponent(VERSION);
+}
 function artStyle(card,options={}){
   const x=artFocus(card.art_focus_x,"50%");
   // Preserve the top of every illustration; the bottom may be cropped by cover.
   const y=artFocus(card.art_focus_y,"0%");
-  const artBase=options.printArt?"art/cards-print/":"art/cards/";
-  const artExt=options.printArt?".webp":".png";
-  const artId=String(card.art_id||card.id);
-  const artURL=artBase+esc(artId)+artExt+"?v="+encodeURIComponent(VERSION);
+  const artURL=cardArtURL(card.art_id||card.id,Boolean(options.printArt));
   return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
 }
 function cardArticle(card,extra="",options={}){
@@ -306,5 +308,5 @@ function inspect(root=document){
   card.classList.toggle("layout-overflow",problems.length>0);if(problems.length)failures.push({id:card.dataset.cardId,problems:[...new Set(problems)]});
  });return failures;
 }
-window.PhysicalCards={cardArticle,stackMarkup,inspect};
+window.PhysicalCards={cardArticle,stackMarkup,inspect,cardArtURL};
 })();

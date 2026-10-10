@@ -63,3 +63,31 @@ process.stdout.write(JSON.stringify(result));
         art_dir = "art/cards-print/" if entry["printArt"] else "art/cards/"
         ext = ".webp" if entry["printArt"] else ".png"
         assert art_dir + entry["id"] + ext in entry["markup"]
+
+
+def test_illustration_urls_match_preloader_and_include_asset_revision() -> None:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is needed to verify shared artwork URLs")
+
+    script = """
+const fs = require("node:fs");
+global.window = {location: {href: "https://example.org/cards.html"}};
+global.document = {currentScript: {src: "https://example.org/physical-cards.js?v=artwork123"}};
+eval(fs.readFileSync("web/card-symbols.js", "utf8"));
+eval(fs.readFileSync("web/physical-cards.js", "utf8"));
+const card = JSON.parse(fs.readFileSync("cards/cards.json", "utf8")).cards[0];
+const url = window.PhysicalCards.cardArtURL(card.art_id || card.id, true);
+const rendered = window.PhysicalCards.cardArticle(card, "print-card", {printArt: true});
+process.stdout.write(JSON.stringify({url, rendered}));
+"""
+    result = subprocess.run(
+        [node, "-e", script], cwd=ROOT, capture_output=True,
+        text=True, timeout=15, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    data = json.loads(result.stdout)
+    assert data["url"].endswith(".webp?v=artwork123")
+    assert data["url"] in data["rendered"]
+    assert 'cardArtURL(id,true)' in (ROOT / "web/cards.js").read_text(encoding="utf-8")
+    assert 'cardArtURL(id,true)' in (ROOT / "web/playtest-kit.js").read_text(encoding="utf-8")
