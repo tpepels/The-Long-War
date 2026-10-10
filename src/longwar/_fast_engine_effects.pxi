@@ -917,6 +917,9 @@ cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noex
             state.constraint_activate_turn[i] = state.turn_number
     state.active_player = player
     state.actions_this_turn = 0
+    # The player may Pass before drawing; the normal-turn draw only occurs
+    # after they explicitly choose to play their turn.
+    state.turn_draw_pending = 1
     memset(
         state.maneuvered_in_operation,
         0,
@@ -926,8 +929,6 @@ cdef void _fe_start_turn_fast(FastEngine self, FastState state, int player) noex
     state.cleanup_pending = 0
     state.pending_draw_count = 0
     state.pending_draw_finish_operation = 0
-    if state.phase == PHASE_BATTLE:
-        _fe_queue_battle_draws(self, state, player, self.turn_draw_count)
 
 cdef _fe_initialize_opening_turn(
     FastEngine self,
@@ -937,6 +938,8 @@ cdef _fe_initialize_opening_turn(
 ):
     state.active_player = active_player
     if not opening_bonus:
+        # Kept for fixtures that deliberately start in the Action segment.
+        state.turn_draw_pending = 0
         return
     _fe_start_turn_fast(self, state, active_player)
 
@@ -950,6 +953,7 @@ cdef inline void _fe_clear_pass_sequence_fast(
         state.pass_order[player] = -1
     state.pass_len = 0
     state.closing_turns_remaining = 0
+    state.turn_draw_pending = 0
 
 
 cdef void _fe_resume_pending_flow(FastEngine self, FastState state):
