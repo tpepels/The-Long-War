@@ -9,6 +9,7 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
     _info_hash_feed(&h, <uint8_t>(state.winner + 1))
     _info_hash_feed_u32(&h, <uint32_t>state.turn_number)
     _info_hash_feed(&h, state.actions_this_turn)
+    _info_hash_feed(&h, state.turn_draw_pending)
     _info_hash_feed(&h, state.closing_turns_remaining)
     _info_hash_feed_u32(&h, <uint32_t>state.shuffle_seed)
 
@@ -178,6 +179,7 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
+    # v18 separates the pre-draw voluntary Pass decision from the Action segment.
     # v17 adds explicit Battle-long -3 Strength marker state.
     # v15 adds public persistent per-Force Exhaustion state.
     # v13 widens in-progress Front-loss Command penalties to 16 bits.
@@ -197,6 +199,7 @@ cdef int _fe__information_state_encode(
         buf, &n, h, <uint16_t>((state.turn_number >> 16) & 0xFFFF)
     )
     _info_emit(buf, &n, h, state.actions_this_turn)
+    _info_emit(buf, &n, h, state.turn_draw_pending)
     _info_emit(buf, &n, h, state.closing_turns_remaining)
 
     for i in range(PLAYER_COUNT):
@@ -515,6 +518,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
 
     if kind == TYPE_PASS:
         return "pass"
+    if kind == TYPE_BEGIN_TURN:
+        return "begin-turn"
     if kind == TYPE_END_TURN:
         return "end-turn"
     if kind == TYPE_DISCARD:
