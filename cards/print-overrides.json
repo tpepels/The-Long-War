@@ -23,7 +23,7 @@
         },
         {
           "timing": "attack",
-          "text": "If the opposing Frontline in this Front is empty, this Force's basic Archer Attack may target an opposing Middle Force.",
+          "text": "If the opposing Frontline in this Front is empty, this Force may target the opposing Middle Force with its basic Archer Attack.",
           "exposed": "ARCHER · May target Middle through gap"
         }
       ],
@@ -36,7 +36,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may swap this formation with the friendly formation directly ahead or directly behind, if both placements are legal. If you do, give that other Force Guarded."
+          "text": "You may swap this formation with the friendly formation directly ahead or behind it, if legal. If you do, give the other Force Guarded."
         }
       ],
       "design_note": "Skirmisher swaps an occupied line and protects the displaced Force; cannot be replicated by choosing another deployment square.",
@@ -47,7 +47,7 @@
       "effects": [
         {
           "timing": "middle",
-          "text": "While in Middle, this Force screens the friendly Rear Force from basic Archer Attacks even while Shaken, but not while Depleted.",
+          "text": "While in Middle, this Force screens the friendly Rear Force from basic Archer Attacks even if Shaken, but not if Depleted.",
           "exposed": "Screens Rear even if Shaken; not Depleted"
         }
       ],
@@ -60,7 +60,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If played into an empty Middle position, you may swap this formation with the friendly Frontline formation here, if both placements are legal."
+          "text": "If played into an empty Middle position, you may swap this formation with your Frontline formation here, if legal."
         }
       ],
       "design_note": "One-time frontline relief; still obey occupancy restrictions.",
@@ -72,7 +72,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may Move an opposing Frontline formation in this Front one row toward Rear, if legal and empty.",
+          "text": "You may Move an opposing Frontline formation here one row toward Rear, if the destination is legal and empty.",
           "scope": "opponent",
           "memory": []
         }
@@ -98,7 +98,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may choose an opposing Bonded Formation in this Front. Return its Bond to its owner's hand."
+          "text": "You may return the Bond of an opposing Bonded Formation in this Front to its owner's hand."
         }
       ],
       "design_note": "Raid an opponent's formation layer."
@@ -109,7 +109,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If playing this Bond completes a Named Formation, give that formation +2 Strength this Battle. Otherwise, draw 1 card, then discard 1 card."
+          "text": "If playing this Bond completes a Named Formation, give it +2 Strength this Battle. Otherwise, draw 1 card, then discard 1 card."
         }
       ],
       "design_note": "Phase 3: Strong completion burst replaces free Maneuver, while preparing the Bond still provides card selection; no replay on later attachment."
@@ -120,7 +120,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a friendly Force in this Front, if any. Give it Inspired."
+          "text": "Give a friendly Force in this Front Inspired, if any."
         }
       ],
       "design_note": "Phase 3: A prepared Endured With still protects an existing friendly Force in its Front, rather than wasting its PLAY effect."
@@ -131,7 +131,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded, its Name text cannot be suppressed.",
+          "text": "While Bonded, this formation's Name text cannot be suppressed.",
           "exposed": "Name text cannot be suppressed"
         }
       ],
@@ -154,7 +154,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Look at an opposing face-down Stratagem in this or an adjacent active Front, if any. Draw 1 card, then discard 1 card."
+          "text": "Look at an opposing face-down Stratagem in this or an adjacent active Front, if any. Then draw 1 card and discard 1."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -164,7 +164,7 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "Look at your opponent's hand. You may then move this formation one position into an adjacent active empty position, if legal."
+          "text": "Look at your opponent's hand. You may then Move this formation to an adjacent active empty position, if legal."
         }
       ],
       "design_note": "Information followed by positioning."
@@ -175,7 +175,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, you may Move one friendly formation here one adjacent legal position. If it moved, give it +2 Strength this Battle."
+          "text": "At resolution, you may Move one friendly formation here one position. If it moved, give it +2 Strength this Battle."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -185,7 +185,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a friendly King or Captain and another friendly formation in its Front. Give that other formation +1 Strength this Battle; you may Move it one adjacent legal empty position."
+          "text": "Choose a friendly King or Captain and another friendly formation in the same Front. Give that other formation +1 Strength this Battle. You may Move it to an adjacent empty position."
         }
       ],
       "design_note": "Leadership Order supplies one meaningful temporary Strength before optional mobility."
@@ -226,7 +226,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, a friendly flanked Frontline Force here ignores its flank penalty. In an outer Front, it also gets +2 Strength this Battle."
+          "text": "At resolution, a friendly flanked Frontline Force here ignores its flank penalty. In an outer Front, that Force also gets +2 Strength this Battle."
         }
       ],
       "design_note": "Hidden flank protection can be used in any active Front when an allied Frontline Force is actually flanked; retains the additional +2 Strength only in outer Fronts. Assigned Front and single Stratagem timing unchanged."
@@ -247,7 +247,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "After one of your Riders moves into or out of this Front, it may Move one additional adjacent legal position and gets +1 Strength this Battle."
+          "text": "After one of your Riders moves into or out of this Front, it may Move one additional position and gets +1 Strength this Battle."
         }
       ],
       "design_note": "A Rider movement chain with positional and Strength consequences. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
@@ -257,7 +257,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "When your formation here becomes Named, either Move it up to two adjacent legal empty positions or return an opposing attached Bond here to its owner's hand."
+          "text": "When your formation here becomes Named, either Move it up to two adjacent empty positions or return an opposing attached Bond here to its owner's hand."
         }
       ],
       "design_note": "Named completion creates either a repositioning or an attachment-raid threat. Assigned Front is implicit per physical rulebook; reveal eligibility unchanged."
@@ -297,7 +297,7 @@
       "effects": [
         {
           "timing": "continuous",
-          "text": "Each friendly Hero formation or Named Formation gets +1 Strength this Battle, once per formation even if both."
+          "text": "Each friendly Hero formation or Named Formation gets +1 Strength this Battle. A formation that is both gains +1 only once."
         }
       ],
       "design_note": "One application per formation, other card effects still stack."
@@ -322,7 +322,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If you play this Force into Frontline, give the friendly Force directly behind it Guarded, if there is one."
+          "text": "If played into Frontline, give the friendly Force directly behind it Guarded, if any."
         }
       ],
       "design_note": "A committed Frontline spear protecting a supporting rank; 2C/4S Guard retains a tradeoff against unrestricted Red Shields.",
@@ -336,7 +336,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If this Force is stronger than the opposing Frontline Force here, give that opposing Force Shaken."
+          "text": "If this Force is stronger than the opposing Frontline Force, give it Shaken."
         }
       ],
       "design_note": "Frontline shock weakens a weaker defender and opens subsequent Raid possibilities, without a gap-only on-play trigger.",
@@ -365,7 +365,7 @@
         },
         {
           "timing": "action",
-          "text": "Move up to two different friendly formations one orthogonally adjacent legal position each.",
+          "text": "Move up to two different friendly formations one position each.",
           "limit": "once_per_battle"
         }
       ],
@@ -380,7 +380,7 @@
         },
         {
           "timing": "action",
-          "text": "Choose an opposing Exhausted Force in a Front containing your Archer. Give it Shaken.",
+          "text": "Give an opposing Exhausted Force in a Front containing your Archer Shaken.",
           "limit": "once_per_battle"
         }
       ],
@@ -411,7 +411,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose up to two friendly Rider formations in active Fronts. Each gets +1 Strength this Battle."
+          "text": "Give up to two friendly Rider formations in active Fronts +1 Strength this Battle."
         },
         {
           "timing": "continuous",
@@ -429,7 +429,7 @@
         },
         {
           "timing": "continuous",
-          "text": "Your Guards and Strongholds in Middle give the friendly Rear formation directly behind each of them +1 Strength this Battle."
+          "text": "Each of your Guards and Strongholds in Middle gives the friendly Rear formation directly behind it +1 Strength this Battle."
         }
       ],
       "design_note": "Two-Action movement exception replaced with an immediate Boon plus persistent positional defensive Strength."
@@ -439,7 +439,7 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Remove one temporary negative marker from a friendly Force, if any. If it was Exhaustion, you may Move its formation one adjacent legal position; otherwise give it Inspired."
+          "text": "Remove one temporary negative marker from a friendly Force, if any. If you removed Exhaustion, you may Move its formation one position. Otherwise, give it Inspired."
         }
       ],
       "design_note": "Recover from a temporary marker, converting lost-Front Exhaustion into an optional legal Move instead of Inspired. A printed Move does not trigger Maneuver effects; the Narrative ACTION still costs an Action and is once per Battle."
@@ -485,7 +485,7 @@
       "effects": [
         {
           "timing": "reaction",
-          "text": "Once per Battle, when your opponent sets a Stratagem in this Front while this formation is in Middle or Rear, you may look at it, then draw 1 card and discard 1 card.",
+          "text": "Once per Battle, when your opponent sets a Stratagem in this Front and this formation is in Middle or Rear, you may look at it, then draw 1 card and discard 1 card.",
           "limit": "once_per_battle",
           "exposed": "MIDDLE/REAR · New plan → peek+sift"
         }
@@ -502,7 +502,7 @@
         },
         {
           "timing": "action",
-          "text": "Choose another friendly Human formation in this Front. The next Bond or Name you play onto it this turn costs 2 less Command (minimum 0). Draw 1 card.",
+          "text": "Choose another friendly Human formation in this Front. The next Bond or Name you play onto it this turn costs 2 less Command (minimum 0). Then draw 1 card.",
           "limit": "once_per_battle"
         }
       ],
@@ -513,7 +513,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Rear Force. Exhaust it, then give it Shaken."
+          "text": "Exhaust an opposing Rear Force, then give it Shaken."
         }
       ],
       "design_note": "2C one-shot now affects Strength as well as movement; Shaken counterplay via Inspired."
@@ -523,7 +523,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "In a Front containing your Raider, choose an opposing prepared Bond or Name, or the Bond of an opposing Depleted Force. Its owner pays 2 Command or returns that component to hand."
+          "text": "In a Front containing your Raider, choose an opposing prepared Bond or Name, or the Bond of an opposing Depleted Force. The chosen card's owner pays 2 Command or returns it to hand."
         }
       ],
       "design_note": "Depleted gains a targeted logistical risk; prepared cards remain vulnerable."
@@ -533,7 +533,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may play a Bond or Name from hand onto a friendly formation in this or an adjacent active Front, paying its Command cost without another Action. If it becomes Named, give it Guarded."
+          "text": "You may play a Bond or Name from your hand onto a friendly formation in this or an adjacent active Front without another Action. Pay that card's Command cost. If the formation becomes Named, give it Guarded."
         }
       ],
       "design_note": "Replace prep-dependent one-shot with an immediate free-Action Bond/Name deployment, while retaining the Field Train's adjacent-Front logistics reach and weak 2-Strength body.",
@@ -544,7 +544,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "In a Front containing your Captain, either swap two adjacent friendly formations (if legal) or discard one friendly Force there with its Bond and Name to regain 2 Command."
+          "text": "In a Front containing your Captain, either swap two adjacent friendly formations, if legal, or discard a friendly Force there with its Bond and Name to regain 2 Command."
         }
       ],
       "design_note": "Explicit sacrifice releases one persistent position for an Action, at the cost of Force Strength and attached layers."
@@ -554,7 +554,7 @@
       "effects": [
         {
           "timing": "reaction",
-          "text": "When an opponent sets a Stratagem in or adjacent to a Front containing your Scout or Ship, look at it. Give one friendly formation in the Stratagem's Front +2 Strength this Battle, if any.",
+          "text": "When an opponent sets a Stratagem in or adjacent to a Front containing your Scout or Ship, look at it. Give a friendly formation in the Stratagem's Front +2 Strength this Battle, if any.",
           "limit": "once_per_battle"
         }
       ],
@@ -577,7 +577,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded and in Frontline, this Bond contributes +1 additional Strength and this formation cannot be flanked.",
+          "text": "While Bonded and in Frontline, this Bond contributes +1 Strength and the formation cannot be flanked.",
           "exposed": "FRONTLINE · +1 Strength; cannot be flanked"
         }
       ],
@@ -592,7 +592,7 @@
         },
         {
           "timing": "action",
-          "text": "As this Action, play a Bond from your hand onto a friendly formation with no Bond in this Front. Pay 1 less Command (minimum 0). If that play completes a Named Formation, draw 1 card.",
+          "text": "Play a Bond from your hand onto a friendly formation without a Bond in this Front, paying 1 less Command (minimum 0). If it completes a Named Formation, draw 1 card.",
           "limit": "once_per_battle"
         }
       ],
@@ -604,7 +604,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Exchange the Bonds of two friendly Bonded Formations in any active Fronts. Each of those formations that remains Named gets +1 Strength this Battle."
+          "text": "Exchange the Bonds of two friendly Bonded Formations in any active Fronts. Each formation that remains Named gets +1 Strength this Battle."
         }
       ],
       "design_note": "One Action and 2 Command for an immediate formation exchange and up to two temporary Strength; no repeatable two-Action setup."
@@ -618,7 +618,7 @@
         },
         {
           "timing": "action",
-          "text": "Attach up to two prepared Bonds or Names to friendly formations in this Front, one at a time. Give Guarded to each formation that becomes Named this way.",
+          "text": "Attach up to two prepared Bonds or Names in this Front to friendly formations here, one at a time. Give Guarded to each formation that becomes Named.",
           "limit": "once_per_battle",
           "exposed": "ACTION · 1/B: attach up to 2 prepared; newly Named Guarded"
         }
@@ -631,7 +631,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a prepared Name in this Front. Attach it to a friendly Force here with an empty Name slot, if legal."
+          "text": "Attach a prepared Name in this Front to a friendly Force here with an empty Name slot, if legal."
         }
       ],
       "design_note": "Phase 3: Play effect works when Stayed Behind For is itself prepared or attached to any Force; no future PLAY reactivation."
@@ -641,7 +641,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Move one friendly Rider or Scout formation in this Front one adjacent legal position, if any."
+          "text": "Move a friendly Rider or Scout formation in this Front one position, if any."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -651,7 +651,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "With a friendly Scout or Captain here, you may Move one friendly formation here one legal position and look at an opposing face-down Stratagem here, if any."
+          "text": "If you have a friendly Scout or Captain in this Front, you may Move one friendly formation here one position and look at an opposing face-down Stratagem here, if any."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -661,7 +661,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If an opposing Force here is Shaken, you may Move one friendly Raider or Skirmisher here one adjacent legal position."
+          "text": "If an opposing Force in this Front is Shaken, you may Move a friendly Raider or Skirmisher here one position."
         }
       ],
       "design_note": "Replaces rare exhausted-Force Command theft, which compounds lost-Front Command snowballing, with on-PLAY tactical movement enabled by Shaken."
@@ -671,7 +671,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose a friendly formation in this Front, if any. It gets +1 Strength this Battle."
+          "text": "Give a friendly formation in this Front +1 Strength this Battle, if any."
         }
       ],
       "design_note": "Phase 3: Simple temporary Strength tempo for a Bond played attached or prepared, replacing low-payoff gratuitous movement."
@@ -682,7 +682,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Exchange your cards between two adjacent active Fronts, rank for rank, if legal. Prepared layers and markers move with them. Give one moved Named Formation +2 Strength this Battle."
+          "text": "Exchange all cards on your side of two adjacent active Fronts, rank for rank, if legal. Prepared layers and markers move with them. Give one moved Named Formation +2 Strength this Battle."
         }
       ],
       "design_note": "Strange full-Front transformation resolves on PLAY rather than requiring another ACTION; rank restrictions respected, +2 rewards committed Named stacks."
@@ -692,7 +692,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Force in a Front with your Scout. If it is Exhausted, give it Shaken. Otherwise, Exhaust it."
+          "text": "Choose an opposing Force in a Front containing your Scout. If it is Exhausted, give it Shaken; otherwise, Exhaust it."
         }
       ],
       "design_note": "Scouting Tactic meaningfully converts already Exhausted targets into −2 Shaken, otherwise delivers −1 Exhausted.",
@@ -703,7 +703,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Return an opposing prepared Bond or Name to its owner's hand. Alternatively, return an opposing attached Bond in a Front containing your Scout or Seer to its owner's hand."
+          "text": "Return an opposing prepared Bond or Name to its owner's hand. Or return an opposing attached Bond in a Front containing your Scout or Seer to its owner's hand."
         }
       ],
       "design_note": "Preparation punish remains, but Scouts/Seers can also sabotage a completed formation."
@@ -713,7 +713,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Frontline or Middle Force in a Front containing your Scout or Skirmisher. Move it one row toward Rear, if legal and empty. Otherwise, give it Shaken."
+          "text": "Choose an opposing Frontline or Middle Force in a Front containing your Scout or Skirmisher. Move it one row toward Rear if the destination is legal and empty; otherwise, give it Shaken."
         }
       ],
       "design_note": "A positional dilemma: an eligible opponent yields space or takes −2 and loses Guard screening, but only under Scout/Skirmisher pressure."
@@ -723,7 +723,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing formation. Its ACTION abilities cannot be used this Battle. If Named, its Name contributes no Strength this Battle."
+          "text": "Choose an opposing formation. Its ACTION abilities cannot be used this Battle. If it is Named, its Name contributes no Strength this Battle."
         }
       ],
       "design_note": "Suppresses ACTION abilities but remains useful against Named stacks through lost Name modifier."
@@ -733,7 +733,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Frontline or Middle Force in a Front containing your Skirmisher. Move it one row toward Rear, if legal and empty. If it moves, give it Depleted."
+          "text": "Choose an opposing Frontline or Middle Force in a Front containing your Skirmisher. Move it one row toward Rear if the destination is legal and empty. If it moves, give it Depleted."
         }
       ],
       "design_note": "Requires a real legal displacement to apply Depleted (−1 and disabled formation ACTIONs), giving the 0C Tactic a tactical payoff with counterplay."
@@ -765,7 +765,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Move another friendly formation in this Front one row toward Rear, if legal and empty.",
+          "text": "Move another friendly formation here one row toward Rear, if the destination is legal and empty.",
           "scope": "self",
           "memory": []
         }
@@ -804,7 +804,7 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "Choose a friendly formation in this Front with no Bond. You may play a Bond from your hand onto it, paying its Command cost.",
+          "text": "You may play a Bond from your hand onto a friendly formation without a Bond in this Front, paying its Command cost.",
           "scope": "self",
           "memory": []
         }
@@ -816,7 +816,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Force in a Front containing your Archer. Give it Shaken."
+          "text": "Give an opposing Force in a Front containing your Archer Shaken."
         }
       ],
       "design_note": "Archer-enabled Tactic can Shake any enemy rank rather than offer a dominated -2 temporary penalty or duplicate basic Rear targeting."
@@ -834,7 +834,7 @@
         },
         {
           "timing": "action",
-          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle.",
+          "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes 0 Strength this Battle.",
           "scope": "opponent",
           "memory": [
             "used_marker",
@@ -850,7 +850,7 @@
       "effects": [
         {
           "timing": "front",
-          "text": "While in Frontline, opposing Tactics targeting this formation cost 1 additional Command.",
+          "text": "While in Frontline, opposing Tactics that target this formation cost 1 additional Command.",
           "exposed": "FRONT · Opposing Tactics targeting this +1 Command",
           "scope": "self",
           "memory": []
@@ -878,7 +878,7 @@
       "effects": [
         {
           "timing": "front",
-          "text": "While in Frontline, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+          "text": "While in Frontline, opposing Tactics targeting the friendly formation directly behind this Force cost 1 additional Command.",
           "exposed": "FRONT · Opposing Tactics vs friendly behind +1",
           "scope": "self",
           "memory": []
@@ -892,7 +892,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose another friendly Force in this Front, if any. Remove all its temporary negative markers, then give it Guarded."
+          "text": "Remove all temporary negative markers from another friendly Force in this Front, if any. Then give it Guarded."
         }
       ],
       "design_note": "Replace rare Exhausted Maneuver permission with immediate rescue plus protection; 3 Strength remains a reasonable baseline at 3C and Middle-only.",
@@ -903,7 +903,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "You may Move another friendly formation in this or an adjacent active Front one orthogonally adjacent legal position. If that Move changes whether any Force is flanked, draw 1 card."
+          "text": "You may Move another friendly formation in this or an adjacent active Front one position. If this changes any Force's flanked status, draw 1 card."
         }
       ],
       "design_note": "Replace almost-unused Unnamed Maneuver permission with one immediate movement order and an observable flank swing payoff, differentiated from directional same-Front Moves.",
@@ -914,7 +914,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While this formation is Bonded in Middle, opposing Tactics targeting the friendly formation directly behind cost 1 additional Command.",
+          "text": "While Bonded in Middle, opposing Tactics targeting the friendly formation directly behind this one cost 1 additional Command.",
           "exposed": "BONDED MIDDLE · Tactics vs friendly behind cost +1",
           "scope": "self",
           "memory": []
@@ -961,7 +961,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Move one friendly Scout in Rear one adjacent legal position, if any. Draw 1 card."
+          "text": "Move a friendly Scout in Rear one position, if any. Then draw 1 card."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -971,7 +971,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing formation containing a King or Captain. Give its Force Shaken. If it is Named, you may give another opposing formation in this Front −1 Strength this Battle."
+          "text": "Give the Force of an opposing formation containing a King or Captain Shaken. If that formation is Named, you may give another opposing formation in this Front −1 Strength this Battle."
         }
       ],
       "command_cost": 1,
@@ -982,7 +982,7 @@
       "effects": [
         {
           "timing": "action",
-          "text": "Pay 1 Command. Return a Bond or Name from an opposing Shaken formation here to its owner's hand.",
+          "text": "Pay 1 Command. Return an attached Bond or Name from an opposing Shaken formation in this Front to its owner's hand.",
           "exposed": "ACTION: Pay 1; strip Shaken enemy attachment",
           "scope": "opponent",
           "memory": []
@@ -996,7 +996,7 @@
         {
           "timing": "action",
           "limit": "once_per_battle",
-          "text": "Pay 1 Command. Move this formation one adjacent legal empty position. It may then make its unused basic Rider Attack without another Action.",
+          "text": "Pay 1 Command. Move this formation to an adjacent empty position. It may then make its unused basic Rider Attack without another Action.",
           "exposed": "ACTION · 1/B: Move then unused Rider Attack"
         }
       ],
@@ -1008,7 +1008,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If played into Frontline, give the opposing Frontline formation −1 Strength this Battle, if any."
+          "text": "If played into Frontline, give the opposing Frontline formation −1 Strength this Battle, if present."
         }
       ],
       "design_note": "Odd 3 Strength Raider gains modest entry pressure that can open a Raider Incursion on a locally tied line.",
@@ -1023,7 +1023,7 @@
         },
         {
           "timing": "action",
-          "text": "Pay 1 Command. Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand."
+          "text": "Pay 1 Command. Choose an opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns that card to hand."
         }
       ],
       "design_note": "Named-completion attachment disruption now uses the common Shaken battlefield condition, not former Archer-enabled Exhaustion; retains Brannoc's paid preparation-tax ACTION."
@@ -1044,7 +1044,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "If you have less Command than your opponent, regain 1 Command and Move one friendly formation here one legal position, if possible."
+          "text": "If you have less Command than your opponent, regain 1 Command and Move one friendly formation here one position, if possible."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -1054,7 +1054,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Look at an opposing face-down Stratagem in this or an adjacent Front, if any. You may Move one friendly formation here one legal position."
+          "text": "Look at an opposing face-down Stratagem in this or an adjacent active Front, if any. You may then Move one friendly formation here one position."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -1064,7 +1064,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Look at your opponent's hand. Give one friendly Force in this Front Guarded, if any."
+          "text": "Look at your opponent's hand. Give a friendly Force in this Front Guarded, if any."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -1078,7 +1078,7 @@
         },
         {
           "timing": "action",
-          "text": "Pay 1 Command. Move this formation one adjacent legal position. It may then make its unused basic Attack without another Action."
+          "text": "Pay 1 Command. Move this formation one position. It may then make its unused basic Attack without another Action."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -1088,7 +1088,7 @@
       "effects": [
         {
           "timing": "play",
-          "text": "Choose an opposing Named Formation. Give its Force Shaken and ignore its Name text this Battle."
+          "text": "Give an opposing Named Formation's Force Shaken and ignore its Name text this Battle."
         }
       ],
       "design_note": "Battlefield-agency pass: convert passive/one-shot smoothing into immediate positioning, pressure or actionable secret information without new rules."
@@ -1108,7 +1108,7 @@
       "effects": [
         {
           "timing": "bonded",
-          "text": "While Bonded, this formation's first Maneuver each Battle costs 0 Command.",
+          "text": "While Bonded, the first Maneuver by this formation each Battle costs 0 Command.",
           "exposed": "Bonded: first Maneuver free"
         }
       ],
@@ -1120,10 +1120,247 @@
       "effects": [
         {
           "timing": "becomes_named",
-          "text": "If you have not set a Stratagem this Battle, set one from your hand here without another Action. Pay its Command cost."
+          "text": "If you have not set a Stratagem this Battle, set one from your hand here, paying its Command cost without another Action."
         }
       ],
       "design_note": "1C Name can save the Action of setting the player's single Stratagem, but never introduces a second Stratagem."
+    },
+    {
+      "id": "the-late-banner",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While Bonded, Names played onto this formation cost 1 less Command (minimum 1).",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BONDED · NAME -1"
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "followed",
+      "effects": [
+        {
+          "timing": "while_named",
+          "text": "While this formation is Named, this Bond contributes +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "NAMED · +1"
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "covered-the-withdrawal-of",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While Bonded, the friendly Force directly ahead may Maneuver while Exhausted.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BONDED · Ahead Maneuvers Exhausted"
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "held-the-line-for",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While Bonded, opposing Tactics targeting this formation cost 1 additional Command.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "BONDED · Enemy Tactics cost +1"
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "bought-time-for",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "You may pay 1 additional Command to draw 2 cards.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "trusted",
+      "effects": [
+        {
+          "timing": "while_named",
+          "text": "While Named, this formation may Maneuver while Exhausted.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "NAMED · Maneuver while Exhausted"
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "marched-beneath-the-banner-of",
+      "effects": [
+        {
+          "timing": "bonded",
+          "text": "While Bonded, if this formation contains a Captain or King, this Bond contributes +1 Strength.",
+          "scope": "self",
+          "memory": [],
+          "exposed": "CAPTAIN/KING · +1"
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "asha-the-shield-bearer",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Remove all temporary negative markers from this formation.",
+          "scope": "self",
+          "memory": []
+        },
+        {
+          "timing": "trigger",
+          "text": "When an opposing Tactic targets another friendly formation in this Front, you may redirect it to this formation, if legal.",
+          "scope": "self",
+          "memory": [
+            "used_marker"
+          ],
+          "limit": "once_per_battle"
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "sela",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Move this formation one row forward or backward in this Front.",
+          "scope": "self",
+          "memory": []
+        },
+        {
+          "timing": "while_named",
+          "text": "While this formation is Named, it may Maneuver while Exhausted.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "sorin",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Draw 2 cards. Then put 1 card from your hand on top of your deck.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "iven",
+      "effects": [
+        {
+          "timing": "becomes_named",
+          "text": "Regain 1 Command.",
+          "scope": "self",
+          "memory": []
+        },
+        {
+          "timing": "continuous",
+          "text": "Your Tactics cost 1 less Command (minimum 0).",
+          "scope": "self",
+          "memory": [
+            "face_up_source"
+          ]
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "the-line-wheeled",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose an opposing Bonded Formation. Its Bond contributes no Strength, and its non-PLAY text is ignored this Battle.",
+          "scope": "opponent",
+          "memory": [
+            "suppression_marker"
+          ]
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "all-reserves-forward",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Return an attached Bond or Name from an opposing Bonded Formation to its owner's hand.",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "the-line-had-begun-to-move",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Place a Tax marker on an active Front. The next card your opponent plays in that Front costs 2 additional Command.",
+          "scope": "opponent",
+          "memory": [
+            "front_marker"
+          ]
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "the-scouts-found-the-gap",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Scouts. Reveal an opposing face-down Stratagem in that Scout's Front or an adjacent active Front. Its owner returns it to hand or pays 1 Command to set it face-down again.",
+          "scope": "opponent",
+          "memory": []
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "bind-the-wound",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Healers. Remove one temporary negative marker from a friendly formation in that Healer's Front.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+    },
+    {
+      "id": "take-stock",
+      "effects": [
+        {
+          "timing": "play",
+          "text": "Choose one of your Stewards or Strongholds. Look at the top 3 cards of your deck. Put 1 into your hand and the remaining cards on the bottom in any order.",
+          "scope": "self",
+          "memory": []
+        }
+      ],
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
     }
   ],
   "once_per_battle_text_fixes": [],
@@ -1209,7 +1446,7 @@
       "mode": "force",
       "index": 0,
       "old_text": "Choose one prepared Bond or prepared Name in this Front. Attach it to a legal friendly Formation in this Front.",
-      "text": "Attach a prepared Bond or Name in this Front to a legal friendly formation here."
+      "text": "Attach a prepared Bond or Name in this Front to a friendly formation here, if legal."
     },
     {
       "id": "nara-builder-of-walls",
@@ -1223,7 +1460,7 @@
       "mode": "name",
       "index": 1,
       "old_text": "Pay 1 Command. Choose an opposing formation in this Front with no -Strength marker. It gets -1 Strength this Battle.",
-      "text": "Pay 1 Command. Move one friendly Archer in this Front one adjacent legal position."
+      "text": "Pay 1 Command. Move a friendly Archer in this Front one position."
     },
     {
       "id": "doros-the-last-spear",
@@ -1251,28 +1488,49 @@
       "mode": "force",
       "index": 0,
       "old_text": "Choose one opposing prepared Bond or Name in this Front. Its owner pays 1 Command or returns it to hand.",
-      "text": "If this Force is in Frontline and stronger than the opposing Frontline Force here, give that Force Shaken. You may Move it one rank toward Rear, if legal."
+      "text": "If this Force is in Frontline and stronger than the opposing Frontline Force, give that Force Shaken. You may Move it one row toward Rear, if legal."
     },
     {
       "id": "neris-the-ferryman",
       "mode": "force",
       "index": 0,
       "old_text": "Move Neris one position.",
-      "text": "Move this formation one adjacent legal position. It may then make its unused basic Rider Attack without another Action."
+      "text": "Move this formation one position. It may then make its unused basic Rider Attack without another Action."
     },
     {
       "id": "kael-the-roadless",
       "mode": "name",
       "index": 1,
       "old_text": "Look at one opposing face-down Stratagem in this or an adjacent Front.",
-      "text": "Look at one opposing face-down Stratagem in this or an adjacent Front, if any. You may then Move this formation one adjacent legal position."
+      "text": "Look at one opposing face-down Stratagem in this or an adjacent active Front, if any. You may then Move this formation one position."
     },
     {
       "id": "alda-keeper-of-the-ford",
       "mode": "name",
       "index": 1,
       "old_text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
-      "text": "When an opposing Tactic targets another friendly formation in this Front, you may give its Force Guarded before that Tactic resolves."
+      "text": "When an opposing Tactic targets another friendly formation in this Front, you may give that formation's Force Guarded before the Tactic resolves."
+    },
+    {
+      "id": "avaros-the-bronze-king",
+      "mode": "force",
+      "index": 0,
+      "old_text": "Choose up to two other friendly Human formations in this Front. Each gets +1 Strength this Battle.",
+      "text": "Give up to two other friendly Human formations in this Front +1 Strength this Battle."
+    },
+    {
+      "id": "tovan-the-quartermaster",
+      "mode": "name",
+      "index": 1,
+      "old_text": "Bonds you play cost 1 less Command, to a minimum of 0. Names you play cost 1 less Command, to a minimum of 1.",
+      "text": "Bonds you play cost 1 less Command (minimum 0). Names you play cost 1 less Command (minimum 1)."
+    },
+    {
+      "id": "yara-the-chronicler",
+      "mode": "force",
+      "index": 0,
+      "old_text": "Look at the top 3 cards of your deck. Put 1 into your hand and the rest on the bottom in any order.",
+      "text": "Look at the top 3 cards of your deck. Put 1 into your hand and the remaining cards on the bottom in any order."
     }
   ],
   "hero_mode_costs": [
