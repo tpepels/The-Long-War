@@ -8,7 +8,7 @@ async function preloadArt(ids){
     const image=new Image();
     image.onload=resolve;
     image.onerror=resolve;
-    image.src="art/cards-print/"+encodeURIComponent(id)+".webp";
+    image.src=window.PhysicalCards.cardArtURL(id,true);
   })));
 }
 async function main(){
