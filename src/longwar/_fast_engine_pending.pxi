@@ -719,7 +719,16 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         )
 
     if kind == TYPE_PASS:
+        if not state.turn_draw_pending:
+            raise ValueError("Pass must precede the turn draw")
         _fe_pass_action(self, state, actor)
+        return
+
+    if kind == TYPE_BEGIN_TURN:
+        if not state.turn_draw_pending:
+            raise ValueError("Turn has already begun drawing")
+        state.turn_draw_pending = 0
+        _fe_queue_battle_draws(self, state, actor, self.turn_draw_count)
         return
 
     if kind == TYPE_END_TURN:
