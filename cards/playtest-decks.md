@@ -14,13 +14,13 @@ Reliable leadership and permanent Strength: Captain/King formations amplify Bond
 
 **Test question:** With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?
 
-48 cards · 16 Forces · 27 titles · 12 one-copy titles · 108–115 total printed Command (Hero mode-dependent) · 66 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 28 titles · 13 one-copy titles · 108–115 total printed Command (Hero mode-dependent) · 64 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
 - Late Banner or Banner Singers supports King/Captain formations; three Marched Beneath the Banner Of Bonds and two each of Center Must Hold / Every Banner Turned Toward Them offer a hidden positional surprise versus broad leadership Strength.
 - Followed x3 and The Battle Had Chosen Them x2 reward any of six different Names; the large Fifty Men, Hundred Shields and First Spear remain useful even before Named completion.
-- Stood Fast With x2 guards a critical Frontline from flanking and protects the Rider weakness; First Spear x3 can place Guarded on Middle support.
+- Stood Fast With x2 protects a critical Frontline from flanking and helps the Grey Riders, whose Maneuvers can lead into their unused Rider Attack. First Spear x3 can Guard Middle support.
 - The King Had Given the Order x2 exchanges Bonds and adds temporary Strength to Named stacks, while the Center/Banner Stratagems offer concealed repositioning versus broad Strength swings.
 
 ### Card availability, not playable-combo probability
@@ -29,7 +29,7 @@ Reliable leadership and permanent Strength: Captain/King formations amplify Bond
 |---|---:|---:|---:|---:|
 | Leadership Strength spike | 9 | 7 | 74.1% | 98.0% |
 | Named persistent Strength | 8 | 5 | 60.5% | 93.5% |
-| Bond exchange and defended ranks | 9 | 4 | 55.2% | 89.1% |
+| Bond exchange and defended ranks | 7 | 4 | 50.2% | 88.0% |
 
 ### Cards
 
@@ -37,7 +37,8 @@ Reliable leadership and permanent Strength: Captain/King formations amplify Bond
 |---:|---|---|
 | 3 | The Late Banner | force |
 | 3 | The First Spear | force |
-| 3 | The Red Shields | force |
+| 1 | The Red Shields | force |
+| 2 | The Grey Riders | force |
 | 2 | A Hundred Shields | force |
 | 3 | The Fifty Men | force |
 | 2 | The Banner Singers | force |
@@ -124,13 +125,13 @@ Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed
 
 **Test question:** Can repeated support Forces and prepared Bonds assemble multiple Named Formations without consuming more Actions than a direct Force deployment?
 
-48 cards · 16 Forces · 27 titles · 11 one-copy titles · 106–109 total printed Command (Hero mode-dependent) · 53 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 28 titles · 12 one-copy titles · 104–107 total printed Command (Hero mode-dependent) · 49 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
-- House of Reed x3 and Field Train x3 repeatedly make prepared cards worth playing; Field Train gives +2 temporary Strength when a Name completes a formation and House of Reed gives Guarded on completion.
+- House of Reed x3 attaches prepared layers and can Guard newly Named formations. Field Train x3 plays a Bond or Name from hand without another Action, giving Guarded if that play completes a Named formation.
 - Three Swore Again To, two Stayed Behind For and two Supplied By support different preparation routes; direct Swore completion gives +2 Strength while early preparation instead filters a card.
-- Late Banner x3, Oren, Torren and Tovan reduce the cost of Named building; seven interchangeable Unique Names make completion more likely despite individual singletons.
+- Late Banner x3, Oren, Torren and Tovan reduce the cost of Named building. Dust Riders x2 add a Bonded Force whose first Maneuver each Battle costs no Command.
 - The Battle Had Chosen Them x2 rewards all those Named stacks. There Was No Road Back x2 is a hidden completion follow-up, and the King's Order x2 can reassign existing Bonds.
 
 ### Card availability, not playable-combo probability
@@ -149,7 +150,8 @@ Turn prepared Bonds/Names into completed formations in bursts. Use House of Reed
 | 3 | The Field Train | force |
 | 3 | The Late Banner | force |
 | 2 | The King's Spears | force |
-| 3 | The Fifty Men | force |
+| 1 | The Fifty Men | force |
+| 2 | The Dust Riders | force |
 | 2 | The Red Shields | force |
 | 3 | Swore Again To | bond |
 | 2 | Stayed Behind For | bond |
@@ -184,7 +186,7 @@ Shake, Deplete and displace opposing Forces, then exploit weakened defenders wit
 ### Combinations to test
 
 - Iron Boars x3 and Red Duelists x3 give tangible initial penalties; The Stores Were Taken x2 and Trap Closed x2 follow up with layer loss or Command taxation.
-- Two Baggage Was Abandoned and two Crows Came Down still create Exhaustion; three Salt-Road Reavers instead exploit Shaken for Depleted. Shared the Spoils With now uses Shaken to Move a Raider or Skirmisher instead of stealing Command.
+- The Baggage Was Abandoned Exhausts and Shakes a Rear Force; The Crows Came Down can Exhaust an enemy on PLAY and later Shake an Exhausted Force. Salt-Road Reavers convert Shaken to Depleted, while Shared the Spoils With permits movement.
 - Black Company x2 and River Raiders x2 punish opponent attachment investment. Two Seized the Standard Of Bonds can remove a Bond even without waiting for an enemy condition.
 - The Line Was Baited now gives Depleted only on a legal forced retreat by your Skirmisher. Raider bodies and Rovan remain useful when no affliction combo appears.
 
@@ -236,13 +238,13 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 
 **Test question:** Can layered Guards and Healers recover the −1 Strength of old Exhaustion efficiently enough to hold a Front without depending on a single Hero?
 
-48 cards · 17 Forces · 35 titles · 25 one-copy titles · 95–100 total printed Command (Hero mode-dependent) · 53 sum printed Force Strength (not a Front total)
+48 cards · 17 Forces · 36 titles · 26 one-copy titles · 97–102 total printed Command (Hero mode-dependent) · 53 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
 - Relief Column and White Hands heal or enable a recovery line; They Lived to Tell It, No One Would Be First to Leave, Bind the Wound and Catch Your Breath provide alternative ways to lift conditions.
-- Middle Old Guard, Serekh and First Spear protect Rear formations, while Supported By, Held the Line For, Blocked the Road For and Guarded each protect a different weakness.
-- Covered the Withdrawal Of, Kept the Gate For and Trusted allow Exhausted formations to Maneuver when necessary, but recovery and actual Strength must remain the primary payoff.
+- Old Guard in Middle screens friendly Rear Archers. Serekh in Frontline protects the formation directly behind against Tactics, while First Spear can give the Force directly behind Guarded on PLAY.
+- Covered the Withdrawal Of, Kept the Gate For and Trusted let Exhausted Forces Maneuver when necessary. Crow Archers x2 can Shake an opposing Rear Force while Healers preserve the supporting line.
 - Rallied Behind can now recover Command and Move a formation when behind; No Step Back and The Ground Was Held remain hidden comeback plans.
 
 ### Card availability, not playable-combo probability
@@ -251,7 +253,7 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 |---|---:|---:|---:|---:|
 | Recover and re-form | 8 | 4 | 53.0% | 88.7% |
 | Frontline screen and back-rank shelter | 6 | 5 | 53.5% | 91.3% |
-| Hold under pressure | 9 | 5 | 63.0% | 93.9% |
+| Hold under pressure | 7 | 5 | 57.4% | 92.7% |
 
 ### Cards
 
@@ -259,7 +261,8 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 |---:|---|---|
 | 2 | The Serekh | force |
 | 3 | The Relief Column | force |
-| 3 | Thirty Spears | force |
+| 1 | Thirty Spears | force |
+| 2 | The Crow Archers | force |
 | 2 | The Damar | force |
 | 3 | The White Hands of Elara | force |
 | 2 | The Old Guard | force |
