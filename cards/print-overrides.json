@@ -226,7 +226,7 @@
       "effects": [
         {
           "timing": "hidden",
-          "text": "At resolution, a flanked friendly Frontline Force here ignores its flank penalty. In an outer Front, it also gets +2 Strength this Battle."
+          "text": "At resolution, a friendly flanked Frontline Force here ignores its flank penalty. In an outer Front, it also gets +2 Strength this Battle."
         }
       ],
       "design_note": "Hidden flank protection can be used in any active Front when an allied Frontline Force is actually flanked; retains the additional +2 Strength only in outer Fronts. Assigned Front and single Stratagem timing unchanged."
