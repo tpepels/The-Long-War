@@ -101,16 +101,17 @@ integrated corners/parchment, aperture, divider and cost seal. No semantic glyph
 or additional scene is overlaid on the illustration.
 
 Canonical illustrations remain under `web/art/cards/`; retained originals remain
-in `cards/art-sources/`. Default focus is centered. Existing `art_focus_x` and
-`art_focus_y` escape hatches accept percentages from 0% to 100%; invalid values
-fall back to the center. Portraits and story images reported to lose faces in
-the wide landscape art-window use `art_focus_y: "0%"` to keep their heads in view.
-The illustration keeps the existing fixed-height `background-size: cover` window:
-shifting a focus never stretches the physical card or changes the image file. No artwork is regenerated for this extension. The complete 128-card review found
-16 portraits whose available faces were lost by the shorter window. Those cards
-use `art_focus_y: "0%"` through the existing escape hatch; the other 112 remain
-centered. These presentation fields do not alter any card wording or mechanics.
-The canonical PNGs and retained originals are unchanged.
+in `cards/art-sources/`. **Every card now defaults to top-aligned artwork**:
+`art_focus_y: "0%"` shows the source image’s upper edge in the illustration
+window, cropping the bottom when `background-size: cover` needs to crop vertically.
+Horizontal alignment remains centered by default. The `art_focus_x` and
+`art_focus_y` fields remain available for intentional per-card exceptions and
+accept percentages from 0% to 100%; invalid or absent values fall back to the
+respective horizontal (50%) or vertical (0%) default.
+The illustration retains the existing fixed-height window and 68 × 96 mm card
+geometry; changing the default does not regenerate assets, change rules or modify
+manual card layout settings. Top alignment cannot reveal material already absent
+from the original illustration.
 
 Some illustrations already cut subjects in their source images, including The
 First Spear, The Old Guard, The Dust Riders, The Black Pursuers, The Iron Boars,
