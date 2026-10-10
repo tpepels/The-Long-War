@@ -180,6 +180,7 @@ class CommandDiagnosticDetail(StrEnum):
 
 class ActionKind(StrEnum):
     BEGIN_TURN = "BeginTurn"
+    ATTACK = "Attack"
     PASS = "Pass"
     END_TURN = "EndTurn"
     CYCLE = "Cycle"
@@ -198,6 +199,7 @@ class ActionKind(StrEnum):
 
 class ActionKeyToken(StrEnum):
     BEGIN_TURN = "begin-turn"
+    ATTACK = "attack"
     PASS = "pass"
     END_TURN = "end-turn"
     CYCLE = "cycle"
