@@ -106,11 +106,10 @@ def audit() -> dict:
         "difference_counts": counts,
         "cards": changes,
         "core_rule_gaps": [
-            "Voluntary Pass must happen before drawing, but the native engine draws automatically at turn start",
             "The current native action set has no basic Attack action",
             "Shaken, Depleted, Guarded, Inspired, Empowered and used-Attack require authoritative engine state",
-            "Flanking currently creates Exhaustion after an Action rather than a positional -1 Strength condition",
             "Battle-end lost-Front Exhaustion must offer a single selected Force per lost Front",
+            "Printed card effects, including Attack extensions, still require verified executable parity",
         ],
     }
 
