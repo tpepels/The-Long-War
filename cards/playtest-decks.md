@@ -14,7 +14,7 @@ Reliable leadership and permanent Strength: Captain/King formations amplify Bond
 
 **Test question:** With repeated leadership and Strength enablers, can the deck consistently complete Named stacks and convert their Strength without depending on drawing one exact Hero?
 
-48 cards · 16 Forces · 27 titles · 12 one-copy titles · 110–115 total printed Command (Hero mode-dependent) · 64 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 27 titles · 12 one-copy titles · 108–115 total printed Command (Hero mode-dependent) · 66 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -69,7 +69,7 @@ Archer pressure reinforced by real Guard screening and repeatable conditional de
 
 **Test question:** Do repeated Archer/Guard packages win Fronts often enough to justify lower raw starting Strength and the limited Rear positions?
 
-48 cards · 16 Forces · 27 titles · 10 one-copy titles · 107–111 total printed Command (Hero mode-dependent) · 50 sum printed Force Strength (not a Front total)
+48 cards · 16 Forces · 27 titles · 10 one-copy titles · 105–111 total printed Command (Hero mode-dependent) · 52 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -179,7 +179,7 @@ Shake, Deplete and displace opposing Forces, then exploit weakened defenders wit
 
 **Test question:** Can Shaken Frontline defenders open Raider Incursions often enough to beat simply deploying more permanent Strength?
 
-48 cards · 17 Forces · 29 titles · 14 one-copy titles · 117–123 total printed Command (Hero mode-dependent) · 67 sum printed Force Strength (not a Front total)
+48 cards · 17 Forces · 29 titles · 14 one-copy titles · 115–123 total printed Command (Hero mode-dependent) · 67 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -236,7 +236,7 @@ Exhaustion recovery, interlocking Guard defence and resilient Named formations t
 
 **Test question:** Can layered Guards and Healers recover the −1 Strength of old Exhaustion efficiently enough to hold a Front without depending on a single Hero?
 
-48 cards · 17 Forces · 35 titles · 25 one-copy titles · 96–100 total printed Command (Hero mode-dependent) · 47 sum printed Force Strength (not a Front total)
+48 cards · 17 Forces · 35 titles · 25 one-copy titles · 95–100 total printed Command (Hero mode-dependent) · 53 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
@@ -299,7 +299,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 
 **Test question:** Can a Scout/Skirmisher/Raider setup create meaningful Strength denial and attached-layer theft, or does plain Force Strength still win?
 
-48 cards · 18 Forces · 32 titles · 18 one-copy titles · 103–107 total printed Command (Hero mode-dependent) · 57 sum printed Force Strength (not a Front total)
+48 cards · 18 Forces · 32 titles · 18 one-copy titles · 101–107 total printed Command (Hero mode-dependent) · 59 sum printed Force Strength (not a Front total)
 
 ### Combinations to test
 
