@@ -101,7 +101,7 @@ const TERM_HINTS = {
   "support": "The Middle/Support position between the Frontline and Rear in the same Front.",
   "move": "Relocate a Named Formation or other cards as the rule or card text allows.",
   "name": "A Unique formation component. It may be prepared before the Force or Bond; Force-dependent text stays inactive until a Force is present.",
-  "pass": "Available only when no legal Action remains after drawing. The opponent then takes one closing turn, you take one closing turn, and the Battle ends.",
+  "pass": "Before drawing, you may Pass voluntarily. You draw nothing; the opponent takes one closing turn, then you take one closing turn, and the Battle ends.",
   "passes": "Pass starts the fixed two-turn closing sequence; it is not an Action.",
   "rear": "The back position of the same Front, behind the Middle/Support rank.",
   "rear force": "The Force occupying the Rear position of that Front.",
@@ -598,6 +598,11 @@ function selectedActions() {
   return state.legal_actions.filter((action) => action.card_id === selectedCardId);
 }
 
+function actionForBeginTurn() {
+  if (!state || state.phase === SESSION_PHASE.MULLIGAN) return null;
+  return state.legal_actions.find((action) => action.kind === ACTION_KIND.BEGIN_TURN) || null;
+}
+
 function actionForPass() {
   if (!state || state.phase === SESSION_PHASE.MULLIGAN) return null;
   return state.legal_actions.find((action) => action.kind === ACTION_KIND.PASS) || null;
@@ -915,6 +920,7 @@ function renderStrip() {
       '<div class="turn-marker">Player ' +
       (state.active_player + 1) +
       ' · choose up to 2 returns</div>';
+    $("begin-turn-button").hidden = true;
     $("pass-button").hidden = true;
     $("cycle-button").hidden = true;
     return;
@@ -940,6 +946,11 @@ function renderStrip() {
     '<div class="score-player ' +
       (state.active_player === viewer ? "active" : "") +
       '"><span>P' + (viewer + 1) + '</span></div>';
+
+  const beginTurn = actionForBeginTurn();
+  const beginTurnButton = $("begin-turn-button");
+  beginTurnButton.hidden = !beginTurn || state.viewer == null;
+  beginTurnButton.disabled = !beginTurn || state.viewer == null;
 
   const pass = actionForPass();
   const endTurn = actionForTurnEnd();
@@ -1181,10 +1192,16 @@ function renderInteraction() {
       title.textContent = "Hand limit";
       hint.textContent = "Your hand is above the limit. Discard down to " + state.rules.hand_limit + " before play continues.";
       cancel.hidden = true;
+    } else if (actionForBeginTurn()) {
+      title.textContent = "Before your draw";
+      hint.textContent = actionForPass()
+        ? "Choose Draw and play to start your normal turn, or Pass without drawing to start the two-turn closing sequence."
+        : "Draw and play your closing turn. You cannot Pass again during Battle closing.";
+      cancel.hidden = true;
     } else {
       title.textContent = "Your turn · Action " +
         (state.actions_this_turn + 1) + "/" + state.actions_per_turn;
-      hint.textContent = "Play a card, Maneuver, Cycle, or end your turn early. Pass appears only when no legal Action remains.";
+      hint.textContent = "Play a card, Maneuver, Cycle, or end your turn early. Pass is only available before your draw.";
       cancel.hidden = true;
     }
   } else {
@@ -1909,6 +1926,11 @@ $("cycle-button").addEventListener("click", () => {
   choiceActions = cycles;
   renderChoiceTray();
   $("choice-tray").querySelector("button")?.focus();
+});
+
+$("begin-turn-button").addEventListener("click", () => {
+  const action = actionForBeginTurn();
+  if (action) executeAction(action);
 });
 
 $("pass-button").addEventListener("click", () => {
