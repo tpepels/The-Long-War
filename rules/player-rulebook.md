@@ -62,7 +62,7 @@ You may play a **Force, Bond or Name** in any order into its empty layer slot, i
 
 A Force anchors a formation. Add a Bond to make it **Bonded**; add both a Bond and Name to make it **Named**. A Name alone does not make it Named; a Bond without a Name is an **open Bond**.
 
-A Bond or Name placed without a Force is **prepared**: face-up, with no Strength. It attaches when a legal Force arrives. You cannot simply replace an existing Bond or Name; a card effect must remove, return or exchange it.
+A Bond or Name placed without a Force is **prepared**: face-up, with no Strength. Its PLAY text works when played, but other abilities wait until attached to a Force; WHILE NAMED still requires all three layers. It attaches when a legal Force arrives. You cannot simply replace an existing Bond or Name; a card effect must remove, return or exchange it.
 
 **PLAY** abilities happen when a card is played, including a prepared layer. **BECOMES NAMED** happens when a formation gains its missing layer and becomes Named. Resolve PLAY first, then the new completion effects. Prepared cards do not repeat their old PLAY effects when attached later.
 
@@ -70,7 +70,7 @@ If an ACTION ability tells you to play a card, that play is part of the spent Ac
 
 ### Row and placement restrictions
 
-Only use **active Fronts** and legal positions. Every resulting Force, Bond and Name must meet its restrictions, including after a Move or swap.
+Only use **active Fronts** and legal positions. Every resulting Force, Bond and Name must meet its restrictions, including after a Move or swap. On a card in play, **here** means **in this Front**, not only its position.
 
 ### Strength {#strength}
 
@@ -89,7 +89,7 @@ A formation contributes **at least 0** Strength. Prepared layers contribute none
 
 ### Classifications {#classifications}
 
-Classifications come from the **Force and attached Name together**. They determine basic Attacks and which card effects apply. A Force with several Attack classifications still attacks only **once per Battle**, choosing one Attack. **Guard** grants its screening rule. Other classifications do only what card text says.
+Classifications come from the **Force and attached Name together**. They determine basic Attacks and which card effects apply. When a card asks you to choose one classification, choose it once and apply the effect once per qualifying formation. A Force with several Attack classifications still attacks only **once per Battle**, choosing one Attack. **Guard** grants its screening rule. Other classifications do only what card text says.
 
 ## Maneuver and card movement {#maneuver}
 
@@ -130,7 +130,7 @@ A Force can have one marker of each condition. Identical conditions do not stack
 - **Shaken:** −2 Strength; Guard screening stops.
 - **Depleted:** −1 Strength; cannot Attack or activate **any ACTION** printed on its formation. Passive and triggered effects still work.
 
-Conditions are removed only by card effects or Battle-end cleanup; there is **no generic recovery Action**. Removing Exhaustion does not reset a spent Attack.
+Only actual negative markers on Forces (such as Exhausted, Shaken and Depleted) can be removed by marker-removal effects. Temporary Strength penalties, ignored text and ACTION locks are not removable markers unless the card says to place one. Conditions otherwise leave only through card effects or Battle-end cleanup; there is **no generic recovery Action**. Removing Exhaustion does not reset a spent Attack.
 
 ### Boons
 
@@ -138,11 +138,11 @@ Conditions are removed only by card effects or Battle-end cleanup; there is **no
 - **Inspired:** remove Shaken and prevent it while Inspired.
 - **Empowered:** the next Attack ignores screening, then remove Empowered (not range or Attack limits).
 
-Boons do not stack with themselves. Guarded stops one affliction, not a sequence of separate ones. All temporary conditions and Boons normally clear during Battle-end cleanup.
+Boons do not stack with themselves. Guarded stops one affliction, not a sequence of separate ones. All temporary conditions and Boons normally clear during Battle-end cleanup. An unspent Tax marker also expires at Battle end.
 
 ## Special cards {#stories}
 
-**Tactics** target the opponent; **Orders** help you. Play each for one Action and its printed cost, resolve PLAY, then discard.
+**Tactics** target the opponent; **Orders** help you. Play each for one Action and its printed cost, resolve PLAY, then discard. Targeting a Force also targets its formation for Tactic protections and costs. A Tactic or Order that selects a target or Front counts as played in that Front; global cards do not. Choose the Front and target before paying any Tax.
 
 **Narratives** stay face-up until Battle end (up to **4** at a time). Resolve PLAY when you play one; CONTINUOUS text operates while it remains, and ACTION text costs an Action when used.
 
@@ -205,7 +205,7 @@ Check **before recovery**. A player at 0 or less loses the war. If both collapse
 
 Choose **one Force in each lost Front**, if any. Its Guarded may prevent Exhaustion; if it does, do not choose a replacement. Then:
 
-1. Clear old afflictions, Boons, use markers, temporary effects and Narratives; discard unrevealed Stratagems.
+1. Clear old afflictions, Boons, use markers, unspent Tax markers, temporary effects and Narratives; discard unrevealed Stratagems.
 2. Apply **one new Exhaustion token** to each chosen, unprotected Force (at most one per lost Front).
 
 New Exhaustion lasts through the next Battle unless removed by a card. Layers remain in play. An Exhausted Force still contributes Strength and may Attack.
@@ -229,7 +229,7 @@ If neither player collapsed, recover **12, 9, 6, 3, then 1 Command per subsequen
 | **TRIGGER / REACTION** | Resolve when the stated event occurs. |
 | **HIDDEN / REVEAL** | Hidden Stratagem, optionally revealed on its trigger. |
 
-Resolve instructions in printed order. For multiple friendly triggers at the same time, their controller chooses the order, except simultaneous opposing Stratagems.
+Resolve instructions in printed order. A free basic Attack after a Move still needs an unused Attack and a legal target. A card with no legal target for its PLAY effect has no effect from that instruction. For multiple friendly triggers at the same time, their controller chooses the order, except simultaneous opposing Stratagems.
 
 ### Removing layers
 

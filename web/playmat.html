@@ -30,7 +30,7 @@
 
     <div class="reference-v3-main">
       <section class="reference-v3-board" aria-label="Battlefield diagram">
-        <div class="rv-player"><strong>OPPONENT</strong><span>STRATAGEMS · face-down at a chosen active Front · one from hand per Battle</span></div>
+        <div class="rv-player"><strong>OPPONENT</strong><span>STRATAGEMS · face-down at a chosen active Front · one total per Battle</span></div>
         <div class="rv-front-labels"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
         <div class="rv-side opponent">
           <div><span class="rv-slot rear"><b>Rear</b></span><span class="rv-slot middle"><b>Middle / Support</b></span><span class="rv-slot front"><b>Frontline</b></span></div>
@@ -46,7 +46,7 @@
           <div><span class="rv-slot front"><b>Frontline</b></span><span class="rv-slot middle"><b>Middle / Support</b></span><span class="rv-slot rear"><b>Rear</b></span></div>
         </div>
         <div class="rv-front-labels bottom"><span>FRONT 1</span><span>FRONT 2</span><span>FRONT 3</span><span>FRONT 4</span></div>
-        <div class="rv-player you"><strong>YOU</strong><span>STRATAGEMS · face-down at a chosen active Front · one from hand per Battle</span></div>
+        <div class="rv-player you"><strong>YOU</strong><span>STRATAGEMS · face-down at a chosen active Front · one total per Battle</span></div>
         <div class="rv-language">
           <b>Active Fronts</b> = Battle I: middle 2 · Battle II: add left outer · Battle III+: all 4
           <b>Adjacent</b> = shares an edge: left/right or one rank forward/back · never diagonal
@@ -60,7 +60,7 @@
           <ol>
             <li><b>Before drawing:</b> choose to Pass (no draw, no Actions), or take a normal turn.</li><li><b>Normal turn:</b> draw {{TURN_DRAW_COUNT}}. Discard down to {{HAND_LIMIT}} if needed; reshuffle discard if the deck empties.</li>
             <li><b>Act:</b> take up to {{ACTIONS_PER_TURN}} Actions: play a card, use an ACTION ability, Maneuver, Attack, or Cycle (discard 2, draw 1). Ending early is not Pass.</li>
-            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move a Named Formation one adjacent active position - left/right or one rank forward/back, never diagonal - or swap with a friendly formation. Exhausted Forces have −1 Strength and normally cannot Maneuver.</li>
+            <li><b>Maneuver:</b> pay {{MANEUVER_COMMAND_COST}} Command; move any eligible formation one adjacent active position - left/right or one rank forward/back, never diagonal - or swap with a friendly formation. Exhausted Forces have −1 Strength and normally cannot Maneuver.</li>
             <li><b>Pass:</b> voluntary, before drawing. Opponent takes one full closing turn (draw + up to 2 Actions), then the passer takes one; resolve the Battle.</li>
           </ol>
         </section>
@@ -70,36 +70,37 @@
           <dl class="rv-placement">
             <div><dt>Force</dt><dd>Any position without a Force, subject to printed row restrictions.</dd></div>
             <div><dt>Bond</dt><dd>Any position without a Bond; may be prepared, but contributes 0 Strength without a Force.</dd></div>
-            <div><dt>Name</dt><dd>Any position without a Name; may be prepared, but contributes 0 Strength without a Force.</dd></div>
+            <div><dt>Name</dt><dd>Any position without a Name; may be prepared. PLAY works immediately; other abilities wait for attachment to a Force.</dd></div>
             <div><dt>Hero</dt><dd>Play at most {{HERO_FORCE_PLAY_LIMIT_PER_BATTLE}} Hero as Force and {{HERO_NAME_PLAY_LIMIT_PER_BATTLE}} Hero as Name from hand per Battle.</dd></div>
             <div><dt>Narrative</dt><dd>Face-up until this Battle ends; maximum <b>4</b> per player. CONTINUOUS text stays active; ACTION abilities require an Action.</dd></div>
-            <div><dt>Tactic</dt><dd>One-shot hostile card; resolve immediately, then discard.</dd></div>
-            <div><dt>Order</dt><dd>One-shot friendly card; resolve immediately, then discard.</dd></div>
-            <div><dt>Stratagem</dt><dd>Choose an active Front publicly; place face-down beside it. Reveal is optional when triggered. Max {{STRATAGEM_PLAY_LIMIT_PER_BATTLE}} from hand per Battle.</dd></div>
+            <div><dt>Tactic</dt><dd>One-shot hostile card; selecting a Force also targets its formation. A selected target determines its Front for Taxes.</dd></div>
+            <div><dt>Order</dt><dd>One-shot friendly card; its selected target or Front also determines any applicable Tax. Discard after resolving.</dd></div>
+            <div><dt>Stratagem</dt><dd>Choose an active Front publicly; place face-down beside it. Reveal is optional when triggered. Max {{STRATAGEM_PLAY_LIMIT_PER_BATTLE}} per player per Battle, even when set by an effect.</dd></div>
           </dl>
         </section>
 
         <section>
           <span>CARD TEXT</span>
-          <p><b>Stack:</b> Force + Bond + Name; modifiers add to Force Strength, minimum 0 per formation. Attached Name classifications combine with the Force, including basic Attacks (one Attack per Force per Battle). Compatible prepared layers attach when a formation moves into them. <b>Exhausted:</b> −1 Strength. <b>Depleted:</b> −1 Strength and cannot Attack or use ACTION on any layer. <b>Shaken:</b> −2 Strength. Penalties stack. <b>Flanked Frontline:</b> −1 Strength while flanked, no marker. <b>PLAY</b> resolves on play (also when prepared, never replayed on attachment); <b>BECOMES NAMED</b> triggers on genuine completion. MOVE and SWAP are not Maneuvers.</p>
+          <p><b>Stack:</b> Force + Bond + Name; modifiers add to Force Strength, minimum 0 per formation. Attached Name classifications combine with the Force, including basic Attacks (one Attack per Force per Battle). Compatible prepared layers attach when a formation moves into them. <b>Exhausted:</b> −1 Strength. <b>Depleted:</b> −1 Strength and cannot Attack or use ACTION on any layer. <b>Shaken:</b> −2 Strength. Penalties stack. <b>Flanked Frontline:</b> −1 Strength while flanked, no marker. <b>PLAY</b> resolves on play (also when prepared, never replayed on attachment); <b>BECOMES NAMED</b> triggers on genuine completion. <b>Here</b> means the card's Front. Only actual harmful Force markers can be removed by marker-removal effects; bare suppression is not a marker. MOVE and SWAP are not Maneuvers.</p>
         </section>
 
         <section class="rv-score">
           <span>AFTER THE TWO CLOSING TURNS</span>
           <ol>
-            <li>One simultaneous Stratagem reveal window, using pre-reveal board and Strength for eligibility. Prevention wins; conflicting moves cancel.</li>
+            <li>Each player secretly sets 2 Opening Orders (Maneuver, Commit, Strike or Hold). Reveal together, then resolve Commit costs, numbered Maneuvers and numbered Strikes.</li>
+            <li>One simultaneous resolution Stratagem reveal window, using pre-reveal board and Strength for eligibility. Prevention wins; conflicting moves cancel.</li>
             <li>Compare Strength in each active Front (minimum 0 per formation); record lost Fronts and ties. Resolve Battle-end card effects.</li>
-            <li>Lose {{LOST_FRONT_COMMAND_PENALTY}} Command per unprotected Front lost; check Collapse at {{COLLAPSE_THRESHOLD}} before recovering.</li>
-            <li>The loser chooses <b>one Force per lost Front</b> for next-Battle Exhaustion. Its Guarded may prevent it (do not choose another Force). Clear old conditions, then apply the new Exhaustion; recover, refill and open the next Front.</li>
+            <li>Lose Command equal to the full Strength deficit in each lost Front; check Collapse at {{COLLAPSE_THRESHOLD}} before recovering.</li>
+            <li>The loser chooses <b>one Force per lost Front</b> for next-Battle Exhaustion. Its Guarded may prevent it (do not choose another Force). Clear old conditions and unspent Tax markers, then apply new Exhaustion; recover, refill and open the next Front.</li>
           </ol>
         </section>
       </aside>
     </div>
 
     <footer class="reference-v3-footer">
-      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}, cap {{COMMAND_CAP}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. Lose {{LOST_FRONT_COMMAND_PENALTY}} per unprotected Front lost. Collapse at {{COLLAPSE_THRESHOLD}} or below: lower Command loses, equal collapsed totals means passer loses.</span></div>
+      <div><b>COMMAND</b><span>Start at {{STARTING_COMMAND}}, cap {{COMMAND_CAP}}; Maneuver costs {{MANEUVER_COMMAND_COST}}. Lose Command equal to each lost Front's Strength deficit. Collapse at {{COLLAPSE_THRESHOLD}} or below: lower Command loses, equal collapsed totals means passer loses.</span></div>
       <div><b>RECOVERY</b><span>If the war continues, recover the current base: <b>{{RECOVERY_SERIES}}</b>, minimum {{RECOVERY_FLOOR}}; Front losses have already reduced Command before Collapse; max total {{COMMAND_CAP}}.</span></div>
-      <div><b>BETWEEN BATTLES</b><span>Before clearing Boons, choose one Force per lost Front; Guarded on the chosen Force prevents its Exhaustion. Clear old afflictions and Boons, then apply any new Exhaustion to the chosen Forces for next Battle. Formations and prepared cards stay · refill to {{HAND_LIMIT}} · activate the next Front · non-passer starts.</span></div>
+      <div><b>BETWEEN BATTLES</b><span>Before clearing Boons, choose one Force per lost Front; Guarded on the chosen Force prevents its Exhaustion. Clear old afflictions, Boons and unspent Tax markers, then apply any new Exhaustion to the chosen Forces for next Battle. Formations and prepared cards stay · refill to {{HAND_LIMIT}} · activate the next Front · non-passer starts.</span></div>
     </footer>
   </main>
 </body>

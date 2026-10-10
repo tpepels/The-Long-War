@@ -1,129 +1,33 @@
-# Unresolved wording and rules-integration questions
-
-**No ruling is made here.** Questions labeled **Design decision required** can change game behavior if silently settled during copy-editing. The remaining entries are editorial contract/verification issues that may be answered by confirming the existing intent.
-
-**7 design decisions** and **5 editorial clarifications** remain from the preprint audit. A wording-only pass updated 94 card passages and 31 rulebook passages, but **none of these questions was silently resolved**. Confirm each contract before modifying mechanics or finalizing its related text.
-
-## D01 — Targeting Tactics versus Forces
-
-**High severity · Design decision required**
-
-**Evidence:** Protection refers to Tactics that “target a formation”; several Tactics select a Force directly.
-
-**Question:** Does choosing a Force automatically target its formation for all Tactic taxes, Guarded responses and redirection?
-
-**Recommended handling:** Decide once in Reference; do not individually add ad-hoc exceptions to every Tactic.
-
-**Affected cards/systems:** Red Shields; Serekh; Supported By; Alda; Asha; A Volley Before Dawn; The Baggage Was Abandoned
-
-## D02 — Tax marker lifetime
-
-**High severity · Design decision required**
-
-**Evidence:** The Line Had Begun to Move does not print an expiration; Reference says Tax markers expire when their text says so, but cleanup removes “other Battle-only effects”.
-
-**Question:** Does an unconsumed Tax marker survive into the next Battle, and is that intentional?
-
-**Recommended handling:** Decide a single lifetime and state it once; avoid a silent new expiry on the card.
-
-**Affected cards/systems:** The Line Had Begun to Move; Rovan (Name ACTION)
-
-## D03 — What counts as playing a card “in a Front”
-
-**High severity · Design decision required**
-
-**Evidence:** Some Tactics and Orders are played and discarded rather than deployed; a Tax marker taxes the next card played “there”.
-
-**Question:** Does a Tactic targeting a formation in the marked Front count as a card played in that Front? How about a global Narrative or Order?
-
-**Recommended handling:** Clarify scope with one target-origin rule in the Reference, not individual cards.
-
-**Affected cards/systems:** The Line Had Begun to Move; Rovan; other Tactic-cost taxes
-
-## D04 — Removable negative markers for suppression
-
-**High severity · Design decision required**
-
-**Evidence:** Reference defines temporary negative markers to include Strength penalties, text suppression and ACTION locks, even when an effect does not literally place a marker.
-
-**Question:** Are all such penalties meant to receive individual physical markers that recovery cards can remove independently?
-
-**Recommended handling:** Specify exactly what qualifies as a removable temporary marker and how it is represented, without changing cards first.
-
-**Affected cards/systems:** They Lived to Tell It; The White Hands of Elara; Relief Column; They Returned With Names; They Let Them Through
-
-## D05 — The scope of “here” on stationed cards
-
-**Medium severity · Design decision required**
-
-**Evidence:** Reference explicitly scopes here to a Stratagem’s assigned Front, but Forces/Bonds/Names use “here” without an equally direct definition.
-
-**Question:** For an ordinary card in a position, does “here” always mean its Front rather than its position?
-
-**Recommended handling:** Either establish the interpretation in one short reference sentence or spell out “in this Front” on affected cards.
-
-**Affected cards/systems:** The Fifty Men; The Salt-Road Reavers; Red Duelists; Shared the Spoils With
-
-## D06 — The Trap Closed pronoun and event source
-
-**Medium severity · Design decision required**
-
-**Evidence:** Its printed text says “your Raider or Skirmisher, or a Tactic you play while one is here, gives an opposing Force here a negative marker.”
-
-**Question:** When the Tactic is a remote effect or places multiple markers, is eligibility checked before or after each marker event, and can its trigger occur once or multiple times?
-
-**Recommended handling:** Keep the single used Stratagem and assigned-Front restriction, but confirm event granularity before compressing the sentence.
-
-**Affected cards/systems:** The Trap Closed; The Line Was Baited; The Baggage Was Abandoned
-
-## D07 — Attack-equivalent wording in non-Attack text
-
-**Medium severity · Editorial clarification / verify existing intent**
-
-**Evidence:** Several card Move effects grant a basic Attack “without another Action,” whereas an explicit normal Attack is its own Action.
-
-**Question:** Does all printed text that permits a basic Attack after moving require the same available Attack and legal target check?
-
-**Recommended handling:** Current Reference suggests yes. If so, give one standard illustrative example, not more text on each card.
-
-**Affected cards/systems:** Grey Riders; The Vardai; Neris; Elian; The Damar
-
-## D08 — A conditional hidden plan in the absence of a target
-
-**Medium severity · Editorial clarification / verify existing intent**
-
-**Evidence:** The Ground Was Held checks provisional tie/one-point deficit and whether only one player has a Named Formation.
-
-**Question:** For printed brevity, may the card simply say “on a tie” when eligibility is always checked against the pre-reveal state?
-
-**Recommended handling:** Confirm the shared timing terminology; then safely simplify the card without changing simultaneous resolution.
-
-**Affected cards/systems:** The Ground Was Held; single resolution reveal window
-
-## D09 — Choice of classification in formation bonuses
-
-**Medium severity · Editorial clarification / verify existing intent**
-
-**Evidence:** Arel and Avaros select one classification “among your friendly formations,” while normal classification rules combine Force and Name labels.
-
-**Question:** Is one eligible classification chosen once, with every qualifying formation receiving its benefit exactly once, as suggested by the general rule?
-
-**Recommended handling:** Add a short class-union example to Reference; do not add new classification symbols.
-
-**Affected cards/systems:** Arel; Avaros; all Humans/Captains
-
-## D10 — Effect attachment to a prepared Name
-
-**Medium severity · Design decision required**
-
-**Evidence:** A prepared Name has no Force and no Strength; some PLAY effects still resolve before it attaches.
-
-**Question:** For abilities other than PLAY or BECOMES NAMED, do Name TRIGGER/CONTINUOUS/ACTION abilities operate only after attachment to a Force, including when the formation is not yet Named?
-
-**Recommended handling:** Make the intended activation state explicit in one general Reference sentence.
-
-**Affected cards/systems:** Iria; Lysa; Edrin; Yara (Hero Name); Veyra (Hero Name)
-
-## D11 — Spell out a legal response when card has no targets
-
-**Low severity · Editorial clarification / verify existing intent**
+# Preprint editorial rulings — physical game
+
+**Resolved 10 October 2026.** These are the adopted physical-game decisions from the editorial audit. The authoritative wording lives in `rules/rulebook.md`; the shorter `rules/player-rulebook.md` teaches the same behavior. No card costs, Strength values, deck composition, new keywords or extra timing windows were introduced. The old open-question status is superseded by this record.
+
+| ID | Ruling | Where implemented |
+| --- | --- | --- |
+| **D01 — Force targeting** | A Tactic that selects a Force also targets its whole formation for Tactic protections, taxes and legal redirection. Guarded still prevents only an affliction, not an entire Tactic. | Rulebook, Special cards; player rulebook |
+| **D02 — Tax lifetime** | An unconsumed Tax marker expires during Battle-end cleanup. A shorter printed deadline, such as Rovan's `before your next turn`, still applies. | Rulebook, Cleanup and Tax markers; player rulebook |
+| **D03 — Cards played in a Front** | Playing a Tactic or Order counts in each Front containing an explicitly selected target or specified Front. Declare affected Fronts/targets before paying Command so applicable Taxes can be calculated. A global Narrative or other card with no selected Front does not count as played in one. Multiple applicable Taxes combine. | Rulebook, Special cards and Tax markers; player rulebook |
+| **D04 — Negative markers** | Marker-removal effects remove **actual harmful markers on a Force**, such as Exhausted, Shaken and Depleted, or another marker explicitly placed there by a card. A temporary Strength penalty, ignored text, suppression or ACTION lock is not individually removable merely because it is harmful. Front Tax markers are not negative Force markers. | Rulebook, Suppression and other effects; player rulebook |
+| **D05 — Here** | For a Force, Bond, Name or Hero in play, `here` means **in its Front**, never only its physical position. A Stratagem's `here` is its publicly assigned Front. `This formation`, `directly ahead` and `directly behind` are narrower terms. | Rulebook, Formations and Positions; player rulebook |
+| **D06 — The Trap Closed** | Check each **actually applied** negative marker event in the assigned Front; a prevented marker does not qualify. At the marker event, the source must be your Raider/Skirmisher there or your Tactic played while one is there. The Stratagem can optionally reveal on one eligible event **once**, and is discarded after resolving; a sequence of markers does not give multiple triggers. | Rulebook, Hidden responses; clarified pronoun in printed card |
+| **D10 — Prepared Names** | A prepared Name (including a Hero used as a Name) resolves PLAY when played, but cannot use ACTION, TRIGGER, REACTION or CONTINUOUS while prepared. Once attached to a Force, those effects operate under their own conditions even without a Bond; WHILE NAMED and BECOMES NAMED retain their explicit all-three-layer requirements. | Rulebook, Formations and Reference; player rulebook |
+
+## Other editorial confirmations
+
+- **D07 — Free basic Attacks:** An Attack permitted after a Move still requires an eligible attacker, an unused Attack and a legal target. It does not gain a second Attack or avoid screening unless card text says so. See the Reference example of The Vardai and Elian.
+- **D08 — The Ground Was Held:** Eligibility and tie/one-point-deficit branch are checked against the provisional Front **before** simultaneous reveals. Its tie-win applies only if still tied afterward; a newly produced tie does not open another window.
+- **D09 — Classifications:** Arel/Avaros-style choices name one classification once, then grant the bonus once to each qualifying formation. Classifications can come from the Force or its attached Name.
+- **D11 — No eligible PLAY target:** The existing rule stands: play a legal card as normal, and any PLAY instruction with no eligible target simply has no effect. The former D11 audit entry contained only a heading; this confirmation does not create a new restriction.
+- **Printed brevity:** Shared rules are written here and in the rulebooks rather than repeated as icons or exceptions on every card. The Trap Closed received only a referent clarification, not an extra timing label.
+
+## Table examples for checking these rulings
+
+1. **Protecting a Force from a Tactic:** A Volley Before Dawn chooses the Force in a Frontline Red Shields formation; the Tactic also targets the formation. Calculate the applicable Tactic tax before paying. Guarded may prevent its Shaken affliction, but is not blanket Tactic immunity.
+2. **Tax and card location:** The Line Had Begun to Move puts a Tax on Front 2. A Tactic selecting an opposing Force in Front 2 is taxed even though the Tactic is discarded. A global Narrative with no selected Front is not taxed. If the Tax was not consumed, remove it at Battle end.
+3. **Recovery:** They Lived to Tell It may remove Exhaustion, Shaken or Depleted on a friendly Force, but not a bare `ignore Name text this Battle` restriction or an unmarked −Strength effect. Removing Exhaustion offers its printed optional Move; other cases grant Inspired.
+4. **Prepared Name:** A prepared Asha is face-up and cannot redirect a Tactic. After it attaches to a Force it may use its TRIGGER when eligible; it gains BECOMES NAMED only if a Bond also completes the formation.
+5. **Hidden trigger:** One Tactic gives the same opposing Force both Exhausted and Shaken in order. If the first affliction is prevented, the hidden Trap cannot reveal from that first marker; it can reveal on the second actual marker only if the assigned-Front Raider/Skirmisher requirement is met. It cannot resolve again afterward.
+
+## Scope and next checks
+
+The rulings are for the **physical printed game**. `cards/cards.json` still defines the older executable runtime and was **not rewritten** in this rulebook clarification. The physical web catalogue uses `cards/print-overrides.json`. Engine behavior needs separate parity work; these rulebook assertions do not constitute evidence that the engine already implements them.

@@ -73,9 +73,9 @@ Most battlefield positions are built from **Force**, **Bond** and **Name** cards
 
 A Force anchors a formation. Add a Bond to make it **Bonded**; add both a Bond and Name to make it **Named**. A Name without a Bond does not make it Named. A Bond without a Name is an **open Bond**.
 
-If a Bond or Name is played into a position without a Force, it is **prepared** and remains face-up. You may prepare both in the same position. Prepared layers have no Strength and are not formations. Later, a Force played into that position incorporates them; it may become Named at once.
+If a Bond or Name is played into a position without a Force, it is **prepared** and remains face-up. You may prepare both in the same position. Prepared layers have no Strength and are not formations. Their **PLAY** effects still resolve; other abilities wait until the card is attached to a Force. Later, a Force played into that position incorporates them; it may become Named at once.
 
-Each position holds one of each layer. To change an attached Bond or Name, use a card effect that removes, returns, or exchanges it; this makes attachment-manipulation cards valuable. A Force is played into a position that has no Force. Unless a card says otherwise, components stay on the battlefield between Battles.
+Each position holds one of each layer. To change an attached Bond or Name, use a card effect that removes, returns, or exchanges it; this makes attachment-manipulation cards valuable. A Force is played into a position that has no Force. Unless a card says otherwise, components stay on the battlefield between Battles. **Here** on a Force, Bond or Name means **in this Front**, not only its position; phrases such as *directly behind* or *this formation* identify a narrower target.
 
 Resolve **PLAY** when you play a card, even if it is prepared. Resolve **BECOMES NAMED** when the last missing layer completes a Named Formation. Attaching a prepared card later does **not** replay its earlier PLAY effect.
 
@@ -102,7 +102,7 @@ A classification describes a card's role: **Archer, Rider, Guard, Scout, King**,
 
 This union matters for effects referring to formations containing a classification and for the four basic Attack types. For example, attaching a Rider Name to a non-Rider Force gives that Force access to a basic Rider Attack. A Force with several Attack classifications **still gets only one Attack per Battle**, choosing which Attack to use. **Guard** also supplies the standard screening rule. Other classifications have no inherent rule unless a card refers to them.
 
-Your *Archers*, *Kings* and *Captains* are friendly formations with those classifications, whether printed on the Force or attached Name. A formation eligible through several classifications receives the same effect once; effects from different cards can still combine.
+Your *Archers*, *Kings* and *Captains* are friendly formations with those classifications, whether printed on the Force or attached Name. If a card such as *Arel* or *Avaros* asks you to choose one classification, choose it once; all qualifying formations benefit once each, including those with that classification on an attached Name. A formation eligible through several classifications receives the same effect once; effects from different cards can still combine.
 
 ## Maneuver and card movement {#maneuver}
 
@@ -168,7 +168,7 @@ Middle Guards provide their usual screening. Other roles—Strongholds, Ships, H
 
 ## Special cards {#stories}
 
-**Tactics** are one-shot hostile cards. **Orders** are their friendly counterparts. Each costs one Action plus any printed Command; resolve its PLAY text and discard it. Even a 0-Command Order uses one Action unless its text explicitly says otherwise. *Re-form the Line* can deliberately discard one of your Forces (including its attached Bond and Name) to regain 2 Command and vacate that battlefield position; this is the only general-purpose withdrawal option in the initial physical playtest pool. It requires a Captain in that Front. Discarded formation layers cannot be recovered merely by Maneuvering.
+**Tactics** are one-shot hostile cards. **Orders** are their friendly counterparts. Each costs one Action plus any printed Command; resolve its PLAY text and discard it. A Tactic that selects an opposing Force also targets its formation for effects that protect or tax that formation. A Tactic or Order is treated as played in each Front where it explicitly selects a target or Front, even though the card is discarded rather than deployed. A card with no selected Front, such as a global Narrative, is not played in any Front for Tax effects. Declare the relevant Front and targets before paying the card's Command cost so any Taxes apply. Even a 0-Command Order uses one Action unless its text explicitly says otherwise. *Re-form the Line* can deliberately discard one of your Forces (including its attached Bond and Name) to regain 2 Command and vacate that battlefield position; this is the only general-purpose withdrawal option in the initial physical playtest pool. It requires a Captain in that Front. Discarded formation layers cannot be recovered merely by Maneuvering.
 
 A **Narrative** stays face-up until Battle end. You may have up to **4 Narratives** in play. Resolve its PLAY effect immediately; while it remains, you may benefit from its CONTINUOUS text or spend an Action to use its ACTION text. Even a PLAY-only Narrative occupies a slot until Battle end.
 
@@ -249,7 +249,7 @@ After checking Collapse, **the losing player chooses one of their Forces in each
 
 Then follow this cleanup order:
 
-1. Clear all old Exhausted, Shaken and Depleted markers, all remaining Boons, used-Attack markers, temporary Strength and suppression effects, and other Battle-only effects.
+1. Clear all old Exhausted, Shaken and Depleted markers, all remaining Boons, used-Attack markers, unspent Tax markers, temporary Strength and suppression effects, and other Battle-only effects.
 2. Discard Narratives and unrevealed Stratagems.
 3. **Place one new Exhaustion token on each chosen, unprotected Force** (maximum one per lost Front, maximum one per Force).
 
@@ -269,7 +269,7 @@ The following details settle unusual card interactions. You can learn the game f
 
 ### Completing and rebuilding formations
 
-**PLAY** text resolves when the particular card is played, including when placed prepared. If it needs a Force or other legal target that does not exist at that moment, that effect does nothing; it does not wait for a later attachment. **BECOMES NAMED** text resolves whenever an actual formation changes from not Named to Named, including after rebuilding it with a newly attached Bond or Name. An existing Named Formation does not trigger again merely because it is moved or a Battle begins.
+**PLAY** text resolves when the particular card is played, including when placed prepared. If it needs a Force or other legal target that does not exist at that moment, that effect does nothing; it does not wait for a later attachment. A prepared Name (including a Hero used as a Name) cannot use **ACTION**, **TRIGGER**, **REACTION** or **CONTINUOUS** text until attached to a Force. After attachment these abilities work according to their printed conditions, even if the formation is not yet Named; **WHILE NAMED** still requires all three layers. **BECOMES NAMED** text resolves whenever an actual formation changes from not Named to Named, including after rebuilding it with a newly attached Bond or Name. An existing Named Formation does not trigger again merely because it is moved or a Battle begins.
 
 When a played card completes a Named Formation, resolve that played card's **PLAY** effects first, followed by **BECOMES NAMED** effects. If several completion effects become available, the active player chooses their order, resolving each completely before the next. Moving into compatible prepared cards may also complete a Named Formation, triggering those effects but **not replaying** the prepared cards' old PLAY effects. This is also true when **The House of Reed** attaches a prepared layer: resolve BECOMES NAMED before granting its Guarded reward. **The Field Train** instead plays one additional Bond or Name from your hand as part of its own PLAY ability, paying that card's Command but no second Action. Resolve the additional card's PLAY text, then any BECOMES NAMED effects; if the newly played card completes the formation, Field Train gives it Guarded. Exchanging the Bonds of two formations that remain Named throughout does not trigger completion again.
 
@@ -285,7 +285,7 @@ A card may attach **up to two** prepared layers through a single ACTION. Resolve
 
 ### Simultaneous Stratagems
 
-A Stratagem such as *The Archers Were Ready* may grant a free basic Attack as a triggered effect. It does not spend an Action, but the attacking Archer must have a legal target and must not already have used its Attack this Battle; mark the Attack used normally. An Attack performed after an opposing Attack completes does not undo the earlier Attack or its afflictions.
+A Stratagem such as *The Archers Were Ready* may grant a free basic Attack as a triggered effect. It does not spend an Action, but the attacking Archer must have a legal target and must not already have used its Attack this Battle; mark the Attack used normally. The same is true when *The Vardai*, *Elian* or another card offers an Attack after moving: the Move does not refresh an Attack or waive its normal targeting restrictions. An Attack performed after an opposing Attack completes does not undo the earlier Attack or its afflictions.
 
 When both players can reveal eligible Stratagems **at the same event**, use this procedure:
 
@@ -295,7 +295,7 @@ When both players can reveal eligible Stratagems **at the same event**, use this
 
 No player gains a timing advantage from who Passed.
 
-During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. A card eligible because its Front would lose by exactly 1 may give printed Strength instead, but that bonus does not create another reveal window. When an effect offers different branches for an initial tie or one-point deficit, choose its branch using that **initial eligible state**. This deliberate single-window rule keeps the final outcome unambiguous.
+During **Battle resolution**, there is **one simultaneous Stratagem reveal window** based on the board and provisional Strength **before the reveals**. This includes pre-comparison effects and cards that trigger when a Front *would tie*. Apply eligible reveals, then settle every Front: a tie that arises only because of another reveal does **not** open a second reveal window. A previously eligible tie-break effect changes the result **only if that Front is still tied after the other simultaneous effects**; an opponent's simultaneous Strength change can therefore prevent the tie-break. For example, *The Ground Was Held* checks its initial tie or one-point deficit to determine eligibility and which branch applies, but its tie-win only works if the final Front remains tied. A card eligible because its Front would lose by exactly 1 may give printed Strength instead, but that bonus does not create another reveal window. When an effect offers different branches for an initial tie or one-point deficit, choose its branch using that **initial eligible state**. This deliberate single-window rule keeps the final outcome unambiguous.
 
 ### Unusual Front exchanges and hidden responses
 
@@ -303,7 +303,7 @@ A card may exchange **entire friendly columns between adjacent active Fronts**. 
 
 A Tactic that offers **forced movement or an affliction if movement is impossible** uses its printed target and classification requirements first. Resolve the legal Move when possible; only use the alternative affliction when the specified Move is impossible. A Tactic that grants a marker **if it moved** does nothing further when displacement is illegal. Enemy forced movement cannot bypass row restrictions or move cards into inactive Fronts.
 
-Scouts and Seers do not gain universal reconnaissance rules. They matter only where their cards explicitly refer to them. Looking at a face-down Stratagem reveals its identity to the player instructed to look, **not** automatically to the opponent or the table. A reactive bonus or Guarded Boon granted after looking resolves at that trigger and lasts according to its text; it is not postponed until Battle resolution.
+Scouts and Seers do not gain universal reconnaissance rules. They matter only where their cards explicitly refer to them. Looking at a face-down Stratagem reveals its identity to the player instructed to look, **not** automatically to the opponent or the table. A reactive bonus or Guarded Boon granted after looking resolves at that trigger and lasts according to its text; it is not postponed until Battle resolution. For *The Trap Closed*, check its assigned Front when each actual negative marker is applied: a Raider or Skirmisher there must cause that marker, or be present when your Tactic causes it. A prevented marker is not applied and cannot trigger the plan. The owner may reveal the plan on one eligible application only; it resolves once, even if the same effect applies further markers.
 
 ### Timing words
 
@@ -323,17 +323,17 @@ There is no general reaction stack. Complete an effect's instructions in the pri
 
 ### Suppression and other effects
 
-When text is **ignored** or **suppressed**, the affected card retains its printed Strength modifier and classifications unless an effect explicitly changes them. Its ongoing text stops functioning and its abilities cannot newly activate while suppressed. Previously resolved PLAY or BECOMES NAMED effects are **not undone**; ability use does not reset. A card such as *The Line Wheeled* explicitly negates a Bond's Strength as well, so that separate instruction also applies.
+When text is **ignored** or **suppressed**, the affected card retains its printed Strength modifier and classifications unless an effect explicitly changes them. Its ongoing text stops functioning and its abilities cannot newly activate while suppressed. Previously resolved PLAY or BECOMES NAMED effects are **not undone**; ability use does not reset. A card such as *The Line Wheeled* explicitly negates a Bond's Strength as well, so that separate instruction also applies. These temporary restrictions are effects, not removable negative markers unless a card explicitly places such a marker.
 
 For a card effect that returns an **attached Bond or Name to hand**, keep the Force in position. Returning a Bond leaves its Name in the position if it still has one, but the formation stops being Named until it receives a Bond again. If a card specifically **discards** a Bond, return its Name to its owner's hand as stated by the component-removal rule below. Effects that exchange Bonds do not replay PLAY abilities and do not create another BECOMES NAMED trigger if both formations remain Named continuously.
 
-A temporary **negative marker** is a harmful marker of limited duration placed on a Force or formation by a card or rule, including Exhausted, Shaken, Depleted, temporary −Strength, suppression and locks. It excludes Tax markers. If a card removes one temporary negative marker, choose one such removable marker and end its effect. An Exhaustion token from a lost Front is removable by the same recovery effects.
+A temporary **negative marker** is an actual harmful marker placed on a Force by a rule or card: **Exhausted, Shaken, Depleted**, or another marker a card explicitly instructs you to place there. Only such markers can be removed by effects that remove negative markers. Temporary −Strength, ignored text, suppressed abilities and ACTION locks are **not individually removable** unless their source explicitly creates a removable marker. Tax markers belong to Fronts and are never negative markers on Forces. Lost-Front Exhaustion uses the normal Exhaustion marker and can be removed.
 
-A **Tax marker** belongs to its marked Front and increases the next matching card's Command cost according to its source. If multiple markers apply to a card, their increases combine and all consumed matching markers are removed. A marker also expires when its text says so.
+A **Tax marker** belongs to its marked Front and increases the next matching card's Command cost according to its source. For a Tactic or Order, that includes a card selecting a target or Front there; global Narratives and other cards with no selected Front are not taxed. Declare relevant targets before paying Command. If multiple Taxes apply, add their increases and remove all matching markers when the card is played. An unspent Tax marker expires at Battle end, or sooner when its text says so.
 
 ### Positions and card movement
 
-Use these position terms literally:
+For a Force, Bond, Name or Hero in play, **here** always means **its Front**, including when another card's effect refers to that card. For a hidden Stratagem, it means its publicly assigned Front. Use these position terms literally:
 
 - **Empty position:** No Force is there; compatible prepared Bonds and Names may be present.
 - **Completely empty:** No cards are there.

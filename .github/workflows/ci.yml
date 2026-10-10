@@ -99,6 +99,9 @@ jobs:
       - run: pip install -e '.[dev]'
       - name: Validate all printable cards
         run: python tools/check_print_cards.py
+      - name: Check seven resolved preprint rulings (advisory)
+        continue-on-error: true
+        run: python tools/check_preprint_rulings.py
       - name: Audit readable physical card wording
         run: python tools/check_physical_wording.py
       - name: Audit Force price tariff (advisory)

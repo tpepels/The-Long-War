@@ -1,6 +1,6 @@
 # The Long War — physical-card wording and terminology guide
 
-**Scope:** adopted editorial guidance for the physical-print card faces and both rulebooks, based on the full 131-card audit of `50971d2a`. The October 2026 copy pass applied 94 card passages and 31 rulebook passages without changing mechanics. This document is a writing convention, **not a new game rule or keyword**; check current printed text for actual mechanics.
+**Scope:** adopted editorial guidance for the physical-print card faces and both rulebooks, based on the full 131-card audit of `50971d2a`. The October 2026 copy pass applied 94 card passages and 31 rulebook passages; a subsequent preprint ruling pass resolved seven previously open physical-game interactions. This document is a writing convention, **not a new game rule or keyword**; check current printed text for actual mechanics.
 
 ## 1. Prioritize the player's reading order
 
@@ -27,7 +27,7 @@ Do not equate **TRIGGER** with **REVEAL**, or a printed **Move** with a paid **M
 
 Use the actual game nouns consistently: **Force** (the card/attacker), **formation** (Force and attached layers in one position), **Bond**, **Name**, **Bonded Formation**, **Named Formation**, **Front**, **Frontline**, **Middle**, **Rear**. Avoid “troop,” “unit,” “square,” and “tile” inside rules text unless used only in a narrative example. “Frontline” is one rank, not a synonym for the whole Front.
 
-Use **“in this Front”** or **“in the same Front”** when the location is important. **“Directly ahead/behind”** means the neighboring rank of the same Front; **“adjacent Front”** means left/right. Don't write **“here”** if readers could interpret either a position or its entire Front. The current authoritative Reference scopes “here” explicitly for Stratagems; the same principle for other card families is listed as a design/wording question, not silently generalized.
+Use **“in this Front”** or **“in the same Front”** when the location is important. **“Directly ahead/behind”** means the neighboring rank of the same Front; **“adjacent Front”** means left/right. The physical rulebook now establishes **“here” = the card's Front** for all stationed Force/Bond/Name/Hero cards, and the assigned Front for a Stratagem. Prefer “this formation” when the single attached stack is intended. Avoid changing one into the other during copy-editing.
 
 Classifications such as **Rider**, **Guard**, **Scout**, **Seer**, **King**, and **Captain** come from a Force and its attached Name. If a card applies to several categories, one formation matching more than one receives that card's effect once. Only symbols for explicit card-family/classification *references* belong inline with prose, at most two per effect; never substitute rebus icons for ordinary words.
 
