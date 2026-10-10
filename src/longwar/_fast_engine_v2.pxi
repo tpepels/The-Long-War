@@ -175,6 +175,8 @@ cdef inline bint _v2_effect_is_live_timing(
         return True
     if effect.timing == V2_TIMING_MOBILE:
         return True
+    if effect.timing == V2_TIMING_ATTACK:
+        return True
     return False
 
 
