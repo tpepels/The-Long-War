@@ -248,6 +248,8 @@ cdef inline bint _fe_action_affects_front(
             and bool(active & (1 << front_from_slot(dest)))
         )
 
+    if kind == TYPE_ATTACK:
+        return (pos >= 0 and front_from_slot(pos) == front) or (dest >= 0 and front_from_slot(dest) == front)
     if kind == TYPE_MANEUVER:
         return (
             (pos >= 0 and front_from_slot(pos) == front)
