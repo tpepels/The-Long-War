@@ -161,8 +161,20 @@ cdef void _v2_apply_resolved_effect(
         if target >= 0:
             state.exhausted[target] = 0
     elif effect.op == V2_OP_EXHAUST:
+        if target >= 0:
+            _fe_afflict(state, target, 0)
+    elif effect.op == V2_OP_GRANT_CONDITION:
         if target >= 0 and state.force[target] >= 0:
-            state.exhausted[target] = 1
+            if effect.amount == COND_INSPIRED:
+                state.conditions[target] &= <uint8_t>~COND_SHAKEN
+            state.conditions[target] |= <uint8_t>effect.amount
+    elif effect.op == V2_OP_AFFLICT_CONDITION:
+        if target >= 0:
+            _fe_afflict(state, target, effect.amount)
+    elif effect.op == V2_OP_EXHAUST_THEN_SHAKEN:
+        if target >= 0:
+            _fe_afflict(state, target, 0)
+            _fe_afflict(state, target, COND_SHAKEN)
     elif effect.op == V2_OP_RETURN_COMPONENT:
         if target >= 0:
             owner = owner_from_slot(target)
@@ -851,6 +863,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 V2_OP_LOOK_STRATAGEM,
                 V2_OP_MOVE,
                 V2_OP_EXHAUST,
+                V2_OP_AFFLICT_CONDITION,
+                V2_OP_EXHAUST_THEN_SHAKEN,
                 V2_OP_RETURN_COMPONENT,
                 V2_OP_PREPARED_PAY_OR_RETURN,
                 V2_OP_TAX,

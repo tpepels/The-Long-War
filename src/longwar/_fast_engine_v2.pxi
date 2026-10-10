@@ -175,6 +175,8 @@ cdef inline bint _v2_effect_is_live_timing(
         return True
     if effect.timing == V2_TIMING_MOBILE:
         return True
+    if effect.timing == V2_TIMING_ATTACK:
+        return True
     return False
 
 
@@ -427,6 +429,11 @@ cdef void _v2_apply_immediate_play_effects(
                 effect,
                 encode_action(TYPE_EFFECT, -1, origin, -1, player),
             )
+        elif effect.op == V2_OP_GRANT_CONDITION and effect.target == V2_TARGET_SELF:
+            if origin >= 0 and state.force[origin] >= 0:
+                if effect.amount == COND_INSPIRED:
+                    state.conditions[origin] &= <uint8_t>~COND_SHAKEN
+                state.conditions[origin] |= <uint8_t>effect.amount
         elif effect.op == V2_OP_LOOK_HAND:
             _v2_look_at_opponent_hand(self, state, player, effect)
         elif effect.op == V2_OP_LOOK_STRATAGEM:
@@ -437,6 +444,9 @@ cdef void _v2_apply_immediate_play_effects(
             V2_OP_DISCARD_DRAW,
             V2_OP_MOVE,
             V2_OP_EXHAUST,
+            V2_OP_GRANT_CONDITION,
+            V2_OP_AFFLICT_CONDITION,
+            V2_OP_EXHAUST_THEN_SHAKEN,
             V2_OP_RETURN_PREPARED,
             V2_OP_RETURN_COMPONENT,
             V2_OP_SWAP_BONDS,

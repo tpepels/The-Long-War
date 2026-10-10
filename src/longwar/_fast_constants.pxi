@@ -497,6 +497,7 @@ cdef int V2_TIMING_REAR = 11
 cdef int V2_TIMING_EXHAUSTED = 12
 cdef int V2_TIMING_TIRELESS = 13
 cdef int V2_TIMING_MOBILE = 14
+cdef int V2_TIMING_ATTACK = 16
 
 # Compact reusable V2 operations. Values are internal native protocol, not card ids.
 cdef int V2_OP_NONE = 0
@@ -585,6 +586,11 @@ cdef int V2_OP_RETURN_COMPONENT = 82
 cdef int V2_OP_SWAP_FRONTS = 83
 cdef int V2_OP_REVIVE_FORCE = 84
 cdef int V2_OP_SWAP_BONDS = 85
+cdef int V2_OP_GRANT_CONDITION = 86
+cdef int V2_OP_AFFLICT_CONDITION = 87
+cdef int V2_OP_EXHAUST_THEN_SHAKEN = 88
+cdef int V2_OP_ARCHER_MIDDLE_OPEN_FRONT = 89
+cdef int V2_OP_RELIABLE_GUARD_SCREEN = 90
 
 # Generic V2 selector/condition codes.
 cdef int V2_TARGET_NONE = 0

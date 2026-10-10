@@ -27,13 +27,29 @@ cdef inline bint _fe_attack_legal(
     if kind == ATTACK_ARCHER:
         if not (classes & (1 << 0)) or own_front != other_front:
             return False
+        if rank_from_slot(target) == RANK_MIDDLE:
+            return (
+                state.force[slot_index(other_player(player), own_front, RANK_FRONT)] < 0
+                and _v2_component_has_live_op(
+                    self, state, source, force, _v2_mode_for_force(self, force),
+                    V2_OP_ARCHER_MIDDLE_OPEN_FRONT,
+                )
+            )
         if rank_from_slot(target) != RANK_REAR:
             return False
         middle = slot_index(other_player(player), own_front, RANK_MIDDLE)
         if state.force[middle] >= 0 and not (state.conditions[source] & COND_EMPOWERED):
             if (
                 _v2_slot_class_mask(self, state, middle) & (1 << 3)
-                and not (state.conditions[middle] & (COND_SHAKEN | COND_DEPLETED))
+                and not (state.conditions[middle] & COND_DEPLETED)
+                and (
+                    not (state.conditions[middle] & COND_SHAKEN)
+                    or _v2_component_has_live_op(
+                        self, state, middle, state.force[middle],
+                        _v2_mode_for_force(self, state.force[middle]),
+                        V2_OP_RELIABLE_GUARD_SCREEN,
+                    )
+                )
             ):
                 return False
         return True
