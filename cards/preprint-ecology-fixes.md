@@ -115,6 +115,8 @@ differences. Test their actual overlap before rewriting them.
 
 ### 5. False-friend combinations: specific verification
 
+The complete fourteen-pair disposition and targeted printed card correction are in [the false-friend decisions](false-friend-decisions.md). In particular, The Trap Closed now also reacts to a Tactic that inflicts a negative marker while you control a Raider or Skirmisher in its assigned Front. It must have been set beforehand and the Tactic must actually apply its marker.
+
 These are easy-to-miss constraints, not invalid cards:
 
 - **Red Duelists + Iron Boars:** both require Frontline and cannot occupy the
