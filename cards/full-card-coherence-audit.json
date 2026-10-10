@@ -1036,7 +1036,7 @@
       "title": "Alda, Keeper of the Ford",
       "price": "Force 4 / Name 2",
       "role": "logistics",
-      "purpose": "Name mode preserves a full marker cleanse on Named completion; once per Battle it can give Guarded before an enemy Tactic on an ally resolves, unlike Asha's unlimited redirection of a Tactic's target.",
+      "purpose": "Name mode preserves a full marker cleanse on Named completion; once per Battle it can give Guarded before an enemy Tactic on an ally resolves, unlike Asha's once-per-Battle redirection of a Tactic's target.",
       "review": "coherent_on_paper",
       "order_interaction": "normal_turn_or_persistent",
       "printed_effect_max_chars": 136,
