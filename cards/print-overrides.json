@@ -1259,6 +1259,20 @@
       "index": 0,
       "old_text": "Move Neris one position.",
       "text": "Move this formation one adjacent legal position. It may then make its unused basic Rider Attack without another Action."
+    },
+    {
+      "id": "kael-the-roadless",
+      "mode": "name",
+      "index": 1,
+      "old_text": "Look at one opposing face-down Stratagem in this or an adjacent Front.",
+      "text": "Look at one opposing face-down Stratagem in this or an adjacent Front, if any. You may then Move this formation one adjacent legal position."
+    },
+    {
+      "id": "alda-keeper-of-the-ford",
+      "mode": "name",
+      "index": 1,
+      "old_text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
+      "text": "Once per Battle, when an opposing Tactic targets another friendly formation in this Front, you may give its Force Guarded before that Tactic resolves."
     }
   ],
   "hero_mode_costs": [
