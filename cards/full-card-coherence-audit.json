@@ -1367,7 +1367,7 @@
       "purpose": "Convert negative markers from Raider/Skirmisher effects or a Tactic played beside one into a concealed attachment return.",
       "review": "watch",
       "order_interaction": "negative_marker_reaction",
-      "printed_effect_max_chars": 165,
+      "printed_effect_max_chars": 174,
       "in_test_decks": [
         "blood-and-spoils",
         "broken-oaths"
