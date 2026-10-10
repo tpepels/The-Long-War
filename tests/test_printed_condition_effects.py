@@ -45,7 +45,9 @@ def pos(front, rank):
 def test_reviewed_effect_specs_identical_to_current_physical_text():
     source = json.loads((ROOT / "cards" / "cards.json").read_text())
     by_id = {c["id"]: c for c in load_print_cards(base=source)["cards"]}
-    assert len(PRINTED_EFFECTS) == 41
+    # The translated catalogue grows as effects are implemented. Never make
+    # adding a correct printed effect fail an unrelated exact-count assertion.
+    assert len(PRINTED_EFFECTS) >= 41
     for cid, effects in PRINTED_EFFECTS.items():
         assert effects == [{k: v for k, v in item.items() if k != "edge_cue"} for item in by_id[cid]["effects"]]
         assert len(effects) == len(PRINTED_EXECUTABLE_EFFECTS[cid])
