@@ -8,6 +8,7 @@ from .agents.ismcts_agent import ISMCTSAgent
 from .belief import DeckHypothesis, HypothesisDeckPrior
 from .game.actions import (
     Action,
+    Attack,
     BeginTurn,
     BoardTarget,
     Cycle,
@@ -606,6 +607,11 @@ class PlaySession:
                 action.first_card_id,
                 action.second_card_id,
             ]
+        elif isinstance(action, Attack):
+            payload["source"] = self._position_payload(action.source)
+            payload["destination"] = self._position_payload(action.target)
+            payload["attack_classification"] = action.classification
+            payload["card_id"] = self.state.slot(self.state.active_player, action.source).force
         elif isinstance(action, Maneuver):
             payload["source"] = self._position_payload(action.source)
             payload["destination"] = self._position_payload(
@@ -734,6 +740,12 @@ class PlaySession:
                         f"{self._target_label(target)}."
                     )
             return f"{prefix} resolves {effect_name}."
+        if isinstance(action, Attack):
+            return (
+                f"{prefix} makes a basic {action.classification.title()} Attack "
+                f"from {FRONT_NAMES[action.source.front]} {RANK_NAMES[action.source.rank]} "
+                f"against {FRONT_NAMES[action.target.front]} {RANK_NAMES[action.target.rank]}."
+            )
         if isinstance(action, Maneuver):
             return (
                 f"{prefix} Maneuvers a Named Formation from "
@@ -847,6 +859,8 @@ class PlaySession:
             if action.skip:
                 return "This printed effect is optional; decline it."
             return "Resolve the pending printed card effect."
+        if isinstance(action, Attack):
+            return "Spend one Action and no Command on this Force's once-per-Battle basic Attack."
         if isinstance(action, Maneuver):
             return (
                 "Move this Named Formation to one orthogonally adjacent active "
