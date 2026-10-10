@@ -109,6 +109,22 @@ jobs:
       - name: Verify native alpha-beta, ISMCTS and MCCFR against exact oracles
         run: python -m pytest -q --tb=short tests/test_native_solver_oracles.py
 
+  engine-basic-attacks:
+    name: Native basic Attacks and conditions (required)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e '.[dev]'
+      - name: Compile updated native engine
+        run: make native-build WORKERS=2
+      - name: Verify basic Attacks and condition state
+        run: python -m pytest -q --tb=short tests/test_basic_attack_conditions.py tests/test_pre_draw_pass.py
+
   engine-pre-draw-pass:
     name: Engine pre-draw Pass and closing (required)
     runs-on: ubuntu-latest
