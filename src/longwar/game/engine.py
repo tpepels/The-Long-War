@@ -328,6 +328,12 @@ class GameEngine:
                     target_slot.bond = source_slot["bond"]
                     target_slot.name = source_slot["name"]
                     target_slot.exhausted = bool(source_slot.get("exhausted", False))
+                    target_slot.shaken = bool(source_slot.get("shaken", False))
+                    target_slot.depleted = bool(source_slot.get("depleted", False))
+                    target_slot.guarded = bool(source_slot.get("guarded", False))
+                    target_slot.inspired = bool(source_slot.get("inspired", False))
+                    target_slot.empowered = bool(source_slot.get("empowered", False))
+                    target_slot.used_attack = bool(source_slot.get("used_attack", False))
                     target_slot.temporary_strength = int(
                         source_slot["temporary_strength"]
                     )
