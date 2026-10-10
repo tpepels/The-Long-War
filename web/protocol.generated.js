@@ -2,6 +2,7 @@
 const LW_PROTOCOL_DATA = {
   "actionKind": {
     "ACTIVATE_ABILITY": "ActivateAbility",
+    "BEGIN_TURN": "BeginTurn",
     "CYCLE": "Cycle",
     "DISCARD": "Discard",
     "EFFECT_CHOICE": "EffectChoice",
