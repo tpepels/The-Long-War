@@ -13,6 +13,8 @@ cdef class FastState:
     cdef int16_t bond[SLOT_COUNT]
     cdef int16_t name[SLOT_COUNT]
     cdef uint8_t exhausted[SLOT_COUNT]
+    cdef uint8_t conditions[SLOT_COUNT]
+    cdef uint8_t used_attack[SLOT_COUNT]
     cdef int16_t temporary[SLOT_COUNT]
     cdef uint8_t negative_one_markers[SLOT_COUNT]
     cdef uint8_t negative_two_markers[SLOT_COUNT]
@@ -160,6 +162,8 @@ cdef class FastState:
         memset(self.bond, 0xff, sizeof(self.bond))
         memset(self.name, 0xff, sizeof(self.name))
         memset(self.exhausted, 0, sizeof(self.exhausted))
+        memset(self.conditions, 0, sizeof(self.conditions))
+        memset(self.used_attack, 0, sizeof(self.used_attack))
         memset(self.temporary, 0, sizeof(self.temporary))
         memset(self.negative_one_markers, 0, sizeof(self.negative_one_markers))
         memset(self.negative_two_markers, 0, sizeof(self.negative_two_markers))
@@ -298,6 +302,8 @@ cdef class FastState:
         memcpy(self.bond, other.bond, sizeof(self.bond))
         memcpy(self.name, other.name, sizeof(self.name))
         memcpy(self.exhausted, other.exhausted, sizeof(self.exhausted))
+        memcpy(self.conditions, other.conditions, sizeof(self.conditions))
+        memcpy(self.used_attack, other.used_attack, sizeof(self.used_attack))
         memcpy(self.temporary, other.temporary, sizeof(self.temporary))
         memcpy(self.negative_one_markers, other.negative_one_markers, sizeof(self.negative_one_markers))
         memcpy(self.negative_two_markers, other.negative_two_markers, sizeof(self.negative_two_markers))
