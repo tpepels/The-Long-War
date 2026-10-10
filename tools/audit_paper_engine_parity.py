@@ -106,10 +106,10 @@ def audit() -> dict:
         "difference_counts": counts,
         "cards": changes,
         "core_rule_gaps": [
-            "Card-specific Attack extensions, Reactions and printed condition-granting effects still need executable parity",
-            "Shaken, Depleted, Guarded, Inspired, Empowered and used-Attack require authoritative engine state",
-            "Battle-end lost-Front Exhaustion must offer a single selected Force per lost Front",
-            "Printed card effects, including Attack extensions, still require verified executable parity",
+            "Printed card-effect replacements do not yet have matching executable V2 operations; print-only effects must not be mistaken for working engine effects",
+            "Card-specific ATTACK extensions, Stratagem REVEAL/REACTION windows and simultaneous eligibility remain to implement and test",
+            "Per-physical-copy once-per-Battle ability tracking is not yet independently verified when a card leaves play and is replayed",
+            "Hero mode price overrides and printable card Strength/Command/row revisions are not yet the default executable catalogue",
         ],
     }
 
