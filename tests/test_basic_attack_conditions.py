@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 import pytest
 
-from longwar.game.actions import Attack, BeginTurn, Discard, EndTurn, action_key, action_from_key
+from longwar.game.actions import Attack, BeginTurn, Discard, EffectChoice, EndTurn, action_key, action_from_key
 from longwar.game.engine import GameEngine, IllegalAction
 from longwar.game.model import Front, Position, Rank
 
