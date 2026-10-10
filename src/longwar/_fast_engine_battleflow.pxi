@@ -93,8 +93,8 @@ cdef void _fe_finish_pending_drive_off(
                 _fe_return_to_hand(self, state, player, name)
             state.name[slot] = -1
             state.temporary[slot] = 0
-        state.conditions[slot] = 0
-        state.used_attack[slot] = 0
+            state.conditions[slot] = 0
+            state.used_attack[slot] = 0
             state.maneuver_count[slot] = 0
             state.maneuvered_in_operation[slot] = 0
             return
@@ -293,6 +293,8 @@ cdef inline void _fe_clear_battle_temporary_strength(
     cdef int slot
     for slot in range(SLOT_COUNT):
         state.temporary[slot] = 0
+        state.conditions[slot] = 0
+        state.used_attack[slot] = 0
         state.negative_one_markers[slot] = 0
         state.negative_two_markers[slot] = 0
         state.negative_three_markers[slot] = 0
