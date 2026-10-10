@@ -1,6 +1,6 @@
 """Reviewed physical effect translations for the first status/Attack cards.
 
-This is a narrow, explicit, testable bridge. Do not infer executable opcodes
+This is an explicit, testable bridge. Only reviewed operations may be added. Do not infer executable opcodes
 from print prose, and do not silently fall back for further revised cards.
 """
 from __future__ import annotations
@@ -36,7 +36,7 @@ def apply_reviewed_physical_effects(card_data: dict) -> dict:
         assert len(effects) == len(compiled)
         card["effects"] = effects
         card["design_rules"]["effects"] = compiled
-        card["text"] = "\\n".join(
+        card["text"] = "\n".join(
             e["timing"].upper()
             + (" · 1/BATTLE" if e.get("limit") == "once_per_battle" else "")
             + " - " + e["text"] for e in effects
