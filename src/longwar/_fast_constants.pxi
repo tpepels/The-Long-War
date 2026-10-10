@@ -594,6 +594,7 @@ cdef int V2_OP_RELIABLE_GUARD_SCREEN = 90
 cdef int V2_OP_CLEANSE_GUARD = 91
 cdef int V2_OP_SHAKE_OR_EXHAUST = 92
 cdef int V2_OP_MIDDLE_REAR_AURA = 93
+cdef int V2_OP_RESIST_OPPOSING_MOVE = 94
 
 # Generic V2 selector/condition codes.
 cdef int V2_TARGET_NONE = 0
