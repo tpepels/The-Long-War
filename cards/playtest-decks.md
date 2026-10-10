@@ -191,17 +191,17 @@ Shake, Deplete and displace opposing Forces, then exploit weakened defenders wit
 
 ### Combinations to test
 
-- Iron Boars x3 and Red Duelists x3 give tangible initial penalties; The Stores Were Taken x2 and Trap Closed x2 follow up with layer loss or Command taxation.
+- Iron Boars x3 and Red Duelists x3 are **alternative Frontline-only** ways to Shake an opposing Frontline. They cannot coexist in one Frontline, and Shaken never stacks. The Trap Closed x2 can now respond to a negative marker from a Tactic such as The Line Was Baited while you control a Raider or Skirmisher in its assigned Front, if it was already set. The Stores Were Taken offers separate attachment pressure.
 - The Baggage Was Abandoned Exhausts and Shakes a Rear Force; The Crows Came Down can Exhaust an enemy on PLAY and later Shake an Exhausted Force. Salt-Road Reavers convert Shaken to Depleted, while Shared the Spoils With permits movement.
 - Black Company x2 and River Raiders x2 punish opponent attachment investment. Two Seized the Standard Of Bonds can remove a Bond even without waiting for an enemy condition.
-- The Line Was Baited now gives Depleted only on a legal forced retreat by your Skirmisher. Raider bodies and Rovan remain useful when no affliction combo appears.
+- The Line Was Baited is a **Tactic**, not the Skirmisher's own Attack. It gives Depleted only after a legal forced rearward Move. If Rear is occupied or placement is illegal, no Depleted marker is given and the Trap does not trigger; Raider bodies and Rovan provide independent pressure.
 
 ### Card availability, not playable-combo probability
 
 | Package | Enabler copies | Payoff copies | 10 cards seen | 20 cards seen |
 |---|---:|---:|---:|---:|
 | Disruption/raid follow-up (card co-draw only) | 6 | 6 | 58.9% | 93.9% |
-| Breakthrough-to-attachment raid | 7 | 6 | 63.2% | 95.3% |
+| Alternative frontline pressure into attachment raid | 7 | 6 | 63.2% | 95.3% |
 | Reusable raid pressure | 6 | 4 | 46.8% | 86.6% |
 
 ### Cards
@@ -315,7 +315,7 @@ Scout-led feints and Raider breaches drive opposing formations out of position, 
 - Seven Black Ships and River Raiders can remove attached layers after winning the Raider Strength check, even against an occupied enemy Frontline; Seized the Standard Of and The Muster Was False provide alternative attachment pressure.
 - Wolf Skirmishers, Ilyri, Salt-Road Fleet and The Line Was Baited threaten meaningful Rearward movement, Depleted and Shaken, while Had Been Ordered Forward makes a Bonded formation's Opening Maneuver extend by one legal Move, not a second order.
 - Lantern Scouts and Lysa use enemy information to choose Guarded protection; The Scouts Had Warned Them now lets a Scout/Seer redirect an Opening Maneuver after seeing both commanders' orders.
-- Shaken Raider/Skirmisher pressure enables Shared the Spoils With to Move a formation, and The Trap Closed to remove an attachment; The Line Had Begun to Move can tax one crowded Front while Bought Time For refills.
+- Shaken pressure enables Shared the Spoils With to Move a formation. The Trap Closed can remove an attachment after your Raider/Skirmisher marker or after a Tactic's negative marker while you control one in that Front, provided the trap was already set. The Line Had Begun to Move taxes a crowded Front while Bought Time For refills.
 
 ### Card availability, not playable-combo probability
 
