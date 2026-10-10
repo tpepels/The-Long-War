@@ -80,6 +80,13 @@ class ActivateAbility:
 
 
 @dataclass(frozen=True)
+class Attack:
+    source: Position
+    target: Position
+    classification: str
+
+
+@dataclass(frozen=True)
 class Maneuver:
     source: Position
     destination: Position
@@ -133,6 +140,7 @@ Action: TypeAlias = (
     | PlayOrder
     | ActivateAbility
     | Maneuver
+    | Attack
     | Cycle
     | Discard
     | EffectChoice
@@ -143,6 +151,7 @@ Action: TypeAlias = (
 
 
 _ACTION_KIND_BY_TYPE = {
+    Attack: ActionKind.ATTACK,
     BeginTurn: ActionKind.BEGIN_TURN,
     Pass: ActionKind.PASS,
     EndTurn: ActionKind.END_TURN,
@@ -206,6 +215,12 @@ def action_key(action: object) -> str:
         if action.option is not None:
             key += f":{ActionKeyToken.OPTION.value}:{action.option}"
         return key
+    if isinstance(action, Attack):
+        return (
+            f"{ActionKeyToken.ATTACK.value}:{action.classification}:"
+            f"{int(action.source.front)}:{action.source.rank.value}:"
+            f"{int(action.target.front)}:{action.target.rank.value}"
+        )
     if isinstance(action, Maneuver):
         return (
             f"{ActionKeyToken.MANEUVER.value}:{int(action.source.front)}:{action.source.rank.value}:"
@@ -351,6 +366,12 @@ def action_from_key(key: str) -> object:
         return Discard(key.split(":", 1)[1])
 
     parts = key.split(":")
+    if parts[0] == ActionKeyToken.ATTACK and len(parts) == 6:
+        return Attack(
+            _position(parts[2], parts[3]),
+            _position(parts[4], parts[5]),
+            parts[1],
+        )
     if parts[0] == ActionKeyToken.EFFECT:
         effect = parts[1]
         if len(parts) == 3 and parts[2] == ActionKeyToken.SKIP:
