@@ -43,6 +43,8 @@ jobs:
         run: python -m ruff check src tools tests --select F821,F822,F823
       - name: Check authored browser assets
         run: python tools/check_web_static.py
+      - name: Report canonical PNG image dimensions
+        run: python tools/audit_card_image_dimensions.py
 
   diagnostics:
     name: Development diagnostics (advisory)
