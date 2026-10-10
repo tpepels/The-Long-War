@@ -1136,7 +1136,8 @@
           "exposed": "Bonded: Name costs -1 (min 1) here"
         }
       ],
-      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged. Existing physical-only printed cost remains 3 (Force base 1 + ceil(Strength / 2) plus assessed ability premium.).",
+      "command_cost": 3
     },
     {
       "id": "followed",
@@ -1284,7 +1285,8 @@
           ]
         }
       ],
-      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged. Existing physical-only printed cost remains 3 (4C Name needs several subsequent discounted Tactics to recover initial cost.).",
+      "command_cost": 3
     },
     {
       "id": "the-line-wheeled",
@@ -1324,7 +1326,8 @@
           ]
         }
       ],
-      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged."
+      "design_note": "Editorial wording-only changes; original effect restrictions, timing and strength remain unchanged. Existing physical-only printed cost remains 1 (2C Tax2 could at best trade equal Command and is avoidable by playing elsewhere.).",
+      "command_cost": 1
     },
     {
       "id": "the-scouts-found-the-gap",
@@ -1378,22 +1381,7 @@
   ],
   "cost_adjustments": [
     {
-      "id": "the-line-had-begun-to-move",
-      "command_cost": 1,
-      "reason": "2C Tax2 could at best trade equal Command and is avoidable by playing elsewhere."
-    },
-    {
-      "id": "iven",
-      "command_cost": 3,
-      "reason": "4C Name needs several subsequent discounted Tactics to recover initial cost."
-    },
-    {
       "id": "the-white-hands-of-elara",
-      "command_cost": 3,
-      "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
-    },
-    {
-      "id": "the-late-banner",
       "command_cost": 3,
       "reason": "Force base 1 + ceil(Strength / 2) plus assessed ability premium."
     },
