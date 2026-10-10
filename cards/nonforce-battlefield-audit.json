@@ -532,8 +532,8 @@
       "type": "stratagem",
       "role": "disruption",
       "decision": "keep",
-      "reason": "Retain as a contrasting foundation for defence, formation-building, intrigue or resource decisions.",
-      "effect_length_max": 151
+      "reason": "Class-supported hidden attachment disruption after a Raider/Skirmisher marker or a Tactic played while controlling one here; requires a set Stratagem and actual target attachment.",
+      "effect_length_max": 165
     },
     {
       "id": "the-battle-turned-east",
