@@ -39,6 +39,12 @@ FIFTH_COMPILED_EFFECTS = json.loads(r'''{"the-relief-column":[{"timing":"play","
 PRINTED_EFFECTS.update(FIFTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(FIFTH_COMPILED_EFFECTS)
 
+# Sixth pass: printed bonded-formation movement protection and Bond-only raid.
+SIXTH_PRINTED_EFFECTS = json.loads(r'''{"blocked-the-road-for":[{"timing":"bonded","text":"While this formation is Bonded, opposing card effects cannot move it.","exposed":"Enemy card effects cannot move this formation"}],"seized-the-standard-of":[{"timing":"play","text":"You may choose an opposing Bonded Formation in this Front. Return its Bond to its owner's hand."}]}''')
+SIXTH_COMPILED_EFFECTS = json.loads(r'''{"blocked-the-road-for":[{"timing":"bonded","scope":"self","op":"resist_opposing_move","target":"self","limit":null,"memory":[]}],"seized-the-standard-of":[{"timing":"play","scope":"opponent","op":"return_component","target":"opposing_bonded_same_front","component":"bond","optional":true,"limit":null,"memory":[]}]}''')
+PRINTED_EFFECTS.update(SIXTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(SIXTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
