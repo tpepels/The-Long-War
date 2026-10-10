@@ -379,7 +379,16 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         v2_effect = _v2_pending_effect(self, state)
     _fe_pop_pending_effect(self, state)
 
-    if kind == EFFECT_V2_CHOICE:
+    if kind == EFFECT_LOST_FRONT_EXHAUST:
+        if (source < 0 or aux < 0 or aux >= FRONT_COUNT
+                or owner_from_slot(source) != player
+                or front_from_slot(source) != aux
+                or not (pending_amount & (<uint32_t>1 << source))
+                or state.force[source] < 0):
+            raise ValueError("Invalid lost-Front Exhaustion selection")
+        state.resolution_exhaust_choice[player] &= <uint8_t>~(3 << (2 * aux))
+        state.resolution_exhaust_choice[player] |= <uint8_t>(rank_from_slot(source) << (2 * aux))
+    elif kind == EFFECT_V2_CHOICE:
         if v2_option == V2_OPTION_PAY:
             if state.command[player] < <int>pending_amount:
                 raise ValueError("Cannot pay prepared-card disruption cost")
