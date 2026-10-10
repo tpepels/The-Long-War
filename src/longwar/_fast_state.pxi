@@ -137,6 +137,8 @@ cdef class FastState:
     cdef uint8_t resolution_lost_mask[PLAYER_COUNT]
     cdef uint8_t resolution_drive_mask[PLAYER_COUNT]
     cdef uint8_t resolution_protected_mask[PLAYER_COUNT]
+    # Two bits per Front: rank 0..2 chosen; 3 means no Force selected.
+    cdef uint8_t resolution_exhaust_choice[PLAYER_COUNT]
     cdef int16_t resolution_front_loss_command_penalty[PLAYER_COUNT]
     cdef uint32_t resolution_suppressed_mask
     cdef int8_t resolution_contribution_front[SLOT_COUNT]
@@ -277,6 +279,7 @@ cdef class FastState:
         memset(self.resolution_lost_mask, 0, sizeof(self.resolution_lost_mask))
         memset(self.resolution_drive_mask, 0, sizeof(self.resolution_drive_mask))
         memset(self.resolution_protected_mask, 0, sizeof(self.resolution_protected_mask))
+        memset(self.resolution_exhaust_choice, 255, sizeof(self.resolution_exhaust_choice))
         memset(self.resolution_front_loss_command_penalty, 0, sizeof(self.resolution_front_loss_command_penalty))
         self.resolution_suppressed_mask = 0
         memset(self.resolution_contribution_front, 0xff, sizeof(self.resolution_contribution_front))
@@ -416,6 +419,7 @@ cdef class FastState:
         memcpy(self.resolution_lost_mask, other.resolution_lost_mask, sizeof(self.resolution_lost_mask))
         memcpy(self.resolution_drive_mask, other.resolution_drive_mask, sizeof(self.resolution_drive_mask))
         memcpy(self.resolution_protected_mask, other.resolution_protected_mask, sizeof(self.resolution_protected_mask))
+        memcpy(self.resolution_exhaust_choice, other.resolution_exhaust_choice, sizeof(self.resolution_exhaust_choice))
         memcpy(self.resolution_front_loss_command_penalty, other.resolution_front_loss_command_penalty, sizeof(self.resolution_front_loss_command_penalty))
         self.resolution_suppressed_mask = other.resolution_suppressed_mask
         memcpy(self.resolution_contribution_front, other.resolution_contribution_front, sizeof(self.resolution_contribution_front))
