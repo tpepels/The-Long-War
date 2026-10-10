@@ -105,10 +105,10 @@ CARD ICON SIZES — TUNING PANEL
    */
   --hero-cost-seal-size: 14mm;
   --hero-cost-inset: 0.9mm;
-  --hero-cost-force-top: 0.35mm;
-  --hero-cost-name-bottom: 0.35mm;
-  --hero-cost-force-number-size: 5.5mm;
-  --hero-cost-name-number-size: 5.5mm;
+  --hero-cost-force-top: 0.1mm;
+  --hero-cost-name-bottom: 0.1mm;
+  --hero-cost-force-number-size: 5.4mm;
+  --hero-cost-name-number-size: 5.4mm;
   --hero-cost-force-number-x: 0mm;
   --hero-cost-force-number-y: 0mm;
   --hero-cost-name-number-x: 0mm;
@@ -585,7 +585,7 @@ EXPOSED TOP ROW - TUNING PANEL
     --edge-socket-size             once-per-Battle circle
 
   GEOMETRY
-    --edge-left-width / --edge-middle-width
+    left / middle columns size to their contents; the right fills the rest
     --edge-pad-*                   outer top-row padding
     --edge-zone-padding-x          padding inside each zone
 
@@ -604,9 +604,6 @@ EXPOSED TOP ROW - TUNING PANEL
   --edge-socket-size: var(--icon-used-marker-size);
 
   /* --- layout / spacing -------------------------------------------------- */
-  --edge-left-width: 16mm;
-  --edge-middle-width: 16mm;
-  --edge-special-event-side-width: 10mm; /* symmetric sides keep middle truly centred */
   --edge-pad-top: 3.5mm;
   --edge-pad-right: 5mm;
   --edge-pad-bottom: 0.7mm;
@@ -627,10 +624,9 @@ EXPOSED TOP ROW - TUNING PANEL
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns:
-    var(--edge-left-width)
-    var(--edge-middle-width)
-    minmax(0, 1fr);
+  /* Natural-size left and middle: no fixed icon slots cutting off content.
+     The right absorbs the remaining width and wraps its short reminder. */
+  grid-template-columns: max-content max-content minmax(0, 1fr);
   align-items: stretch;
   padding: var(--edge-pad-top) var(--edge-pad-right) var(--edge-pad-bottom)
     var(--edge-pad-left);
@@ -641,7 +637,8 @@ EXPOSED TOP ROW - TUNING PANEL
   min-height: 0;
   display: flex;
   align-items: center;
-  overflow: hidden;
+  /* Do not clip the icon/text ink at arbitrary column boundaries. */
+  overflow: visible;
   padding: 0 var(--edge-zone-padding-x);
   font: 600 var(--edge-base-font-size)/1.03 var(--edge-font-family);
 }
@@ -785,13 +782,14 @@ EXPOSED TOP ROW - TUNING PANEL
 /* The top-right corner shows only a condition or timing, not a mini rulebook.
    Keep a single compact cue on one line; the full effect is in the body. */
 .edge-mechanic.edge-cue {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: var(--edge-reminder-gap-x);
 }
 .edge-cue-text {
   font: 700 var(--edge-reminder-font-size)/1.03 var(--edge-font-family);
   font-variant: small-caps;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
   letter-spacing: -0.01em;
 }
 .use-socket {
@@ -1029,19 +1027,16 @@ EXPOSED TOP ROW - TUNING PANEL
  *   │   icon   │          FAMILY NAME             │  status  │
  *   └──────────┴──────────────────────────────────┴──────────┘
  *
- * Equal side widths keep the middle zone geometrically centred on the card.
- * Adjust --edge-special-event-side-width and
- * --edge-special-event-family-font-size in the tuning panel above.
+ * The family title takes its natural width. Left/right columns use the
+ * remaining room symmetrically, while respecting their contents.
+ * Adjust --edge-special-event-family-font-size in the tuning panel above.
  */
 .card-tactic .event-crown,
 .card-order .event-crown,
 .card-stratagem .event-crown,
 .card-narrative .event-crown {
   --edge-event-family-font-size: var(--edge-special-event-family-font-size);
-  grid-template-columns:
-    var(--edge-special-event-side-width)
-    minmax(0, 1fr)
-    var(--edge-special-event-side-width);
+  grid-template-columns: minmax(max-content, 1fr) max-content minmax(max-content, 1fr);
 }
 .card-tactic .event-crown .edge-zone-middle,
 .card-order .event-crown .edge-zone-middle,

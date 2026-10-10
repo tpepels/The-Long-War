@@ -2488,7 +2488,8 @@
           "label": "WHILE NAMED",
           "text": "While this formation is Named, it may Maneuver while Exhausted."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "meren",
@@ -2624,7 +2625,8 @@
           "text": "Choose an opposing Bonded Formation in this Front. Its Bond contributes no Strength this Battle."
         }
       ],
-      "combat_redesign_proposal": "BECOMES NAMED - Shake an opposing Middle Force in this Front.\nACTION · 1/BATTLE - Deplete an opposing Shaken Force in this Front."
+      "combat_redesign_proposal": "BECOMES NAMED - Shake an opposing Middle Force in this Front.\nACTION · 1/BATTLE - Deplete an opposing Shaken Force in this Front.",
+      "art_focus_y": "0%"
     },
     {
       "id": "sorin",
@@ -2747,7 +2749,8 @@
           "label": "CONTINUOUS",
           "text": "Your Tactics cost 1 less Command, to a minimum of 0."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "arel",
@@ -2823,7 +2826,8 @@
           "label": "ACTION · 1/BATTLE",
           "text": "Swap this formation with the friendly formation directly ahead or directly behind."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "torren",
@@ -2871,7 +2875,8 @@
           "label": "BECOMES NAMED",
           "text": "Choose an Unbonded friendly Formation in this Front. You may immediately play a Bond from your hand onto it, paying its Command cost."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "eira",
@@ -2919,7 +2924,8 @@
           "label": "BECOMES NAMED",
           "text": "If you control another Named Human Formation, draw 2 cards."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "avaros-the-bronze-king",
@@ -3040,7 +3046,8 @@
           "text": "Choose one classification among your friendly formations in this Front. Each friendly formation here containing it gets +1 Strength this Battle.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "kael-the-roadless",
@@ -3159,7 +3166,8 @@
           "text": "Look at one opposing face-down Stratagem in this or an adjacent Front.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "rovan-the-gatebreaker",
@@ -3984,7 +3992,8 @@
           "text": "When you play a Narrative, draw 1 card, then discard 1 card.",
           "mode": "name"
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "the-baggage-was-abandoned",
@@ -4074,7 +4083,8 @@
           "label": "PLAY",
           "text": "Choose an opposing Named Formation. Its Name text is ignored this Battle."
         }
-      ]
+      ],
+      "art_focus_y": "0%"
     },
     {
       "id": "they-were-gathering-there",
@@ -5284,7 +5294,8 @@
           "text": "Your Heroes and Named Formations have +1 Strength this Battle."
         }
       ],
-      "combat_redesign_proposal": "PLAY - Choose an active Front. Until this Battle ends, whenever a Force moves into that Front, Shake it."
+      "combat_redesign_proposal": "PLAY - Choose an active Front. Until this Battle ends, whenever a Force moves into that Front, Shake it.",
+      "art_focus_y": "0%"
     },
     {
       "id": "no-one-would-be-first-to-leave",

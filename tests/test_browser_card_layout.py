@@ -188,3 +188,74 @@ def test_shared_footer_ignores_reference_metadata_for_all_families() -> None:
         assert "Involves" not in footer["text"]
         assert "Rider" not in footer["text"]
         assert "Scout" not in footer["text"]
+
+
+# Cards with portraits/story subjects that were lost by the centered wide crop.
+HEAD_VISIBILITY_REGRESSIONS = (
+    "the-battle-had-chosen-them",
+    "arel",
+    "iven",
+    "avaros-the-bronze-king",
+    "kael-the-roadless",
+    "tovan-the-quartermaster",
+    "yara-the-chronicler",
+    "veyra-keeper-of-oaths",
+    "eira",
+    "they-returned-with-names",
+    "torren",
+    "tala",
+    "meren",
+    "sela",
+)
+
+
+def test_reported_portraits_use_top_focused_artwork_in_both_renderers() -> None:
+    data = json.loads(text("cards/cards.json"))
+    cards = {card["id"]: card for card in data["cards"]}
+    affected = [cards[id] for id in HEAD_VISIBILITY_REGRESSIONS]
+    for card in affected:
+        assert card.get("art_focus_y") == "0%", card["id"]
+
+    for print_art in (False, True):
+        source = render_print_cards(affected) if not print_art else _render_with_print_art(affected)
+        for id, rendered in zip(HEAD_VISIBILITY_REGRESSIONS, source):
+            css = rendered.one("physical-card")["attrs"]["style"]
+            assert "--art-y:0%" in css, id
+            expected = "art/cards-print/" if print_art else "art/cards/"
+            assert expected + id in css, id
+
+
+def _render_with_print_art(cards: list[dict]) -> list[RenderedCard]:
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node.js is required to exercise the shared card renderer")
+    script = """
+const fs = require("node:fs");
+global.window = {};
+eval(fs.readFileSync("web/card-symbols.js", "utf8"));
+eval(fs.readFileSync("web/physical-cards.js", "utf8"));
+const cards = JSON.parse(fs.readFileSync(0, "utf8"));
+process.stdout.write(JSON.stringify(cards.map(c => window.PhysicalCards.cardArticle(c, "print-card", {printArt:true}))));
+"""
+    result = subprocess.run(
+        [node, "-e", script],
+        input=json.dumps(cards), text=True, capture_output=True, cwd=ROOT,
+        timeout=10, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return [RenderedCard(markup) for markup in json.loads(result.stdout)]
+
+
+def test_three_edge_zones_size_to_content_without_changing_stack_overlap() -> None:
+    import re
+
+    css = text("web/physical-cards.css")
+    # Avoid relying on exact pixel widths or typography: we only lock in
+    # the responsive edge grammar and fixed physical stacking exposure.
+    assert "--exposed-edge: 10.5mm;" in css
+    assert "grid-template-columns: max-content max-content minmax(0, 1fr);" in css
+    assert "grid-template-columns: minmax(max-content, 1fr) max-content minmax(max-content, 1fr);" in css
+    zone = re.search(r"\.edge-zone\s*\{([^}]*)\}", css)
+    assert zone is not None
+    assert "overflow: visible;" in zone.group(1)
+
