@@ -43,7 +43,10 @@ def inspect() -> dict:
         for field in STAT_FIELDS:
             if card.get(field) != compiled.get(field):
                 defects[cid].append(f"printed {field} mismatch")
-        if card.get("effects", []) != compiled.get("effects", []):
+        # A 10.5-mm edge cue is a print-layout reminder, not a rule effect.
+        printed_effects = [{k: v for k, v in effect.items() if k != "edge_cue"}
+                           for effect in card.get("effects", [])]
+        if printed_effects != compiled.get("effects", []):
             defects[cid].append("printed effect is not compiled")
         if card["type"] == "hero":
             for mode in ("force", "name"):
