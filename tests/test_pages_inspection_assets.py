@@ -60,3 +60,27 @@ def test_full_site_keeps_webgame_runtime_scripts(tmp_path, monkeypatch):
 
     for filename in build_pages.WEBGAME_RUNTIME_SCRIPTS:
         assert (dist / filename).is_file()
+
+
+def test_changed_card_art_changes_static_asset_version(tmp_path, monkeypatch):
+    """A new source PNG generates a new WebP, and thus a new card URL version."""
+    dist = tmp_path / "dist"
+    art = dist / "art" / "cards-print"
+    art.mkdir(parents=True)
+    (dist / "physical-cards.js").write_text("const updated = true;")
+    (dist / "cards.html").write_text(
+        '<script src="physical-cards.js"></script>', encoding="utf-8"
+    )
+    (art / "arel.webp").write_bytes(b"first print artwork")
+    monkeypatch.setattr(build_pages, "DIST", dist)
+
+    initial = build_pages.version_static_assets()
+    assert f'physical-cards.js?v={initial}' in (dist / "cards.html").read_text()
+
+    # The card definitions, JS and CSS did not change: only the illustration.
+    (art / "arel.webp").write_bytes(b"regenerated print artwork")
+    changed = build_pages.version_static_assets()
+    assert changed != initial
+    page = (dist / "cards.html").read_text()
+    assert f'physical-cards.js?v={changed}' in page
+    assert f'physical-cards.js?v={initial}' not in page
