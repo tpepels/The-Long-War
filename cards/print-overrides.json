@@ -1272,7 +1272,7 @@
       "mode": "name",
       "index": 1,
       "old_text": "When an opposing Tactic targets another friendly formation in this Front, you may make it target this formation instead, if legal.",
-      "text": "Once per Battle, when an opposing Tactic targets another friendly formation in this Front, you may give its Force Guarded before that Tactic resolves."
+      "text": "When an opposing Tactic targets another friendly formation in this Front, you may give its Force Guarded before that Tactic resolves."
     }
   ],
   "hero_mode_costs": [
