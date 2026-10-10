@@ -108,6 +108,12 @@ class EffectChoice:
 
 
 @dataclass(frozen=True)
+class BeginTurn:
+    """Choose normal play and draw, foregoing the pre-draw Pass."""
+    pass
+
+
+@dataclass(frozen=True)
 class EndTurn:
     pass
 
@@ -130,12 +136,14 @@ Action: TypeAlias = (
     | Cycle
     | Discard
     | EffectChoice
+    | BeginTurn
     | EndTurn
     | Pass
 )
 
 
 _ACTION_KIND_BY_TYPE = {
+    BeginTurn: ActionKind.BEGIN_TURN,
     Pass: ActionKind.PASS,
     EndTurn: ActionKind.END_TURN,
     Cycle: ActionKind.CYCLE,
@@ -164,6 +172,8 @@ def action_kind(action: object) -> ActionKind:
 @lru_cache(maxsize=8192)
 def action_key(action: object) -> str:
     """Stable canonical action serialization shared by engine, UI and AI."""
+    if isinstance(action, BeginTurn):
+        return ActionKeyToken.BEGIN_TURN.value
     if isinstance(action, Pass):
         return ActionKeyToken.PASS.value
     if isinstance(action, EndTurn):
@@ -328,6 +338,8 @@ def _position(front: str, rank: str) -> Position:
 
 def action_from_key(key: str) -> object:
     """Inverse of the canonical action-key format."""
+    if key == ActionKeyToken.BEGIN_TURN:
+        return BeginTurn()
     if key == ActionKeyToken.PASS:
         return Pass()
     if key == ActionKeyToken.END_TURN:
