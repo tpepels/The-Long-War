@@ -88,8 +88,10 @@ def test_crows_narrative_play_can_exhaust_enemy_in_archer_front(game):
     enemy = at(1, Rank.REAR)
     state.slot(0, at(1, Rank.MIDDLE)).force = "the-crow-archers"
     state.slot(1, enemy).force = "the-fifty-men"
-    action = PlayNarrative("the-crows-came-down")
-    assert action in engine.legal_actions(state)
+    action = next(
+        a for a in engine.legal_actions(state)
+        if isinstance(a, PlayNarrative) and a.card_id == "the-crows-came-down"
+    )
     engine.apply(state, action)
     choices = [a for a in pending_targets(engine, state)
                if a.destination is not None and a.destination.position == enemy]
@@ -107,8 +109,10 @@ def test_long_march_play_grants_rider_strength_this_battle(game):
     state.slot(0, other).force = "the-fifty-men"
     before = engine.position_strength(state, 0, rider)
     other_before = engine.position_strength(state, 0, other)
-    action = PlayNarrative("the-long-march")
-    assert action in engine.legal_actions(state)
+    action = next(
+        a for a in engine.legal_actions(state)
+        if isinstance(a, PlayNarrative) and a.card_id == "the-long-march"
+    )
     engine.apply(state, action)
     choices = pending_targets(engine, state)
     chosen = [a for a in choices if a.source is not None
