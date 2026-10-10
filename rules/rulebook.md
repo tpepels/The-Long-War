@@ -241,7 +241,7 @@ Resolve effects explicitly triggered by Battle-end results while those results r
 
 ### 4. Check Command Collapse
 
-Check Command **before recovery**. If only one player has **0 or less Command**, that player loses the war. If both have 0 or less, the player with the **lower** total loses; if equally low, the player who **Passed** this Battle loses. If neither collapses, the war continues.
+Check Command **before recovery**. If only one player has **0 or less Command**, that player loses the war. If both have 0 or less, the player with the **lower** total loses; if equally low, the player who **Passed** this Battle loses. When Command falls below 0, write the negative total beside the 0–20 track so that simultaneous Collapse can be compared correctly. If neither collapses, the war continues.
 
 ### 5. Protect, clean up and Exhaust defeated Forces
 
