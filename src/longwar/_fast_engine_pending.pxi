@@ -761,6 +761,12 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_resume_pending_flow(self, state)
         return
 
+    if kind == TYPE_ATTACK:
+        _fe_apply_attack(self, state, pos, dest, <int>extra)
+        _fe_consume_operation_constraints(self, state, actor, action)
+        _fe_finish_operation_fast(self, state, actor)
+        return
+
     state.pending_resume = RESUME_FINISH_OPERATION
     state.pending_resume_player = actor
 
@@ -917,6 +923,8 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_take_from_hand(self, state, actor, card, 0)
         state.force[pos] = card
         state.exhausted[pos] = 0
+        state.conditions[pos] = 0
+        state.used_attack[pos] = 0
         _v2_apply_immediate_play_effects(
             self, state, actor, card, _v2_mode_for_force(self, card), pos
         )
