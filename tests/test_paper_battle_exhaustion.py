@@ -14,7 +14,7 @@ from longwar.game.actions import (
     Attack, BeginTurn, Discard, EffectChoice, EndTurn, Pass,
 )
 from longwar.game.engine import GameEngine
-from longwar.game.model import Front, Position, Rank
+from longwar.game.model import Front, Position, Rank, NarrativeState
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -161,3 +161,13 @@ def test_attached_guard_name_screens_friendly_rear(engine, deck):
     assert action not in engine.legal_actions(state)
     state.slot(1, guard).shaken = True
     assert action in engine.legal_actions(state)
+
+
+def test_all_narratives_leave_play_at_battle_end(engine, deck):
+    state = engine.new_game(deck, deck, seed=61, first_player=0)
+    state.narratives[0].append(NarrativeState("the-battle-had-chosen-them"))
+    assert len(state.narratives[0]) == 1
+    finish_battle(engine, state)
+    assert state.battle == 2
+    assert not state.narratives[0]
+    assert "the-battle-had-chosen-them" in state.players[0].discard
