@@ -460,6 +460,8 @@ cdef void _v2_apply_immediate_play_effects(
             V2_OP_GRANT_CONDITION,
             V2_OP_AFFLICT_CONDITION,
             V2_OP_EXHAUST_THEN_SHAKEN,
+            V2_OP_CLEANSE_GUARD,
+            V2_OP_SHAKE_OR_EXHAUST,
             V2_OP_RETURN_PREPARED,
             V2_OP_RETURN_COMPONENT,
             V2_OP_SWAP_BONDS,
