@@ -21,9 +21,9 @@ def recovery_scenarios():
     effect = card["effects"][0]
     assert effect["timing"] == "action"
     assert "temporary negative marker" in effect["text"]
-    assert "If it was Exhaustion" in effect["text"]
-    assert "Move its formation one adjacent legal position" in effect["text"]
-    assert "otherwise give it Inspired" in effect["text"]
+    assert "If you removed Exhaustion" in effect["text"]
+    assert "Move its formation one position" in effect["text"]
+    assert "Otherwise, give it Inspired" in effect["text"]
     assert effect.get("limit") is None, "Do not silently change prior physical ACTION use limit"
 
     # At the start of Battle II a Force is still Exhausted after losing a Front.
