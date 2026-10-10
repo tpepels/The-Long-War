@@ -227,7 +227,6 @@ def provisional_eligibility_after_continuous_strength():
     assert provisional_you > provisional_them
     rules = (ROOT / "rules" / "player-rulebook.md").read_text()
     assert "including" in rules.split("### 1. Reveal Stratagems", 1)[1][:330]
-    assert "single" not in ground.lower() or "single" in ground.lower()
     # Tie-branch eligibility was never present at the actual reveal window.
 
 
