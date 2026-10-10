@@ -188,6 +188,7 @@ V2_TARGETS = frozenset({
     "friendly_pair_same_front_with_class",
     "friendly_front_of_source_class",
     "opposing_exhausted_same_front",
+    "opposing_frontline_same_front",
     "opposing_support_open_front",
     "friendly_any",
 })
