@@ -222,7 +222,7 @@ cdef int _v2_narrative_strength_bonus(
     int slot,
 ) noexcept:
     cdef int player = owner_from_slot(slot)
-    cdef int ix, card, i
+    cdef int ix, card, i, mid_slot
     cdef int result = 0
     cdef uint32_t classes = _v2_slot_class_mask(self, state, slot)
     cdef bint named = _v2_slot_named(state, slot)
@@ -253,6 +253,17 @@ cdef int _v2_narrative_strength_bonus(
                 if (
                     (effect.flags & V2_FLAG_STATUS_HERO and contains_hero)
                     or (effect.flags & V2_FLAG_STATUS_NAMED and named)
+                ):
+                    result += effect.amount
+            elif effect.op == V2_OP_MIDDLE_REAR_AURA:
+                if rank_from_slot(slot) != RANK_REAR:
+                    continue
+                mid_slot = slot_index(player, front_from_slot(slot), RANK_MIDDLE)
+                if (
+                    state.force[mid_slot] >= 0
+                    and _v2_slot_has_any_class(
+                        self, state, mid_slot, effect.class_mask
+                    )
                 ):
                     result += effect.amount
     return result
