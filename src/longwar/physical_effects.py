@@ -33,6 +33,12 @@ FOURTH_COMPILED_EFFECTS = json.loads(r'''{"the-damar":[{"timing":"play","scope":
 PRINTED_EFFECTS.update(FOURTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(FOURTH_COMPILED_EFFECTS)
 
+# Fifth pass: physical protection, conditional affliction and Bond exchange.
+FIFTH_PRINTED_EFFECTS = json.loads(r'''{"the-relief-column":[{"timing":"play","text":"Choose another friendly Force in this Front, if any. Remove all its temporary negative markers, then give it Guarded."}],"they-were-gathering-there":[{"timing":"play","text":"Choose an opposing Force in a Front with your Scout. If it is Exhausted, give it Shaken. Otherwise, Exhaust it."}],"the-wall-did-not-break":[{"timing":"play","text":"Give one friendly Guard or Stronghold Guarded."},{"timing":"continuous","text":"Your Guards and Strongholds in Middle give the friendly Rear formation directly behind each of them +1 Strength this Battle."}],"the-king-had-given-the-order":[{"timing":"play","text":"Exchange the Bonds of two friendly Bonded Formations in any active Fronts. Each of those formations that remains Named gets +1 Strength this Battle."}]}''')
+FIFTH_COMPILED_EFFECTS = json.loads(r'''{"the-relief-column":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"cleanse_guard","target":"other_friendly_same_front"}],"they-were-gathering-there":[{"timing":"play","scope":"opponent","limit":null,"memory":[],"op":"shake_or_exhaust","target":"opposing_front_with_friendly_class","required_friendly_class":"scout"}],"the-wall-did-not-break":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"grant_condition","target":"friendly_any_class","classes":["guard","stronghold"],"status":"guarded"},{"timing":"continuous","scope":"self","limit":null,"memory":[],"op":"middle_rear_aura","classes":["guard","stronghold"],"amount":1}],"the-king-had-given-the-order":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"swap_bonds","amount":1}]}''')
+PRINTED_EFFECTS.update(FIFTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(FIFTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
