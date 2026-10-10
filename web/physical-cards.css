@@ -1086,7 +1086,7 @@ EXPOSED TOP ROW - TUNING PANEL
   border-radius: 1.25mm;
   background-image: var(--card-art, none);
   background-size: cover;
-  background-position: var(--art-x, 50%) var(--art-y, 50%);
+  background-position: var(--art-x, 50%) var(--art-y, 0%);
   background-repeat: no-repeat;
 }
 .motif-field::after {
