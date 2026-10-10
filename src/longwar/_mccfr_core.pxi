@@ -460,7 +460,7 @@ def stable_information_id_from_fast_key(FastEngine engine, bytes key):
             inspired = bool(data[i + 4] & 8)
             empowered = bool(data[i + 4] & 16)
             used_attack = bool(data[i + 5])
-            temporary = data[i + 4] | (data[i + 5] << 8)
+            temporary = data[i + 6] | (data[i + 7] << 8)
             if temporary >= 32768:
                 temporary -= 65536
             i += INFO_BOARD_SLOT_BASE_BYTES + 1
