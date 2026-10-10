@@ -8,7 +8,7 @@
 - `playtest-matrix.md` / `effect-audit.md` - authored coverage and readability reviews.
 - `value-model.md` / `valuation-audit.md` - provisional design diagnostics, not measured balance evidence.
 - `hero-pricing.md` - eleven physical Hero prices by Force and Name mode, independent valuation and test plans. Audit with `python tools/check_hero_pricing.py`.
-- `force-pricing.json` - physical-print 33-Force Command pricing ledger (1 + ceil(Strength/2) plus evaluated 0–1 ability premium, with one plain odd-Strength discount), previous price, and per-card rationale. Run `python tools/check_force_pricing.py` to audit consistency.
+- `force-pricing.json` - physical-print 33-Force Command pricing ledger (1 + ceil(Strength/2) plus evaluated 0–1 ability premium, with compensating effects for odd-Strength Forces), previous price, and per-card rationale. Run `python tools/check_force_pricing.py` to audit consistency.
 - `playtest-decks.json` / `playtest-decks.md` - six 48-card lists: four core repeatable combo decks plus two supplementary coverage/combo experiments.
 - `mechanic-coverage-decks.json` / `mechanic-coverage-decks.md` - four separate 48-card diagnostic lists, including a Raw Strength Control for matching simple Forces against combos.
 - `physical-text-and-coverage-audit.md` - effect wording conventions and confirmation that all 131 identities appear in a deck.
