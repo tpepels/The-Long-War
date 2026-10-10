@@ -34,9 +34,9 @@ class GameRules:
     command_recovery_floor: int = 1
     command_collapse_threshold: int = 0
     lost_front_command_penalty: int = 1
-    # A normal turn draws once, then takes up to two Actions. Pass is available
-    # only at the start of a turn when no Action is legal; it starts exactly
-    # two closing turns before Battle resolution.
+    # A player may voluntarily Pass before drawing, regardless of legal
+    # Actions. Otherwise a normal turn draws once and takes up to two Actions.
+    # The first Pass starts exactly two normal closing turns.
     actions_per_turn: int = 2
     closing_turns_after_pass: int = 2
     turn_draw_count: int = 1
