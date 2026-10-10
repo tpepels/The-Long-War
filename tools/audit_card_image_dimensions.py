@@ -46,16 +46,26 @@ def main() -> None:
     flagged = []
     for (w, h), names in sorted(grouped.items()):
         ratio = w / h
-        # Classify crop risk, not artistic quality.
+        # A 60 x 25 mm printed aperture at 300 dpi needs ~709 x 295
+        # effective pixels, not arbitrary source dimensions.
+        crop_w = min(w, h * PRINT_WINDOW_ASPECT)
+        crop_h = min(h, w / PRINT_WINDOW_ASPECT)
+        effective_dpi = min(crop_w / (60 / 25.4), crop_h / (25 / 25.4))
+        visible_fraction = min(ratio / PRINT_WINDOW_ASPECT, PRINT_WINDOW_ASPECT / ratio)
+        print(
+            f"CROP: {w}x{h} visible_fraction={visible_fraction:.1%} "
+            f"axis={'vertical' if ratio < PRINT_WINDOW_ASPECT else 'horizontal'} "
+            f"effective_dpi={effective_dpi:.0f}"
+        )
         reason = []
-        if w < 960 or h < 500:
-            reason.append("low-resolution")
-        if ratio < 1.3:
-            reason.append("square-or-portrait")
-        elif ratio < 1.6:
-            reason.append("narrow-landscape")
+        if effective_dpi < 300:
+            reason.append("below-300-dpi-in-art-window")
+        if ratio <= 1.6:
+            reason.append("severe-vertical-crop")
+        elif ratio < 2.2:
+            reason.append("moderate-vertical-crop")
         elif ratio > 2.8:
-            reason.append("very-wide")
+            reason.append("wide-horizontal-crop")
         if reason:
             flagged.extend((name, w, h, reason) for name in names)
     print("DIMENSION_FLAGS: " + str(len(flagged)))
