@@ -106,7 +106,7 @@ def audit() -> dict:
         "difference_counts": counts,
         "cards": changes,
         "core_rule_gaps": [
-            "The current native action set has no basic Attack action",
+            "Card-specific Attack extensions, Reactions and printed condition-granting effects still need executable parity",
             "Shaken, Depleted, Guarded, Inspired, Empowered and used-Attack require authoritative engine state",
             "Battle-end lost-Front Exhaustion must offer a single selected Force per lost Front",
             "Printed card effects, including Attack extensions, still require verified executable parity",
