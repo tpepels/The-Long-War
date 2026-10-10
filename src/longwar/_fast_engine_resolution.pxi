@@ -774,12 +774,16 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
 cdef void _fe_pass_action(FastEngine self, FastState state, int player):
     cdef int opponent = other_player(player)
 
-    # Pass has exactly one meaning under the playtest rules: at the start of
-    # an ordinary turn, with no legal Action, it records the Battle's passer
-    # and starts the fixed two-turn closing sequence. EndTurn handles every
-    # voluntary or closing turn end.
-    if state.closing_turns_remaining > 0 or state.actions_this_turn > 0:
-        raise ValueError("Pass is not legal after an Action or during closing")
+    # A voluntary Pass happens before the draw and any Actions, and starts
+    # exactly two compulsory normal closing turns. A normal EndTurn is not Pass.
+    if (
+        not state.turn_draw_pending
+        or state.closing_turns_remaining > 0
+        or state.actions_this_turn > 0
+    ):
+        raise ValueError("Pass is only legal before the draw, outside closing")
+    state.turn_draw_pending = 0
+    _fe_expire_end_of_turn_constraints(self, state, player)
 
     state.passed[player] = 1
     state.pass_order[0] = player
