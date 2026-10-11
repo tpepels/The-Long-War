@@ -616,6 +616,22 @@ cdef int _fe_legal_pending_effect_actions(
                             TYPE_EFFECT, -1, source2, dest, player, kind
                         ),
                     )
+    elif kind == EFFECT_BEFORE_SUNSET_BUFF:
+        # All legal recipients are snapshotted in the Stratagem's Front.
+        # There is no decline because the printed REACTION is mandatory.
+        for source2 in range(
+            player * POSITIONS_PER_PLAYER,
+            (player + 1) * POSITIONS_PER_PLAYER,
+        ):
+            if (
+                source_mask & (<uint32_t>1 << source2)
+                and state.force[source2] >= 0
+            ):
+                n = _append_action(
+                    actions, n, encode_action(
+                        TYPE_EFFECT, -1, source2, -1, player, kind
+                    ),
+                )
     elif kind == EFFECT_SWAPPED_NAMED_STRENGTH:
         # Snapshot includes only Named Formations actually exchanged.
         for source2 in range(
