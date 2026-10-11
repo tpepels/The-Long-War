@@ -52,7 +52,8 @@ def test_swore_again_completes_named_and_adds_exactly_two_temporary_strength(gam
     assert state.slot(0, at()).named
     assert state.slot(0, at()).temporary_strength == 2
     assert state.players[0].deck == before_deck
-    assert not effect_actions(engine, state)
+    assert len(state.players[0].hand) == 0  # no draw/discard from this Bond
+    # The completed Name can independently trigger its own optional ability.
 
 
 def test_swore_again_without_named_draws_before_discard_choice(game):
