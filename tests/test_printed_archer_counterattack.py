@@ -56,6 +56,14 @@ def setup(game, *, defending_plan="the-archers-were-ready",
     )
     assert incoming in engine.legal_actions(state)
     engine.apply(state, incoming)
+    # The pre-affliction No Step Back window precedes the post-Attack
+    # Archer window. An Archer-only face-down plan must decline privately.
+    pre = [a for a in engine.legal_actions(state)
+           if isinstance(a, EffectChoice)
+           and a.effect == "stratagem-no-step-attack"]
+    if pre:
+        assert len(pre) == 1 and pre[0].skip
+        engine.apply(state, pre[0])
     return engine, state
 
 

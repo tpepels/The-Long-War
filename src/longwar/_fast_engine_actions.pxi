@@ -539,7 +539,23 @@ cdef int _fe_legal_pending_effect_actions(
             actions, n, encode_action(TYPE_EFFECT, -1, -1, -1, player, kind)
         )
 
-    if kind == EFFECT_STRAT_ARCHER_REVEAL:
+    if kind == EFFECT_STRAT_NO_STEP_ATTACK:
+        dest = <int>state.pending_dest_mask[0] - 1
+        if _fe_no_step_back_eligible(self, state, player, dest):
+            n = _append_action(
+                actions, n, encode_action(
+                    TYPE_EFFECT, -1, dest, -1, player, kind
+                ),
+            )
+    elif kind == EFFECT_STRAT_NO_STEP_TACTIC:
+        dest = state.pending_aux[0]
+        if _fe_no_step_back_eligible(self, state, player, dest):
+            n = _append_action(
+                actions, n, encode_action(
+                    TYPE_EFFECT, -1, dest, -1, player, kind
+                ),
+            )
+    elif kind == EFFECT_STRAT_ARCHER_REVEAL:
         if _fe_archer_counterattack_eligible(
             self, state, player, state.pending_aux[0]
         ):

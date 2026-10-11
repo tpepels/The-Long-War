@@ -115,6 +115,7 @@ cdef void _v2_compile_effect(
         "hidden_protect_lost_fronts": V2_OP_HIDDEN_PROTECT_LOST_FRONTS,
         "hidden_spy_on_stratagem": V2_OP_HIDDEN_SPY_ON_STRATAGEM,
         "hidden_archer_counterattack": V2_OP_HIDDEN_ARCHER_COUNTERATTACK,
+        "hidden_no_step_back": V2_OP_HIDDEN_NO_STEP_BACK,
         "hidden_tie_named_wins": V2_OP_HIDDEN_TIE_NAMED_WINS,
         "local_class_aura": V2_OP_LOCAL_CLASS_AURA,
         "look_hand": V2_OP_LOOK_HAND,

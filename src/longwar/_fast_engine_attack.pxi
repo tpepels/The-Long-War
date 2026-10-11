@@ -91,12 +91,15 @@ cdef inline void _fe_afflict(
 
 cdef void _fe_apply_attack(
     FastEngine self, FastState state, int source, int target, int kind,
+    bint prevent_affliction=False,
 ) except *:
     if not _fe_attack_legal(self, state, source, target, kind):
         raise ValueError("Illegal basic Attack")
     state.used_attack[source] = 1
     # Empowered applies to one Attack, whether or not screening was present.
     state.conditions[source] &= ~COND_EMPOWERED
+    if prevent_affliction:
+        return
     if kind == ATTACK_ARCHER:
         _fe_afflict(state, target, 0)  # Exhaust
     elif kind == ATTACK_SKIRMISHER or kind == ATTACK_RIDER:
@@ -162,3 +165,46 @@ cdef void _fe_queue_archer_counterattack_response(
         self, state, EFFECT_STRAT_ARCHER_REVEAL, owner,
         -1, -1, front, 0, 0, EFFECT_OPTIONAL,
     )
+
+
+# One hidden plan, one response to a targeted Tactic or Attack. The front
+# belongs to the *defending* Force (Rider Attacks may cross adjacent Fronts).
+cdef inline bint _fe_no_step_back_eligible(
+    FastEngine self, FastState state, int owner, int target
+) noexcept:
+    cdef int card
+    if (
+        target < 0 or target >= SLOT_COUNT
+        or owner_from_slot(target) != owner or state.force[target] < 0
+        or not front_is_active(state.battle, front_from_slot(target))
+    ):
+        return False
+    card = state.stratagem[owner]
+    if (
+        card < 0 or state.stratagem_revealed[owner]
+        or not (state.stratagem_front_mask[owner] & (
+            1 << front_from_slot(target)
+        ))
+        or self.v2_effect_count[card][V2_MODE_DEFAULT] == 0
+    ):
+        return False
+    return (
+        self.v2_effects[card][V2_MODE_DEFAULT][0].op
+        == V2_OP_HIDDEN_NO_STEP_BACK
+    )
+
+
+cdef inline void _fe_discard_revealed_no_step_back(
+    FastEngine self, FastState state, int owner
+) except *:
+    cdef int card = state.stratagem[owner]
+    if card < 0:
+        return
+    state.stratagem_revealed[owner] = 1
+    _fe_append_discard(self, state, owner, card, True)
+    state.stratagem[owner] = -1
+    state.stratagem_known_to_mask[owner] = 0
+    state.stratagem_revealed[owner] = 0
+    state.stratagem_front_mask[owner] = 0
+    state.stratagem_direction[owner] = 0
+    state.stratagem_target_mask[owner] = 0

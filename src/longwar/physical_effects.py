@@ -106,6 +106,12 @@ SIXTEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-archers-were-ready":[{"timing"
 PRINTED_EFFECTS.update(SIXTEENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(SIXTEENTH_COMPILED_EFFECTS)
 
+# Seventeenth pass: reveal before a targeted Tactic or an Attack affliction.
+SEVENTEENTH_PRINTED_EFFECTS = json.loads(r'''{"no-step-back":[{"timing":"hidden","text":"When an opposing Tactic targets your formation here, ignore its effect on that formation. Alternatively, prevent one affliction from an opposing Attack on your Force here."}]}''')
+SEVENTEENTH_COMPILED_EFFECTS = json.loads(r'''{"no-step-back":[{"timing":"hidden","scope":"self","limit":null,"memory":["face_down_source"],"op":"hidden_no_step_back","target":"friendly_same_front","optional":true}]}''')
+PRINTED_EFFECTS.update(SEVENTEENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(SEVENTEENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
