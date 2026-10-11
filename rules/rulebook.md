@@ -96,15 +96,24 @@ Command cannot exceed **20**. Both players draw back up to **10 cards**, reshuff
 
 **Prototype limit:** after **Battle VIII**, if neither player has collapsed, the player controlling more Fronts wins. If tied, the player with more Command wins. If also tied, the war is a draw. This is a test stop condition, not a claim about ideal game length.
 
-## Fully worked combat example
+## Fully worked combat example (actual card faces)
 
-Your **Guard (Force 4)** is in Frontline, **Archer (Force 2)** in Middle, and **Healer (Force 3)** in Rear. Opposing **Heavy Infantry (Force 5)** occupies Frontline, **Raider (Force 3)** Middle, and **Steward (Force 2)** Rear. You secretly choose **Volley**; they choose **Raid**. Assume no legal pre-combat Raid movement.
+Your **Red Shields (Force 4)** are in Frontline, **Crow Archers (Force 3)** in Middle and **White Hands of Elara (Force 3)** in Rear. The opponent has **Fifty Men (Force 5)** in Frontline, **River Raiders (Force 4)** in Middle and **Field Train (Force 2)** in Rear.
 
-You roll a die face that produces **Protect** on Guard, **Strike** on Archer, and **Rescue** on Healer. The opponent rolls a face that produces **Strike** on Heavy Infantry, **Strike** on Raider, and **Falter** on Steward.
+You secretly choose **Volley**, while they choose **Raid**. The Raiders do not redeploy because there is no legal empty Middle position in an adjacent active Front.
 
-Your Archer targets the opposing Steward because Volley permits Archers to target Rear. The Heavy Infantry targets your Guard as foremost. The Raider targets your Archer because Raid allows Middle. Your Guard Protects the Archer, cancelling the Raider's Strike. Your Healer Rescues the Guard from Heavy Infantry's lethal Strike. The Archer's Force 2 Strike defeats the Steward's Force 2 **only if a printed equal-Force Special allows it or another uncancelled Strike joins it**; otherwise it stalemates. Under the ordinary Strike defined here, this attack is **not lethal**, so all six Forces survive and the Front remains contested.
+**Your D6 is 2:** Red Shields show **Special** (Protect two different friendly Forces here), Crow Archers show **Strike**, and White Hands show **Special** (Rescue any friendly Force here).
 
-Changing the opposing Steward to **Force 1** makes the Archer's Strike lethal. The Steward is discarded and you control the Front **3 to 2**. This distinction is intentional: Force comparisons remain exact, and equal-Force attacks do not secretly turn into kills.
+**Opponent D6 is 1:** Fifty Men show **Strike**, River Raiders show **Strike**, and Field Train shows **Falter**.
+
+1. Your Archers choose Field Train in Rear as their target under Volley: Force 3 is higher than Force 2, so this would be lethal.
+2. Fifty Men Strike your foremost Force, Red Shields: Force 5 is higher than Force 4, so this would be lethal.
+3. River Raiders target your Middle Archers under Raid: Force 4 is higher than Force 3, so this would be lethal.
+4. Your Red Shields Protect the Archers and the White Hands (their two **different** eligible targets). The protection on the Archers cancels the Raiders' Strike; the other Protect has no incoming Strike and therefore cancels nothing.
+5. Your White Hands Rescue the Red Shields, preventing their defeat.
+6. The Field Train has no protection and is permanently discarded. All three of your Forces survive.
+
+After combat you control this Front **3 occupied positions to 2**. The result depended on the two plans, the die faces and complementary Force outcomes, not summed Strength.
 
 ## Playtest failure tests
 
