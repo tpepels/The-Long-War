@@ -47,22 +47,79 @@ async function main(){
 
   if(reference){
     const rows=[
-      ["WIN / BOARD","Control a Front with more surviving Forces (0–3 per player); equal headcounts are contested. Defeated Forces leave permanently. Collapse at 0 Command before recovery."],
-      ["TURNS","Four Fronts: 2+3 open first, then 1 at Battle II, 4 at Battle III. Pass before drawing, or draw 1 and take up to two Actions: deploy, Maneuver for 1 Command, or discard 2 to draw 1."],
-      ["PLANS","After the two closing turns, reveal one secret army-wide Assault / Hold / Volley / Raid Plan each. Plans set which enemy ranks are eligible and when Forces move; they never alter dice or Force."],
-      ["ASSAULT","Normal Strikes target the foremost occupied enemy rank. After casualties, advance one surviving unpinned Force one empty rank forward per Front."],
-      ["HOLD","Withdraw one Force one empty rank backward per Front before rolling. Strikes target foremost. Protect can cover any friendly Force in its own Front."],
-      ["VOLLEY","An Archer can Strike any occupied enemy rank in its Front; other Strikes target foremost."],
-      ["RAID","Move one Raider/Rider/Skirmisher sideways to an empty same-rank position in an adjacent active Front before rolling. These roles may Strike Middle or Rear if occupied, otherwise foremost."],
-      ["ROLL / TARGET","Each player rolls one D6 per occupied Front; every Force there reads its own face. Declare all legal Strike targets together; players freely choose from the Plan's eligible enemies. Printed fixed-target Specials take precedence."],
-      ["COORDINATE","After cancelling attacks: each uncancelled damaging Strike gains +1 effective Force per OTHER uncancelled damaging Strike on that same target. An effective Force GREATER than the defender defeats; equality stalemates unless that Special permits equality."],
-      ["PRESSURE / PIN","An individually nonlethal Strike may instead become Pressure at declaration; after Evade, it suppresses the target's entire rolled Protect/Rescue or Pins it. Pressure never adds to damage. Uncancelled failed damaging Strikes also Pin: no post-combat movement this Battle."],
-      ["PROTECT / EVADE","Evade cancels every incoming damaging Strike or Pressure against itself. Protect cancels one incoming damaging Strike for an eligible target unless printed otherwise. Allocate Protect after targets and Pressure are known."],
-      ["RESCUE","After lethal checks, each Rescue prevents a permitted Force's ENTIRE defeat, even against several attacking Strikes. A rescued target was not destroyed."],
-      ["COMBAT TIMING","Reveal Plans → move → roll → declare Strike/Pressure targets → Evade → Pressure → Protect → coordinated lethality & Pin → Rescue → discard casualties → printed advances → Assault advances → territory."],
-      ["COMMAND","Lose 1 Command per enemy-controlled Front; check Collapse before recovery. Recover 8 if behind in controlled Fronts, 6 if ahead, 7 each if tied; cap 20. Draw back to 10."],
-      ["LIMITS","Only printed Specials may reach an adjacent Front. No markers persist for Pressure/Pin. No Bonds, Names, Tactics, Orders, Stratagems or Narratives; Heroes play as Forces (one per Battle)."],
-    ].filter(([,value])=>value);
+      [
+            "WIN / BOARD",
+            "Control a Front with more surviving Forces (0–3 per player); rank has no control bonus. Defeated Forces leave permanently. Collapse at 0 Command before recovery."
+      ],
+      [
+            "TURNS",
+            "Fronts 2+3 first, then 1 in Battle II and 4 in Battle III. Pass before draw, or draw 1 and take up to 2 Actions: Deploy, Maneuver for 1 Command, Cycle 2 cards to draw 1."
+      ],
+      [
+            "PLANS",
+            "Choose one secret army-wide Assault/Hold/Volley/Raid; reveal before dice. Plans set eligible targets and movement, never Force or D6."
+      ],
+      [
+            "COUNTER CYCLE",
+            "Hold counters Assault; Assault counters Volley; Volley counters Raid; Raid counters Hold. Assault/Raid and Hold/Volley are neutral; mirrors have no counter."
+      ],
+      [
+            "TACTICAL READ",
+            "Countering plan: ONE Read per occupied Front after dice. Choose rolled Strike (no fixed printed rank): target ANY opposing rank and ignore ONE Protect; OR choose rolled Protect to cancel ONE extra damaging Strike against an already eligible friend. No Read on Rescue or Falter."
+      ],
+      [
+            "ROLE POSITIONS",
+            "Frontline Guard rolling Protect can cover any ally in its Front. Middle/Rear Archer gains Volley targeting. Frontline/Middle Raider/Rider/Skirmisher gains Raid deep targeting. Rear Healer/Steward can Rescue any ally in same Front."
+      ],
+      [
+            "ASSAULT",
+            "Ordinary Strikes target foremost; unconditional one optional post-combat forward rank step per Front. Not an extra movement if an Opportunity is earned."
+      ],
+      [
+            "HOLD",
+            "Withdraw one Force a rank before dice; Protect can cover any ally in its Front. Post-combat step only after an Opportunity."
+      ],
+      [
+            "VOLLEY",
+            "Middle/Rear Archer can target any enemy rank; others target foremost. Post-combat step only after Opportunity."
+      ],
+      [
+            "RAID",
+            "Mobile Force may move sideways into originally empty same-rank adjacent active Front before dice; mobile in Frontline/Middle may Strike enemy Middle/Rear. Step only after Opportunity."
+      ],
+      [
+            "OPPORTUNITY",
+            "After combat earn one if you discarded enemy with a damaging Strike, cancelled a damaging Strike via Protect/Evade, or saved a Force via Rescue. Optional forward move into empty legal rank. ONE post-combat move per player per Front, including Special advances; no moved-twice or Pinned Force."
+      ],
+      [
+            "ROLL / TARGET",
+            "Each player rolls one D6 per occupied Front; all their Forces use their own face. Declare Strikes and Pressure simultaneously. Fixed-target Specials override Plan and role reach."
+      ],
+      [
+            "COORDINATE",
+            "At each target, each uncancelled damaging Strike gains +1 effective Force per OTHER uncancelled Strike at the same target. Greater Force defeats, equality stalemates absent a printed Special."
+      ],
+      [
+            "PRESSURE / PIN",
+            "Weak Strike may become Pressure instead of damage: suppress the target's rolled Protect/Rescue or Pin it. No coordination bonus. Failed uncancelled damaging Strikes Pin, preventing post-combat movement this Battle only."
+      ],
+      [
+            "PROTECT / EVADE / RESCUE",
+            "Evade cancels all attacks and Pressure against self. Protect cancels one damaging Strike unless printed otherwise. Rescue prevents the ENTIRE defeat of one permitted Force."
+      ],
+      [
+            "COMBAT TIMING",
+            "Reveal Plans → pre-combat move → roll → declare targets/Read/Pressure → Evade → Pressure → Protect/Read → coordination, lethal and Pin → Rescue → discard casualties → Special then Plan/Opportunity move → control."
+      ],
+      [
+            "COMMAND",
+            "Lose 1 Command per enemy-controlled Front, check Collapse, recover 8 when behind, 6 when ahead, 7 if tied; cap 20. Refill to 10."
+      ],
+      [
+            "LIMITS",
+            "Only printed Specials cross Fronts. Tactical Read/Opportunity/Pin have no markers. Bonds, Names, Tactics, Orders, Stratagems, Narratives suspended; Heroes are Force-only."
+      ]
+].filter(([,value])=>value);
     reference.innerHTML='<h1>Card mechanics quick reference</h1><div class="mechanics-grid">'+
       rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
       '</div>';

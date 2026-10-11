@@ -26,16 +26,24 @@ You cannot voluntarily spend Command below 0.
 
 ## Hidden Battle Plans (one per army)
 
-Both players secretly select one reusable plan and reveal together:
+Both players select one reusable Plan secretly and **reveal together before rolling**. Plans never alter Force or the D6.
 
 | Plan | What it changes |
 | --- | --- |
-| **Assault** | Strike foremost enemy; after combat advance one surviving Force one empty rank forward per Front |
-| **Hold** | Before combat withdraw one Force one empty rank backwards per Front; Protect may cover any ally in its own Front |
-| **Volley** | Archers may Strike any occupied enemy rank in their Front; other Strikes target foremost |
-| **Raid** | Before combat redeploy one Raider/Rider/Skirmisher per Front into a vacant same-rank space in an adjacent active Front; these mobile roles may Strike enemy Middle/Rear if occupied, otherwise foremost |
+| **Assault** | Strike foremost; **one optional forward rank step per Front** after casualties, without requiring an Opportunity |
+| **Hold** | Withdraw one Force a rank before combat; Protect may reach any ally in its own Front |
+| **Volley** | Archer in **Middle or Rear** may target any occupied enemy rank; other ordinary Strikes target foremost |
+| **Raid** | Redeploy one Raider/Rider/Skirmisher from each Front sideways to an originally empty same-rank adjacent active Front; mobile Forces in **Frontline or Middle** can target enemy Middle/Rear, otherwise foremost |
 
-Under Hold/Raid, unless stated otherwise, all ordinary Strikes target the foremost occupied enemy rank. Printed Specials with an explicit target override plan targeting. A Force can move at most once in a Battle resolution. Declare simultaneous plan movement into **originally empty, distinct destinations**, obeying printed allowed ranks.
+**Strong counters:** Hold counters Assault; Assault counters Volley; Volley counters Raid; Raid counters Hold. In short: **Hold > Assault > Volley > Raid > Hold**. The Plan on the left counters the one on the right. The other two pairs (Assault/Raid and Hold/Volley) are neutral. Mirrors have no counter. A counter is a tactical advantage, **not an automatic victory**.
+
+**Tactical Read:** When your Plan counters theirs, in **each occupied Front**, you may choose **one** rolled Strike or Protect to improve. **Read Strike** (no fixed printed target rank) can choose any enemy rank and ignores one Protect against it. **Read Protect** cancels one additional damaging Strike against an otherwise eligible friend. The Read has no effect if no eligible result/target exists; it never changes dice or Force, and cannot bypass Evade or Rescue. No marker is needed.
+
+**Roles by rank:** A **Frontline Guard** rolling Protect can protect any ally in its own Front (normal capacity). A **Middle/Rear Archer** unlocks Volley targeting. A **Frontline/Middle Raider, Rider or Skirmisher** unlocks Raid's deep targeting. A **Rear Healer/Steward** rolling Rescue may save any ally in its own Front (normal capacity). Printed fixed-target Specials and explicit adjacent-Front Specials retain their text. No passive bonuses.
+
+**Opportunities:** After casualties, if your Strike actually **discarded** an enemy, a Protect/Evade **cancelled a damaging Strike**, or a Rescue **prevented a defeat** in that Front, you may advance **one unpinned surviving Force one empty legal rank forward** in that Front. Assault gets this option without earning an Opportunity. **One post-combat move maximum per player per Front**, including printed Special advances. A Force cannot move twice in the Battle. A full Front has nowhere to advance, and no new status persists.
+
+All pre-combat movements must be declared simultaneously into **originally empty distinct destinations**, observing printed row restrictions. All post-combat movement uses spaces **empty after casualties**. Neither type can cross to the enemy side, enter inactive Fronts, leap occupied ranks or swap.
 
 ## Dice and outcomes
 
@@ -53,17 +61,17 @@ A Special explicitly naming an adjacent active Front is the **only** way a Force
 
 ## Resolve every Battle in this order
 
-1. **Reveal** one secret Plan per army; execute eligible pre-combat **Hold/Raid movement**.
-2. Both players **roll one D6 per occupied Front** and read every Force's own result.
-3. **Declare all Strike targets simultaneously**. Freely choose eligible enemies; optionally convert a solo-ineffective Strike into **Pressure**.
-4. Resolve **Evade**, then **Pressure** (suppress rolled Protect/Rescue or Pin), then allocate **Protect** after targets are known.
-5. Calculate **effective Force = each surviving attacking Force + (uncancelled damaging Strikes against that same target − 1)**. Defeat only where an attack exceeds the defender or an eligible Special permits equality. Any unsuccessful uncancelled Strike **Pins** its defender.
-6. Assign **Rescue** to otherwise-lethal casualties. Each Rescue saves its entire permitted Force.
-7. Discard remaining casualties permanently; apply **Special post-combat movement**, then **Assault** advances. Pinned Forces cannot advance.
-8. Count surviving Forces (0–3 per side) in each Front: higher count **controls**, equal counts are contested.
-9. Lose **1 Command per enemy-controlled Front**, check Collapse at 0, then recover **8 if behind** in controlled Fronts, **6 if ahead**, **7 each if tied** (cap 20). Refill hands to 10.
+1. **Reveal Plans** and make simultaneous eligible **Hold/Raid** moves.
+2. Each player rolls one D6 per occupied Front. Every Force uses its own printed result.
+3. **Declare legal Strikes and Pressure simultaneously**; players freely choose eligible targets. If your Plan counters the opponent's, choose at most one **Tactical Read** per Front.
+4. Resolve **Evade → Pressure → Protect**. Frontline Guard protection and Hold use their wider rank reach. Read Protect cancels one extra damaging Strike for an eligible friend; Read Strike bypasses one Protect, not Evade or Rescue.
+5. **Coordinate:** each uncancelled damaging Strike gains +1 effective Force per other Strike at the same target. Greater Force defeats; equality stalemates unless a Special says otherwise. Unsuccessful uncancelled Strikes **Pin** (no post-combat movement).
+6. **Rescue** prevents an entire Force's defeat. Rear Healers/Stewards can save any friendly Force in their Front, while an explicitly printed adjacent-Front Special may rescue elsewhere.
+7. Discard unrescued casualties permanently. Check each Front for an **Opportunity** (enemy discarded, damaging Strike cancelled, or successful Rescue). Printed Special advances first; then make at most **one post-combat forward move per player per Front** (always permitted by Assault, otherwise only with an Opportunity). No twice-moved or Pinned Forces.
+8. Majority of surviving occupied positions **controls the Front**. Ties are contested; rank never scores extra control.
+9. Lose 1 Command per enemy-controlled Front, check Collapse at 0, then recover 8 if behind in controlled Fronts, 6 if ahead, 7 each if tied (cap 20); refill hands to 10.
 
-Every Force contributes its rolled effect **once**, even if that Force will be defeated. Protection and Rescue are distinct; Pressure never turns into retroactive cancellation. Cross-Front Specials resolve together with their corresponding universal operation.
+Every Force participates once even if it is defeated in the simultaneous exchange. Pressure never turns into retroactive cancellation. A Read, Opportunity and Pin never persist to the next Battle. No Force statistic, printed cost, die face or existing card ability is changed by Phase 2.
 
 Recycle only the **ordinary discard pile** when drawing; **casualties never re-enter decks**. If there are no cards to draw, skip the draw. The player who did not Pass starts the next Battle.
 
