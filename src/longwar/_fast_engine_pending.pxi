@@ -375,8 +375,20 @@ cdef void _v2_apply_resolved_effect(
                 if component >= 0:
                     state.name[target] = -1
                     _fe_return_to_hand(self, state, owner, component)
-    elif effect.op == V2_OP_SWAP_FRONTS:
+    elif effect.op in (
+        V2_OP_SWAP_FRONTS, V2_OP_SWAP_FRONTS_BUFF_NAMED
+    ):
         if source >= 0 and dest >= 0:
+            if (
+                effect.op == V2_OP_SWAP_FRONTS_BUFF_NAMED
+                and (
+                    front_from_slot(dest) != front_from_slot(source) + 1
+                    or not _fe_adjacent_front_exchange_legal(
+                        self, state, player, front_from_slot(source)
+                    )
+                )
+            ):
+                raise ValueError("Illegal adjacent-Front exchange")
             for i in range(RANK_COUNT):
                 _fe_swap_slots(
                     self, state,
@@ -384,6 +396,22 @@ cdef void _v2_apply_resolved_effect(
                     slot_index(player, front_from_slot(dest), i),
                 )
             _fe_resolve_force_pair_narratives(self, state, player)
+            if effect.op == V2_OP_SWAP_FRONTS_BUFF_NAMED:
+                # The optional-looking phrase "Give one" is mandatory
+                # whenever a moved complete Named Formation exists.
+                class_bit = 0
+                for i in range(RANK_COUNT):
+                    slot = slot_index(player, front_from_slot(source), i)
+                    if _v2_slot_named(state, slot):
+                        class_bit |= <uint32_t>(1 << slot)
+                    slot = slot_index(player, front_from_slot(dest), i)
+                    if _v2_slot_named(state, slot):
+                        class_bit |= <uint32_t>(1 << slot)
+                if class_bit:
+                    _fe_enqueue_effect(
+                        self, state, EFFECT_SWAPPED_NAMED_STRENGTH,
+                        player, source_card, -1, 0, class_bit,
+                    )
     elif effect.op == V2_OP_SWAP_BONDS:
         if source >= 0 and dest >= 0 and state.bond[source] >= 0 and state.bond[dest] >= 0:
             component = state.bond[source]
@@ -713,6 +741,15 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         state.stratagem_front_mask[player] = 0
         state.stratagem_direction[player] = 0
         state.stratagem_target_mask[player] = 0
+    elif kind == EFFECT_SWAPPED_NAMED_STRENGTH:
+        if (
+            skip or source < 0
+            or not (pending_amount & (<uint32_t>1 << source))
+            or owner_from_slot(source) != player
+            or not _v2_slot_named(state, source)
+        ):
+            raise ValueError("Select one moved Named Formation")
+        state.temporary[source] += 2
     elif kind == EFFECT_WATCHTOWERS_CYCLE:
         if not skip:
             if (
