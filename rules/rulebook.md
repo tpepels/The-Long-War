@@ -104,14 +104,14 @@ You secretly choose **Volley**, while they choose **Raid**. The Raiders do not r
 
 **Your D6 is 2:** Red Shields show **Special** (Protect two different friendly Forces here), Crow Archers show **Strike**, and White Hands show **Special** (Rescue any friendly Force here).
 
-**Opponent D6 is 1:** Fifty Men show **Strike**, River Raiders show **Strike**, and Tovan shows **Falter**.
+**Opponent D6 is 1:** Fifty Men show **Strike**, River Raiders show **Strike**, and Tovan shows **Protect** (friendly Frontline).
 
 1. Your Archers choose Tovan in Rear as their target under Volley: Force 3 is higher than Force 2, so this would be lethal.
 2. Fifty Men Strike your foremost Force, Red Shields: Force 5 is higher than Force 4, so this would be lethal.
 3. River Raiders target your Middle Archers under Raid: Force 4 is higher than Force 3, so this would be lethal.
 4. Your Red Shields Protect the Archers and the White Hands (their two **different** eligible targets). The protection on the Archers cancels the Raiders' Strike; the other Protect has no incoming Strike and therefore cancels nothing.
 5. Your White Hands Rescue the Red Shields, preventing their defeat.
-6. The Tovan has no protection and is permanently discarded. All three of your Forces survive.
+6. Tovan's Protect covers the opposing Fifty Men, not Tovan; Tovan receives no protection and is permanently discarded. All three of your Forces survive.
 
 After combat you control this Front **3 occupied positions to 2**. The result depended on the two plans, the die faces and complementary Force outcomes, not summed Strength.
 
