@@ -911,13 +911,23 @@ cdef int _fe_legal_pending_effect_actions(
                 self, state, player, source, v2_effect
             )
             for dest in range(SLOT_COUNT):
-                if target_mask & (<uint32_t>1 << dest):
-                    n = _append_action(
-                        actions, n,
-                        encode_action(
-                            TYPE_EFFECT, -1, source, dest, player, kind
-                        ),
+                if not (target_mask & (<uint32_t>1 << dest)):
+                    continue
+                if (
+                    v2_effect.op == V2_OP_SWAP
+                    and v2_effect.target in (
+                        V2_TARGET_SELF_VERTICAL_FRIEND,
+                        V2_TARGET_DIRECTLY_AHEAD,
                     )
+                    and not _v2_vertical_swap_legal(self, state, source, dest)
+                ):
+                    continue
+                n = _append_action(
+                    actions, n,
+                    encode_action(
+                        TYPE_EFFECT, -1, source, dest, player, kind
+                    ),
+                )
 
         else:
             # Automatic effect: expose exactly one forced non-Action

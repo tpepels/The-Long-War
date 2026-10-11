@@ -158,7 +158,16 @@ cdef void _v2_apply_resolved_effect(
             _fe_resolve_force_pair_narratives(self, state, player)
     elif effect.op == V2_OP_SWAP:
         if source >= 0 and dest >= 0:
+            if effect.target in (
+                V2_TARGET_SELF_VERTICAL_FRIEND,
+                V2_TARGET_DIRECTLY_AHEAD,
+            ) and not _v2_vertical_swap_legal(self, state, source, dest):
+                return
             _fe_swap_slots(self, state, source, dest)
+            if effect.flags & V2_FLAG_SWAP_GUARD_PARTNER:
+                # The other formation is now at the source position.
+                if state.force[source] >= 0:
+                    state.conditions[source] |= <uint8_t>COND_GUARDED
             _fe_resolve_force_pair_narratives(self, state, player)
     elif effect.op == V2_OP_ADD_STRENGTH_MARKER:
         _v2_add_strength_marker(state, target, effect.amount)
