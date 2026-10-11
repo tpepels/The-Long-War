@@ -170,8 +170,7 @@ def test_read_is_optional_and_one_of_two_instead_of_a_free_card_action():
         (True, True, True, True),
     ],
 )
-def test_opportunity_triggers(stroke=False, strike_killed=False, protect_cancelled=False,
-                              rescue_saved=False, opportunity=False):
+def test_opportunity_triggers(strike_killed, protect_cancelled, rescue_saved, opportunity):
     earned = strike_killed or protect_cancelled or rescue_saved
     assert earned is opportunity
     assert "permanently defeated" in RULES
@@ -187,7 +186,7 @@ def test_opportunity_movement_limits_and_protections():
     assert "The destination must be **empty after casualties**" in RULES
     assert "Printed Special advances first" in PLAYER
     assert "rank never scores extra control" in PLAYER
-    assert "no new status persists" in PLAYER
+    assert "never persist to the next Battle" in PLAYER
 
 
 def test_reference_pages_adhere_to_same_core_rules():
