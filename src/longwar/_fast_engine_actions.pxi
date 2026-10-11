@@ -585,6 +585,27 @@ cdef int _fe_legal_pending_effect_actions(
                             TYPE_EFFECT, -1, source2, dest, player, kind
                         ),
                     )
+    elif kind == EFFECT_LANTERN_SCOUTS_REACT:
+        # Public Force reaction: a chosen unused Scout may respond.
+        front = state.pending_aux[0]
+        for rank in (RANK_MIDDLE, RANK_REAR):
+            source2 = slot_index(player, front, rank)
+            if _fe_lantern_scout_reaction_eligible(
+                self, state, player, source2
+            ):
+                n = _append_action(
+                    actions, n, encode_action(
+                        TYPE_EFFECT, -1, source2, -1, player, kind
+                    ),
+                )
+    elif kind == EFFECT_LANTERN_SCOUTS_DISCARD:
+        for card in range(self.n_cards):
+            if state.hand[player][card] > 0:
+                n = _append_action(
+                    actions, n, encode_action(
+                        TYPE_EFFECT, card, -1, -1, player, kind
+                    ),
+                )
     elif kind == EFFECT_STRAT_SCOUT_REVEAL:
         # All hidden plans receive the same private response opportunity.
         if _v2_scout_plan_reaction_targets(

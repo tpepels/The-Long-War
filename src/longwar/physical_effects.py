@@ -112,6 +112,13 @@ SEVENTEENTH_COMPILED_EFFECTS = json.loads(r'''{"no-step-back":[{"timing":"hidden
 PRINTED_EFFECTS.update(SEVENTEENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(SEVENTEENTH_COMPILED_EFFECTS)
 
+# Eighteenth pass: a public, once-per-Battle Force reaction to a set Stratagem.
+EIGHTEENTH_PRINTED_EFFECTS = json.loads(r'''{"the-lantern-scouts":[{"timing":"reaction","text":"Once per Battle, when your opponent sets a Stratagem in this Front while this formation is in Middle or Rear, you may look at it, then draw 1 card and discard 1 card.","limit":"once_per_battle","exposed":"MIDDLE/REAR · New plan → peek+sift"}]}''')
+EIGHTEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-lantern-scouts":[{"timing":"reaction","scope":"self","limit":"once_per_battle","memory":["used_marker"],"op":"lantern_scouts_reaction","requires_ranks":["middle","rear"],"optional":true,"draw":1,"discard":1}]}''')
+PRINTED_EFFECTS.update(EIGHTEENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(EIGHTEENTH_COMPILED_EFFECTS)
+
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

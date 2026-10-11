@@ -38,6 +38,31 @@ cdef uint32_t _v2_scout_plan_reaction_targets(
     return targets
 
 
+cdef inline bint _fe_lantern_scout_reaction_eligible(
+    FastEngine self, FastState state, int owner, int slot,
+) noexcept:
+    cdef int card, i
+    cdef V2EffectSpec* effect
+    if (
+        slot < 0 or slot >= SLOT_COUNT
+        or owner_from_slot(slot) != owner
+        or rank_from_slot(slot) == RANK_FRONT
+        or state.force[slot] < 0
+        or state.force_ability_used[slot]
+    ):
+        return False
+    card = state.force[slot]
+    for i in range(self.v2_effect_count[card][V2_MODE_DEFAULT]):
+        effect = &self.v2_effects[card][V2_MODE_DEFAULT][i]
+        if (
+            effect.op == V2_OP_LANTERN_SCOUTS_REACTION
+            and effect.timing == V2_TIMING_REACTION
+            and effect.once_per_battle
+        ):
+            return True
+    return False
+
+
 cdef void _v2_queue_enemy_sets_stratagem_reaction(
     FastEngine self,
     FastState state,
@@ -45,21 +70,41 @@ cdef void _v2_queue_enemy_sets_stratagem_reaction(
     int front_mask,
 ) except *:
     cdef int defender = other_player(actor)
-    cdef int front
+    cdef int front, rank, slot
+    cdef bint found
+    # Hidden plans retain their owner-private reveal-or-decline prompt.
     if (
-        state.stratagem[defender] < 0
-        or state.stratagem_revealed[defender]
+        state.stratagem[defender] >= 0
+        and not state.stratagem_revealed[defender]
     ):
-        return
+        for front in range(FRONT_COUNT):
+            if front_mask & (1 << front):
+                _fe_enqueue_effect(
+                    self, state, EFFECT_STRAT_SCOUT_REVEAL, defender,
+                    -1, -1, front, 0, 0, EFFECT_OPTIONAL,
+                )
+                break
+    # Public printed REACTION of Lantern Scouts: each eligible formation
+    # may respond once. Recheck remaining eligible Scouts after each cycle.
     for front in range(FRONT_COUNT):
-        if front_mask & (1 << front):
-            # Do not encode private eligibility or the secret card id in
-            # pending state. The owner alone knows whether "reveal" is legal.
+        if (
+            not (front_mask & (1 << front))
+            or not front_is_active(state.battle, front)
+        ):
+            continue
+        found = False
+        for rank in (RANK_MIDDLE, RANK_REAR):
+            slot = slot_index(defender, front, rank)
+            if _fe_lantern_scout_reaction_eligible(
+                self, state, defender, slot
+            ):
+                found = True
+                break
+        if found:
             _fe_enqueue_effect(
-                self, state, EFFECT_STRAT_SCOUT_REVEAL, defender,
-                -1, -1, front, 0, 0, EFFECT_OPTIONAL,
+                self, state, EFFECT_LANTERN_SCOUTS_REACT,
+                defender, -1, -1, front, 0, 0, EFFECT_OPTIONAL,
             )
-            return
 
 
 cdef uint32_t _fe_asha_mask_for_suppression(
@@ -668,6 +713,44 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         state.stratagem_front_mask[player] = 0
         state.stratagem_direction[player] = 0
         state.stratagem_target_mask[player] = 0
+    elif kind == EFFECT_LANTERN_SCOUTS_REACT:
+        if not skip:
+            if (
+                source < 0
+                or front_from_slot(source) != aux
+                or not _fe_lantern_scout_reaction_eligible(
+                    self, state, player, source
+                )
+            ):
+                raise ValueError("Ineligible Lantern Scouts reaction")
+            state.force_ability_used[source] = 1
+            _v2_look_at_opponent_stratagem(state, player)
+            _fe_queue_battle_draws(self, state, player, 1)
+            if state.hand_len[player] > 0:
+                _fe_enqueue_effect(
+                    self, state, EFFECT_LANTERN_SCOUTS_DISCARD,
+                    player, -1, source, aux,
+                )
+    elif kind == EFFECT_LANTERN_SCOUTS_DISCARD:
+        if card < 0 or state.hand[player][card] <= 0:
+            raise ValueError("Invalid Lantern Scouts discard")
+        _fe_take_from_hand(
+            self, state, player, card, HIDDEN_KNOWN_SINGLE_CARD
+        )
+        _fe_append_discard(self, state, player, card, True)
+        # A second unused Scout may react to this same Stratagem set.
+        if (
+            _fe_lantern_scout_reaction_eligible(
+                self, state, player, slot_index(player, aux, RANK_MIDDLE)
+            )
+            or _fe_lantern_scout_reaction_eligible(
+                self, state, player, slot_index(player, aux, RANK_REAR)
+            )
+        ):
+            _fe_enqueue_effect(
+                self, state, EFFECT_LANTERN_SCOUTS_REACT,
+                player, -1, -1, aux, 0, 0, EFFECT_OPTIONAL,
+            )
     elif kind == EFFECT_STRAT_SCOUT_REVEAL:
         if not skip:
             if (
