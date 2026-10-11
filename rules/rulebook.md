@@ -98,20 +98,20 @@ Command cannot exceed **20**. Both players draw back up to **10 cards**, reshuff
 
 ## Fully worked combat example (actual card faces)
 
-Your **Red Shields (Force 4)** are in Frontline, **Crow Archers (Force 3)** in Middle and **White Hands of Elara (Force 3)** in Rear. The opponent has **Fifty Men (Force 5)** in Frontline, **River Raiders (Force 4)** in Middle and **Field Train (Force 2)** in Rear.
+Your **Red Shields (Force 4)** are in Frontline, **Crow Archers (Force 3)** in Middle and **White Hands of Elara (Force 3)** in Rear. The opponent has **Fifty Men (Force 5)** in Frontline, **River Raiders (Force 4)** in Middle and **Tovan, the Quartermaster (Force 2)** in Rear.
 
 You secretly choose **Volley**, while they choose **Raid**. The Raiders do not redeploy because there is no legal empty Middle position in an adjacent active Front.
 
 **Your D6 is 2:** Red Shields show **Special** (Protect two different friendly Forces here), Crow Archers show **Strike**, and White Hands show **Special** (Rescue any friendly Force here).
 
-**Opponent D6 is 1:** Fifty Men show **Strike**, River Raiders show **Strike**, and Field Train shows **Falter**.
+**Opponent D6 is 1:** Fifty Men show **Strike**, River Raiders show **Strike**, and Tovan shows **Falter**.
 
-1. Your Archers choose Field Train in Rear as their target under Volley: Force 3 is higher than Force 2, so this would be lethal.
+1. Your Archers choose Tovan in Rear as their target under Volley: Force 3 is higher than Force 2, so this would be lethal.
 2. Fifty Men Strike your foremost Force, Red Shields: Force 5 is higher than Force 4, so this would be lethal.
 3. River Raiders target your Middle Archers under Raid: Force 4 is higher than Force 3, so this would be lethal.
 4. Your Red Shields Protect the Archers and the White Hands (their two **different** eligible targets). The protection on the Archers cancels the Raiders' Strike; the other Protect has no incoming Strike and therefore cancels nothing.
 5. Your White Hands Rescue the Red Shields, preventing their defeat.
-6. The Field Train has no protection and is permanently discarded. All three of your Forces survive.
+6. The Tovan has no protection and is permanently discarded. All three of your Forces survive.
 
 After combat you control this Front **3 occupied positions to 2**. The result depended on the two plans, the die faces and complementary Force outcomes, not summed Strength.
 
