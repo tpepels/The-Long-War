@@ -1,3 +1,129 @@
+# Resolution-only Stratagems share one eligibility snapshot. A player's
+# private decision is held until both players have committed; the battlefield
+# and provisional Strength cannot change between these decisions.
+cdef bint _fe_reveal_buff_snapshot(
+    FastEngine self,
+    FastState state,
+    int player,
+    uint32_t* targets,
+) noexcept:
+    cdef int strat = state.stratagem[player]
+    cdef int front, rank, slot, leader = -1
+    cdef V2EffectSpec* effect
+    cdef uint32_t candidates = 0
+    targets[0] = 0
+    if strat < 0 or state.stratagem_revealed[player]:
+        return False
+    if self.v2_effect_count[strat][V2_MODE_DEFAULT] <= 0:
+        return False
+    effect = &self.v2_effects[strat][V2_MODE_DEFAULT][0]
+    if effect.op != V2_OP_HIDDEN_BUFF_TARGETS:
+        return False
+    if effect.reveal not in (
+        V2_REVEAL_LEADERSHIP_FRONT_STRENGTH,
+        V2_REVEAL_OUTER_FRONT_STRENGTH,
+    ):
+        return False
+    for front in range(FRONT_COUNT):
+        if state.stratagem_front_mask[player] & (1 << front):
+            break
+    else:
+        return False
+    if not front_is_active(state.battle, front):
+        return False
+    if effect.reveal == V2_REVEAL_OUTER_FRONT_STRENGTH:
+        if front != FIRST_FRONT_INDEX and front != LAST_FRONT_INDEX:
+            return False
+        for rank in range(RANK_COUNT):
+            slot = slot_index(player, front, rank)
+            if (
+                state.force[slot] >= 0
+                and _v2_slot_has_any_class(
+                    self, state, slot, effect.class_mask2
+                )
+            ):
+                candidates |= <uint32_t>1 << slot
+        targets[0] = candidates
+        return candidates != 0
+    # Pick a deterministic qualifying leader; each other friendly formation
+    # is an eligible recipient, regardless of its own classifications.
+    for rank in range(RANK_COUNT):
+        slot = slot_index(player, front, rank)
+        if (
+            state.force[slot] >= 0
+            and _v2_slot_has_any_class(
+                self, state, slot, effect.class_mask
+            )
+        ):
+            leader = slot
+            break
+    if leader < 0:
+        return False
+    for rank in range(RANK_COUNT):
+        slot = slot_index(player, front, rank)
+        if slot != leader and state.force[slot] >= 0:
+            candidates |= <uint32_t>1 << slot
+    targets[0] = candidates
+    return True
+
+
+cdef void _fe_queue_resolution_reveals(
+    FastEngine self,
+    FastState state,
+) except *:
+    cdef int player, cursor = state.resolution_cursor, strat, amount, max_targets
+    cdef int front, flags
+    cdef uint32_t candidates
+    cdef V2EffectSpec* effect
+
+    if cursor < PLAYER_COUNT:
+        player = cursor
+        state.resolution_cursor += 1
+        if (
+            state.stratagem[player] >= 0
+            and not state.stratagem_revealed[player]
+        ):
+            # Every face-down plan visits the same private commitment step;
+            # an ineligible one can only decline. Skipping the step entirely
+            # would leak the plan's eligibility (and therefore its identity)
+            # to the other player through the visible pending-player order.
+            _fe_enqueue_effect(
+                self, state, EFFECT_STRAT_REVEAL_DECISION, player,
+            )
+        return
+
+    if cursor == PLAYER_COUNT:
+        # Reveal both decisions atomically, without modifying provisional
+        # Strength when the first player privately commits.
+        for player in range(PLAYER_COUNT):
+            if state.resolution_reveal_choice[player] == 2:
+                state.stratagem_revealed[player] = 1
+        state.resolution_cursor += 1
+        return
+
+    if cursor < PLAYER_COUNT * 2 + 1:
+        player = cursor - (PLAYER_COUNT + 1)
+        state.resolution_cursor += 1
+        if state.resolution_reveal_choice[player] != 2:
+            return
+        strat = state.stratagem[player]
+        if strat < 0:
+            return
+        effect = &self.v2_effects[strat][V2_MODE_DEFAULT][0]
+        candidates = state.resolution_reveal_targets[player]
+        if not candidates:
+            return
+        flags = EFFECT_OPTIONAL if effect.max_targets > 1 else 0
+        _fe_enqueue_effect(
+            self, state, EFFECT_STRAT_REVEAL_BUFF, player,
+            -1, -1, effect.amount, candidates, 0, flags,
+        )
+        return
+
+    state.resolution_stage = RESOLUTION_COMPARE
+    state.resolution_cursor = 0
+
+
 cdef void _fe_queue_pre_resolution_choice(
     FastEngine self,
     FastState state,
@@ -157,7 +283,16 @@ cdef void _fe_queue_pre_resolution_choice(
             )
         return
 
-    state.resolution_stage = RESOLUTION_COMPARE
+    # Snapshot *both* players' eligibility before either chooses to reveal.
+    # Only the new declarative resolution-buff mechanic participates here.
+    for controller in range(PLAYER_COUNT):
+        mask = 0
+        state.resolution_reveal_eligible[controller] = <uint8_t>(
+            _fe_reveal_buff_snapshot(self, state, controller, &mask)
+        )
+        state.resolution_reveal_targets[controller] = mask
+        state.resolution_reveal_choice[controller] = 0
+    state.resolution_stage = RESOLUTION_REVEAL
     state.resolution_cursor = 0
 
 cdef void _fe_project_front_losses_fast(
@@ -507,6 +642,10 @@ cdef void _fe_clear_resolution_state(FastEngine self, FastState state) noexcept:
     cdef int slot
     state.resolution_stage = RESOLUTION_NONE
     state.resolution_cursor = 0
+    for slot in range(PLAYER_COUNT):
+        state.resolution_reveal_eligible[slot] = 0
+        state.resolution_reveal_choice[slot] = 0
+        state.resolution_reveal_targets[slot] = 0
     state.resolution_lost_mask[0] = 0
     state.resolution_lost_mask[1] = 0
     state.resolution_drive_mask[0] = 0
@@ -759,6 +898,12 @@ cdef void _fe_advance_battle_resolution(FastEngine self, FastState state) except
                 return
             continue
 
+        if state.resolution_stage == RESOLUTION_REVEAL:
+            _fe_queue_resolution_reveals(self, state)
+            if state.pending_len > 0:
+                return
+            continue
+
         if state.resolution_stage == RESOLUTION_COMPARE:
             _fe_compare_battle_fronts(self, state)
             continue
@@ -835,6 +980,10 @@ cdef void _fe_score_battle(FastEngine self, FastState state) except *:
     )
     state.resolution_stage = RESOLUTION_PREPARE
     state.resolution_cursor = 0
+    for p in range(PLAYER_COUNT):
+        state.resolution_reveal_eligible[p] = 0
+        state.resolution_reveal_choice[p] = 0
+        state.resolution_reveal_targets[p] = 0
     state.resolution_suppressed_mask = 0
     state.resolution_lost_mask[0] = 0
     state.resolution_lost_mask[1] = 0

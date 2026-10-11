@@ -493,7 +493,31 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         v2_effect = _v2_pending_effect(self, state)
     _fe_pop_pending_effect(self, state)
 
-    if kind == EFFECT_LOST_FRONT_EXHAUST:
+    if kind == EFFECT_STRAT_REVEAL_DECISION:
+        if state.resolution_stage != RESOLUTION_REVEAL:
+            raise ValueError("Stratagem reveal decision outside resolution")
+        state.resolution_reveal_choice[player] = 1 if skip else 2
+    elif kind == EFFECT_STRAT_REVEAL_BUFF:
+        if state.resolution_stage != RESOLUTION_REVEAL:
+            raise ValueError("Stratagem buff outside resolution")
+        if not skip:
+            if (
+                source < 0
+                or not (pending_amount & (<uint32_t>1 << source))
+                or owner_from_slot(source) != player
+                or state.force[source] < 0
+                or (dest >= 0 and (
+                    not (pending_amount & (<uint32_t>1 << dest))
+                    or dest == source
+                    or owner_from_slot(dest) != player
+                    or state.force[dest] < 0
+                ))
+            ):
+                raise ValueError("Invalid resolution Stratagem recipients")
+            state.temporary[source] += aux
+            if dest >= 0:
+                state.temporary[dest] += aux
+    elif kind == EFFECT_LOST_FRONT_EXHAUST:
         if (source < 0 or aux < 0 or aux >= FRONT_COUNT
                 or owner_from_slot(source) != player
                 or front_from_slot(source) != aux

@@ -216,6 +216,13 @@ cdef FastState _fe_from_game_state(FastEngine self, state):
     resolution_state = state.battle_resolution
     if resolution_state is not None:
         fast.resolution_stage = int(resolution_state.get("stage", RESOLUTION_NONE))
+        reveal_eligible = resolution_state.get("reveal_eligible", (0, 0))
+        reveal_choice = resolution_state.get("reveal_choice", (0, 0))
+        reveal_targets = resolution_state.get("reveal_targets", (0, 0))
+        for p in range(PLAYER_COUNT):
+            fast.resolution_reveal_eligible[p] = int(reveal_eligible[p])
+            fast.resolution_reveal_choice[p] = int(reveal_choice[p])
+            fast.resolution_reveal_targets[p] = int(reveal_targets[p])
         lost_masks = resolution_state.get("lost_masks", (0, 0))
         drive_masks = resolution_state.get("drive_masks", (0, 0))
         protected_masks = resolution_state.get("protected_masks", (0, 0))
@@ -797,6 +804,9 @@ cdef dict _fe_export_state(FastEngine self, FastState state):
             if state.resolution_stage == RESOLUTION_NONE
             else {
                 "stage": state.resolution_stage,
+                "reveal_eligible": [state.resolution_reveal_eligible[0], state.resolution_reveal_eligible[1]],
+                "reveal_choice": [state.resolution_reveal_choice[0], state.resolution_reveal_choice[1]],
+                "reveal_targets": [state.resolution_reveal_targets[0], state.resolution_reveal_targets[1]],
                 "lost_masks": [state.resolution_lost_mask[0], state.resolution_lost_mask[1]],
                 "drive_masks": [state.resolution_drive_mask[0], state.resolution_drive_mask[1]],
                 "protected_masks": [state.resolution_protected_mask[0], state.resolution_protected_mask[1]],

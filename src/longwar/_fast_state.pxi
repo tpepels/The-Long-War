@@ -134,6 +134,9 @@ cdef class FastState:
     cdef int16_t free_maneuver_source[PLAYER_COUNT]
 
     cdef uint8_t resolution_stage
+    cdef uint8_t resolution_reveal_eligible[PLAYER_COUNT]
+    cdef uint8_t resolution_reveal_choice[PLAYER_COUNT]
+    cdef uint32_t resolution_reveal_targets[PLAYER_COUNT]
     cdef uint8_t resolution_lost_mask[PLAYER_COUNT]
     cdef uint8_t resolution_drive_mask[PLAYER_COUNT]
     cdef uint8_t resolution_protected_mask[PLAYER_COUNT]
@@ -276,6 +279,9 @@ cdef class FastState:
         memset(self.free_maneuver_available, 0, sizeof(self.free_maneuver_available))
         memset(self.free_maneuver_source, 0xff, sizeof(self.free_maneuver_source))
         self.resolution_stage = RESOLUTION_NONE
+        memset(self.resolution_reveal_eligible, 0, sizeof(self.resolution_reveal_eligible))
+        memset(self.resolution_reveal_choice, 0, sizeof(self.resolution_reveal_choice))
+        memset(self.resolution_reveal_targets, 0, sizeof(self.resolution_reveal_targets))
         memset(self.resolution_lost_mask, 0, sizeof(self.resolution_lost_mask))
         memset(self.resolution_drive_mask, 0, sizeof(self.resolution_drive_mask))
         memset(self.resolution_protected_mask, 0, sizeof(self.resolution_protected_mask))
@@ -416,6 +422,9 @@ cdef class FastState:
         memcpy(self.free_maneuver_available, other.free_maneuver_available, sizeof(self.free_maneuver_available))
         memcpy(self.free_maneuver_source, other.free_maneuver_source, sizeof(self.free_maneuver_source))
         self.resolution_stage = other.resolution_stage
+        memcpy(self.resolution_reveal_eligible, other.resolution_reveal_eligible, sizeof(self.resolution_reveal_eligible))
+        memcpy(self.resolution_reveal_choice, other.resolution_reveal_choice, sizeof(self.resolution_reveal_choice))
+        memcpy(self.resolution_reveal_targets, other.resolution_reveal_targets, sizeof(self.resolution_reveal_targets))
         memcpy(self.resolution_lost_mask, other.resolution_lost_mask, sizeof(self.resolution_lost_mask))
         memcpy(self.resolution_drive_mask, other.resolution_drive_mask, sizeof(self.resolution_drive_mask))
         memcpy(self.resolution_protected_mask, other.resolution_protected_mask, sizeof(self.resolution_protected_mask))
