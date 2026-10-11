@@ -156,7 +156,7 @@ function placementRuleBlock(card){
 function stackEdge(card){
   if(isPaperD6(card))return '<header class="stack-edge" data-edge-layout="three-zone">'+
     '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
-    '<div class="edge-zone edge-zone-middle edge-identity">'+classificationIcons(card)+'</div>'+
+    '<div class="edge-zone edge-zone-middle edge-identity">'+classificationIcons(card)+placementMarkup(card)+'</div>'+
     '<div class="edge-zone edge-zone-right d6-role">'+esc(card.paper_d6.role.toUpperCase())+'</div></header>';
   const reminders=liveEffects(card);
   return '<header class="stack-edge" data-edge-layout="three-zone">'+
