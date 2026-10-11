@@ -15,6 +15,7 @@ on:
       - "setup.py"
       - "pyproject.toml"
       - "tools/build_pages.py"
+      - "tools/paper_d6_cards.py"
       - "tools/build_rulebook_pdf.py"
       - "tools/build_lab_report.py"
       - "tools/build_browser_runtime.py"
@@ -46,6 +47,8 @@ jobs:
           typst-version: 0.15.1
       - run: pip install -e '.[dev]'
       - run: python -m compileall -q src tools
+      - name: Validate current physical D6 source
+        run: python tools/check_paper_d6.py
       - name: Check authored browser assets
         run: python tools/check_web_static.py
       - name: Build inspection Pages (native webgame deferred)
