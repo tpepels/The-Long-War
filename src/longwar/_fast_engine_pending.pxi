@@ -1,3 +1,67 @@
+# All face-down plans receive the same private response step when the
+# opponent sets a Stratagem. Otherwise the mere presence/absence of a prompt
+# would disclose whether the defender's secret plan has this reaction.
+cdef uint32_t _v2_scout_plan_reaction_targets(
+    FastEngine self,
+    FastState state,
+    int owner,
+    int front,
+) noexcept:
+    cdef int card = state.stratagem[owner]
+    cdef int rank, slot
+    cdef uint32_t targets = 0
+    cdef V2EffectSpec* effect
+    if (
+        card < 0
+        or state.stratagem_revealed[owner]
+        or front < 0
+        or front >= FRONT_COUNT
+        or not front_is_active(state.battle, front)
+        or not (state.stratagem_front_mask[owner] & (1 << front))
+        or self.v2_effect_count[card][V2_MODE_DEFAULT] < 1
+    ):
+        return 0
+    effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
+    if (
+        effect.op != V2_OP_HIDDEN_SPY_ON_STRATAGEM
+        or effect.timing != V2_TIMING_HIDDEN
+        or effect.reveal != V2_REVEAL_ENEMY_SETS_STRATAGEM_NEAR_SCOUT
+        or not _v2_front_contains_class_mask(
+            self, state, owner, front, effect.class_mask
+        )
+    ):
+        return 0
+    for rank in range(RANK_COUNT):
+        slot = slot_index(owner, front, rank)
+        if state.force[slot] >= 0:
+            targets |= <uint32_t>(1 << slot)
+    return targets
+
+
+cdef void _v2_queue_enemy_sets_stratagem_reaction(
+    FastEngine self,
+    FastState state,
+    int actor,
+    int front_mask,
+) except *:
+    cdef int defender = other_player(actor)
+    cdef int front
+    if (
+        state.stratagem[defender] < 0
+        or state.stratagem_revealed[defender]
+    ):
+        return
+    for front in range(FRONT_COUNT):
+        if front_mask & (1 << front):
+            # Do not encode private eligibility or the secret card id in
+            # pending state. The owner alone knows whether "reveal" is legal.
+            _fe_enqueue_effect(
+                self, state, EFFECT_STRAT_SCOUT_REVEAL, defender,
+                -1, -1, front, 0, 0, EFFECT_OPTIONAL,
+            )
+            return
+
+
 cdef uint32_t _fe_asha_mask_for_suppression(
     FastEngine self,
     FastState state,
@@ -452,6 +516,10 @@ cdef void _v2_apply_resolved_effect(
                 if origin >= 0 else 0
             )
             state.stratagem_used[player] += 1
+            state.stratagem_known_to_mask[player] = 0
+            _v2_queue_enemy_sets_stratagem_reaction(
+                self, state, player, state.stratagem_front_mask[player]
+            )
     elif effect.op == V2_OP_CHOOSE_STRENGTH_TARGETS:
         if source >= 0:
             state.temporary[source] += effect.amount
@@ -493,7 +561,49 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         v2_effect = _v2_pending_effect(self, state)
     _fe_pop_pending_effect(self, state)
 
-    if kind == EFFECT_STRAT_REVEAL_DECISION:
+    if kind == EFFECT_STRAT_SCOUT_REVEAL:
+        if not skip:
+            if (
+                source < 0
+                or owner_from_slot(source) != player
+                or front_from_slot(source) != aux
+                or _v2_scout_plan_reaction_targets(
+                    self, state, player, aux
+                ) == 0
+            ):
+                raise ValueError("Ineligible hidden Stratagem reaction")
+            # Snapshot all possible friendly recipients before the
+            # reveal; there is no intervening board-changing Action.
+            pending_amount = _v2_scout_plan_reaction_targets(
+                self, state, player, aux
+            )
+            state.stratagem_revealed[player] = 1
+            _v2_look_at_opponent_stratagem(state, player)
+            _fe_enqueue_effect(
+                self, state, EFFECT_STRAT_SCOUT_GUARD, player,
+                -1, -1, aux, pending_amount,
+            )
+    elif kind == EFFECT_STRAT_SCOUT_GUARD:
+        if (
+            source < 0
+            or owner_from_slot(source) != player
+            or not (pending_amount & (<uint32_t>1 << source))
+            or state.force[source] < 0
+            or state.stratagem[player] < 0
+            or not state.stratagem_revealed[player]
+        ):
+            raise ValueError("Invalid revealed Scout Stratagem recipient")
+        state.conditions[source] |= <uint8_t>COND_GUARDED
+        _fe_append_discard(
+            self, state, player, state.stratagem[player], True
+        )
+        state.stratagem[player] = -1
+        state.stratagem_revealed[player] = 0
+        state.stratagem_known_to_mask[player] = 0
+        state.stratagem_front_mask[player] = 0
+        state.stratagem_direction[player] = 0
+        state.stratagem_target_mask[player] = 0
+    elif kind == EFFECT_STRAT_REVEAL_DECISION:
         if state.resolution_stage != RESOLUTION_REVEAL:
             raise ValueError("Stratagem reveal decision outside resolution")
         state.resolution_reveal_choice[player] = 1 if skip else 2
@@ -1189,6 +1299,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         _fe_take_from_hand(self, state, actor, card, 0)
         state.stratagem[actor] = card
         state.stratagem_revealed[actor] = 0
+        state.stratagem_known_to_mask[actor] = 0
         state.stratagem_front_mask[actor] = (
             <uint8_t>pos if pos >= 0 else 0
         )
@@ -1275,6 +1386,9 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         # by this Stratagem activate on the following Action and therefore
         # are deliberately not consumed here.
         _fe_consume_operation_constraints(self, state, actor, action)
+        _v2_queue_enemy_sets_stratagem_reaction(
+            self, state, actor, pos if pos >= 0 else 0
+        )
         _fe_resume_pending_flow(self, state)
         return
 

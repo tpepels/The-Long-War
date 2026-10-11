@@ -88,6 +88,12 @@ THIRTEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-ground-was-held":[{"timing":"
 PRINTED_EFFECTS.update(THIRTEENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(THIRTEENTH_COMPILED_EFFECTS)
 
+# Fourteenth pass: event-triggered face-down plan with private inspection.
+FOURTEENTH_PRINTED_EFFECTS = json.loads(r'''{"the-scouts-had-warned-them":[{"timing":"hidden","text":"When your opponent sets a Stratagem here and you have a Scout or Seer here, look at that Stratagem. Give one friendly Force here Guarded."}]}''')
+FOURTEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-scouts-had-warned-them":[{"timing":"hidden","scope":"self","limit":null,"memory":["face_down_source"],"op":"hidden_spy_on_stratagem","reveal":"enemy_sets_stratagem_near_scout","required_any_class":["scout","seer"],"status":"guarded","target":"friendly_same_front","optional":true}]}''')
+PRINTED_EFFECTS.update(FOURTEENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(FOURTEENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

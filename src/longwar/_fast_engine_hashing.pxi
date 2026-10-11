@@ -604,6 +604,10 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key = "effect:stratagem-reveal"
         elif choice == EFFECT_STRAT_REVEAL_BUFF:
             key = "effect:stratagem-buff"
+        elif choice == EFFECT_STRAT_SCOUT_REVEAL:
+            key = "effect:stratagem-scout-reveal"
+        elif choice == EFFECT_STRAT_SCOUT_GUARD:
+            key = "effect:stratagem-scout-guard"
         elif v2_kind == EFFECT_V2_TARGET:
             key = "effect:v2-target"
         elif v2_kind == EFFECT_V2_CHOICE:
@@ -753,7 +757,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
         key = f"stratagem:{self.card_ids[card]}"
         choice = self.strat_choice_kind[card]
         if (
-            choice == STRAT_CHOICE_FRONT
+            choice == STRAT_CHOICE_NONE
+            or choice == STRAT_CHOICE_FRONT
             or choice == STRAT_CHOICE_ADJACENT_FRONTS
             or choice == STRAT_CHOICE_EDGE_FRONT
         ) and pos >= 0:
