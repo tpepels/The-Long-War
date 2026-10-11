@@ -384,9 +384,9 @@ def markdown_to_typst(source: str, version: str) -> str:
                 out.append(
                     '#block(fill: rgb("#f0e8dc"), width: 100%,'
                     ' inset: 5pt, stroke: (left: 2pt + rgb("#ad8a50")))['
-                    '#text(weight: "bold")[FORMATION LAYERS]'
+                    '#text(weight: "bold")[FRONTS AND RANKS]'
                     '#v(3pt)'
-                    '#text(size: 8pt)[Name (top) · Bond (middle) · Force (base)]'
+                    '#text(size: 8pt)[One Force per rank: Frontline · Middle · Rear]'
                     ']'
                 )
             else:
