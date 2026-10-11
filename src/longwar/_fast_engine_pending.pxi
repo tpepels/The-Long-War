@@ -365,6 +365,13 @@ cdef void _v2_apply_resolved_effect(
             and not _v2_name_suppression_immune(self, state, target)
         ):
             state.suppression_mask[target] |= SUPPRESS_NAME_TEXT
+    elif effect.op == V2_OP_SUPPRESS_ACTION_AND_NAME_STRENGTH:
+        if target >= 0 and state.force[target] >= 0:
+            state.suppression_mask[target] |= SUPPRESS_ACTION_BATTLE
+            # The Name keeps its other printed text and numeric modifier
+            # in its own slot, but none of its Strength contributions apply.
+            if _v2_slot_named(state, target):
+                state.suppression_mask[target] |= SUPPRESS_NAME_STRENGTH
     elif effect.op == V2_OP_SUPPRESS_ACTION:
         if target >= 0:
             state.suppression_mask[target] |= (
@@ -1110,6 +1117,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 V2_OP_REMOVE_NEGATIVE_MARKER,
                 V2_OP_RETURN_PREPARED,
                 V2_OP_SUPPRESS_ACTION,
+                V2_OP_SUPPRESS_ACTION_AND_NAME_STRENGTH,
                 V2_OP_SUPPRESS_BOND,
                 V2_OP_SUPPRESS_BOND_STRENGTH,
                 V2_OP_SUPPRESS_LIMITED,

@@ -164,6 +164,7 @@ cdef void _v2_compile_effect(
         "supply": V2_OP_SUPPLY,
         "support": V2_OP_SUPPORT,
         "suppress_action": V2_OP_SUPPRESS_ACTION,
+        "suppress_action_and_name_strength": V2_OP_SUPPRESS_ACTION_AND_NAME_STRENGTH,
         "suppress_bond": V2_OP_SUPPRESS_BOND,
         "suppress_bond_strength": V2_OP_SUPPRESS_BOND_STRENGTH,
         "suppress_component": V2_OP_SUPPRESS_COMPONENT,

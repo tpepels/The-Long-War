@@ -94,6 +94,12 @@ FOURTEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-scouts-had-warned-them":[{"ti
 PRINTED_EFFECTS.update(FOURTEENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(FOURTEENTH_COMPILED_EFFECTS)
 
+# Fifteenth pass: separate numerical Name Strength from Name ability text.
+FIFTEENTH_PRINTED_EFFECTS = json.loads(r'''{"they-let-them-through":[{"timing":"play","text":"Choose an opposing formation. Its ACTION abilities cannot be used this Battle. If Named, its Name contributes no Strength this Battle."}]}''')
+FIFTEENTH_COMPILED_EFFECTS = json.loads(r'''{"they-let-them-through":[{"timing":"play","scope":"opponent","limit":null,"memory":[],"op":"suppress_action_and_name_strength","target":"opposing_any","duration":"battle"}]}''')
+PRINTED_EFFECTS.update(FIFTEENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(FIFTEENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

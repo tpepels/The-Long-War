@@ -123,6 +123,7 @@ V2_EFFECT_OPS = frozenset({
     "supply",
     "support",
     "suppress_action",
+    "suppress_action_and_name_strength",
     "suppress_bond",
     "suppress_bond_strength",
     "suppress_component",
