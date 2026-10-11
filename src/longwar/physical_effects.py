@@ -39,6 +39,12 @@ FIFTH_COMPILED_EFFECTS = json.loads(r'''{"the-relief-column":[{"timing":"play","
 PRINTED_EFFECTS.update(FIFTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(FIFTH_COMPILED_EFFECTS)
 
+# Sixth pass: bonded Frontline flank immunity and single-Bond standard raid.
+SIXTH_PRINTED_EFFECTS = json.loads(r'''{"stood-fast-with":[{"timing":"bonded","text":"While this formation is Bonded and in Frontline, this Bond contributes +1 additional Strength and this formation cannot be flanked."}],"seized-the-standard-of":[{"timing":"play","text":"You may choose an opposing Bonded Formation in this Front. Return its Bond to its owner's hand."}]}''')
+SIXTH_COMPILED_EFFECTS = json.loads(r'''{"stood-fast-with":[{"timing":"bonded","scope":"self","limit":null,"memory":[],"op":"flank_guard","target":"self","requires_ranks":["front"],"requires_bonded":true,"amount":1}],"seized-the-standard-of":[{"timing":"play","scope":"opponent","limit":null,"memory":[],"op":"return_component","target":"opposing_bonded_same_front","component":"bond","optional":true}]}''')
+PRINTED_EFFECTS.update(SIXTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(SIXTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

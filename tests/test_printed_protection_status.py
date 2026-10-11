@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import pytest
 
-from longwar.game.actions import BeginTurn, Discard, EffectChoice, PlayForce, PlayNarrative, PlayTactic
+from longwar.game.actions import BeginTurn, Discard, EffectChoice, PlayBond, PlayForce, PlayNarrative, PlayTactic
 from longwar.game.engine import GameEngine
 from longwar.game.model import Front, Position, Rank
 
@@ -112,3 +112,58 @@ def test_king_exchanges_bonds_and_rewards_formations_still_named(game):
     assert s.slot(0,second).bond == "guarded"
     assert e.position_strength(s,0,first) == b0 + 1
     assert e.position_strength(s,0,second) == b1 + 1
+
+def test_standard_raid_returns_only_opposing_bond_in_same_front(game):
+    e, s = start(game, "seized-the-standard-of")
+    home = pos(1, Rank.REAR)
+    victim = pos(1, Rank.FRONT)
+    other_front = pos(2, Rank.FRONT)
+    s.slot(0, home).force = "the-fifty-men"
+    s.slot(1, victim).force = "the-fifty-men"
+    s.slot(1, victim).bond = "guarded"
+    s.slot(1, victim).name = "mara"
+    s.slot(1, other_front).force = "the-fifty-men"
+    s.slot(1, other_front).bond = "endured-with"
+    action = PlayBond("seized-the-standard-of", home)
+    assert action in e.legal_actions(s)
+    e.apply(s, action)
+    choices = [a for a in e.legal_actions(s) if isinstance(a, EffectChoice)]
+    raid = [a for a in choices if a.destination is not None
+            and a.destination.position == victim]
+    assert len(raid) == 1
+    assert raid[0].card_id == "guarded"
+    assert not any(a.destination is not None and a.destination.position == other_front
+                   for a in choices)
+    e.apply(s, raid[0])
+    assert s.slot(1, victim).bond is None
+    assert s.slot(1, victim).name == "mara"
+    assert "guarded" in s.players[1].hand
+    assert s.slot(1, other_front).bond == "endured-with"
+
+
+def test_stood_fast_bond_gives_frontline_strength_and_flank_immunity(game):
+    e, s = start(game, "stood-fast-with")
+    front = pos(1, Rank.FRONT)
+    adjacent = pos(2, Rank.FRONT)
+    middle = pos(1, Rank.MIDDLE)
+    s.slot(0, front).force = "the-fifty-men"
+    s.slot(1, adjacent).force = "the-fifty-men"
+    flanked_strength = e.position_strength(s, 0, front)
+    assert flanked_strength == e.cards["the-fifty-men"]["strength"] - 1
+    s.slot(0, front).bond = "stood-fast-with"
+    assert e.position_strength(s, 0, front) == (
+        flanked_strength + e.cards["stood-fast-with"]["strength_modifier"] + 2
+    )
+    s.slot(1, adjacent).force = None
+    assert e.position_strength(s, 0, front) == (
+        e.cards["the-fifty-men"]["strength"]
+        + e.cards["stood-fast-with"]["strength_modifier"] + 1
+    )
+    s.slot(0, middle).force = s.slot(0, front).force
+    s.slot(0, middle).bond = s.slot(0, front).bond
+    s.slot(0, front).force = None
+    s.slot(0, front).bond = None
+    assert e.position_strength(s, 0, middle) == (
+        e.cards["the-fifty-men"]["strength"]
+        + e.cards["stood-fast-with"]["strength_modifier"]
+    )
