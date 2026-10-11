@@ -757,7 +757,8 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
         key = f"stratagem:{self.card_ids[card]}"
         choice = self.strat_choice_kind[card]
         if (
-            choice == STRAT_CHOICE_FRONT
+            choice == STRAT_CHOICE_NONE
+            or choice == STRAT_CHOICE_FRONT
             or choice == STRAT_CHOICE_ADJACENT_FRONTS
             or choice == STRAT_CHOICE_EDGE_FRONT
         ) and pos >= 0:
