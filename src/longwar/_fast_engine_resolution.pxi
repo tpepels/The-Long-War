@@ -166,6 +166,45 @@ cdef void _fe_queue_pre_resolution_choice(
         controller = cursor
         state.resolution_cursor += 1
         force = state.stratagem[controller]
+        # Resolution-time reinforcement from a hidden plan is checked
+        # before any Strength comparison. Ineligible plans stay secret.
+        # The middle formation and all of its layers and markers move
+        # together; its Strength bonus applies only to this Battle.
+        if (
+            force >= 0
+            and not state.stratagem_revealed[controller]
+            and self.v2_effect_count[force][V2_MODE_DEFAULT] > 0
+            and self.v2_effects[force][V2_MODE_DEFAULT][0].op
+                == V2_OP_HIDDEN_RESOLUTION_FRONTLINE_MOVE
+            and self.v2_effects[force][V2_MODE_DEFAULT][0].timing
+                == V2_TIMING_HIDDEN
+        ):
+            for front in range(FRONT_COUNT):
+                if (
+                    not front_is_active(state.battle, front)
+                    or not (
+                        state.stratagem_front_mask[controller]
+                        & (1 << front)
+                    )
+                ):
+                    continue
+                slot = slot_index(controller, front, RANK_FRONT)
+                rear = slot_index(controller, front, RANK_MIDDLE)
+                if _fe_card_move_destination_legal(
+                    self, state, controller, rear, slot
+                ):
+                    _fe_move_slot(self, state, rear, slot)
+                    state.temporary[slot] += (
+                        self.v2_effects[force][V2_MODE_DEFAULT][0].amount
+                    )
+                    state.stratagem_revealed[controller] = 1
+                    _fe_resolve_force_move_triggers(
+                        self, state, controller, rear, slot
+                    )
+                    _fe_resolve_force_pair_narratives(
+                        self, state, controller
+                    )
+                    break
         if force >= 0 and self.feigned_retreat_strat[force]:
             state.stratagem_revealed[controller] = 1
             mask = 0
