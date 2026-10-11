@@ -1,7 +1,7 @@
 # Resolution-only Stratagems share one eligibility snapshot. A player's
 # private decision is held until both players have committed; the battlefield
 # and provisional Strength cannot change between these decisions.
-cdef bint _fe_reveal_buff_snapshot(
+cdef int _fe_reveal_buff_snapshot(
     FastEngine self,
     FastState state,
     int player,
@@ -9,6 +9,7 @@ cdef bint _fe_reveal_buff_snapshot(
 ) noexcept:
     cdef int strat = state.stratagem[player]
     cdef int front, rank, slot, leader = -1
+    cdef int ours, theirs, opponent
     cdef V2EffectSpec* effect
     cdef uint32_t candidates = 0
     targets[0] = 0
@@ -17,20 +18,46 @@ cdef bint _fe_reveal_buff_snapshot(
     if self.v2_effect_count[strat][V2_MODE_DEFAULT] <= 0:
         return False
     effect = &self.v2_effects[strat][V2_MODE_DEFAULT][0]
-    if effect.op != V2_OP_HIDDEN_BUFF_TARGETS:
-        return False
-    if effect.reveal not in (
-        V2_REVEAL_LEADERSHIP_FRONT_STRENGTH,
-        V2_REVEAL_OUTER_FRONT_STRENGTH,
-    ):
-        return False
+    if effect.op == V2_OP_HIDDEN_BUFF_TARGETS:
+        if effect.reveal not in (
+            V2_REVEAL_LEADERSHIP_FRONT_STRENGTH,
+            V2_REVEAL_OUTER_FRONT_STRENGTH,
+        ):
+            return REVEAL_ELIGIBLE_NONE
+    elif effect.op == V2_OP_HIDDEN_TIE_NAMED_WINS:
+        if effect.reveal != V2_REVEAL_FRONT_WOULD_TIE:
+            return REVEAL_ELIGIBLE_NONE
+    else:
+        return REVEAL_ELIGIBLE_NONE
     for front in range(FRONT_COUNT):
         if state.stratagem_front_mask[player] & (1 << front):
             break
     else:
         return False
     if not front_is_active(state.battle, front):
-        return False
+        return REVEAL_ELIGIBLE_NONE
+    if effect.op == V2_OP_HIDDEN_TIE_NAMED_WINS:
+        # Only this player has Named Formations in the assigned Front.
+        # Lock the initial tie/one-point-deficit branch *before* reveals.
+        opponent = other_player(player)
+        for rank in range(RANK_COUNT):
+            slot = slot_index(opponent, front, rank)
+            if _v2_slot_named(state, slot):
+                return REVEAL_ELIGIBLE_NONE
+        for rank in range(RANK_COUNT):
+            slot = slot_index(player, front, rank)
+            if _v2_slot_named(state, slot):
+                candidates |= <uint32_t>1 << slot
+        if not candidates:
+            return REVEAL_ELIGIBLE_NONE
+        ours = _fe_resolution_front_strength_fast(self, state, player, front)
+        theirs = _fe_resolution_front_strength_fast(self, state, opponent, front)
+        if ours == theirs:
+            return REVEAL_ELIGIBLE_TIE
+        if ours + 1 == theirs:
+            targets[0] = candidates
+            return REVEAL_ELIGIBLE_ONE_BEHIND
+        return REVEAL_ELIGIBLE_NONE
     if effect.reveal == V2_REVEAL_OUTER_FRONT_STRENGTH:
         if front != FIRST_FRONT_INDEX and front != LAST_FRONT_INDEX:
             return False
@@ -44,7 +71,7 @@ cdef bint _fe_reveal_buff_snapshot(
             ):
                 candidates |= <uint32_t>1 << slot
         targets[0] = candidates
-        return candidates != 0
+        return REVEAL_ELIGIBLE_BUFF if candidates else REVEAL_ELIGIBLE_NONE
     # Pick a deterministic qualifying leader; each other friendly formation
     # is an eligible recipient, regardless of its own classifications.
     for rank in range(RANK_COUNT):
@@ -64,7 +91,7 @@ cdef bint _fe_reveal_buff_snapshot(
         if slot != leader and state.force[slot] >= 0:
             candidates |= <uint32_t>1 << slot
     targets[0] = candidates
-    return True
+    return REVEAL_ELIGIBLE_BUFF
 
 
 cdef void _fe_queue_resolution_reveals(
@@ -330,7 +357,31 @@ cdef void _fe_project_front_losses_fast(
                 else:
                     lost0[0] |= <uint16_t>(1 << front)
 
-    # The Center Must Hold replaces the two individual results.
+    # A tie-only Stratagem cannot invent a new tie. It wins only if this
+    # Front is *still* tied after the independent simultaneous reveals.
+    for controller in range(PLAYER_COUNT):
+        if (
+            state.resolution_reveal_choice[controller] != 2
+            or state.resolution_reveal_eligible[controller] != REVEAL_ELIGIBLE_TIE
+        ):
+            continue
+        mask = state.stratagem_front_mask[controller] & active & FRONT_MASK
+        for front in range(FRONT_COUNT):
+            if not (mask & (1 << front)):
+                continue
+            a = _fe_resolution_front_strength_fast(self, state, 0, front)
+            b = _fe_resolution_front_strength_fast(self, state, 1, front)
+            if a != b:
+                continue
+            if controller == 0:
+                lost0[0] &= <uint16_t>~(1 << front)
+                lost1[0] |= <uint16_t>1 << front
+            else:
+                lost1[0] &= <uint16_t>~(1 << front)
+                lost0[0] |= <uint16_t>1 << front
+
+    # Remaining legacy combined-Front effects (not yet translated) retain
+    # their own handling until those printed cards are migrated.
     for controller in range(PLAYER_COUNT):
         strat = state.stratagem[controller]
         if strat < 0 or not self.strat_combine_fronts[strat]:

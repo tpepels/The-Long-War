@@ -82,6 +82,12 @@ TWELFTH_COMPILED_EFFECTS = json.loads(r'''{"the-center-must-hold":[{"timing":"hi
 PRINTED_EFFECTS.update(TWELFTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(TWELFTH_COMPILED_EFFECTS)
 
+# Thirteenth pass: frozen initial tie/one-point-deficit Stratagem branches.
+THIRTEENTH_PRINTED_EFFECTS = json.loads(r'''{"the-ground-was-held":[{"timing":"hidden","text":"At resolution, if only you have a Named Formation here: on a tie, win if still tied after reveals; if behind by 1, give one of your Named Formations here +2 Strength this Battle."}]}''')
+THIRTEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-ground-was-held":[{"timing":"hidden","scope":"self","limit":null,"memory":[],"op":"hidden_tie_named_wins","reveal":"front_would_tie","amount":2,"max_targets":1}]}''')
+PRINTED_EFFECTS.update(THIRTEENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(THIRTEENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
