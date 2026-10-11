@@ -119,6 +119,13 @@ PRINTED_EFFECTS.update(EIGHTEENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(EIGHTEENTH_COMPILED_EFFECTS)
 
 
+# Nineteenth pass: a paid, once-per-Battle inspect Action followed by optional sift.
+NINETEENTH_PRINTED_EFFECTS = json.loads(r'''{"the-watchtowers-of-eren":[{"timing":"action","text":"Look at one opposing face-down Stratagem in any active Front. You may then draw 1 card and discard 1 card.","limit":"once_per_battle","exposed":"ACTION · 1/B · Look + sift any Front"}]}''')
+NINETEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-watchtowers-of-eren":[{"timing":"action","scope":"self","limit":"once_per_battle","memory":["used_marker"],"op":"watchtowers_inspect_cycle","area":"any_active","draw":1,"discard":1}]}''')
+PRINTED_EFFECTS.update(NINETEENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(NINETEENTH_COMPILED_EFFECTS)
+
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

@@ -1509,6 +1509,17 @@ cdef bint _v2_effect_can_resolve(
             ) != 0
         return True
 
+    if effect.op == V2_OP_WATCHTOWERS_INSPECT_CYCLE:
+        # The printed Action may inspect only a face-down opposing plan
+        # assigned to at least one currently active Front.
+        return (
+            state.stratagem[other_player(player)] >= 0
+            and not state.stratagem_revealed[other_player(player)]
+            and bool(
+                state.stratagem_front_mask[other_player(player)]
+                & active_front_mask_for_battle(state.battle)
+            )
+        )
     if effect.op in (V2_OP_LOOK_STRATAGEM, V2_OP_DISRUPT_STRATAGEM):
         return _v2_stratagem_visible_from_effect(
             self, state, player, origin, effect
@@ -1654,6 +1665,24 @@ cdef void _v2_enqueue_effect(
     int origin=-1,
     int source_flags=0,
 ) except *:
+    # Watchtowers: inspection is mandatory when activating the Action;
+    # cycling afterward is optional and must not draw before that choice.
+    if (
+        self.v2_effects[card][mode][effect_index].op
+        == V2_OP_WATCHTOWERS_INSPECT_CYCLE
+    ):
+        if not _v2_effect_can_resolve(
+            self, state, player, origin,
+            &self.v2_effects[card][mode][effect_index],
+        ):
+            raise ValueError("No opposing face-down Stratagem in an active Front")
+        _v2_look_at_opponent_stratagem(state, player)
+        _fe_enqueue_effect(
+            self, state, EFFECT_WATCHTOWERS_CYCLE, player,
+            card, origin, 0, 0, 0, EFFECT_OPTIONAL, card,
+        )
+        return
+
     # Draw before presenting the hand choice. Hand-limit cleanup must
     # finish before the choice of discard / card returned to the deck.
     if self.v2_effects[card][mode][effect_index].op in (
