@@ -48,7 +48,7 @@ A printed **fixed-target Special** overrides a role's regular plan targeting; a 
 
 ## Limited post-combat opportunities
 
-Each player may make at most **one forward rank-step move per Front after casualties**; this includes a printed Special advance or a plan/opportunity advance. It must enter an originally **empty adjacent rank on that player's side**, obey placement restrictions, and use an unpinned surviving Force that has not already moved during this Battle.
+Each player may make at most **one forward rank-step move per Front after casualties**; this includes a printed Special advance or a plan/opportunity advance. It must enter an **empty rank after casualties on that player's side**, obey placement restrictions, and use an unpinned surviving Force that has not already moved during this Battle.
 
 A post-combat **Opportunity** is earned in that Front if at least one of your damaging Strikes **permanently defeated** an enemy Force there, **or** one of your Protect/Evade cancelled an incoming damaging Strike there, **or** your Rescue prevented a defeat there. A saved enemy is not a casualty. Ordinary Pressure, the mere presence of a Guard, a failed damaging Strike and a plan counter by themselves do **not** earn an Opportunity.
 
