@@ -64,7 +64,8 @@ def test_ability_inspects_stratagem_before_optional_card_cycle(game):
     assert state.stratagems[1].known_to_mask & 1
     assert not state.stratagems[1].revealed
     assert state.slot(0, POSITION).force_ability_used
-    assert state.operations_this_battle[0] == 1
+    # Pending effect choices finish before the initiating Action is counted.
+    assert state.operations_this_battle[0] == 0
     cycle = choices(engine, state, "watchtowers-cycle")
     assert len(cycle) == 2 and {a.skip for a in cycle} == {True, False}
     assert state.players[0].hand == ["guarded"]
