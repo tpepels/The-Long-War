@@ -546,16 +546,17 @@ cdef int _fe_legal_pending_effect_actions(
             actions, n,
             encode_action(TYPE_EFFECT, -1, -1, -1, player, kind),
         )
-        for front in range(FRONT_COUNT):
-            if state.stratagem_front_mask[player] & (1 << front):
-                n = _append_action(
-                    actions, n,
-                    encode_action(
-                        TYPE_EFFECT, -1, slot_index(player, front, RANK_FRONT),
-                        -1, player, kind,
-                    ),
-                )
-                break
+        if state.resolution_reveal_eligible[player]:
+            for front in range(FRONT_COUNT):
+                if state.stratagem_front_mask[player] & (1 << front):
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT, -1, slot_index(player, front, RANK_FRONT),
+                            -1, player, kind,
+                        ),
+                    )
+                    break
     elif kind == EFFECT_STRAT_REVEAL_BUFF:
         # Snapshot target mask: no newly revealed effect changes eligibility.
         for source2 in range(SLOT_COUNT):

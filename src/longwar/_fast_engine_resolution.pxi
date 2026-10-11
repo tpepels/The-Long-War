@@ -79,9 +79,14 @@ cdef void _fe_queue_resolution_reveals(
     if cursor < PLAYER_COUNT:
         player = cursor
         state.resolution_cursor += 1
-        if state.resolution_reveal_eligible[player]:
-            # No card id goes into pending fields, keeping the face-down
-            # identity private until the second commitment.
+        if (
+            state.stratagem[player] >= 0
+            and not state.stratagem_revealed[player]
+        ):
+            # Every face-down plan visits the same private commitment step;
+            # an ineligible one can only decline. Skipping the step entirely
+            # would leak the plan's eligibility (and therefore its identity)
+            # to the other player through the visible pending-player order.
             _fe_enqueue_effect(
                 self, state, EFFECT_STRAT_REVEAL_DECISION, player,
             )

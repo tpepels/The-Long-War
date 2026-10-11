@@ -116,6 +116,13 @@ def test_both_commit_before_either_reveals_and_choose_independent_targets(game):
     buff1 = choices(engine, state, "stratagem-buff")
     assert len(buff1) == 1
     engine.apply(state, buff1[0])
+    # The combined Front result can still require a player to choose
+    # which defeated Force receives next-Battle Exhaustion before recovery.
+    while True:
+        exhaust = choices(engine, state, "lost-front-exhaust")
+        if not exhaust:
+            break
+        engine.apply(state, exhaust[0])
     assert state.battle >= 3 or state.winner is not None
     assert state.stratagems[0] is None and state.stratagems[1] is None
 
@@ -137,5 +144,9 @@ def test_outer_only_reveal_ineligible_in_middle_front(game):
         "the-flank-was-refused", fronts=(Front.SECOND,),
     )
     end_battle(engine, state)
-    assert not choices(engine, state, "stratagem-reveal")
+    # Present a forced private decline for ineligible hidden cards rather
+    # than disclosing their eligibility through missing pending-player turns.
+    options = choices(engine, state, "stratagem-reveal")
+    assert len(options) == 1 and options[0].skip
+    engine.apply(state, options[0])
     assert state.stratagems[0] is None
