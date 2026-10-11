@@ -76,6 +76,7 @@ V2_EFFECT_OPS = frozenset({
     "hidden_archer_counterattack",
     "hidden_no_step_back",
     "lantern_scouts_reaction",
+    "watchtowers_inspect_cycle",
     "hidden_tie_named_wins",
     "local_class_aura",
     "look_hand",
