@@ -504,6 +504,7 @@ cdef void _v2_apply_immediate_play_effects(
             V2_OP_RETURN_COMPONENT,
             V2_OP_SWAP_BONDS,
             V2_OP_SWAP,
+            V2_OP_SWAP_FRONTS_BUFF_NAMED,
             V2_OP_PREPARED_PAY_OR_RETURN,
             V2_OP_REMOVE_NEGATIVE_MARKER,
             V2_OP_REMOVE_STRENGTH_MARKER,
@@ -1527,6 +1528,14 @@ cdef bint _v2_effect_can_resolve(
 
     if effect.op == V2_OP_TAX and effect.front_mode == V2_FRONT_CHOOSE_ACTIVE:
         return active_front_mask_for_battle(state.battle) != 0
+
+    if effect.op == V2_OP_SWAP_FRONTS_BUFF_NAMED:
+        for front in range(FRONT_COUNT - 1):
+            if _fe_adjacent_front_exchange_legal(
+                self, state, player, front
+            ):
+                return True
+        return False
 
     if effect.op == V2_OP_SWAP_FRONTS:
         for front in range(FRONT_COUNT - 1):
