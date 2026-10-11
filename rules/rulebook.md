@@ -123,7 +123,7 @@ A Plan does **not** counter itself. The other two unordered plan pairs, **Assaul
 
 After casualties are removed, you may **advance one surviving, unpinned Force one empty rank forward in its Front** if you earned an **Opportunity in that same Front**. An Opportunity is earned when **at least one** of these occurred during the current Battle:
 
-1. One of your damaging Strikes **permanently defeated** an enemy Force in this Front (a Force that is **saved by Rescue** was never defeated).
+1. One of your damaging Strikes **permanently defeated** an enemy Force in this Front (A Force that is **saved by Rescue** was never defeated).
 2. One of your Protect or Evade effects actually **cancelled an incoming damaging Strike** in this Front.
 3. One of your Rescue effects **prevented a friendly Force's defeat** in this Front.
 
