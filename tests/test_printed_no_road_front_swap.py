@@ -104,7 +104,7 @@ def test_play_exchanges_whole_stacks_and_awards_one_named_bonus(game):
 
 def test_two_moved_named_formations_require_exactly_one_bonus(game):
     engine, state = setup(game)
-    for front, force in ((A, "the-crow-archers"), (B, "the-iron-boars")):
+    for front, force in ((A, "the-crow-archers"), (B, "the-watchtowers-of-eren")):
         unit = state.slot(0, pos(front))
         unit.force = force
         unit.bond = "carried-the-oath-of"
