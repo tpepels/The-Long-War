@@ -97,6 +97,30 @@ cdef inline bint _v2_force_rank_allowed(
     )
 
 
+cdef inline bint _v2_vertical_swap_legal(
+    FastEngine self,
+    FastState state,
+    int source,
+    int dest,
+) noexcept:
+    """Validate both placements before exchanging entire formation stacks."""
+    if source < 0 or dest < 0 or source == dest:
+        return False
+    if (
+        state.force[source] < 0 or state.force[dest] < 0
+        or owner_from_slot(source) != owner_from_slot(dest)
+        or front_from_slot(source) != front_from_slot(dest)
+        or abs(rank_from_slot(source) - rank_from_slot(dest)) != 1
+    ):
+        return False
+    if not front_is_active(state.battle, front_from_slot(source)):
+        return False
+    return (
+        _v2_force_rank_allowed(self, state.force[source], rank_from_slot(dest))
+        and _v2_force_rank_allowed(self, state.force[dest], rank_from_slot(source))
+    )
+
+
 cdef bint _v2_slot_effect_condition(
     FastEngine self,
     FastState state,
@@ -109,6 +133,9 @@ cdef bint _v2_slot_effect_condition(
     cdef int other, other_player_id, other_rank
     if effect.rank_mask and not (effect.rank_mask & (1 << rank)):
         return False
+    if effect.flags & V2_FLAG_REQUIRES_CLEAR_SLOT:
+        if state.bond[slot] >= 0 or state.name[slot] >= 0:
+            return False
     if (
         effect.condition == V2_CONDITION_COMMAND_LOWER
         and state.command[player] >= state.command[other_player(player)]
@@ -465,6 +492,7 @@ cdef void _v2_apply_immediate_play_effects(
             V2_OP_RETURN_PREPARED,
             V2_OP_RETURN_COMPONENT,
             V2_OP_SWAP_BONDS,
+            V2_OP_SWAP,
             V2_OP_PREPARED_PAY_OR_RETURN,
             V2_OP_REMOVE_NEGATIVE_MARKER,
             V2_OP_REMOVE_STRENGTH_MARKER,
@@ -1499,6 +1527,18 @@ cdef bint _v2_effect_can_resolve(
                 and _fe_card_move_destination_legal(
                     self, state, player, origin, dest
                 )
+            ):
+                return True
+        return False
+
+    if effect.op == V2_OP_SWAP and effect.target in (
+        V2_TARGET_SELF_VERTICAL_FRIEND,
+        V2_TARGET_DIRECTLY_AHEAD,
+    ):
+        mask = _v2_target_mask(self, state, player, origin, effect)
+        for slot in range(SLOT_COUNT):
+            if (mask & (<uint32_t>1 << slot)) and _v2_vertical_swap_legal(
+                self, state, origin, slot
             ):
                 return True
         return False

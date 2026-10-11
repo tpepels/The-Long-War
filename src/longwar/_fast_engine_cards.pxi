@@ -381,6 +381,10 @@ cdef void _v2_compile_effect(
         out.flags |= V2_FLAG_EXCLUDE_LEADER
     if effect.get("exclude_self"):
         out.flags |= V2_FLAG_EXCLUDE_SELF
+    if effect.get("guard_swapped_partner"):
+        out.flags |= V2_FLAG_SWAP_GUARD_PARTNER
+    if effect.get("requires_clear_slot"):
+        out.flags |= V2_FLAG_REQUIRES_CLEAR_SLOT
     if effect.get("requires_opposing_exhausted_same_front"):
         out.flags |= V2_FLAG_REQUIRES_OPPOSING_EXHAUSTED
     if effect.get("requires_opposing_supply_same_front"):

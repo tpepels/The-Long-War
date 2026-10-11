@@ -51,6 +51,12 @@ SEVENTH_COMPILED_EFFECTS = json.loads(r'''{"blocked-the-road-for":[{"timing":"bo
 PRINTED_EFFECTS.update(SEVENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(SEVENTH_COMPILED_EFFECTS)
 
+# Eighth pass: legal vertical swaps with optional partner protection.
+EIGHTH_PRINTED_EFFECTS = json.loads(r'''{"the-ilyri":[{"timing":"play","text":"You may swap this formation with the friendly formation directly ahead or directly behind, if both placements are legal. If you do, give that other Force Guarded."}],"the-kings-spears":[{"timing":"play","text":"If played into an empty Middle position, you may swap this formation with the friendly Frontline formation here, if both placements are legal."}]}''')
+EIGHTH_COMPILED_EFFECTS = json.loads(r'''{"the-ilyri":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"swap","target":"self_vertical_friend","optional":true,"guard_swapped_partner":true}],"the-kings-spears":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"swap","target":"directly_ahead","requires_rank":"middle","requires_clear_slot":true,"optional":true}]}''')
+PRINTED_EFFECTS.update(EIGHTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(EIGHTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
