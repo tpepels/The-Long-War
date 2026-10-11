@@ -77,6 +77,7 @@ V2_EFFECT_OPS = frozenset({
     "hidden_archer_counterattack",
     "hidden_no_step_back",
     "lantern_scouts_reaction",
+    "react_scout_ship_stratagem",
     "watchtowers_inspect_cycle",
     "swap_fronts_buff_named",
     "hidden_tie_named_wins",

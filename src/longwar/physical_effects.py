@@ -150,6 +150,13 @@ PRINTED_EFFECTS.update(TWENTY_SECOND_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(TWENTY_SECOND_COMPILED_EFFECTS)
 
 
+# Twenty-third pass: face-up Scout/Ship intelligence reaction and bonus.
+TWENTY_THIRD_PRINTED_EFFECTS = json.loads(r'''{"before-sunset-the-ford-would-be-ours":[{"timing":"reaction","text":"When an opponent sets a Stratagem in or adjacent to a Front containing your Scout or Ship, look at it. Give one friendly formation in the Stratagem's Front +2 Strength this Battle, if any.","limit":"once_per_battle"}]}''')
+TWENTY_THIRD_COMPILED_EFFECTS = json.loads(r'''{"before-sunset-the-ford-would-be-ours":[{"timing":"reaction","scope":"self","limit":"once_per_battle","memory":["used_marker"],"op":"react_scout_ship_stratagem","classes":["scout","ship"],"amount":2}]}''')
+PRINTED_EFFECTS.update(TWENTY_THIRD_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(TWENTY_THIRD_COMPILED_EFFECTS)
+
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

@@ -63,6 +63,68 @@ cdef inline bint _fe_lantern_scout_reaction_eligible(
     return False
 
 
+cdef void _fe_queue_scout_ship_narrative_reaction(
+    FastEngine self,
+    FastState state,
+    int defender,
+    int front_mask,
+) except *:
+    # Narrative REACTION: detect a Scout/Ship in the enemy plan's Front
+    # or a neighboring active Front. The plan is inspected privately,
+    # even if no friendly formation can receive the Strength bonus.
+    cdef int ix, card, i, front, neighbor, rank, slot
+    cdef uint32_t targets
+    cdef bint qualifies
+    cdef V2EffectSpec* effect
+    for ix in range(
+        defender * NARRATIVE_SLOTS_PER_PLAYER,
+        defender * NARRATIVE_SLOTS_PER_PLAYER + self.ongoing_narrative_limit,
+    ):
+        card = state.narrative[ix]
+        if card < 0 or state.narrative_used[ix]:
+            continue
+        for i in range(self.v2_effect_count[card][V2_MODE_DEFAULT]):
+            effect = &self.v2_effects[card][V2_MODE_DEFAULT][i]
+            if (
+                effect.op != V2_OP_REACT_SCOUT_SHIP_STRATAGEM
+                or effect.timing != V2_TIMING_REACTION
+                or not effect.once_per_battle
+            ):
+                continue
+            qualifies = False
+            targets = 0
+            for front in range(FRONT_COUNT):
+                if (
+                    not (front_mask & (1 << front))
+                    or not front_is_active(state.battle, front)
+                ):
+                    continue
+                for neighbor in range(
+                    max(0, front - 1), min(FRONT_COUNT - 1, front + 1) + 1,
+                ):
+                    if (
+                        front_is_active(state.battle, neighbor)
+                        and _v2_front_contains_class_mask(
+                            self, state, defender, neighbor, effect.class_mask
+                        )
+                    ):
+                        qualifies = True
+                for rank in range(RANK_COUNT):
+                    slot = slot_index(defender, front, rank)
+                    if state.force[slot] >= 0:
+                        targets |= <uint32_t>(1 << slot)
+            if not qualifies:
+                continue
+            state.narrative_used[ix] = 1
+            _v2_look_at_opponent_stratagem(state, defender)
+            if targets:
+                _fe_enqueue_effect(
+                    self, state, EFFECT_BEFORE_SUNSET_BUFF, defender,
+                    card, -1, effect.amount, targets,
+                )
+            break
+
+
 cdef void _v2_queue_enemy_sets_stratagem_reaction(
     FastEngine self,
     FastState state,
@@ -105,6 +167,9 @@ cdef void _v2_queue_enemy_sets_stratagem_reaction(
                 self, state, EFFECT_LANTERN_SCOUTS_REACT,
                 defender, -1, -1, front, 0, 0, EFFECT_OPTIONAL,
             )
+    _fe_queue_scout_ship_narrative_reaction(
+        self, state, defender, front_mask
+    )
 
 
 cdef uint32_t _fe_asha_mask_for_suppression(
@@ -741,6 +806,15 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         state.stratagem_front_mask[player] = 0
         state.stratagem_direction[player] = 0
         state.stratagem_target_mask[player] = 0
+    elif kind == EFFECT_BEFORE_SUNSET_BUFF:
+        if (
+            skip or source < 0
+            or owner_from_slot(source) != player
+            or not (pending_amount & (<uint32_t>1 << source))
+            or state.force[source] < 0
+        ):
+            raise ValueError("Choose a friendly formation in the enemy plan's Front")
+        state.temporary[source] += aux
     elif kind == EFFECT_SWAPPED_NAMED_STRENGTH:
         if (
             skip or source < 0

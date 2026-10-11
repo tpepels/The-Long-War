@@ -118,6 +118,7 @@ cdef void _v2_compile_effect(
         "hidden_archer_counterattack": V2_OP_HIDDEN_ARCHER_COUNTERATTACK,
         "hidden_no_step_back": V2_OP_HIDDEN_NO_STEP_BACK,
         "lantern_scouts_reaction": V2_OP_LANTERN_SCOUTS_REACTION,
+        "react_scout_ship_stratagem": V2_OP_REACT_SCOUT_SHIP_STRATAGEM,
         "watchtowers_inspect_cycle": V2_OP_WATCHTOWERS_INSPECT_CYCLE,
         "hidden_tie_named_wins": V2_OP_HIDDEN_TIE_NAMED_WINS,
         "local_class_aura": V2_OP_LOCAL_CLASS_AURA,
