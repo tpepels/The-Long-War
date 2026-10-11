@@ -600,6 +600,10 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key = "effect:succession"
         elif choice == EFFECT_LOST_FRONT_EXHAUST:
             key = "effect:lost-front-exhaust"
+        elif choice == EFFECT_STRAT_REVEAL_DECISION:
+            key = "effect:stratagem-reveal"
+        elif choice == EFFECT_STRAT_REVEAL_BUFF:
+            key = "effect:stratagem-buff"
         elif v2_kind == EFFECT_V2_TARGET:
             key = "effect:v2-target"
         elif v2_kind == EFFECT_V2_CHOICE:
