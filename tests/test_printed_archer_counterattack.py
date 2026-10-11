@@ -78,10 +78,13 @@ def test_reveal_then_free_attack_follows_original_attack_and_uses_archer(game):
     engine.apply(state, next(a for a in decision if not a.skip))
     assert state.stratagems[1].revealed
     counter = choices(engine, state, "stratagem-archer-attack")
-    assert len(counter) == 1
-    assert counter[0].source.position == at(Rank.REAR)
-    assert counter[0].destination.position == at(Rank.REAR)
-    engine.apply(state, counter[0])
+    # This Archer can also legally attack Middle when enemy Frontline is
+    # empty; the reaction must offer every legal basic Archer target.
+    assert len(counter) == 2
+    assert all(choice.source.position == at(Rank.REAR) for choice in counter)
+    rear = next(choice for choice in counter
+                if choice.destination.position == at(Rank.REAR))
+    engine.apply(state, rear)
 
     assert state.slot(0, at(Rank.REAR)).exhausted
     assert state.slot(1, at(Rank.REAR)).used_attack
