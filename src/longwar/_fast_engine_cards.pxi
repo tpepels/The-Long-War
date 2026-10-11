@@ -117,6 +117,7 @@ cdef void _v2_compile_effect(
         "hidden_tie_named_wins": V2_OP_HIDDEN_TIE_NAMED_WINS,
         "local_class_aura": V2_OP_LOCAL_CLASS_AURA,
         "look_hand": V2_OP_LOOK_HAND,
+        "look_hand_then_move": V2_OP_LOOK_HAND_THEN_MOVE,
         "look_stratagem": V2_OP_LOOK_STRATAGEM,
         "maneuver_cost_class": V2_OP_MANEUVER_COST_CLASS,
         "maneuver_unnamed": V2_OP_MANEUVER_UNNAMED,
