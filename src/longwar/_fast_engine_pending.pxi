@@ -563,6 +563,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     cdef bint was_empty
     cdef int before_mask, moved, saved_active_player, original_actor, attack_target
     cdef int pending_target = <int>state.pending_dest_mask[0] - 1
+    cdef int deferred_tactic_card = state.pending_card[0]
     cdef V2EffectSpec* v2_effect = NULL
 
     if kind == EFFECT_V2_TARGET:
@@ -602,7 +603,7 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         if (
             aux < 0 or owner_from_slot(aux) != player
             or state.force[aux] < 0
-            or command_source < 0
+            or deferred_tactic_card < 0
             or not skip and (
                 source != aux
                 or not _fe_no_step_back_eligible(
@@ -614,17 +615,17 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         if not skip:
             _fe_discard_revealed_no_step_back(self, state, player)
         else:
-            if self.v2_effect_count[command_source][V2_MODE_DEFAULT] > 0:
-                v2_effect = &self.v2_effects[command_source][V2_MODE_DEFAULT][0]
+            if self.v2_effect_count[deferred_tactic_card][V2_MODE_DEFAULT] > 0:
+                v2_effect = &self.v2_effects[deferred_tactic_card][V2_MODE_DEFAULT][0]
                 _v2_apply_resolved_effect(
-                    self, state, original_actor, command_source,
+                    self, state, original_actor, deferred_tactic_card,
                     trigger_source, v2_effect,
                     encode_action(
-                        TYPE_TACTIC, command_source,
+                        TYPE_TACTIC, deferred_tactic_card,
                         trigger_source, aux, original_actor, pending_amount
                     ),
                 )
-        _fe_append_discard(self, state, original_actor, command_source, True)
+        _fe_append_discard(self, state, original_actor, deferred_tactic_card, True)
     elif kind == EFFECT_STRAT_ARCHER_REVEAL:
         if not skip:
             if (
