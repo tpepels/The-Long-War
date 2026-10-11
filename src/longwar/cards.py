@@ -90,6 +90,7 @@ V2_EFFECT_OPS = frozenset({
     "prevent_tactic_strength_reduction",
     "recover",
     "redirect_tactic",
+    "resist_opposing_move",
     "remove_exhaustion",
     "remove_negative_marker",
     "remove_strength_marker",

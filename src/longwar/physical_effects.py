@@ -45,6 +45,12 @@ SIXTH_COMPILED_EFFECTS = json.loads(r'''{"stood-fast-with":[{"timing":"bonded","
 PRINTED_EFFECTS.update(SIXTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(SIXTH_COMPILED_EFFECTS)
 
+# Seventh pass: passive resistance to opposing card Moves.
+SEVENTH_PRINTED_EFFECTS = json.loads(r'''{"blocked-the-road-for":[{"timing":"bonded","text":"While this formation is Bonded, opposing card effects cannot move it.","exposed":"Enemy card effects cannot move this formation"}]}''')
+SEVENTH_COMPILED_EFFECTS = json.loads(r'''{"blocked-the-road-for":[{"timing":"bonded","scope":"self","op":"resist_opposing_move","target":"self","limit":null,"memory":[]}]}''')
+PRINTED_EFFECTS.update(SEVENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(SEVENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
