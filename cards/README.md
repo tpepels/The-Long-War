@@ -1,24 +1,19 @@
-# Cards and physical design
+# Physical cards — D6 Force-only paper experiment
 
-`cards/cards.json` is the sole machine-readable card pool. Player rules live in `rules/rulebook.md`; shipped runtime/research decks are catalogued by `decks/index.json`.
+**Active physical rules:** [player-rulebook.md](../rules/player-rulebook.md) (short guide) and [rulebook.md](../rules/rulebook.md) (complete D6 reference). These are *paper-only* and deliberately differ from the runtime.
 
-- `mechanics.md` - formation vocabulary and card grammar.
-- `visual-spec.md` / `symbols.md` - physical card layout and symbols.
-- `catalogue.md` - human-readable card reference; reconcile it with JSON when editing cards.
-- `playtest-matrix.md` / `effect-audit.md` - authored coverage and readability reviews.
-- `value-model.md` / `valuation-audit.md` - provisional design diagnostics, not measured balance evidence.
-- `hero-pricing.md` - eleven physical Hero prices by Force and Name mode, independent valuation and test plans. Audit with `python tools/check_hero_pricing.py`.
-- `force-pricing.json` - physical-print 33-Force Command pricing ledger (1 + ceil(Strength/2) plus evaluated 0–1 ability premium, with compensating effects for odd-Strength Forces), previous price, and per-card rationale. Run `python tools/check_force_pricing.py` to audit consistency.
-- `playtest-decks.json` / `playtest-decks.md` - six 48-card lists: four core repeatable combo decks plus two supplementary coverage/combo experiments.
-- `mechanic-coverage-decks.json` / `mechanic-coverage-decks.md` - four separate 48-card diagnostic lists, including a Raw Strength Control for matching simple Forces against combos.
-- `physical-text-and-coverage-audit.md` - effect wording conventions and confirmation that all 131 identities appear in a deck.
-- `strength-combos-snowball-review.md` - simple Strength action economics and noncanonical alternatives to lost-Front Exhaustion.
-- `art-sources/` - uncropped illustration originals for future artwork edits.
+- [paper-d6.json](paper-d6.json) — all **44 Force / Hero identities**, their one Force statistic, role, printed Command cost, six die-face mappings and four combat outcomes.
+- [paper-d6-decks.json](paper-d6-decks.json) — three **24-card** decks for first tabletop tests.
+- [paper_d6_cards.py](../tools/paper_d6_cards.py) — projects existing card identities/artwork into the **experimental printable dataset**, without changing executable cards.json.
+- [check_paper_d6.py](../tools/check_paper_d6.py) — schema, membership and paper-only isolation checks.
+- [playmat.html](../web/playmat.html) and [tokens.html](../web/tokens.html) — battlefield reference and reusable hidden Battle Plan cards.
 
-Canonical per-card PNGs live in `web/art/cards/`. Pages generates optimized WebP derivatives in `dist/art/cards-print/`; it never rewrites the PNGs. Neither the physical game nor print presentation requires runtime parity to be usable.
+**All old Bonds, Names, Tactics, Orders, Stratagems, Narratives, printed special abilities, conditions and Opening Orders are suspended in this prototype.** The printable cards display only the D6 behaviour. Every Force can participate once per Battle without a normal Attack action. Players roll independently, one D6 per occupied Front.
 
-**Physical-print-only redesigns:** `print-overrides.json` is applied by `tools/print_cards.py` to produce the printable card catalogue and playtest deck sheets without modifying the native/Webgame rule data. PLAY effects may be buried; ongoing Force/Bond abilities must remain readable in the fixed 10.5 mm exposed strip. `cards.json` retains unchanged executable content during this print-only stage.
+## Legacy material retained
 
-**Print rulebook reconciliation (8 October 2026):** the approved physical rules and explanations are in [`rules/rulebook.md`](../rules/rulebook.md), with card-specific printed wording in [`print-overrides.json`](print-overrides.json). Every Stratagem is associated with a visible active Front; all Narratives last for their Battle, up to four per player. Do not infer these print mechanics from the native/Webgame card catalogue.
+`cards.json` remains canonical **for the separate engine/Webgame only**. `print-overrides.json`, `playtest-decks.json`, `playtest-decks.md`, `mechanic-coverage-decks.json`, former cost reviews and old audits document the previous 131-card Bond/Name physical experiment and **are not the current physical rules**. The D6 assembler reads these older sources solely to reuse art metadata, IDs, validated row restrictions and experimental card prices.
 
-**Physical cost rebalance (8 October 2026):** [131-card cost review and play-like hand checks](physical-cost-review.md). The currently retained cost-only corrections, row restrictions, and revised printed card effects are applied in `print-overrides.json`; the native deck and card data are untouched.
+Original PNG art remains in `web/art/cards`; `tools/build_pages.py` now publishes the 44-card D6 catalogue, three 24-card decks and revised physical rulebook. The executable `dist/data/cards.json` remains the unchanged 131-card runtime export and is not a source for paper gameplay.
+
+This prototype has not yet been physically playtested or balanced. Do not report historical engine results as D6 evidence.

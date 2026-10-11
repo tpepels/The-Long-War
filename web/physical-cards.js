@@ -72,8 +72,18 @@ const utilityGlyph=name=>H()?.utility(name)||"";
 const rowGlyph=name=>H()?.row(name)||"";
 const effectTimingGlyph=name=>["front","middle","rear"].includes(name)?rowGlyph(name):["tireless","mobile"].includes(name)?utilityGlyph("move"):name==="exhausted"?utilityGlyph("marker"):timingGlyph(name);
 const isFormationCard=card=>["force","bond","name","hero"].includes(card.type);
+const isPaperD6=card=>Boolean(card.paper_d6);
+function combatStrip(card){
+  const p=card.paper_d6;
+  const faces=[...p.faces].map((key,i)=>'<div class="d6-face" title="'+esc(p.outcomes[key].title)+'"><b>'+String(i+1)+'</b><span>'+esc(key)+'</span></div>').join("");
+  const operations=Object.entries(p.outcomes).map(([key,outcome])=>
+    '<div class="d6-outcome"><strong>'+esc(key)+'</strong><div><b>'+esc(outcome.title)+'</b><span>'+esc(outcome.effect)+'</span></div></div>'
+  ).join("");
+  return '<section class="d6-combat"><div class="d6-face-row" aria-label="Die results 1 through 6">'+faces+'</div><div class="d6-outcomes">'+operations+'</div></section>';
+}
 
 function statGroup(card){
+  if(isPaperD6(card))return '<div class="edge-stats d6-force-value" aria-label="Force '+esc(card.paper_d6.force)+'"><span class="type-mark">'+typeGlyph("force")+'</span><span class="strength-mark"><b>'+esc(card.paper_d6.force)+'</b></span></div>';
   if(card.type==="hero")return '<div class="hero-stats" aria-label="Hero Force '+esc(card.force_strength)+', Name '+esc(signed(card.name_strength_modifier))+'"><span class="hero-stat hero-force-stat">'+typeGlyph("force")+'<b>'+esc(card.force_strength)+'</b></span><span class="hero-stat hero-name-stat">'+typeGlyph("name")+'<b>'+esc(signed(card.name_strength_modifier))+'</b></span></div>';
   const value=card.type==="force"?card.strength:["bond","name"].includes(card.type)?signed(card.strength_modifier):"";
   return '<div class="edge-stats" aria-label="'+esc(TYPE[card.type]||card.type)+' Strength '+esc(value)+'"><span class="type-mark">'+typeGlyph(card.type)+'</span><span class="strength-mark"><b>'+esc(value)+'</b></span></div>';
@@ -144,6 +154,10 @@ function placementRuleBlock(card){
   return '<section class="placement-rule"><div class="effect-head"><span class="placement-rule-label">PLACEMENT</span></div><div class="placement-rule-text">'+formatRuleText(text,{icons:false})+'</div></section>';
 }
 function stackEdge(card){
+  if(isPaperD6(card))return '<header class="stack-edge" data-edge-layout="three-zone">'+
+    '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
+    '<div class="edge-zone edge-zone-middle edge-identity">'+classificationIcons(card)+placementMarkup(card)+'</div>'+
+    '<div class="edge-zone edge-zone-right d6-role">'+esc(card.paper_d6.role.toUpperCase())+'</div></header>';
   const reminders=liveEffects(card);
   return '<header class="stack-edge" data-edge-layout="three-zone">'+
     '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
@@ -209,12 +223,14 @@ function heroModeHeading(mode){
   return '<h4 class="mode-heading"><span class="mode-heading-core"><span>'+esc(titleCase(mode))+'</span></span></h4>';
 }
 function rules(card){
+  if(isPaperD6(card))return combatStrip(card);
   const placement=placementRuleBlock(card);
   if(card.type==="hero")return placement+'<section class="hero-rule-mode" data-mode="force">'+heroModeHeading("force")+modeEffects(card,"force").map(effectBlock).join("")+'</section><section class="hero-rule-mode" data-mode="name">'+heroModeHeading("name")+modeEffects(card,"name").map(effectBlock).join("")+'</section>';
   return placement+effects(card).map(effect=>effectBlock(effect)).join("");
 }
 function statusLine(card){const bits=[];if(card.duration==="this_battle"&&card.type!=="narrative")bits.push("This Battle");return bits.join(" · ")}
 function costSeal(card){
+  if(isPaperD6(card))return '<span class="cost-gem" aria-label="Command cost '+esc(card.command_cost)+'"><b>'+esc(card.command_cost)+'</b></span>';
   if(card.type==="hero"){
     const f=card.hero_force_command_cost,n=card.hero_name_command_cost;
     // Numerals share the ordinary card seal's centre; no mode icons.
@@ -228,6 +244,7 @@ function costSeal(card){
 }
 
 function densityClass(card){
+  if(isPaperD6(card))return " paper-d6-layout";
   const es=effects(card),placement=placementRuleText(card);
   const chars=placement.length+es.reduce((n,e)=>n+(e.text||"").length+mechanicReminder(e).length,0);
   const blocks=es.length+(placement?1:0);

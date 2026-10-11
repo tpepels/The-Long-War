@@ -2023,3 +2023,91 @@ EXPOSED TOP ROW - TUNING PANEL
     display: none !important;
   }
 }
+
+/* Experimental D6 paper cards: one Force, one die strip, four immediate effects. */
+.paper-d6-layout {
+  --art-height: 20mm;
+  --identity-height: 12mm;
+  --title-height: 7.2mm;
+}
+.paper-d6-layout .card-identity {
+  flex-basis: 9mm;
+  height: 9mm;
+  min-height: 9mm;
+}
+.paper-d6-layout .rules {
+  margin: 0.3mm 0.4mm 0 0.5mm;
+  padding: 0.25mm 0 0;
+  overflow: hidden;
+}
+.paper-d6-layout .d6-role {
+  justify-content: flex-end;
+  font: 700 2.35mm/1.15 var(--utility);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  text-align: right;
+}
+.d6-combat {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+}
+.d6-face-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0,1fr));
+  gap: 0.4mm;
+}
+.d6-face {
+  border: 0.22mm solid rgba(36,38,31,.45);
+  background: rgba(249,245,230,.87);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1mm;
+  padding: 0.35mm 0;
+  font: 700 2.15mm/1.08 var(--utility);
+}
+.d6-face span {
+  font: 800 3mm/.98 var(--utility);
+}
+.d6-outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7mm;
+}
+.d6-outcome {
+  display: grid;
+  grid-template-columns: 4.1mm minmax(0,1fr);
+  gap: 0.7mm;
+  align-items: start;
+  font: 2.45mm/1.13 var(--text);
+}
+.d6-outcome > strong {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 3.4mm;
+  border-radius: 0.65mm;
+  background: #3b443a;
+  color: #fff;
+  font: 800 2.8mm/1 var(--utility);
+}
+.d6-outcome b {
+  font-weight: 700;
+  margin-right: .65mm;
+}
+.d6-outcome span {
+  overflow-wrap: anywhere;
+}
+.paper-d6-layout .class-line {
+  font-size: 95%;
+}
+.paper-d6-layout.card-hero .rules {padding-top: 0.25mm;margin-top: 0.2mm}
+.paper-d6-layout.card-hero .d6-outcome {font: 2.45mm/1.13 var(--text)}
+
+/* Two long Force names wrapped beyond the D6 card's shortened title slot. */
+.paper-d6-layout[data-card-id="the-white-hands-of-elara"] .card-title,
+.paper-d6-layout[data-card-id="the-watchtowers-of-eren"] .card-title {
+  font-size: 3.9mm;
+  line-height: .94;
+}

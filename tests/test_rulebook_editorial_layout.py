@@ -1,6 +1,7 @@
-"""Check the short player rulebook and its link to complete rulings.
+"""Check the current physical D6 handbook, web rendering, and PDF source.
 
-Avoid freezing editable prose, mechanics or layout pixel counts in tests.
+The legacy Bond/Name editorial expectations are historical and are deliberately
+not frozen into the new physical playtest rulebook.
 """
 from pathlib import Path
 
@@ -14,57 +15,39 @@ PLAYER = ROOT / "rules" / "player-rulebook.md"
 FULL = ROOT / "rules" / "rulebook.md"
 
 
-def test_rulebook_is_concise_but_reference_is_preserved() -> None:
+def test_rulebook_is_readable_and_describes_new_physical_rules() -> None:
     player = PLAYER.read_text(encoding="utf-8")
     full = FULL.read_text(encoding="utf-8")
-    assert len(player.split()) < len(full.split()) * 0.55
-    assert len(full.split()) > 5500
-    assert "Simultaneous Stratagems" in full
-    assert "Unusual Front exchanges" in full
-    assert "Prepared layers and attachment rewards" in full
+    assert len(player.split()) < len(full.split()) * 0.75
+    assert len(full.split()) > 1400
 
-    for heading in ("The battlefield", "Your turn", "Playing cards",
-                    "Maneuver", "Attacking", "Conditions", "Special cards",
-                    "Command", "Passing", "Resolving a Battle", "Reference"):
-        assert heading in player
-
-    for rule in ("20 Command", "10 cards", "2 Actions", "1 Command",
-                 "BECOMES NAMED", "Guarded", "Exhausted",
-                 "Command Collapse", "34 cards", "Stratagem"):
-        assert rule in player
+    for rule in ("D6", "Frontline", "Middle", "Rear", "Assault",
+                 "Hold", "Volley", "Raid", "Protect", "Rescue",
+                 "Command", "24-card", "Battle VIII"):
+        assert rule in player or rule in full, rule
+    for obsolete in ("BECOMES NAMED", "Strength deficit",
+                     "Shaken", "Depleted", "Named Formation"):
+        assert obsolete not in player, obsolete
 
 
-def test_rulebook_web_editorial_wrappers() -> None:
+def test_rulebook_web_editorial_wrappers_keep_tables() -> None:
     raw = markdown.markdown(
         PLAYER.read_text(encoding="utf-8"),
         extensions=["extra", "sane_lists", "attr_list"],
     )
     decorated = enrich_rulebook_layout(group_rulebook_sections(raw))
-    for section_id, css_class in (
-        ("learn", "war-timeline"),
-        ("components", "component-checklist"),
-        ("setup", "setup-steps"),
-        ("turn", "action-menu"),
-        ("conditions", "condition-list--afflictions"),
-        ("passing", "closing-sequence"),
-        ("scoring", "resolution-step"),
-    ):
-        assert f'id="{section_id}"' in decorated
-        assert css_class in decorated
-    assert 'class="condition-list condition-list--boons"' in decorated
-    assert 'class="formation-anatomy"' in decorated
-    assert decorated.count('class="resolution-step"') == 6
+    assert "<h1>" in decorated
+    assert "Battle Plans" in decorated
     assert decorated.count("<table>") == raw.count("<table>")
+    assert decorated.count("<table>") >= 1
 
 
-def test_player_rulebook_pdf_has_reference_link_and_core_tables() -> None:
+def test_player_rulebook_pdf_includes_d6_and_plans() -> None:
     rendered = markdown_to_typst(PLAYER.read_text(encoding="utf-8"), "test")
     assert rendered.count("#columns(2, gutter: 7mm)[") == 1
     assert 'advanced-reference.html' in rendered
     assert "FIELD MANUAL" in rendered
-    assert "FORMATION LAYERS" in rendered
-    assert "LEGAL TARGET" in rendered
-    assert "BECOMES NAMED" in rendered
-    assert "RESULT" in rendered
+    assert "Assault" in rendered
+    assert "Volley" in rendered
+    assert "Raid" in rendered
     assert "#table(columns:" in rendered
-    assert rendered.count('stroke: (left: 3pt + rgb(') >= 6

@@ -1,0 +1,1107 @@
+{
+  "schema_version": 1,
+  "status": "experimental-paper-only",
+  "description": "Force-only D6 playtest. Not executable game data. No Bonds/Names, Tactics, Orders, Stratagems or Narratives; legacy classes and art used only for visuals. Each player rolls one D6 per Front and each Force resolves the corresponding face.",
+  "cards": [
+    {
+      "id": "the-fifty-men",
+      "role": "infantry",
+      "force": 5,
+      "command_cost": 4,
+      "faces": "AAFSDA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; may defeat an equal-Force target."
+        }
+      }
+    },
+    {
+      "id": "seven-black-ships",
+      "role": "raider",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "ADSFFA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear; if empty, Middle; otherwise Frontline."
+        }
+      }
+    },
+    {
+      "id": "the-white-hands-of-elara",
+      "role": "healer",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "FSDDRS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "R": {
+          "title": "Rescue",
+          "effect": "Rescue foremost friendly Force."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue any one friendly Force here."
+        }
+      }
+    },
+    {
+      "id": "the-red-shields",
+      "role": "guard",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "DSDDFA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect any friendly Force here."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect two different friendly Forces here."
+        }
+      }
+    },
+    {
+      "id": "the-crow-archers",
+      "role": "archer",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "SAAFDA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Middle regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-house-of-reed",
+      "role": "stronghold",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "DDSADF",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect all friendly Forces here against one Strike each."
+        }
+      }
+    },
+    {
+      "id": "the-grey-riders",
+      "role": "rider",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "DSFAFA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; if it defeats an enemy, advance this Force one empty rank forward after combat."
+        }
+      }
+    },
+    {
+      "id": "the-dust-riders",
+      "role": "rider",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "ADFSFA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Middle regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-black-company",
+      "role": "skirmisher",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "FASSAD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; ignore one Protect assigned to its target."
+        }
+      }
+    },
+    {
+      "id": "the-red-duelists",
+      "role": "skirmisher",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "FAASSD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; may defeat an equal-Force target."
+        }
+      }
+    },
+    {
+      "id": "the-thornbow-hunters",
+      "role": "archer",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "FAAADS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-iron-boars",
+      "role": "raider",
+      "force": 5,
+      "command_cost": 5,
+      "faces": "AFDAFS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; may defeat an equal-Force target."
+        }
+      }
+    },
+    {
+      "id": "the-first-spear",
+      "role": "guard",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "DSFADD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect one friendly Force here against every Strike."
+        }
+      }
+    },
+    {
+      "id": "the-old-guard",
+      "role": "guard",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "ADDSDF",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect nearest friendly Force behind."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect two different friendly Forces here."
+        }
+      }
+    },
+    {
+      "id": "the-unnamed-host",
+      "role": "raider",
+      "force": 5,
+      "command_cost": 5,
+      "faces": "AFSDFA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-late-banner",
+      "role": "captain",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "FADDAS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue one friendly Force here."
+        }
+      }
+    },
+    {
+      "id": "the-banner-singers",
+      "role": "captain",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "DDFASA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect nearest friendly Force ahead."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect two different friendly Forces here."
+        }
+      }
+    },
+    {
+      "id": "thirty-spears",
+      "role": "infantry",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "AFDSAA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; may defeat an equal-Force target."
+        }
+      }
+    },
+    {
+      "id": "a-hundred-shields",
+      "role": "guard",
+      "force": 6,
+      "command_cost": 5,
+      "faces": "DADSFD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect any friendly Force here."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect all friendly Forces here against one Strike each."
+        }
+      }
+    },
+    {
+      "id": "the-vardai",
+      "role": "rider",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "FASADF",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-aradai",
+      "role": "raider",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "SFFDAA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; ignore one Protect assigned to its target."
+        }
+      }
+    },
+    {
+      "id": "the-ilyri",
+      "role": "skirmisher",
+      "force": 2,
+      "command_cost": 3,
+      "faces": "DASASF",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Middle regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-damar",
+      "role": "infantry",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "DSAFAA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; if it defeats an enemy, advance this Force one empty rank forward after combat."
+        }
+      }
+    },
+    {
+      "id": "the-serekh",
+      "role": "guard",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "FDDADS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect nearest friendly Force behind."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue the foremost friendly Force here."
+        }
+      }
+    },
+    {
+      "id": "the-relief-column",
+      "role": "healer",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "SDSRFD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "R": {
+          "title": "Rescue",
+          "effect": "Rescue foremost friendly Force."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue any one friendly Force here."
+        }
+      }
+    },
+    {
+      "id": "the-field-train",
+      "role": "steward",
+      "force": 2,
+      "command_cost": 3,
+      "faces": "FDDRRS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "R": {
+          "title": "Rescue",
+          "effect": "Rescue foremost friendly Force."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue two different friendly Forces here."
+        }
+      }
+    },
+    {
+      "id": "the-signal-company",
+      "role": "scout",
+      "force": 2,
+      "command_cost": 3,
+      "faces": "DASSAF",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Middle regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "avaros-the-bronze-king",
+      "role": "captain",
+      "force": 5,
+      "command_cost": 5,
+      "faces": "ADASFD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue a friendly Force here or in an adjacent active Front."
+        }
+      }
+    },
+    {
+      "id": "kael-the-roadless",
+      "role": "scout",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "ADFSSA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "rovan-the-gatebreaker",
+      "role": "raider",
+      "force": 5,
+      "command_cost": 5,
+      "faces": "SDFFAA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; ignore one Protect assigned to its target."
+        }
+      }
+    },
+    {
+      "id": "alda-keeper-of-the-ford",
+      "role": "guard",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "FDDADS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect any friendly Force here."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect one friendly Force here against every Strike."
+        }
+      }
+    },
+    {
+      "id": "tovan-the-quartermaster",
+      "role": "steward",
+      "force": 2,
+      "command_cost": 3,
+      "faces": "DRSFRD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "R": {
+          "title": "Rescue",
+          "effect": "Rescue foremost friendly Force."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue any one friendly Force here."
+        }
+      }
+    },
+    {
+      "id": "nara-builder-of-walls",
+      "role": "stronghold",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "DFDSDA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect all friendly Forces here against one Strike each."
+        }
+      }
+    },
+    {
+      "id": "neris-the-ferryman",
+      "role": "rider",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "FFASAD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "veyra-keeper-of-oaths",
+      "role": "guard",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "DDAFSD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue the foremost friendly Force here."
+        }
+      }
+    },
+    {
+      "id": "yara-the-chronicler",
+      "role": "scout",
+      "force": 3,
+      "command_cost": 4,
+      "faces": "ASFDSA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Rescue any one friendly Force here."
+        }
+      }
+    },
+    {
+      "id": "the-ash-bowmen",
+      "role": "skirmisher",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "ASDAFS",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Middle regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-lantern-scouts",
+      "role": "scout",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "DFASSA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-river-raiders",
+      "role": "raider",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "ADFSFA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear; if empty, Middle; otherwise Frontline."
+        }
+      }
+    },
+    {
+      "id": "the-kings-spears",
+      "role": "guard",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "DDFSAD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Protect two different friendly Forces here."
+        }
+      }
+    },
+    {
+      "id": "the-salt-road-fleet",
+      "role": "raider",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "FAASDF",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Evade",
+          "effect": "Evade."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "the-watchtowers-of-eren",
+      "role": "stronghold",
+      "force": 3,
+      "command_cost": 3,
+      "faces": "DAFSDD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "serai-queen-of-crows",
+      "role": "archer",
+      "force": 4,
+      "command_cost": 4,
+      "faces": "AAFDSA",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect friendly Frontline."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike enemy Rear regardless of Battle Plan."
+        }
+      }
+    },
+    {
+      "id": "doros-the-last-spear",
+      "role": "infantry",
+      "force": 5,
+      "command_cost": 5,
+      "faces": "FASAAD",
+      "outcomes": {
+        "F": {
+          "title": "Falter",
+          "effect": "No combat effect."
+        },
+        "D": {
+          "title": "Protect",
+          "effect": "Protect self."
+        },
+        "A": {
+          "title": "Strike",
+          "effect": "Strike."
+        },
+        "S": {
+          "title": "Special",
+          "effect": "Strike; may defeat an equal-Force target."
+        }
+      }
+    }
+  ]
+}

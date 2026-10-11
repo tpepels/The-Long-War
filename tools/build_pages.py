@@ -19,9 +19,9 @@ else:
     from longwar.reference_decks import REFERENCE_DECK_PATHS
 from longwar.cards import load_card_file
 if __package__:
-    from .print_cards import load_print_cards
+    from .paper_d6_cards import load_paper_d6_cards, load_paper_d6_decks
 else:
-    from print_cards import load_print_cards
+    from paper_d6_cards import load_paper_d6_cards, load_paper_d6_decks
 from longwar.decks import (
     MINIMUM_DECK_SIZE,
     MINIMUM_FORCE_COUNT,
@@ -37,7 +37,7 @@ DIST = ROOT / "dist"
 RULEBOOK = ROOT / "rules" / "player-rulebook.md"
 DETAILED_REFERENCE = ROOT / "rules" / "rulebook.md"
 CARDS = ROOT / "cards" / "cards.json"
-PLAYTEST_DECKS = ROOT / "cards" / "playtest-decks.json"
+PLAYTEST_DECKS = ROOT / "cards" / "paper-d6-decks.json"
 REFERENCE_DECKS = REFERENCE_DECK_PATHS
 BALANCE_HEALTH = ROOT / "artifacts" / "balance-health.json"
 PUBLISHED_ARTIFACTS = ("lab-report.json", "balance-health.json")
@@ -95,6 +95,9 @@ def print_build_version() -> str:
         RULEBOOK,
         CARDS,
         ROOT / "cards" / "print-overrides.json",
+        ROOT / "cards" / "paper-d6.json",
+        ROOT / "cards" / "paper-d6-decks.json",
+        ROOT / "tools" / "paper_d6_cards.py",
         PLAYTEST_DECKS,
         ROOT / "src" / "longwar" / "rules.py",
         WEB / "physical-cards.css",
@@ -489,10 +492,13 @@ def main() -> None:
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
     (data_dir / "print-cards.json").write_text(
-        json.dumps(load_print_cards(card_data), indent=2, ensure_ascii=False) + "\n",
+        json.dumps(load_paper_d6_cards(card_data), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    shutil.copy2(PLAYTEST_DECKS, data_dir / "playtest-decks.json")
+    (data_dir / "playtest-decks.json").write_text(
+        json.dumps(load_paper_d6_decks(load_paper_d6_cards(card_data)), indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     known_cards = {card["id"] for card in card_data["cards"]}
     reference_decks = []
