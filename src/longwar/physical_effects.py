@@ -142,6 +142,14 @@ PRINTED_EFFECTS.update(TWENTY_FIRST_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(TWENTY_FIRST_COMPILED_EFFECTS)
 
 
+# Twenty-second pass: resolution-only, conditional frontline reinforcement
+# replaces the obsolete flat Command-loss shield.
+TWENTY_SECOND_PRINTED_EFFECTS = json.loads(r'''{"the-lines-held":[{"timing":"hidden","text":"At resolution, if your Frontline is empty, Move one friendly Middle formation into it, if legal. Give that formation +2 Strength this Battle."}]}''')
+TWENTY_SECOND_COMPILED_EFFECTS = json.loads(r'''{"the-lines-held":[{"timing":"hidden","scope":"self","limit":null,"memory":["face_down_source"],"op":"hidden_resolution_frontline_move","amount":2}]}''')
+PRINTED_EFFECTS.update(TWENTY_SECOND_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(TWENTY_SECOND_COMPILED_EFFECTS)
+
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
