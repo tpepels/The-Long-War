@@ -72,6 +72,7 @@ V2_EFFECT_OPS = frozenset({
     "hidden_cancel_tactic",
     "hidden_draw_discard",
     "hidden_protect_lost_fronts",
+    "hidden_resolution_frontline_move",
     "hidden_spy_on_stratagem",
     "hidden_archer_counterattack",
     "hidden_no_step_back",
