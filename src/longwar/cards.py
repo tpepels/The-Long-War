@@ -76,6 +76,7 @@ V2_EFFECT_OPS = frozenset({
     "hidden_tie_named_wins",
     "local_class_aura",
     "look_hand",
+    "look_hand_then_move",
     "look_stratagem",
     "maneuver_cost_class",
     "maneuver_unnamed",

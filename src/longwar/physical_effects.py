@@ -64,6 +64,12 @@ NINTH_COMPILED_EFFECTS = json.loads(r'''{"swore-again-to":[{"timing":"play","sco
 PRINTED_EFFECTS.update(NINTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(NINTH_COMPILED_EFFECTS)
 
+# Tenth pass: reveal full opposing hand and optionally move the new formation.
+TENTH_PRINTED_EFFECTS = json.loads(r'''{"mara":[{"timing":"becomes_named","text":"Look at your opponent's hand. You may then move this formation one position into an adjacent active empty position, if legal."}]}''')
+TENTH_COMPILED_EFFECTS = json.loads(r'''{"mara":[{"timing":"becomes_named","scope":"self","limit":null,"memory":[],"op":"look_hand_then_move","target":"self","steps":1,"optional":true}]}''')
+PRINTED_EFFECTS.update(TENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(TENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

@@ -576,7 +576,7 @@ cdef int _fe_legal_pending_effect_actions(
                             ),
                         )
         elif (
-            v2_effect.op == V2_OP_MOVE
+            v2_effect.op in (V2_OP_MOVE, V2_OP_LOOK_HAND_THEN_MOVE)
             and v2_effect.target == V2_TARGET_SELF
         ):
             steps = v2_effect.steps if v2_effect.steps > 0 else 1

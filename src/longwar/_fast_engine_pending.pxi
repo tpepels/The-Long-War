@@ -115,7 +115,7 @@ cdef void _v2_apply_resolved_effect(
         _v2_look_at_opponent_hand(self, state, player, effect)
     elif effect.op == V2_OP_LOOK_STRATAGEM:
         _v2_look_at_opponent_stratagem(state, player)
-    elif effect.op == V2_OP_MOVE:
+    elif effect.op in (V2_OP_MOVE, V2_OP_LOOK_HAND_THEN_MOVE):
         if effect.flags & V2_FLAG_DIRECTION_REAR and target >= 0:
             move_rank = rank_from_slot(target)
             if move_rank < RANK_REAR:

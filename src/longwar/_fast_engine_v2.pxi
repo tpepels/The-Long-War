@@ -307,7 +307,10 @@ cdef void _v2_look_at_opponent_hand(
     cdef uint8_t seen[MAX_CARDS]
     memset(seen, 0, sizeof(seen))
 
-    if effect.target == V2_TARGET_OPPONENT_ALL:
+    if (
+        effect.target == V2_TARGET_OPPONENT_ALL
+        or effect.op == V2_OP_LOOK_HAND_THEN_MOVE
+    ):
         for card in range(self.n_cards):
             state.known_hidden[viewer][owner][card] = state.hand[owner][card]
         return
@@ -562,6 +565,16 @@ cdef void _v2_apply_becomes_named_effects(
             _v2_look_at_opponent_hand(self, state, player, effect)
         elif effect.op == V2_OP_LOOK_STRATAGEM:
             _v2_look_at_opponent_stratagem(state, player)
+        elif effect.op == V2_OP_LOOK_HAND_THEN_MOVE:
+            # The hand inspection is unconditional. The optional Move is
+            # offered only if an adjacent legal empty position exists.
+            _v2_look_at_opponent_hand(self, state, player, effect)
+            if _v2_effect_can_resolve(
+                self, state, player, origin, effect
+            ):
+                _v2_enqueue_effect(
+                    self, state, player, card, mode, i, origin
+                )
         elif effect.op in (
             V2_OP_ADD_STRENGTH_MARKER,
             V2_OP_CHOOSE_CLASS_STRENGTH,
@@ -1520,7 +1533,7 @@ cdef bint _v2_effect_can_resolve(
                     return True
         return False
 
-    if effect.op == V2_OP_MOVE and effect.target == V2_TARGET_SELF:
+    if effect.op in (V2_OP_MOVE, V2_OP_LOOK_HAND_THEN_MOVE) and effect.target == V2_TARGET_SELF:
         if origin < 0 or state.force[origin] < 0:
             return False
         for dest in range(
