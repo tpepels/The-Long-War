@@ -67,7 +67,7 @@ A Special explicitly naming an adjacent active Front is the **only** way a Force
 4. Resolve **Evade → Pressure → Protect**. Frontline Guard protection and Hold use their wider rank reach. Read Protect cancels one extra damaging Strike for an eligible friend; Read Strike bypasses one Protect, not Evade or Rescue.
 5. **Coordinate:** each uncancelled damaging Strike gains +1 effective Force per other Strike at the same target. Greater Force defeats; equality stalemates unless a Special says otherwise. Unsuccessful uncancelled Strikes **Pin** (no post-combat movement).
 6. **Rescue** prevents an entire Force's defeat. Rear Healers/Stewards can save any friendly Force in their Front, while an explicitly printed adjacent-Front Special may rescue elsewhere.
-7. Discard unrescued casualties permanently. Check each Front for an **Opportunity** (enemy discarded, damaging Strike cancelled, or successful Rescue). Printed Special advances first; then, then at most **one post-combat forward move per player per Front** (always permitted by Assault, otherwise only with an Opportunity). No twice-moved or Pinned Forces.
+7. Discard unrescued casualties permanently. Check each Front for an **Opportunity** (enemy discarded, damaging Strike cancelled, or successful Rescue). Printed Special advances first; then make at most **one post-combat forward move per player per Front** (always permitted by Assault, otherwise only with an Opportunity). No twice-moved or Pinned Forces.
 8. Majority of surviving occupied positions **controls the Front**. Ties are contested; rank never scores extra control.
 9. Lose 1 Command per enemy-controlled Front, check Collapse at 0, then recover 8 if behind in controlled Fronts, 6 if ahead, 7 each if tied (cap 20); refill hands to 10.
 
