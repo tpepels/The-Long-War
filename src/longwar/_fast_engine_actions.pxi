@@ -539,7 +539,45 @@ cdef int _fe_legal_pending_effect_actions(
             actions, n, encode_action(TYPE_EFFECT, -1, -1, -1, player, kind)
         )
 
-    if kind == EFFECT_V2_TARGET:
+    if kind == EFFECT_STRAT_REVEAL_DECISION:
+        # Decline and reveal choices are different actions. The hidden
+        # commitment is stored until the other player decides.
+        n = _append_action(
+            actions, n,
+            encode_action(TYPE_EFFECT, -1, -1, -1, player, kind),
+        )
+        for front in range(FRONT_COUNT):
+            if state.stratagem_front_mask[player] & (1 << front):
+                n = _append_action(
+                    actions, n,
+                    encode_action(
+                        TYPE_EFFECT, -1, slot_index(player, front, RANK_FRONT),
+                        -1, player, kind,
+                    ),
+                )
+                break
+    elif kind == EFFECT_STRAT_REVEAL_BUFF:
+        # Snapshot target mask: no newly revealed effect changes eligibility.
+        for source2 in range(SLOT_COUNT):
+            if not (source_mask & (<uint32_t>1 << source2)):
+                continue
+            n = _append_action(
+                actions, n,
+                encode_action(
+                    TYPE_EFFECT, -1, source2, -1, player, kind,
+                ),
+            )
+            if not (flags & EFFECT_OPTIONAL):
+                continue
+            for dest in range(source2 + 1, SLOT_COUNT):
+                if source_mask & (<uint32_t>1 << dest):
+                    n = _append_action(
+                        actions, n,
+                        encode_action(
+                            TYPE_EFFECT, -1, source2, dest, player, kind,
+                        ),
+                    )
+    elif kind == EFFECT_V2_TARGET:
         v2_effect = _v2_pending_effect(self, state)
         source = state.pending_source[0]
 

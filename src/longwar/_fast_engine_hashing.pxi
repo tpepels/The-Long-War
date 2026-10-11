@@ -141,6 +141,10 @@ cdef InfoHash128 _fe_state_hash_fast(FastEngine self, FastState state) noexcept:
         _info_hash_feed_u32(&h, <uint32_t>state.constraint_activate_turn[i])
         _info_hash_feed(&h, state.constraint_flags[i])
     _info_hash_feed(&h, state.resolution_stage)
+    for i in range(PLAYER_COUNT):
+        _info_hash_feed(&h, state.resolution_reveal_eligible[i])
+        _info_hash_feed(&h, state.resolution_reveal_choice[i])
+        _info_hash_feed_u32(&h, state.resolution_reveal_targets[i])
     _info_hash_feed(&h, state.resolution_lost_mask[0])
     _info_hash_feed(&h, state.resolution_lost_mask[1])
     _info_hash_feed(&h, state.resolution_drive_mask[0])
@@ -183,6 +187,8 @@ cdef int _fe__information_state_encode(
     )
 
     # Binary information-key format. Bump this whenever the byte layout changes.
+    # v21 privately records simultaneous Stratagem reveal commitments and
+    # pre-reveal target snapshots without leaking an opponent's choice.
     # v20 tracks loss-Exhaustion choices after Command Collapse and before cleanup.
     # v19 adds public Force conditions/used Attack and a five-bit Action kind.
     # v18 separates the pre-draw voluntary Pass decision from the Action segment.
@@ -279,6 +285,28 @@ cdef int _fe__information_state_encode(
         )
         _info_emit(buf, &n, h, state.constraint_flags[i])
     _info_emit(buf, &n, h, state.resolution_stage)
+    for owner in range(PLAYER_COUNT):
+        # The other player's eligible hidden card and targets are not public.
+        # Once both have committed, only their reveal/decline decision is
+        # simultaneously disclosed, not the unrevealed card identity.
+        _info_emit(
+            buf, &n, h,
+            state.resolution_reveal_eligible[owner] if owner == player else 0,
+        )
+        _info_emit(
+            buf, &n, h,
+            state.resolution_reveal_choice[owner]
+            if (
+                owner == player or (
+                    state.resolution_stage == RESOLUTION_REVEAL
+                    and state.resolution_cursor >= PLAYER_COUNT + 1
+                ) or state.resolution_stage == RESOLUTION_COMPARE
+            ) else 0,
+        )
+        _info_emit_u32(
+            buf, &n, h,
+            state.resolution_reveal_targets[owner] if owner == player else 0,
+        )
     _info_emit(buf, &n, h, state.resolution_lost_mask[0])
     _info_emit(buf, &n, h, state.resolution_lost_mask[1])
     _info_emit(buf, &n, h, state.resolution_drive_mask[0])

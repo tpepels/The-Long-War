@@ -76,6 +76,12 @@ ELEVENTH_COMPILED_EFFECTS = json.loads(r'''{"they-had-gone-too-far":[{"timing":"
 PRINTED_EFFECTS.update(ELEVENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(ELEVENTH_COMPILED_EFFECTS)
 
+# Twelfth pass: simultaneous single-window resolution-buff Stratagems.
+TWELFTH_PRINTED_EFFECTS = json.loads(r'''{"the-center-must-hold":[{"timing":"hidden","text":"At resolution, if you have a King or Captain here, give up to two other friendly formations here +1 Strength this Battle."}],"the-flank-was-refused":[{"timing":"hidden","text":"At resolution, if this is an outer Front, give one friendly Archer, Guard or Stronghold formation here +2 Strength this Battle."}]}''')
+TWELFTH_COMPILED_EFFECTS = json.loads(r'''{"the-center-must-hold":[{"timing":"hidden","scope":"self","limit":null,"memory":[],"op":"hidden_buff_targets","reveal":"leadership_front_strength_comparison","required_any_class":["king","captain"],"amount":1,"max_targets":2}],"the-flank-was-refused":[{"timing":"hidden","scope":"self","limit":null,"memory":[],"op":"hidden_buff_targets","reveal":"outer_front_strength_comparison","outer_front":true,"target_classes":["archer","guard","stronghold"],"amount":2,"max_targets":1}]}''')
+PRINTED_EFFECTS.update(TWELFTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(TWELFTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
