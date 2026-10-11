@@ -8,9 +8,10 @@ The Long War has four deliberately separate workstreams. Keeping them separate i
 
 Primary sources:
 
-- `cards/cards.json` - canonical card pool and card wording/mechanics metadata
-- `rules/rulebook.md` - player-facing rules
-- `cards/playtest-decks.json` and `decks/*.json` - playtest/shipped deck content
+- `cards/paper-d6.json` - current **physical** Force/Hero D6 outcome pool
+- `cards/paper-d6-decks.json` - current 24-card physical playtest decks
+- `rules/player-rulebook.md` and `rules/rulebook.md` - current experimental tabletop rules
+- `cards/cards.json`, `cards/playtest-decks.json`, and `decks/*.json` - retained legacy/runtime card and deck inputs; NOT current paper rules
 - `web/art/cards/` - canonical card artwork
 
 This workstream may change while the software engine is temporarily behind. That lag must be explicit; it must not be hidden by duplicating or approximating rules in UI code.
@@ -116,8 +117,8 @@ Pages deployment is independent of regression-test status and is blocked only wh
 
 ## Current status
 
-- `main` contains the current printable physical playtest package.
-- The physical game is usable independently of the webgame.
+- The paper D6 branch publishes a Force-only physical kit; it leaves the executable 131-card source, engine and AI unchanged. After merge, `main` publishes the paper D6 kit.
+- The current physical D6 rules differ materially from the Webgame rules and are intended to be played independently.
 - Runtime integration is unfinished and belongs in a separate `engine/` workstream.
 - The webgame should be treated as experimental whenever runtime support lags the authored cards/rules.
 - Historical branches and reports are not current sources of truth.
