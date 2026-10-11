@@ -612,6 +612,10 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key = "effect:stratagem-archer-reveal"
         elif choice == EFFECT_STRAT_ARCHER_ATTACK:
             key = "effect:stratagem-archer-attack"
+        elif choice == EFFECT_WATCHTOWERS_CYCLE:
+            key = "effect:watchtowers-cycle"
+        elif choice == EFFECT_WATCHTOWERS_DISCARD:
+            key = "effect:watchtowers-discard"
         elif choice == EFFECT_LANTERN_SCOUTS_REACT:
             key = "effect:lantern-scouts-react"
         elif choice == EFFECT_LANTERN_SCOUTS_DISCARD:
