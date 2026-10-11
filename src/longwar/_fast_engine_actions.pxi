@@ -20,6 +20,14 @@ cdef inline bint _fe_card_move_destination_legal(
     cdef int owner = owner_from_slot(source)
     if force < 0:
         return False
+    if controller != owner and state.bond[source] >= 0:
+        # Opposing card Moves are blocked by a live Bond protection effect.
+        # The owner's own Moves remain legal, as do ordinary Maneuvers.
+        if _v2_component_has_live_op(
+            self, state, source, state.bond[source], V2_MODE_DEFAULT,
+            V2_OP_RESIST_OPPOSING_MOVE, SUPPRESS_BOND_TEXT,
+        ):
+            return False
     if not front_is_active(state.battle, front_from_slot(source)):
         return False
     if owner_from_slot(dest) != owner:

@@ -131,6 +131,7 @@ cdef void _v2_compile_effect(
         "prevent_tactic_strength_reduction": V2_OP_PREVENT_TACTIC_STRENGTH_REDUCTION,
         "recover": V2_OP_RECOVER,
         "redirect_tactic": V2_OP_REDIRECT_TACTIC,
+        "resist_opposing_move": V2_OP_RESIST_OPPOSING_MOVE,
         "remove_exhaustion": V2_OP_REMOVE_EXHAUSTION,
         "remove_negative_marker": V2_OP_REMOVE_NEGATIVE_MARKER,
         "remove_strength_marker": V2_OP_REMOVE_STRENGTH_MARKER,
