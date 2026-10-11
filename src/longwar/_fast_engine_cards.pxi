@@ -221,6 +221,7 @@ cdef void _v2_compile_effect(
         "opposing_front_with_friendly_class": V2_TARGET_OPPOSING_FRONT_WITH_FRIENDLY_CLASS,
         "opposing_named_any": V2_TARGET_OPPOSING_NAMED_ANY,
         "opposing_prepared_any": V2_TARGET_OPPOSING_PREPARED_ANY,
+        "opposing_prepared_or_scout_seer_bond": V2_TARGET_OPPOSING_PREPARED_OR_SCOUT_SEER_BOND,
         "opposing_prepared_front_with_friendly_class": V2_TARGET_OPPOSING_PREPARED_FRONT_WITH_FRIENDLY_CLASS,
         "opposing_prepared_same_front": V2_TARGET_OPPOSING_PREPARED_SAME_FRONT,
         "opposing_rear": V2_TARGET_OPPOSING_REAR,

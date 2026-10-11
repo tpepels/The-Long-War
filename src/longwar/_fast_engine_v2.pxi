@@ -1142,6 +1142,25 @@ cdef uint32_t _v2_target_mask(
             ):
                 mask |= <uint32_t>(1 << slot)
 
+        elif target == V2_TARGET_OPPOSING_PREPARED_OR_SCOUT_SEER_BOND:
+            # Anyone may expose an opposing prepared layer. A *played*
+            # Bond needs a friendly Scout or Seer in that exact Front.
+            # An attached Name never becomes eligible through scouting.
+            if owner_from_slot(slot) == opponent and (
+                (
+                    state.force[slot] < 0
+                    and (state.bond[slot] >= 0 or state.name[slot] >= 0)
+                )
+                or (
+                    state.force[slot] >= 0
+                    and state.bond[slot] >= 0
+                    and _v2_front_contains_class_mask(
+                        self, state, player, front, effect.class_mask
+                    )
+                )
+            ):
+                mask |= <uint32_t>(1 << slot)
+
         elif target == V2_TARGET_OPPOSING_PREPARED_ANY:
             if (
                 owner_from_slot(slot) == opponent

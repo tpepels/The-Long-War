@@ -134,6 +134,14 @@ PRINTED_EFFECTS.update(TWENTIETH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(TWENTIETH_COMPILED_EFFECTS)
 
 
+# Twenty-first pass: printed prepared-card sabotage, expanded only to
+# attached Bonds in a Front supported by a friendly Scout or Seer.
+TWENTY_FIRST_PRINTED_EFFECTS = json.loads(r'''{"the-muster-was-false":[{"timing":"play","text":"Return an opposing prepared Bond or Name to its owner's hand. Alternatively, return an opposing attached Bond in a Front containing your Scout or Seer to its owner's hand."}]}''')
+TWENTY_FIRST_COMPILED_EFFECTS = json.loads(r'''{"the-muster-was-false":[{"timing":"play","scope":"opponent","limit":null,"memory":[],"op":"return_component","target":"opposing_prepared_or_scout_seer_bond","classes":["scout","seer"]}]}''')
+PRINTED_EFFECTS.update(TWENTY_FIRST_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(TWENTY_FIRST_COMPILED_EFFECTS)
+
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

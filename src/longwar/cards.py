@@ -183,6 +183,7 @@ V2_TARGETS = frozenset({
     "opposing_front_with_friendly_class",
     "opposing_named_any",
     "opposing_prepared_any",
+    "opposing_prepared_or_scout_seer_bond",
     "opposing_prepared_front_with_friendly_class",
     "opposing_prepared_same_front",
     "opposing_rear",
