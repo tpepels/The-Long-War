@@ -561,14 +561,71 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     cdef int returned_card
     cdef bint skip = card < 0 and source < 0 and dest < 0
     cdef bint was_empty
-    cdef int before_mask, moved, saved_active_player
+    cdef int before_mask, moved, saved_active_player, original_actor, attack_target
+    cdef int pending_target = <int>state.pending_dest_mask[0] - 1
     cdef V2EffectSpec* v2_effect = NULL
 
     if kind == EFFECT_V2_TARGET:
         v2_effect = _v2_pending_effect(self, state)
     _fe_pop_pending_effect(self, state)
 
-    if kind == EFFECT_STRAT_ARCHER_REVEAL:
+    if kind == EFFECT_STRAT_NO_STEP_ATTACK:
+        original_actor = other_player(player)
+        attack_target = pending_target
+        # Capture pending fields before removing the front of the queue.
+        # The Attack itself remains fully legal and consumes its allowance
+        # even when No Step Back prevents its one affliction.
+        if (
+            trigger_source < 0 or attack_target < 0
+            or owner_from_slot(attack_target) != player
+            or not skip and (
+                source != attack_target
+                or not _fe_no_step_back_eligible(
+                    self, state, player, attack_target
+                )
+            )
+        ):
+            raise ValueError("Invalid No Step Back Attack response")
+        if not skip:
+            _fe_discard_revealed_no_step_back(self, state, player)
+        saved_active_player = state.active_player
+        state.active_player = original_actor
+        _fe_apply_attack(
+            self, state, trigger_source, attack_target, aux, not skip
+        )
+        state.active_player = saved_active_player
+        _fe_queue_archer_counterattack_response(
+            self, state, original_actor, front_from_slot(trigger_source)
+        )
+    elif kind == EFFECT_STRAT_NO_STEP_TACTIC:
+        original_actor = other_player(player)
+        if (
+            aux < 0 or owner_from_slot(aux) != player
+            or state.force[aux] < 0
+            or command_source < 0
+            or not skip and (
+                source != aux
+                or not _fe_no_step_back_eligible(
+                    self, state, player, aux
+                )
+            )
+        ):
+            raise ValueError("Invalid No Step Back Tactic response")
+        if not skip:
+            _fe_discard_revealed_no_step_back(self, state, player)
+        else:
+            if self.v2_effect_count[command_source][V2_MODE_DEFAULT] > 0:
+                v2_effect = &self.v2_effects[command_source][V2_MODE_DEFAULT][0]
+                _v2_apply_resolved_effect(
+                    self, state, original_actor, command_source,
+                    trigger_source, v2_effect,
+                    encode_action(
+                        TYPE_TACTIC, command_source,
+                        trigger_source, aux, original_actor, pending_amount
+                    ),
+                )
+        _fe_append_discard(self, state, original_actor, command_source, True)
+    elif kind == EFFECT_STRAT_ARCHER_REVEAL:
         if not skip:
             if (
                 source < 0
@@ -1068,13 +1125,27 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
         return
 
     if kind == TYPE_ATTACK:
-        _fe_apply_attack(self, state, pos, dest, <int>extra)
+        if not _fe_attack_legal(self, state, pos, dest, <int>extra):
+            raise ValueError("Illegal basic Attack")
         _fe_consume_operation_constraints(self, state, actor, action)
         state.pending_resume = RESUME_FINISH_OPERATION
         state.pending_resume_player = actor
-        _fe_queue_archer_counterattack_response(
-            self, state, actor, front_from_slot(pos)
-        )
+        if (
+            state.stratagem[other_player(actor)] >= 0
+            and not state.stratagem_revealed[other_player(actor)]
+        ):
+            # This private pre-affliction decision exists for *all* face-down
+            # plans. Only No Step Back can reveal; other plans decline.
+            _fe_enqueue_effect(
+                self, state, EFFECT_STRAT_NO_STEP_ATTACK,
+                other_player(actor), -1, pos, <int>extra,
+                0, <uint32_t>(dest + 1), EFFECT_OPTIONAL,
+            )
+        else:
+            _fe_apply_attack(self, state, pos, dest, <int>extra)
+            _fe_queue_archer_counterattack_response(
+                self, state, actor, front_from_slot(pos)
+            )
         _fe_resume_pending_flow(self, state)
         return
 
@@ -1140,6 +1211,22 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
 
     if kind == TYPE_TACTIC or kind == TYPE_ORDER:
         _fe_take_from_hand(self, state, actor, card, 0)
+        if (
+            kind == TYPE_TACTIC
+            and dest >= 0
+            and owner_from_slot(dest) == other_player(actor)
+            and state.force[dest] >= 0
+            and state.stratagem[other_player(actor)] >= 0
+            and not state.stratagem_revealed[other_player(actor)]
+        ):
+            _fe_consume_operation_constraints(self, state, actor, action)
+            _fe_enqueue_effect(
+                self, state, EFFECT_STRAT_NO_STEP_TACTIC,
+                other_player(actor), card, pos, dest, extra,
+                0, EFFECT_OPTIONAL,
+            )
+            _fe_resume_pending_flow(self, state)
+            return
         if self.v2_effect_count[card][V2_MODE_DEFAULT] > 0:
             v2_effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
             if v2_effect.op in (V2_OP_DISCARD_DRAW, V2_OP_DRAW_DISCARD):

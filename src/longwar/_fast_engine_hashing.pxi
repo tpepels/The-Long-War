@@ -604,6 +604,10 @@ cdef str _fe_action_key(FastEngine self, uint64_t action):
             key = "effect:stratagem-reveal"
         elif choice == EFFECT_STRAT_REVEAL_BUFF:
             key = "effect:stratagem-buff"
+        elif choice == EFFECT_STRAT_NO_STEP_ATTACK:
+            key = "effect:stratagem-no-step-attack"
+        elif choice == EFFECT_STRAT_NO_STEP_TACTIC:
+            key = "effect:stratagem-no-step-tactic"
         elif choice == EFFECT_STRAT_ARCHER_REVEAL:
             key = "effect:stratagem-archer-reveal"
         elif choice == EFFECT_STRAT_ARCHER_ATTACK:
