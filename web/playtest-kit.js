@@ -97,7 +97,7 @@ async function main(){
       ],
       [
             "COORDINATE",
-            "Each uncancelled damaging Strike gains +1 effective Force per OTHER uncancelled Strike at the same target. Greater Force defeats, equality stalemates absent a printed Special."
+            "At each target, each uncancelled damaging Strike gains +1 effective Force per OTHER uncancelled Strike at the same target. Greater Force defeats, equality stalemates absent a printed Special."
       ],
       [
             "PRESSURE / PIN",
