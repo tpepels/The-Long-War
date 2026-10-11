@@ -310,6 +310,7 @@ cdef void _v2_compile_effect(
         V2_OP_AFFLICT_CONDITION,
         V2_OP_CLEANSE_AND_GRANT_CONDITION,
         V2_OP_FORCED_MOVE_AFFLICT,
+        V2_OP_HIDDEN_SPY_ON_STRATAGEM,
     ):
         status = effect.get("status")
         if status == "shaken":

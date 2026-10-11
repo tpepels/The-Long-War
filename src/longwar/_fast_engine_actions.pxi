@@ -539,7 +539,31 @@ cdef int _fe_legal_pending_effect_actions(
             actions, n, encode_action(TYPE_EFFECT, -1, -1, -1, player, kind)
         )
 
-    if kind == EFFECT_STRAT_REVEAL_DECISION:
+    if kind == EFFECT_STRAT_SCOUT_REVEAL:
+        # All hidden plans receive the same private response opportunity.
+        if _v2_scout_plan_reaction_targets(
+            self, state, player, state.pending_aux[0]
+        ):
+            n = _append_action(
+                actions, n,
+                encode_action(
+                    TYPE_EFFECT, -1,
+                    slot_index(player, state.pending_aux[0], RANK_FRONT),
+                    -1, player, kind,
+                ),
+            )
+    elif kind == EFFECT_STRAT_SCOUT_GUARD:
+        for source2 in range(SLOT_COUNT):
+            if (
+                source_mask & (<uint32_t>1 << source2)
+                and owner_from_slot(source2) == player
+                and state.force[source2] >= 0
+            ):
+                n = _append_action(
+                    actions, n,
+                    encode_action(TYPE_EFFECT, -1, source2, -1, player, kind),
+                )
+    elif kind == EFFECT_STRAT_REVEAL_DECISION:
         # Decline and reveal choices are different actions. The hidden
         # commitment is stored until the other player decides.
         n = _append_action(
