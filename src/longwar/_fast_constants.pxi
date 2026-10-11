@@ -198,6 +198,11 @@ cdef int RESOLUTION_NONE = 0
 cdef int RESOLUTION_PREPARE = 1
 cdef int RESOLUTION_COMPARE = 2
 cdef int RESOLUTION_REVEAL = 3
+# Hidden eligibility modes are local to the single resolution window.
+cdef int REVEAL_ELIGIBLE_NONE = 0
+cdef int REVEAL_ELIGIBLE_BUFF = 1
+cdef int REVEAL_ELIGIBLE_TIE = 2
+cdef int REVEAL_ELIGIBLE_ONE_BEHIND = 3
 cdef int RESOLUTION_NARRATIVES = 4
 cdef int RESOLUTION_RECOVERY = 5
 cdef int RESOLUTION_ATTRITION = 6
