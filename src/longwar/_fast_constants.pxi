@@ -486,6 +486,7 @@ cdef uint16_t SUPPRESS_ACTION_TURN = 8
 cdef uint16_t SUPPRESS_ACTION_BATTLE = 16
 cdef uint16_t SUPPRESS_LIMITED_BATTLE = 32
 cdef uint16_t SUPPRESS_NAME_IMMUNE_BATTLE = 64
+cdef uint16_t SUPPRESS_NAME_STRENGTH = 128
 
 # V2 effect modes/timings.
 cdef int V2_MODE_DEFAULT = 0
@@ -609,6 +610,7 @@ cdef int V2_OP_BOND_NAMED_OR_CYCLE = 95
 cdef int V2_OP_CLEANSE_AND_GRANT_CONDITION = 96
 cdef int V2_OP_LOOK_HAND_THEN_MOVE = 97
 cdef int V2_OP_FORCED_MOVE_AFFLICT = 98
+cdef int V2_OP_SUPPRESS_ACTION_AND_NAME_STRENGTH = 99
 
 # Generic V2 selector/condition codes.
 cdef int V2_TARGET_NONE = 0

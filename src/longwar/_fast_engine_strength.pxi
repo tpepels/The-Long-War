@@ -39,7 +39,7 @@ cdef bint _v2_opposite_suppresses_bond_strength(
                 return True
     card = state.name[source]
     mode = _v2_mode_for_name(self, card)
-    if card >= 0 and not (state.suppression_mask[source] & SUPPRESS_NAME_TEXT):
+    if card >= 0 and not (state.suppression_mask[source] & (SUPPRESS_NAME_TEXT | SUPPRESS_NAME_STRENGTH)):
         for i in range(self.v2_effect_count[card][mode]):
             effect = &self.v2_effects[card][mode][i]
             if (
@@ -139,7 +139,7 @@ cdef int _v2_support_bonus(
 
     card = state.name[source]
     mode = _v2_mode_for_name(self, card)
-    if card >= 0 and not (state.suppression_mask[source] & SUPPRESS_NAME_TEXT):
+    if card >= 0 and not (state.suppression_mask[source] & (SUPPRESS_NAME_TEXT | SUPPRESS_NAME_STRENGTH)):
         for i in range(self.v2_effect_count[card][mode]):
             effect = &self.v2_effects[card][mode][i]
             if (
@@ -202,7 +202,7 @@ cdef int _v2_local_aura_bonus(
 
         card = state.name[source]
         mode = _v2_mode_for_name(self, card)
-        if card >= 0 and not (state.suppression_mask[source] & SUPPRESS_NAME_TEXT):
+        if card >= 0 and not (state.suppression_mask[source] & (SUPPRESS_NAME_TEXT | SUPPRESS_NAME_STRENGTH)):
             for i in range(self.v2_effect_count[card][mode]):
                 effect = &self.v2_effects[card][mode][i]
                 if (
@@ -344,7 +344,7 @@ cdef int _v2_position_strength_no_reserve(
         )
 
     name = state.name[slot]
-    if name >= 0:
+    if name >= 0 and not (state.suppression_mask[slot] & SUPPRESS_NAME_STRENGTH):
         value += self.name_strength[name]
         value += _v2_component_strength_effects(
             self, state, slot, name, _v2_mode_for_name(self, name),
@@ -405,7 +405,7 @@ cdef int _v2_reserve_bonus(
 
     card = state.name[slot]
     mode = _v2_mode_for_name(self, card)
-    if card >= 0 and not (state.suppression_mask[slot] & SUPPRESS_NAME_TEXT):
+    if card >= 0 and not (state.suppression_mask[slot] & (SUPPRESS_NAME_TEXT | SUPPRESS_NAME_STRENGTH)):
         for i in range(self.v2_effect_count[card][mode]):
             effect = &self.v2_effects[card][mode][i]
             if (
