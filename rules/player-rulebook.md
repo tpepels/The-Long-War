@@ -71,7 +71,7 @@ A Special explicitly naming an adjacent active Front is the **only** way a Force
 8. Majority of surviving occupied positions **controls the Front**. Ties are contested; rank never scores extra control.
 9. Lose 1 Command per enemy-controlled Front, check Collapse at 0, then recover 8 if behind in controlled Fronts, 6 if ahead, 7 each if tied (cap 20); refill hands to 10.
 
-Every Force participates once even if it is defeated in the simultaneous exchange. A Read, Opportunity and Pin never persist to the next Battle. No Force statistic, printed cost, die face or existing card ability is changed by Phase 2.
+Every Force participates once even if it is defeated in the simultaneous exchange. Pressure never turns into retroactive cancellation. A Read, Opportunity and Pin never persist to the next Battle. No Force statistic, printed cost, die face or existing card ability is changed by Phase 2.
 
 Recycle only the **ordinary discard pile** when drawing; **casualties never re-enter decks**. If there are no cards to draw, skip the draw. The player who did not Pass starts the next Battle.
 
