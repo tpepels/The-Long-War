@@ -70,6 +70,12 @@ TENTH_COMPILED_EFFECTS = json.loads(r'''{"mara":[{"timing":"becomes_named","scop
 PRINTED_EFFECTS.update(TENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(TENTH_COMPILED_EFFECTS)
 
+# Eleventh pass: targeted one-rank forced displacement and conditional affliction.
+ELEVENTH_PRINTED_EFFECTS = json.loads(r'''{"they-had-gone-too-far":[{"timing":"play","text":"Choose an opposing Frontline or Middle Force in a Front containing your Scout or Skirmisher. Move it one row toward Rear, if legal and empty. Otherwise, give it Shaken."}],"the-line-was-baited":[{"timing":"play","text":"Choose an opposing Frontline or Middle Force in a Front containing your Skirmisher. Move it one row toward Rear, if legal and empty. If it moves, give it Depleted."}]}''')
+ELEVENTH_COMPILED_EFFECTS = json.loads(r'''{"they-had-gone-too-far":[{"timing":"play","scope":"opponent","limit":null,"memory":[],"op":"forced_move_afflict","target":"opposing_front_with_friendly_class","target_classes":["scout","skirmisher"],"target_ranks":["front","middle"],"status":"shaken","afflict_when":"blocked"}],"the-line-was-baited":[{"timing":"play","scope":"opponent","limit":null,"memory":[],"op":"forced_move_afflict","target":"opposing_front_with_friendly_class","target_classes":["skirmisher"],"target_ranks":["front","middle"],"status":"depleted","afflict_when":"moved"}]}''')
+PRINTED_EFFECTS.update(ELEVENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(ELEVENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

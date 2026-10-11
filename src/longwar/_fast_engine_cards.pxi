@@ -118,6 +118,7 @@ cdef void _v2_compile_effect(
         "local_class_aura": V2_OP_LOCAL_CLASS_AURA,
         "look_hand": V2_OP_LOOK_HAND,
         "look_hand_then_move": V2_OP_LOOK_HAND_THEN_MOVE,
+        "forced_move_afflict": V2_OP_FORCED_MOVE_AFFLICT,
         "look_stratagem": V2_OP_LOOK_STRATAGEM,
         "maneuver_cost_class": V2_OP_MANEUVER_COST_CLASS,
         "maneuver_unnamed": V2_OP_MANEUVER_UNNAMED,
@@ -308,6 +309,7 @@ cdef void _v2_compile_effect(
         V2_OP_GRANT_CONDITION,
         V2_OP_AFFLICT_CONDITION,
         V2_OP_CLEANSE_AND_GRANT_CONDITION,
+        V2_OP_FORCED_MOVE_AFFLICT,
     ):
         status = effect.get("status")
         if status == "shaken":
@@ -336,6 +338,7 @@ cdef void _v2_compile_effect(
     if value is None and effect.get("requires_rank") is not None:
         value = [effect.get("requires_rank")]
     out.rank_mask = _v2_rank_mask(value)
+    out.target_rank_mask = _v2_rank_mask(effect.get("target_ranks"))
     out.card_type_mask = _v2_card_type_mask(
         effect.get("card_types", effect.get("card_type"))
     )
@@ -392,6 +395,8 @@ cdef void _v2_compile_effect(
         out.flags |= V2_FLAG_SWAP_GUARD_PARTNER
     if effect.get("requires_clear_slot"):
         out.flags |= V2_FLAG_REQUIRES_CLEAR_SLOT
+    if effect.get("afflict_when") == "moved":
+        out.flags |= V2_FLAG_AFFLICT_IF_MOVED
     if effect.get("requires_opposing_exhausted_same_front"):
         out.flags |= V2_FLAG_REQUIRES_OPPOSING_EXHAUSTED
     if effect.get("requires_opposing_supply_same_front"):
