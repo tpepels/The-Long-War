@@ -96,6 +96,8 @@ cdef void _v2_compile_effect(
         "draw": V2_OP_DRAW,
         "draw_discard": V2_OP_DRAW_DISCARD,
         "draw_put_top": V2_OP_DRAW_PUT_TOP,
+        "bond_named_or_cycle": V2_OP_BOND_NAMED_OR_CYCLE,
+        "cleanse_and_grant_condition": V2_OP_CLEANSE_AND_GRANT_CONDITION,
         "front_card_tax": V2_OP_FRONT_CARD_TAX,
         "front_presence_discount": V2_OP_FRONT_PRESENCE_DISCOUNT,
         "front_tactic_discount": V2_OP_FRONT_TACTIC_DISCOUNT,

@@ -474,11 +474,19 @@ cdef void _v2_apply_immediate_play_effects(
             _v2_look_at_opponent_hand(self, state, player, effect)
         elif effect.op == V2_OP_LOOK_STRATAGEM:
             _v2_look_at_opponent_stratagem(state, player)
+        elif effect.op == V2_OP_BOND_NAMED_OR_CYCLE:
+            if origin >= 0 and _v2_slot_named(state, origin):
+                state.temporary[origin] += effect.amount
+            else:
+                _v2_enqueue_effect(
+                    self, state, player, card, mode, i, origin
+                )
         elif effect.op in (
             V2_OP_ATTACH_PREPARED,
             V2_OP_CHOOSE_STRENGTH_TARGETS,
             V2_OP_DRAW,
             V2_OP_DRAW_DISCARD,
+            V2_OP_DRAW_PUT_TOP,
             V2_OP_ADD_STRENGTH_MARKER,
             V2_OP_REMOVE_EXHAUSTION,
             V2_OP_DISCARD_DRAW,
@@ -1628,13 +1636,20 @@ cdef void _v2_enqueue_effect(
     int origin=-1,
     int source_flags=0,
 ) except *:
-    # This effect is ordered DRAW, THEN DISCARD. Draw before offering
-    # the discard selection, including mandatory hand-limit cleanup.
-    if self.v2_effects[card][mode][effect_index].op == V2_OP_DRAW_DISCARD:
+    # Draw before presenting the hand choice. Hand-limit cleanup must
+    # finish before the choice of discard / card returned to the deck.
+    if self.v2_effects[card][mode][effect_index].op in (
+        V2_OP_DRAW_DISCARD,
+        V2_OP_DRAW_PUT_TOP,
+        V2_OP_BOND_NAMED_OR_CYCLE,
+    ):
         _fe_queue_battle_draws(
             self, state, player,
             self.v2_effects[card][mode][effect_index].draw_count,
         )
+        if state.hand_len[player] == 0 and not state.cleanup_pending:
+            # No drawable card and no cards in hand: no choice is possible.
+            return
     _fe_enqueue_effect(
         self,
         state,

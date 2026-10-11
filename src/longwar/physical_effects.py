@@ -57,6 +57,13 @@ EIGHTH_COMPILED_EFFECTS = json.loads(r'''{"the-ilyri":[{"timing":"play","scope":
 PRINTED_EFFECTS.update(EIGHTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(EIGHTH_COMPILED_EFFECTS)
 
+# Ninth pass: ordered deck-top choices, Bond completion/cycling,
+# and a Narrative's numeric-marker cleanse followed by Inspired.
+NINTH_PRINTED_EFFECTS = json.loads(r'''{"swore-again-to":[{"timing":"play","text":"If playing this Bond completes a Named Formation, give that formation +2 Strength this Battle. Otherwise, draw 1 card, then discard 1 card."}],"watched-the-skies-for":[{"timing":"play","text":"Draw 1 card, then put 1 card from your hand on top of your deck."}],"they-lived-to-tell-it":[{"timing":"action","text":"Choose one friendly Force. Remove one temporary negative marker from it, if present, then give it Inspired."}],"the-fifty-men":[]}''')
+NINTH_COMPILED_EFFECTS = json.loads(r'''{"swore-again-to":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"bond_named_or_cycle","amount":2,"draw":1,"discard":1}],"watched-the-skies-for":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"draw_put_top","draw":1}],"they-lived-to-tell-it":[{"timing":"action","scope":"self","limit":null,"memory":[],"op":"cleanse_and_grant_condition","target":"friendly_any","status":"inspired"}],"the-fifty-men":[]}''')
+PRINTED_EFFECTS.update(NINTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(NINTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
