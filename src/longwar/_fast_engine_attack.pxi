@@ -103,3 +103,62 @@ cdef void _fe_apply_attack(
         _fe_afflict(state, target, COND_SHAKEN)
     else:
         _fe_afflict(state, target, COND_DEPLETED)
+
+
+# The trigger is checked after the original basic Attack completes.
+# Legality is evaluated from the prospective defending player's viewpoint;
+# no strategic turn or Action is consumed by this temporary perspective.
+cdef inline bint _fe_archer_counterattack_legal(
+    FastEngine self, FastState state, int owner, int source, int target
+) noexcept:
+    cdef int before = state.active_player
+    cdef bint legal
+    state.active_player = owner
+    legal = _fe_attack_legal(self, state, source, target, ATTACK_ARCHER)
+    state.active_player = before
+    return legal
+
+
+cdef bint _fe_archer_counterattack_eligible(
+    FastEngine self, FastState state, int owner, int front
+) noexcept:
+    cdef int card = state.stratagem[owner]
+    cdef int rank, source, target, enemy = other_player(owner)
+    cdef V2EffectSpec* effect
+    if (
+        card < 0
+        or state.stratagem_revealed[owner]
+        or not (state.stratagem_front_mask[owner] & (1 << front))
+        or self.v2_effect_count[card][V2_MODE_DEFAULT] == 0
+    ):
+        return False
+    effect = &self.v2_effects[card][V2_MODE_DEFAULT][0]
+    if effect.op != V2_OP_HIDDEN_ARCHER_COUNTERATTACK:
+        return False
+    for rank in range(RANK_COUNT):
+        source = slot_index(owner, front, rank)
+        if state.force[source] < 0 or state.used_attack[source]:
+            continue
+        for target in range(
+            enemy * POSITIONS_PER_PLAYER,
+            (enemy + 1) * POSITIONS_PER_PLAYER,
+        ):
+            if _fe_archer_counterattack_legal(
+                self, state, owner, source, target
+            ):
+                return True
+    return False
+
+
+cdef void _fe_queue_archer_counterattack_response(
+    FastEngine self, FastState state, int attacker, int front
+) except *:
+    cdef int owner = other_player(attacker)
+    if state.stratagem[owner] < 0 or state.stratagem_revealed[owner]:
+        return
+    # All face-down plans yield an identical private response step.
+    # Ineligibility is represented by a forced decline, not a skipped prompt.
+    _fe_enqueue_effect(
+        self, state, EFFECT_STRAT_ARCHER_REVEAL, owner,
+        -1, -1, front, 0, 0, EFFECT_OPTIONAL,
+    )

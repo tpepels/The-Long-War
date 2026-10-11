@@ -561,14 +561,56 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
     cdef int returned_card
     cdef bint skip = card < 0 and source < 0 and dest < 0
     cdef bint was_empty
-    cdef int before_mask, moved
+    cdef int before_mask, moved, saved_active_player
     cdef V2EffectSpec* v2_effect = NULL
 
     if kind == EFFECT_V2_TARGET:
         v2_effect = _v2_pending_effect(self, state)
     _fe_pop_pending_effect(self, state)
 
-    if kind == EFFECT_STRAT_SCOUT_REVEAL:
+    if kind == EFFECT_STRAT_ARCHER_REVEAL:
+        if not skip:
+            if (
+                source < 0
+                or owner_from_slot(source) != player
+                or front_from_slot(source) != aux
+                or not _fe_archer_counterattack_eligible(
+                    self, state, player, aux
+                )
+            ):
+                raise ValueError("Ineligible Archer Stratagem reveal")
+            state.stratagem_revealed[player] = 1
+            _fe_enqueue_effect(
+                self, state, EFFECT_STRAT_ARCHER_ATTACK, player,
+                -1, -1, aux,
+            )
+    elif kind == EFFECT_STRAT_ARCHER_ATTACK:
+        if (
+            source < 0 or dest < 0
+            or front_from_slot(source) != aux
+            or state.stratagem[player] < 0
+            or not state.stratagem_revealed[player]
+            or not _fe_archer_counterattack_legal(
+                self, state, player, source, dest
+            )
+        ):
+            raise ValueError("Invalid free Archer counterattack")
+        # One free basic Attack: ordinary range, Guarded, screening, and
+        # Attack-use rules, with no Action or Command spent by the defender.
+        saved_active_player = state.active_player
+        state.active_player = player
+        _fe_apply_attack(self, state, source, dest, ATTACK_ARCHER)
+        state.active_player = saved_active_player
+        _fe_append_discard(
+            self, state, player, state.stratagem[player], True
+        )
+        state.stratagem[player] = -1
+        state.stratagem_revealed[player] = 0
+        state.stratagem_known_to_mask[player] = 0
+        state.stratagem_front_mask[player] = 0
+        state.stratagem_direction[player] = 0
+        state.stratagem_target_mask[player] = 0
+    elif kind == EFFECT_STRAT_SCOUT_REVEAL:
         if not skip:
             if (
                 source < 0
@@ -1028,7 +1070,12 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
     if kind == TYPE_ATTACK:
         _fe_apply_attack(self, state, pos, dest, <int>extra)
         _fe_consume_operation_constraints(self, state, actor, action)
-        _fe_finish_operation_fast(self, state, actor)
+        state.pending_resume = RESUME_FINISH_OPERATION
+        state.pending_resume_player = actor
+        _fe_queue_archer_counterattack_response(
+            self, state, actor, front_from_slot(pos)
+        )
+        _fe_resume_pending_flow(self, state)
         return
 
     state.pending_resume = RESUME_FINISH_OPERATION
