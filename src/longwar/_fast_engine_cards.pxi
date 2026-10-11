@@ -113,6 +113,7 @@ cdef void _v2_compile_effect(
         "hidden_cancel_tactic": V2_OP_HIDDEN_CANCEL_TACTIC,
         "hidden_draw_discard": V2_OP_HIDDEN_DRAW_DISCARD,
         "hidden_protect_lost_fronts": V2_OP_HIDDEN_PROTECT_LOST_FRONTS,
+        "hidden_resolution_frontline_move": V2_OP_HIDDEN_RESOLUTION_FRONTLINE_MOVE,
         "hidden_spy_on_stratagem": V2_OP_HIDDEN_SPY_ON_STRATAGEM,
         "hidden_archer_counterattack": V2_OP_HIDDEN_ARCHER_COUNTERATTACK,
         "hidden_no_step_back": V2_OP_HIDDEN_NO_STEP_BACK,
