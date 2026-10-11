@@ -100,6 +100,12 @@ FIFTEENTH_COMPILED_EFFECTS = json.loads(r'''{"they-let-them-through":[{"timing":
 PRINTED_EFFECTS.update(FIFTEENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(FIFTEENTH_COMPILED_EFFECTS)
 
+# Sixteenth pass: post-Attack, no-Action Archer counterattack Stratagem.
+SIXTEENTH_PRINTED_EFFECTS = json.loads(r'''{"the-archers-were-ready":[{"timing":"hidden","text":"After an opposing Force Attacks here, one of your Archers here that has not Attacked may make a legal basic Archer Attack for free. Mark its Attack used."}]}''')
+SIXTEENTH_COMPILED_EFFECTS = json.loads(r'''{"the-archers-were-ready":[{"timing":"hidden","scope":"self","limit":null,"memory":["face_down_source"],"op":"hidden_archer_counterattack","target":"friendly_same_front","required_any_class":["archer"],"optional":true}]}''')
+PRINTED_EFFECTS.update(SIXTEENTH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(SIXTEENTH_COMPILED_EFFECTS)
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())

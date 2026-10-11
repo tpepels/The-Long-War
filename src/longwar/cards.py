@@ -73,6 +73,7 @@ V2_EFFECT_OPS = frozenset({
     "hidden_draw_discard",
     "hidden_protect_lost_fronts",
     "hidden_spy_on_stratagem",
+    "hidden_archer_counterattack",
     "hidden_tie_named_wins",
     "local_class_aura",
     "look_hand",
