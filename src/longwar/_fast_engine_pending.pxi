@@ -713,6 +713,27 @@ cdef void _fe_apply_pending_effect(FastEngine self, FastState state, uint64_t ac
         state.stratagem_front_mask[player] = 0
         state.stratagem_direction[player] = 0
         state.stratagem_target_mask[player] = 0
+    elif kind == EFFECT_WATCHTOWERS_CYCLE:
+        if not skip:
+            if (
+                trigger_source < 0 or source != trigger_source
+                or state.force[source] < 0
+                or owner_from_slot(source) != player
+                or not _fe_can_draw_fast(self, state, player)
+            ):
+                raise ValueError("Invalid Watchtowers card-cycle choice")
+            _fe_queue_battle_draws(self, state, player, 1)
+            if state.hand_len[player] > 0:
+                _fe_enqueue_effect(
+                    self, state, EFFECT_WATCHTOWERS_DISCARD, player,
+                )
+    elif kind == EFFECT_WATCHTOWERS_DISCARD:
+        if card < 0 or state.hand[player][card] <= 0:
+            raise ValueError("Invalid Watchtowers discard choice")
+        _fe_take_from_hand(
+            self, state, player, card, HIDDEN_KNOWN_SINGLE_CARD
+        )
+        _fe_append_discard(self, state, player, card, True)
     elif kind == EFFECT_LANTERN_SCOUTS_REACT:
         if not skip:
             if (
