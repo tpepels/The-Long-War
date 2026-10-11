@@ -123,13 +123,13 @@ A Plan does **not** counter itself. The other two unordered plan pairs, **Assaul
 
 After casualties are removed, you may **advance one surviving, unpinned Force one empty rank forward in its Front** if you earned an **Opportunity in that same Front**. An Opportunity is earned when **at least one** of these occurred during the current Battle:
 
-1. One of your damaging Strikes **permanently defeated** an enemy Force in this Front (a Force saved by Rescue was not defeated).
+1. One of your damaging Strikes **permanently defeated** an enemy Force in this Front (a Force that is **saved by Rescue** was never defeated).
 2. One of your Protect or Evade effects actually **cancelled an incoming damaging Strike** in this Front.
 3. One of your Rescue effects **prevented a friendly Force's defeat** in this Front.
 
 Pressure, failed damaging Strikes, unused protection, merely choosing a counter Plan, and watching an opponent retreat do **not** earn Opportunities.
 
-**One post-combat move maximum per player per Front**—including a printed after-combat Special advance and a Plan/Opportunity advance. Resolve printed Special advances first. A special advance must satisfy its printed condition; it also uses that Front's one post-combat move. Assault may make the optional single forward step **without** an Opportunity, but does not gain a second move for earning one. Hold/Volley/Raid require an Opportunity for an ordinary forward step. The destination must be **empty after casualties**, immediately ahead in the same Front and legal for that card; no swap, jump, opposing-side crossing or movement into a closed Front. A Force that moved before combat or is **Pinned** cannot move again. All unused Opportunities disappear at Battle end.
+**One post-combat move maximum per player per Front**—including a printed after-combat Special advance and a Plan/Opportunity advance. Resolve printed Special advances first. A special advance must satisfy its printed condition; it also uses that Front's one post-combat move. Assault may make the optional single forward step **without** an Opportunity, but does not gain a second move for earning one. Hold/Volley/Raid require an Opportunity for an ordinary forward step. The destination must be **empty after casualties**, immediately ahead in the same Front and legal for that card; no swap, jump, opposing-side crossing or movement into a closed Front. A Force that moved before combat or is **Pinned** cannot move again. **Pinned Forces cannot move** after combat, and **no Force moves more than once** during a Battle. All unused Opportunities disappear at Battle end.
 
 Neither an Opportunity nor a Tactical Read adds Command or a territorial point. **Fronts remain controlled by the majority of surviving Forces, with no rank bonus.**
 
