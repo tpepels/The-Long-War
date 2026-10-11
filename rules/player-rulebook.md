@@ -39,27 +39,31 @@ Under Hold/Raid, unless stated otherwise, all ordinary Strikes target the foremo
 
 ## Dice and outcomes
 
-Each player rolls **one D6 per Front containing their Forces**. All their Forces in that Front use the result on their own six-face strip. Each Force has four distinct outcomes spread across six faces; **all Force outcomes happen**, even if the Force dies in the same exchange. No individual Attack Action.
+Roll **one D6 per player per occupied Front**. Every Force on that player's side of the Front performs its own printed result for the rolled face, even if defeated in the same exchange. Every Force has four differently arranged outcomes. No separate Attack action.
 
-- **Strike:** one eligible enemy target. Higher Force than target defeats; equal/lower Force does not.
-- **Concentrate:** two or more *uncancelled* Strikes at the same target defeat it regardless of Force.
-- **Protect:** cancel one incoming Strike on an eligible ally. If printed as protecting multiple distinct Forces, cancel at most one against each.
-- **Evade:** cancel all incoming Strikes against that Force.
-- **Rescue:** after checking lethal hits, prevent one eligible friendly Force's defeat, even from concentration.
-- **Falter:** nothing. **Special:** follow the short instruction on the card. It may override targeting or allow a Strike against equal Force.
+- **Strike:** choose an enemy permitted by your Battle Plan. Players freely choose among eligible targets; printed Special targets override the Plan.
+- **Coordinated Strike:** each additional **uncancelled damaging Strike at the same target adds +1 effective Force to every Strike at that target**. If any effective Force is **greater** than the defender's Force, it is defeated. Equal Force is a stalemate unless that Strike's Special says otherwise. **Two Strikes do not automatically kill.**
+- **Pressure:** when declaring a Strike that **cannot defeat its target alone**, choose to use it as Pressure instead of damage. After Evade, Pressure suppresses **all Protect/Rescue from the targeted Force** for this Battle; if it rolled neither, Pressure Pins it instead. Pressure gives **no** coordination bonus.
+- **Pin:** a Force hit by an uncancelled **failed damaging Strike**, or applicable Pressure, **cannot move after combat this Battle**. It still attacks, supports and holds territory. No persistent Pin marker.
+- **Protect:** cancels **one** incoming damaging Strike (or the exact capacity stated on its card). **Evade** cancels all Strikes and Pressure against itself.
+- **Rescue:** prevents **one Force's entire defeat**, regardless of how many Strikes would have killed it. It operates **after** lethal attacks, not as an individual hit cancellation.
+- **Falter:** nothing. **Special:** use its printed combat operation at the normal universal timing.
 
-“Foremost” means Frontline if occupied, otherwise Middle, otherwise Rear. “Behind/ahead” refers to another Force in the same Front. A Force counts as friendly to itself when an effect permits it. Printed rank restrictions still apply.
+A Special explicitly naming an adjacent active Front is the **only** way a Force can affect another Front. “Foremost” is Frontline if occupied, otherwise Middle, otherwise Rear. “Ahead/behind” refers to ranks within the same Front, and a Force is friendly to itself unless stated otherwise. Printed rank restrictions still apply.
 
 ## Resolve every Battle in this order
 
-1. Reveal both Plans, then make permitted **pre-combat movements**.
-2. Each player rolls **one D6 per occupied Front**. Read every surviving Force's result.
-3. Declare all **Strikes and targets simultaneously**.
-4. Assign and resolve **Evade, then Protect** after targets are visible. A piercing Special ignores one Protect but not Evade or Rescue.
-5. Determine lethal Strikes and **two-Strike concentration**. Then allocate **Rescue** to cancel otherwise-lethal defeats.
-6. Discard defeated Forces permanently into **casualty piles**. Execute Special post-combat moves and then Assault advances.
-7. Count surviving Forces per Front (0–3 each). **More occupied positions controls**; equal counts are contested.
-8. Lose **1 Command per Front controlled by the opponent**, check Collapse at 0, then recover **8 Command if behind in controlled Fronts, 6 if ahead, 7 each if tied**, capped at 20. Refill hands to 10. Survivors stay in place.
+1. **Reveal** one secret Plan per army; execute eligible pre-combat **Hold/Raid movement**.
+2. Both players **roll one D6 per occupied Front** and read every Force's own result.
+3. **Declare all Strike targets simultaneously**. Freely choose eligible enemies; optionally convert a solo-ineffective Strike into **Pressure**.
+4. Resolve **Evade**, then **Pressure** (suppress rolled Protect/Rescue or Pin), then allocate **Protect** after targets are known.
+5. Calculate **effective Force = each surviving attacking Force + (uncancelled damaging Strikes against that same target − 1)**. Defeat only where an attack exceeds the defender or an eligible Special permits equality. Any unsuccessful uncancelled Strike **Pins** its defender.
+6. Assign **Rescue** to otherwise-lethal casualties. Each Rescue saves its entire permitted Force.
+7. Discard remaining casualties permanently; apply **Special post-combat movement**, then **Assault** advances. Pinned Forces cannot advance.
+8. Count surviving Forces (0–3 per side) in each Front: higher count **controls**, equal counts are contested.
+9. Lose **1 Command per enemy-controlled Front**, check Collapse at 0, then recover **8 if behind** in controlled Fronts, **6 if ahead**, **7 each if tied** (cap 20). Refill hands to 10.
+
+Every Force contributes its rolled effect **once**, even if that Force will be defeated. Protection and Rescue are distinct; Pressure never turns into retroactive cancellation. Cross-Front Specials resolve together with their corresponding universal operation.
 
 Recycle only the **ordinary discard pile** when drawing; **casualties never re-enter decks**. If there are no cards to draw, skip the draw. The player who did not Pass starts the next Battle.
 
