@@ -585,6 +585,21 @@ cdef int _fe_legal_pending_effect_actions(
                             TYPE_EFFECT, -1, source2, dest, player, kind
                         ),
                     )
+    elif kind == EFFECT_WATCHTOWERS_CYCLE:
+        if source >= 0 and _fe_can_draw_fast(self, state, player):
+            n = _append_action(
+                actions, n, encode_action(
+                    TYPE_EFFECT, -1, source, -1, player, kind
+                ),
+            )
+    elif kind == EFFECT_WATCHTOWERS_DISCARD:
+        for card in range(self.n_cards):
+            if state.hand[player][card] > 0:
+                n = _append_action(
+                    actions, n, encode_action(
+                        TYPE_EFFECT, card, -1, -1, player, kind
+                    ),
+                )
     elif kind == EFFECT_LANTERN_SCOUTS_REACT:
         # Public Force reaction: a chosen unused Scout may respond.
         front = state.pending_aux[0]
