@@ -99,6 +99,8 @@ jobs:
       - run: pip install -e '.[dev]'
       - name: Validate experimental paper D6 cards and decks
         run: python tools/check_paper_d6.py
+      - name: Verify Phase 1 printed combat contract and 44 card outcomes
+        run: python -m pytest -q tests/test_paper_d6_phase1.py
       - name: Validate all 44 printed D6 faces and card geometry
         run: python tools/check_paper_d6_layout.py
       - name: Check current paper rulebook editorial layout
