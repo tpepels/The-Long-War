@@ -77,6 +77,7 @@ V2_EFFECT_OPS = frozenset({
     "local_class_aura",
     "look_hand",
     "look_hand_then_move",
+    "forced_move_afflict",
     "look_stratagem",
     "maneuver_cost_class",
     "maneuver_unnamed",

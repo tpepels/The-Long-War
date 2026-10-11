@@ -951,6 +951,11 @@ cdef uint32_t _v2_target_mask(
         rank = rank_from_slot(slot)
         if not front_is_active(state.battle, front):
             continue
+        if (
+            effect.target_rank_mask
+            and not (effect.target_rank_mask & (1 << rank))
+        ):
+            continue
 
         if target == V2_TARGET_FRIENDLY_ANY_CLASS:
             if (

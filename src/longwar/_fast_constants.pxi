@@ -598,6 +598,7 @@ cdef int V2_OP_RESIST_OPPOSING_MOVE = 94
 cdef int V2_OP_BOND_NAMED_OR_CYCLE = 95
 cdef int V2_OP_CLEANSE_AND_GRANT_CONDITION = 96
 cdef int V2_OP_LOOK_HAND_THEN_MOVE = 97
+cdef int V2_OP_FORCED_MOVE_AFFLICT = 98
 
 # Generic V2 selector/condition codes.
 cdef int V2_TARGET_NONE = 0
@@ -701,6 +702,7 @@ cdef uint32_t V2_FLAG_REQUIRES_OPPOSING_SUPPLY = 16384
 cdef uint32_t V2_FLAG_DIRECTION_FRONT = 32768
 cdef uint32_t V2_FLAG_SWAP_GUARD_PARTNER = 65536
 cdef uint32_t V2_FLAG_REQUIRES_CLEAR_SLOT = 131072
+cdef uint32_t V2_FLAG_AFFLICT_IF_MOVED = 262144
 
 cdef struct V2EffectSpec:
     int16_t op
@@ -726,6 +728,7 @@ cdef struct V2EffectSpec:
     int8_t max_targets
     uint8_t once_per_battle
     uint8_t rank_mask
+    uint8_t target_rank_mask
     uint8_t card_type_mask
     uint8_t card_type_mask2
     uint32_t class_mask

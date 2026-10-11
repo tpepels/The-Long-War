@@ -156,6 +156,34 @@ cdef void _v2_apply_resolved_effect(
             _fe_move_slot(self, state, source, dest)
             _fe_resolve_force_move_triggers(self, state, player, source, dest)
             _fe_resolve_force_pair_narratives(self, state, player)
+    elif effect.op == V2_OP_FORCED_MOVE_AFFLICT:
+        # The Move is conditional on all normal card-Move restrictions.
+        # The printed affliction follows either a legal move or its failure.
+        if target >= 0 and state.force[target] >= 0:
+            move_owner = owner_from_slot(target)
+            move_rank = rank_from_slot(target)
+            move_dest = -1
+            if move_rank < RANK_REAR:
+                move_dest = slot_index(
+                    move_owner, front_from_slot(target), move_rank + 1
+                )
+            if (
+                move_dest >= 0
+                and _fe_card_move_destination_legal(
+                    self, state, player, target, move_dest
+                )
+            ):
+                _fe_move_slot(self, state, target, move_dest)
+                _fe_resolve_force_move_triggers(
+                    self, state, move_owner, target, move_dest
+                )
+                _fe_resolve_force_pair_narratives(
+                    self, state, move_owner
+                )
+                if effect.flags & V2_FLAG_AFFLICT_IF_MOVED:
+                    _fe_afflict(state, move_dest, effect.amount)
+            elif not (effect.flags & V2_FLAG_AFFLICT_IF_MOVED):
+                _fe_afflict(state, target, effect.amount)
     elif effect.op == V2_OP_SWAP:
         if source >= 0 and dest >= 0:
             if effect.target in (
@@ -936,6 +964,7 @@ cdef void _fe_apply_fast(FastEngine self, FastState state, uint64_t action):
                 V2_OP_LOOK_HAND,
                 V2_OP_LOOK_STRATAGEM,
                 V2_OP_MOVE,
+                V2_OP_FORCED_MOVE_AFFLICT,
                 V2_OP_EXHAUST,
                 V2_OP_AFFLICT_CONDITION,
                 V2_OP_EXHAUST_THEN_SHAKEN,
