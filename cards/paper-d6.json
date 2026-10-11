@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "experimental-paper-only",
-  "description": "Force-only D6 playtest. Not executable game data. No Bonds/Names, Tactics, Orders, Stratagems or Narratives; legacy classes and art used only for visuals. Each player rolls one D6 per Front and each Force resolves the corresponding face.",
+  "description": "Phase 1 paper-only D6: choose eligible targets under a hidden army-wide Battle Plan; coordinated Strikes add +1 per extra uncancelled damaging Strike, while Pressure and Pin can disrupt support or movement. Four individually distributed outcomes per Force. Not executable engine data.",
   "cards": [
     {
       "id": "the-fifty-men",
@@ -16,7 +16,7 @@
         },
         "D": {
           "title": "Protect",
-          "effect": "Protect Frontline."
+          "effect": "Protect friendly Frontline."
         },
         "A": {
           "title": "Strike",
@@ -49,7 +49,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear; if empty, Middle; otherwise Frontline."
+          "effect": "Strike enemy Rear; if empty, Middle; if empty, Frontline."
         }
       }
     },
@@ -74,7 +74,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue any one friendly Force here."
+          "effect": "Rescue one friendly Force here."
         }
       }
     },
@@ -124,7 +124,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle regardless of Battle Plan."
+          "effect": "Strike enemy Middle."
         }
       }
     },
@@ -174,7 +174,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; if it defeats an enemy, advance this Force one empty rank forward after combat."
+          "effect": "Strike; if its target is discarded, advance this Force one empty rank forward after combat."
         }
       }
     },
@@ -199,7 +199,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle regardless of Battle Plan."
+          "effect": "Strike enemy Middle."
         }
       }
     },
@@ -274,7 +274,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -374,7 +374,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -441,7 +441,7 @@
         },
         "D": {
           "title": "Protect",
-          "effect": "Protect Frontline."
+          "effect": "Protect friendly Frontline."
         },
         "A": {
           "title": "Strike",
@@ -499,7 +499,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -549,7 +549,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle regardless of Battle Plan."
+          "effect": "Strike enemy Middle."
         }
       }
     },
@@ -574,7 +574,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; if it defeats an enemy, advance this Force one empty rank forward after combat."
+          "effect": "Strike; if its target is discarded, advance this Force one empty rank forward after combat."
         }
       }
     },
@@ -599,7 +599,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue the foremost friendly Force here."
+          "effect": "Rescue foremost friendly Force here."
         }
       }
     },
@@ -624,7 +624,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue any one friendly Force here."
+          "effect": "Rescue one friendly Force here."
         }
       }
     },
@@ -674,7 +674,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle regardless of Battle Plan."
+          "effect": "Strike enemy Middle."
         }
       }
     },
@@ -724,7 +724,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -799,7 +799,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue any one friendly Force here."
+          "effect": "Rescue one friendly Force here."
         }
       }
     },
@@ -849,7 +849,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -874,7 +874,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue the foremost friendly Force here."
+          "effect": "Rescue foremost friendly Force here."
         }
       }
     },
@@ -899,7 +899,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue any one friendly Force here."
+          "effect": "Rescue one friendly Force here."
         }
       }
     },
@@ -924,7 +924,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle regardless of Battle Plan."
+          "effect": "Strike enemy Middle."
         }
       }
     },
@@ -949,7 +949,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -974,7 +974,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear; if empty, Middle; otherwise Frontline."
+          "effect": "Strike enemy Rear; if empty, Middle; if empty, Frontline."
         }
       }
     },
@@ -1024,7 +1024,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -1049,7 +1049,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
@@ -1074,7 +1074,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear regardless of Battle Plan."
+          "effect": "Strike enemy Rear."
         }
       }
     },
