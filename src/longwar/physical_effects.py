@@ -126,6 +126,14 @@ PRINTED_EFFECTS.update(NINETEENTH_PRINTED_EFFECTS)
 PRINTED_EXECUTABLE_EFFECTS.update(NINETEENTH_COMPILED_EFFECTS)
 
 
+# Twentieth pass: an immediate, legal whole-Front exchange and one
+# moved Named Formation bonus; no old extra ACTION and no duplicated stacks.
+TWENTIETH_PRINTED_EFFECTS = json.loads(r'''{"no-road-was-too-long":[{"timing":"play","text":"Exchange your cards between two adjacent active Fronts, rank for rank, if legal. Prepared layers and markers move with them. Give one moved Named Formation +2 Strength this Battle."}]}''')
+TWENTIETH_COMPILED_EFFECTS = json.loads(r'''{"no-road-was-too-long":[{"timing":"play","scope":"self","limit":null,"memory":[],"op":"swap_fronts_buff_named","amount":2}]}''')
+PRINTED_EFFECTS.update(TWENTIETH_PRINTED_EFFECTS)
+PRINTED_EXECUTABLE_EFFECTS.update(TWENTIETH_COMPILED_EFFECTS)
+
+
 def apply_reviewed_physical_effects(card_data: dict) -> dict:
     """Translate exactly the reviewed physical effects for canonical cards."""
     cards = card_data.get("cards", ())
