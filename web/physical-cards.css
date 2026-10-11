@@ -2104,3 +2104,10 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .paper-d6-layout.card-hero .rules {padding-top: 0.25mm;margin-top: 0.2mm}
 .paper-d6-layout.card-hero .d6-outcome {font: 2.45mm/1.13 var(--text)}
+
+/* Two long Force names wrapped beyond the D6 card's shortened title slot. */
+.paper-d6-layout[data-card-id="the-white-hands-of-elara"] .card-title,
+.paper-d6-layout[data-card-id="the-watchtowers-of-eren"] .card-title {
+  font-size: 3.9mm;
+  line-height: .94;
+}
