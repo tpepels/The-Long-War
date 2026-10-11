@@ -55,6 +55,8 @@ V2_EFFECT_OPS = frozenset({
     "draw",
     "draw_discard",
     "draw_put_top",
+    "bond_named_or_cycle",
+    "cleanse_and_grant_condition",
     "front_card_tax",
     "front_presence_discount",
     "front_tactic_discount",

@@ -201,6 +201,14 @@ cdef void _v2_apply_resolved_effect(
         if target >= 0:
             _fe_afflict(state, target, 0)
             _fe_afflict(state, target, COND_SHAKEN)
+    elif effect.op == V2_OP_CLEANSE_AND_GRANT_CONDITION:
+        # Remove one numeric negative Strength marker, if present, before
+        # granting the printed Boon. An Inspired Boon clears Shaken normally.
+        if target >= 0 and state.force[target] >= 0:
+            _v2_remove_one_negative_marker(state, target)
+            if effect.amount == COND_INSPIRED:
+                state.conditions[target] &= <uint8_t>~COND_SHAKEN
+            state.conditions[target] |= <uint8_t>effect.amount
     elif effect.op == V2_OP_CLEANSE_GUARD:
         if target >= 0 and state.force[target] >= 0:
             state.exhausted[target] = 0
@@ -346,13 +354,23 @@ cdef void _v2_apply_resolved_effect(
             )
         ):
             _fe_return_to_hand(self, state, player, selected_card)
-    elif effect.op == V2_OP_DRAW_DISCARD:
+    elif effect.op in (V2_OP_DRAW_DISCARD, V2_OP_BOND_NAMED_OR_CYCLE):
         # The draw was already resolved when this effect was queued.
         if selected_card >= 0 and state.hand[player][selected_card] > 0:
             _fe_take_from_hand(
                 self, state, player, selected_card, HIDDEN_KNOWN_SINGLE_CARD,
             )
             _fe_append_discard(self, state, player, selected_card, True)
+    elif effect.op == V2_OP_DRAW_PUT_TOP:
+        # The last slot is the next card drawn, so appending puts the chosen
+        # face-down hand card on the player's deck, not below it.
+        if selected_card >= 0 and state.hand[player][selected_card] > 0:
+            _fe_take_from_hand(
+                self, state, player, selected_card, HIDDEN_KNOWN_SINGLE_CARD,
+            )
+            state.deck[player][state.deck_len[player]] = selected_card
+            state.deck_len[player] += 1
+            state.deck_counts[player][selected_card] += 1
     elif effect.op == V2_OP_DISCARD_DRAW:
         if selected_card >= 0 and state.hand[player][selected_card] > 0:
             _fe_take_from_hand(
