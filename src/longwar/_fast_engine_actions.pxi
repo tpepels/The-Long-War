@@ -1636,7 +1636,14 @@ cdef int _fe_legal_actions_into(
                         state.name[dest] >= 0
                         and not (
                             v2_effect.op == V2_OP_RETURN_COMPONENT
-                            and (v2_effect.flags & V2_FLAG_COMPONENT_BOND)
+                            and (
+                                (v2_effect.flags & V2_FLAG_COMPONENT_BOND)
+                                or (
+                                    v2_effect.target
+                                    == V2_TARGET_OPPOSING_PREPARED_OR_SCOUT_SEER_BOND
+                                    and state.force[dest] >= 0
+                                )
+                            )
                         )
                     ):
                         n = _append_action(
