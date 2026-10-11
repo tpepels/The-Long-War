@@ -41,7 +41,7 @@ Under Hold/Raid, unless stated otherwise, all ordinary Strikes target the foremo
 
 Roll **one D6 per player per occupied Front**. Every Force on that player's side of the Front performs its own printed result for the rolled face, even if defeated in the same exchange. Every Force has four differently arranged outcomes. No separate Attack action.
 
-- **Strike:** choose an enemy permitted by your Battle Plan. Players freely select among eligible targets; printed Special targets override the Plan.
+- **Strike:** choose an enemy permitted by your Battle Plan. Players freely choose among eligible targets; printed Special targets override the Plan.
 - **Coordinated Strike:** each additional **uncancelled damaging Strike at the same target adds +1 effective Force to every Strike at that target**. If any effective Force is **greater** than the defender's Force, it is defeated. Equal Force is a stalemate unless that Strike's Special says otherwise. **Two Strikes do not automatically kill.**
 - **Pressure:** when declaring a Strike that **cannot defeat its target alone**, choose to use it as Pressure instead of damage. After Evade, Pressure suppresses **all Protect/Rescue from the targeted Force** for this Battle; if it rolled neither, Pressure Pins it instead. Pressure gives **no** coordination bonus.
 - **Pin:** a Force hit by an uncancelled **failed damaging Strike**, or applicable Pressure, **cannot move after combat this Battle**. It still attacks, supports and holds territory. No persistent Pin marker.
