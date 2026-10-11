@@ -71,6 +71,7 @@ cdef int _v2_component_strength_effects(
         if (
             effect.op != V2_OP_SELF_STRENGTH
             and effect.op != V2_OP_COMPONENT_STRENGTH
+            and effect.op != V2_OP_FLANK_GUARD
         ):
             continue
         if not _v2_effect_is_live_timing(state, slot, effect):

@@ -878,7 +878,13 @@ cdef int _fe_legal_pending_effect_actions(
                             | (V2_OPTION_BOND << V2_EFFECT_OPTION_SHIFT),
                         ),
                     )
-                if state.name[dest] >= 0:
+                if (
+                    state.name[dest] >= 0
+                    and not (
+                        v2_effect.op == V2_OP_RETURN_COMPONENT
+                        and (v2_effect.flags & V2_FLAG_COMPONENT_BOND)
+                    )
+                ):
                     n = _append_action(
                         actions, n,
                         encode_action(
@@ -1405,7 +1411,13 @@ cdef int _fe_legal_actions_into(
                                 ),
                             ),
                         )
-                    if state.name[dest] >= 0:
+                    if (
+                        state.name[dest] >= 0
+                        and not (
+                            v2_effect.op == V2_OP_RETURN_COMPONENT
+                            and (v2_effect.flags & V2_FLAG_COMPONENT_BOND)
+                        )
+                    ):
                         n = _append_action(
                             actions, n,
                             encode_action(
