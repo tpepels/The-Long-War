@@ -50,7 +50,7 @@ def main() -> None:
         ("the-white-hands-of-elara", "S", 2),
         ("the-fifty-men", "A", 1),
         ("the-river-raiders", "A", 1),
-        ("the-field-train", "F", 1),
+        ("tovan-the-quartermaster", "D", 1),
     ]
     for name, face, die in expected:
         assert cards[name][die - 1] == face, (name, die, face)
