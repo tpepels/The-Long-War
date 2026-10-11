@@ -1,3 +1,34 @@
+cdef inline bint _fe_adjacent_front_exchange_legal(
+    FastEngine self, FastState state, int player, int front,
+) noexcept:
+    cdef int rank, a, b, fa, fb
+    cdef bint any_card = False
+    if (
+        front < 0 or front >= FRONT_COUNT - 1
+        or not front_is_active(state.battle, front)
+        or not front_is_active(state.battle, front + 1)
+    ):
+        return False
+    for rank in range(RANK_COUNT):
+        a = slot_index(player, front, rank)
+        b = slot_index(player, front + 1, rank)
+        fa = state.force[a]
+        fb = state.force[b]
+        # The exchange is rank-for-rank; verify the same hard placement
+        # restrictions used by ordinary card effects in both directions.
+        if fa >= 0 and not _v2_force_rank_allowed(self, fa, rank_from_slot(b)):
+            return False
+        if fb >= 0 and not _v2_force_rank_allowed(self, fb, rank_from_slot(a)):
+            return False
+        if (
+            fa >= 0 or fb >= 0
+            or state.bond[a] >= 0 or state.name[a] >= 0
+            or state.bond[b] >= 0 or state.name[b] >= 0
+        ):
+            any_card = True
+    return any_card
+
+
 cdef inline bint _fe_opponent_blocks_card_move_into_front(
     FastEngine self,
     FastState state,
@@ -585,6 +616,21 @@ cdef int _fe_legal_pending_effect_actions(
                             TYPE_EFFECT, -1, source2, dest, player, kind
                         ),
                     )
+    elif kind == EFFECT_SWAPPED_NAMED_STRENGTH:
+        # Snapshot includes only Named Formations actually exchanged.
+        for source2 in range(
+            player * POSITIONS_PER_PLAYER,
+            (player + 1) * POSITIONS_PER_PLAYER,
+        ):
+            if (
+                source_mask & (<uint32_t>1 << source2)
+                and _v2_slot_named(state, source2)
+            ):
+                n = _append_action(
+                    actions, n, encode_action(
+                        TYPE_EFFECT, -1, source2, -1, player, kind
+                    ),
+                )
     elif kind == EFFECT_WATCHTOWERS_CYCLE:
         if source >= 0 and _fe_can_draw_fast(self, state, player):
             n = _append_action(
@@ -688,13 +734,20 @@ cdef int _fe_legal_pending_effect_actions(
         v2_effect = _v2_pending_effect(self, state)
         source = state.pending_source[0]
 
-        if v2_effect.op == V2_OP_SWAP_FRONTS:
-            # The complete friendly contents of two adjacent active Fronts
-            # exchange ranks. All cards, prepared cards and Exhaustion move.
+        if v2_effect.op in (
+            V2_OP_SWAP_FRONTS, V2_OP_SWAP_FRONTS_BUFF_NAMED,
+        ):
+            # Exchange whole stacks rank-for-rank. The printed PLAY effect
+            # must be legal in both directions and cannot select empty Fronts.
             for front in range(FRONT_COUNT - 1):
                 if (
-                    front_is_active(state.battle, front)
-                    and front_is_active(state.battle, front + 1)
+                    _fe_adjacent_front_exchange_legal(
+                        self, state, player, front
+                    ) if v2_effect.op == V2_OP_SWAP_FRONTS_BUFF_NAMED
+                    else (
+                        front_is_active(state.battle, front)
+                        and front_is_active(state.battle, front + 1)
+                    )
                 ):
                     n = _append_action(
                         actions, n,
