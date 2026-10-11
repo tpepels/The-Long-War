@@ -303,7 +303,11 @@ cdef void _v2_compile_effect(
     out.reveal = reveal_map.get(effect.get("reveal"), V2_REVEAL_NONE)
     out.condition = condition_map.get(effect.get("condition"), V2_CONDITION_NONE)
     out.amount = int(effect.get("amount", effect.get("cost", 0)))
-    if out.op in (V2_OP_GRANT_CONDITION, V2_OP_AFFLICT_CONDITION):
+    if out.op in (
+        V2_OP_GRANT_CONDITION,
+        V2_OP_AFFLICT_CONDITION,
+        V2_OP_CLEANSE_AND_GRANT_CONDITION,
+    ):
         status = effect.get("status")
         if status == "shaken":
             out.amount = COND_SHAKEN
