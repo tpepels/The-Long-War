@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "status": "experimental-paper-only",
+  "deck_size": 24,
+  "decks": [
+    {
+      "id": "shield-and-volley",
+      "title": "Shield & Volley",
+      "playstyle": "Guards protect archers and healers while Volley threatens enemy reserves.",
+      "combo_notes": [
+        "Test Guard protection versus Raid bypasses.",
+        "Can Volley win without exceeding enemy Force?"
+      ],
+      "hypothesis": "Do different roles and hidden Battle Plans change territorial outcomes more than Force values alone?",
+      "cards": [
+        {
+          "id": "the-red-shields",
+          "copies": 3
+        },
+        {
+          "id": "the-crow-archers",
+          "copies": 3
+        },
+        {
+          "id": "the-white-hands-of-elara",
+          "copies": 2
+        },
+        {
+          "id": "the-first-spear",
+          "copies": 3
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 3
+        },
+        {
+          "id": "the-thornbow-hunters",
+          "copies": 3
+        },
+        {
+          "id": "thirty-spears",
+          "copies": 3
+        },
+        {
+          "id": "the-old-guard",
+          "copies": 2
+        },
+        {
+          "id": "alda-keeper-of-the-ford",
+          "copies": 1
+        },
+        {
+          "id": "serai-queen-of-crows",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "riders-and-raids",
+      "title": "Riders & Raids",
+      "playstyle": "Mobile troops redeploy between Fronts and threaten Middle and Rear.",
+      "combo_notes": [
+        "Test Raid against Hold and concentrated infantry.",
+        "Can mobility outweigh weaker defence?"
+      ],
+      "hypothesis": "Do different roles and hidden Battle Plans change territorial outcomes more than Force values alone?",
+      "cards": [
+        {
+          "id": "the-grey-riders",
+          "copies": 3
+        },
+        {
+          "id": "the-dust-riders",
+          "copies": 3
+        },
+        {
+          "id": "the-aradai",
+          "copies": 3
+        },
+        {
+          "id": "the-red-duelists",
+          "copies": 3
+        },
+        {
+          "id": "seven-black-ships",
+          "copies": 3
+        },
+        {
+          "id": "the-salt-road-fleet",
+          "copies": 3
+        },
+        {
+          "id": "the-ilyri",
+          "copies": 3
+        },
+        {
+          "id": "the-river-raiders",
+          "copies": 2
+        },
+        {
+          "id": "neris-the-ferryman",
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "id": "sustain-and-control",
+      "title": "Sustain & Control",
+      "playstyle": "Protect and rescue troops, then keep territory through attrition.",
+      "combo_notes": [
+        "Test whether Rescue prevents early snowballing.",
+        "Can a mixed support formation withstand assault?"
+      ],
+      "hypothesis": "Do different roles and hidden Battle Plans change territorial outcomes more than Force values alone?",
+      "cards": [
+        {
+          "id": "the-first-spear",
+          "copies": 3
+        },
+        {
+          "id": "the-fifty-men",
+          "copies": 3
+        },
+        {
+          "id": "the-white-hands-of-elara",
+          "copies": 3
+        },
+        {
+          "id": "the-relief-column",
+          "copies": 3
+        },
+        {
+          "id": "the-field-train",
+          "copies": 3
+        },
+        {
+          "id": "the-red-shields",
+          "copies": 3
+        },
+        {
+          "id": "the-damar",
+          "copies": 3
+        },
+        {
+          "id": "the-banner-singers",
+          "copies": 2
+        },
+        {
+          "id": "tovan-the-quartermaster",
+          "copies": 1
+        }
+      ]
+    }
+  ]
+}
