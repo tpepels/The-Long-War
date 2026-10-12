@@ -524,7 +524,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack. If two allies Attack this target, ignore all Defends."
+          "effect": "Attack. If an ally Attacks this target, ignore all Defends."
         }
       }
     },
