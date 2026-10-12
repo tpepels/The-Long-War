@@ -2032,7 +2032,7 @@ EXPOSED TOP ROW - TUNING PANEL
   --identity-height: 0mm;
   --title-height: 9.5mm;
 }
-:is(.paper-d6-layout,.paper-order-layout) .stack-edge.paper-card-head {
+:is(.paper-d6-layout,.paper-order-layout,.paper-support-layout) .stack-edge.paper-card-head {
   --edge-type-icon-size: 4.25mm;
   --edge-row-icon-size: 4.8mm;
   height: 13mm;
@@ -2063,7 +2063,7 @@ EXPOSED TOP ROW - TUNING PANEL
 .paper-d6-layout .paper-head-force .strength-mark {
   font: 800 2.9mm/1 var(--display);
 }
-:is(.paper-d6-layout,.paper-order-layout) .paper-head-title {
+:is(.paper-d6-layout,.paper-order-layout,.paper-support-layout) .paper-head-title {
   min-width: 0;
   width: 100%;
   height: auto;
@@ -2092,12 +2092,12 @@ EXPOSED TOP ROW - TUNING PANEL
   width: 5mm;
   height: 5mm;
 }
-:is(.paper-d6-layout,.paper-order-layout) .card-body {
+:is(.paper-d6-layout,.paper-order-layout,.paper-support-layout) .card-body {
   /* The card title no longer consumes any room below the illustration. */
   padding: 0 4.1mm;
 }
-:is(.paper-d6-layout,.paper-order-layout) .card-identity { display: none; }
-:is(.paper-d6-layout,.paper-order-layout) .motif-field::before {
+:is(.paper-d6-layout,.paper-order-layout,.paper-support-layout) .card-identity { display: none; }
+:is(.paper-d6-layout,.paper-order-layout,.paper-support-layout) .motif-field::before {
   inset: .65mm .75mm .38mm;
   border-radius: 1mm;
 }
@@ -2333,3 +2333,84 @@ identical to Force cards. No independent painted-card template exists.
   font:600 5.5mm/1 var(--card-title-font-family);
 }
 .paper-order-layout .footer-version{grid-column:1/3;grid-row:2}
+
+/* Paper War deck: durable Holdings and one-shot Tactics, not Force dice rows.
+   Shared frame, 68x96 dimensions, typography, illustration and Command seal. */
+.paper-support-layout {
+  --art-height:35mm;
+  --identity-height:0mm;
+  --footer-height:15mm;
+  --card-shell-sepia:.35;
+  --card-shell-saturate:1.25;
+  --card-shell-grayscale:.18;
+  --card-shell-hue:75deg;
+  --card-shell-brightness:.97;
+  --card-shell-contrast:1.06;
+  --support-accent:#536b4a;
+}
+.paper-support-layout.card-tactic{
+  --art-height:40mm;
+  --card-shell-hue:300deg;
+  --support-accent:#874b42;
+}
+.paper-support-layout .support-head{
+  grid-template-columns:8.5mm minmax(0,1fr) 10mm!important;
+}
+.paper-support-layout .support-head-icon{
+  justify-self:center;font:600 5mm/1 var(--card-title-font-family);
+  color:var(--support-accent);
+}
+.paper-support-layout .paper-head-title{font-size:3.95mm}
+.paper-support-layout .support-head-type{
+  font:800 2.05mm/1 var(--utility);
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  color:var(--support-accent);
+  justify-self:center;
+}
+.paper-support-layout .rules.support-rules{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  margin:3mm 1.1mm 0;
+  padding:1.4mm 1.5mm 0;
+  min-width:0;
+  border-top:.2mm solid var(--support-accent);
+}
+.paper-support-layout.card-tactic .rules.support-rules{
+  margin-top:3.6mm;
+  border:0;
+  padding:0 1.65mm;
+}
+.paper-support-layout .support-timing{
+  margin:0 0 2.8mm;
+  color:var(--support-accent);
+  font:800 2.5mm/1.1 var(--utility);
+  text-transform:uppercase;letter-spacing:.07em;
+}
+.paper-support-layout.card-tactic .support-timing{
+  border-bottom:.15mm solid var(--support-accent);
+  padding-bottom:1.35mm;
+}
+.paper-support-layout .support-effect{
+  margin:0;
+  color:#292920;
+  font:400 3.7mm/1.18 var(--card-rule-font-family);
+  overflow-wrap:normal;hyphens:none;
+}
+.paper-support-layout.card-tactic .support-effect{
+  font:400 3.95mm/1.2 var(--card-rule-font-family);
+}
+.paper-support-layout .support-footer{
+  align-items:end;
+}
+.paper-support-layout .support-footer-type{
+  grid-column:1/3;grid-row:1;
+  padding-left:1mm;
+  font:700 2.35mm/1 var(--card-footer-font-family);
+  color:var(--support-accent);
+  letter-spacing:.06em;
+}
+.paper-support-layout .footer-version{
+  grid-column:1/3;grid-row:2;
+}
