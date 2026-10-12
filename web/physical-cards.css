@@ -2024,11 +2024,10 @@ EXPOSED TOP ROW - TUNING PANEL
   }
 }
 
-/* D6 paper cards: one glance from die number directly to the effect.
-   The six roll values appear precisely once across four outcome rows.
-   Scoped to the physical D6 cards; legacy and digital cards are untouched. */
+/* Card-led D6 typography. Printed outcomes are the primary reading surface.
+   Artwork and title remain a separate, quieter upper chapter of the card. */
 .paper-d6-layout {
-  --art-height: 18.5mm;
+  --art-height: 19.2mm;
   --identity-height: 12mm;
   --title-height: 7.2mm;
 }
@@ -2038,7 +2037,7 @@ EXPOSED TOP ROW - TUNING PANEL
   min-height: 9mm;
 }
 .paper-d6-layout .rules {
-  margin: 0.35mm 0.2mm 0.15mm 0.2mm;
+  margin: 0.36mm -0.32mm 0.15mm -0.32mm;
   padding: 0;
   overflow: hidden;
 }
@@ -2053,22 +2052,22 @@ EXPOSED TOP ROW - TUNING PANEL
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: .24mm solid rgba(61,55,40,.4);
-  border-radius: 1.1mm;
-  background: rgba(255,251,238,.77);
+  border: .2mm solid rgba(59,55,43,.40);
+  border-radius: .95mm;
+  background: rgba(255,251,241,.92);
   overflow: hidden;
 }
 .d6-guide {
   display: grid;
-  grid-template-columns: 21.5mm minmax(0,1fr);
-  flex: 0 0 4mm;
+  grid-template-columns: 19.9mm minmax(0,1fr);
+  flex: 0 0 3mm;
   align-items: center;
-  padding: 0 1.1mm;
-  border-bottom: .25mm solid rgba(60,53,37,.45);
-  background: rgba(79,69,49,.1);
-  color: #534b37;
-  font: 750 2.1mm/1 var(--utility);
-  letter-spacing: .08em;
+  padding: 0 1.05mm;
+  border-bottom: .19mm solid rgba(60,53,37,.42);
+  background: rgba(64,58,46,.095);
+  color: #463e30;
+  font: 700 2.05mm/1 var(--utility);
+  letter-spacing: .075em;
 }
 .d6-outcomes {
   display: flex;
@@ -2078,76 +2077,83 @@ EXPOSED TOP ROW - TUNING PANEL
 }
 .d6-result-row {
   display: grid;
-  grid-template-columns: 16.7mm 4.25mm minmax(0,1fr);
-  gap: .7mm;
+  grid-template-columns: 15.3mm 4mm minmax(0,1fr);
+  gap: .5mm;
   align-items: center;
   flex: 1 1 auto;
-  min-height: 6.5mm;
-  padding: .6mm .55mm;
-  border-bottom: .16mm solid rgba(64,57,45,.24);
+  min-height: 6.35mm;
+  padding: .36mm .52mm;
+  border-bottom: .18mm solid rgba(60,54,44,.23);
 }
+.d6-result-row:nth-child(even) { background: rgba(92,74,41,.035); }
 .d6-result-row:last-child { border-bottom: 0; }
 .d6-result-row[data-outcome-key="S"] {
-  background: rgba(159,130,70,.1);
+  background: rgba(159,130,70,.105);
+  box-shadow: inset .65mm 0 rgba(138,105,46,.65);
 }
-.d6-result-row[data-action="nothing"] { opacity: .69; }
+.d6-result-row[data-action="nothing"] { color: #5a554a; }
 .d6-numbers {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: .42mm;
+  gap: .39mm;
   min-width: 0;
 }
 .d6-number {
-  width: 4.55mm;
-  height: 4.55mm;
-  flex: 0 0 4.55mm;
+  width: 4.15mm;
+  height: 4.35mm;
+  flex: 0 0 4.15mm;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: .28mm solid #4b4335;
-  border-radius: .7mm;
-  background: #fbf7ec;
-  color: #29271f;
-  font: 800 3.05mm/1 var(--utility);
+  border: .25mm solid #4d4538;
+  border-radius: .63mm;
+  background: #fbf8f0;
+  color: #26251f;
+  font: 800 3.1mm/1 var(--utility);
   font-variant-numeric: tabular-nums;
 }
 .d6-result-row[data-outcome-key="S"] .d6-number {
   background: #4b4435;
-  color: #f7edcc;
+  color: #faf0d8;
 }
 .d6-action-icon {
   position: relative;
   display: grid;
   place-items: center;
-  width: 4mm;
-  height: 4.35mm;
-  color: #38392f;
+  width: 3.9mm;
+  height: 4mm;
+  color: #32372e;
 }
 .d6-action-icon svg {
   display: block;
-  width: 3.7mm;
-  height: 3.7mm;
+  width: 3.65mm;
+  height: 3.65mm;
 }
-.d6-result-row[data-action="save"] .d6-action-icon { color: #48574e; }
+.d6-result-row[data-action="save"] .d6-action-icon { color: #405548; }
 .d6-special-mark {
   position: absolute;
-  right: -.3mm;
-  top: -.4mm;
-  color: #665131;
-  font: 800 2.2mm/1 var(--utility);
+  right: -.22mm;
+  top: -.45mm;
+  color: #705529;
+  font: 800 2.15mm/1 var(--utility);
 }
 .d6-effect-text {
   min-width: 0;
-  font: 550 2.65mm/1.18 var(--text);
-  color: #28291f;
+  font: 400 2.92mm/1.14 var(--text);
+  color: #23251f;
   overflow-wrap: break-word;
   hyphens: none;
 }
 .d6-result-row[data-outcome-key="S"] .d6-effect-text {
-  font-weight: 650;
+  font-weight: 700;
+  font-size: 2.76mm;
+  line-height: 1.16;
 }
-.paper-d6-layout.card-hero .rules { padding: 0; margin-top: .2mm; }
+.d6-result-row[data-action="nothing"] .d6-effect-text {
+  color: #625c4f;
+}
+.paper-d6-layout.card-hero .rules { padding: 0; margin-top: .25mm; }
 .paper-d6-layout[data-card-id="the-white-hands-of-elara"] .card-title,
 .paper-d6-layout[data-card-id="the-watchtowers-of-eren"] .card-title {
   font-size: 3.9mm;
