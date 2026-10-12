@@ -42,15 +42,18 @@ def main() -> None:
                for c in printed["cards"])
     assert all(not c.get("hero_name_command_cost") for c in printed["cards"])
 
-    # Preserve representative original die-face mappings through the simplification.
+    # Spot-check representative intentional shared-roll combinations; full
+    # probability and deck-coverage checks run in check_paper_d6_synergy.py.
     cards = {c["id"]: c["paper_d6"]["faces"] for c in printed["cards"]}
     expected = [
         ("the-red-shields", "S", 2),
         ("the-crow-archers", "A", 2),
-        ("the-white-hands-of-elara", "S", 2),
-        ("the-fifty-men", "A", 1),
-        ("the-river-raiders", "A", 1),
-        ("tovan-the-quartermaster", "D", 1),
+        ("the-white-hands-of-elara", "R", 6),
+        ("the-fifty-men", "A", 4),
+        ("the-first-spear", "S", 4),
+        ("the-grey-riders", "S", 2),
+        ("the-dust-riders", "S", 5),
+        ("the-aradai", "S", 5),
     ]
     for name, face, die in expected:
         assert cards[name][die - 1] == face, (name, die, face)
