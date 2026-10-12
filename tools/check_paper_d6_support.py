@@ -128,7 +128,7 @@ def check_layout(cards):
 {scripts}<script>
 const source=JSON.parse(document.getElementById("support-data").textContent);
 document.getElementById("cards").innerHTML=source.map(card=>
-  '<div class="card-wrap">'+window.PhysicalCards.cardArticle(card,"",{printArt:true})+'</div>').join("");
+  '<div class="card-wrap">'+window.PhysicalCards.cardArticle(card,"",{{printArt:true}})+'</div>').join("");
 {CHECK}
 </script></body></html>"""
     with tempfile.TemporaryDirectory(prefix="longwar-support-") as folder:
