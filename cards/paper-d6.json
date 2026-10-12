@@ -12,7 +12,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an ally."
         },
         "D": {
           "title": "Defend",
@@ -37,7 +37,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -62,7 +62,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Save self or an ally."
         },
         "D": {
           "title": "Defend",
@@ -87,7 +87,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an ally."
         },
         "D": {
           "title": "Defend",
@@ -112,7 +112,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -137,7 +137,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -162,7 +162,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Move to an empty adjacent open Front after combat."
         },
         "D": {
           "title": "Defend",
@@ -187,7 +187,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -212,7 +212,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an attacking ally."
         },
         "D": {
           "title": "Defend",
@@ -237,7 +237,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. If alone here, recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -262,7 +262,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -287,7 +287,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -312,7 +312,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an attacking ally."
         },
         "D": {
           "title": "Defend",
@@ -337,7 +337,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the nearest ally behind."
         },
         "D": {
           "title": "Defend",
@@ -362,7 +362,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. If your Order is Raid, recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -387,7 +387,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -412,7 +412,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Give an attacking ally +1 Force."
         },
         "D": {
           "title": "Defend",
@@ -437,7 +437,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an attacking ally."
         },
         "D": {
           "title": "Defend",
@@ -462,7 +462,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -487,7 +487,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. If an ally Saves, recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -512,7 +512,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an attacking ally."
         },
         "D": {
           "title": "Defend",
@@ -537,7 +537,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an ally behind."
         },
         "D": {
           "title": "Defend",
@@ -562,7 +562,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -587,7 +587,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the nearest ally behind."
         },
         "D": {
           "title": "Defend",
@@ -612,7 +612,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Save self or an ally. Recover 1 Command if an ally is saved."
         },
         "D": {
           "title": "Defend",
@@ -637,7 +637,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Draw one Force (hand limit 10). Defend self."
         },
         "D": {
           "title": "Defend",
@@ -662,7 +662,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -687,7 +687,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -712,7 +712,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Move to an empty adjacent open Front after combat."
         },
         "D": {
           "title": "Defend",
@@ -737,7 +737,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -762,7 +762,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and another ally in this Front."
         },
         "D": {
           "title": "Defend",
@@ -787,7 +787,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Save self or an ally."
         },
         "D": {
           "title": "Defend",
@@ -812,7 +812,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an ally. If using Hold, recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -837,7 +837,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Advance one empty rank after combat."
         },
         "D": {
           "title": "Defend",
@@ -862,7 +862,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -887,7 +887,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Draw one Force (hand limit 10). Defend self."
         },
         "D": {
           "title": "Defend",
@@ -912,7 +912,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the nearest ally ahead."
         },
         "D": {
           "title": "Defend",
@@ -937,7 +937,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -962,7 +962,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -987,7 +987,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and an attacking ally."
         },
         "D": {
           "title": "Defend",
@@ -1012,7 +1012,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the Middle ally."
         },
         "D": {
           "title": "Defend",
@@ -1037,7 +1037,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self and the Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -1062,7 +1062,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. Give an attacking ally +1 Force."
         },
         "D": {
           "title": "Defend",
@@ -1087,7 +1087,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Nothing."
+          "effect": "Defend self. If alone here, recover 1 Command."
         },
         "D": {
           "title": "Defend",
