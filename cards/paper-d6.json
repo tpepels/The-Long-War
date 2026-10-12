@@ -349,7 +349,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend an ally behind against all Attacks. It may withdraw one empty rank."
+          "effect": "Defend an ally behind against all Attacks. It may withdraw after combat."
         }
       }
     },
@@ -599,7 +599,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save Frontline ally. If saved, move this Force forward one empty rank."
+          "effect": "Save Frontline ally. If saved, advance this Force one empty rank after combat."
         }
       }
     },
@@ -624,7 +624,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save an ally. If saved, move it sideways to an empty adjacent open Front."
+          "effect": "Save an ally. If saved, move it sideways to an open Front after combat."
         }
       }
     },
