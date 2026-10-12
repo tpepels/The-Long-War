@@ -48,19 +48,39 @@ window.addEventListener("load",async()=>{{
     const id=card.dataset.cardId;
     const rules=card.querySelector(".rules");
     const footer=card.querySelector(".card-footer");
-    const title=card.querySelector(".card-identity");
+    const title=card.querySelector(".paper-card-head .paper-head-title");
+    const header=card.querySelector(".paper-card-head");
+    const stat=card.querySelector(".paper-head-force");
+    const positions=card.querySelector(".paper-head-positions");
     const artwork=card.querySelector(".motif-field");
     const faces=[...card.querySelectorAll(".d6-number")];
     const rows=[...card.querySelectorAll(".d6-stanza")];
-    const legend=card.querySelector(".d6-roll-key");
-    if(!legend||!legend.textContent.includes("D6 ROLL")||
-       !legend.textContent.includes("EFFECT"))
-      issues.push(id+":missing-explicit-dice-roll-key");
-    if(legend&&rows.length&&
-       legend.getBoundingClientRect().bottom>rows[0].getBoundingClientRect().top+.5)
-      issues.push(id+":dice-roll-key-overlaps-result");
-    if(!artwork||artwork.getBoundingClientRect().height<22*(96/25.4))
+    const dice=card.querySelectorAll(".d6-die-icon");
+    if(!header||!title||!stat||!positions)
+      issues.push(id+":missing-standalone-title-header");
+    if(card.querySelector(".card-identity,.edge-identity,.edge-live-group,.d6-roll-key,.d6-key-arrow"))
+      issues.push(id+":legacy-exposure-or-repeated-roll-key");
+    if(card.querySelectorAll(".card-title").length!==1)
+      issues.push(id+":repeated-or-missing-title");
+    if(dice.length!==1)
+      issues.push(id+":expected-one-die-pictogram");
+    if(!artwork||artwork.getBoundingClientRect().height<25*(96/25.4))
       issues.push(id+":artwork-too-short");
+    if(title&&header&&title.getBoundingClientRect().bottom>header.getBoundingClientRect().bottom+0.5)
+      issues.push(id+":title-overflows-top-band");
+    if(title&&title.scrollHeight>title.clientHeight+1)
+      issues.push(id+":top-title-clipped");
+    const overlaps=(a,b,pad=.6)=>a&&b&&
+      Math.min(a.right,b.right)-Math.max(a.left,b.left)>pad&&
+      Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>pad;
+    if(title&&stat&&overlaps(title.getBoundingClientRect(),stat.getBoundingClientRect()))
+      issues.push(id+":title-overlaps-force");
+    if(title&&positions&&overlaps(title.getBoundingClientRect(),positions.getBoundingClientRect()))
+      issues.push(id+":title-overlaps-placement");
+    if(header&&artwork&&header.getBoundingClientRect().bottom>artwork.getBoundingClientRect().top+.5)
+      issues.push(id+":top-band-overlaps-artwork");
+    if(header&&getComputedStyle(header).gridTemplateColumns.split(" ").length!==3)
+      issues.push(id+":expected-three-part-title-band");
     if(faces.length!==6||rows.length!==4)
       issues.push(id+":missing-four-passages-or-six-faces");
     const printed=faces.map(face=>Number(face.textContent)).sort((a,b)=>a-b).join(",");
@@ -76,13 +96,12 @@ window.addEventListener("load",async()=>{{
       const action=row.querySelector(".d6-action-word");
       const detail=row.querySelector(".d6-detail");
       const numerals=row.querySelector(".d6-rolls");
-      const symbol=row.querySelector(".d6-die-icon");
       const values=row.querySelector(".d6-roll-values");
-      if(!symbol||!values)
-        issues.push(id+":missing-die-glyph-"+key);
-      if(symbol&&values&&symbol.getBoundingClientRect().right>
-          values.getBoundingClientRect().left+.5)
-        issues.push(id+":die-glyph-overlaps-numbers-"+key);
+      if(!values||row.querySelector(".d6-die-icon"))
+        issues.push(id+":repeated-die-glyph-"+key);
+      if(getComputedStyle(row,"::before").content!=="none" &&
+         key!=="S")
+        issues.push(id+":gratuitous-result-divider-"+key);
       const rowBox=row.getBoundingClientRect();
       const copyBox=copy?.getBoundingClientRect();
       const rollBox=numerals?.getBoundingClientRect();
@@ -127,8 +146,8 @@ window.addEventListener("load",async()=>{{
       issues.push(id+":rules-clip");
     if(footer&&rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+0.5)
       issues.push(id+":rules-overlap-footer");
-    if(title&&rules.getBoundingClientRect().top<title.getBoundingClientRect().bottom-0.5)
-      issues.push(id+":rules-overlap-title");
+    if(title&&title.getBoundingClientRect().bottom>artwork.getBoundingClientRect().top+0.5)
+      issues.push(id+":name-extends-over-artwork");
     if(artwork&&title&&artwork.getBoundingClientRect().bottom>title.getBoundingClientRect().top+0.5)
       issues.push(id+":artwork-overlap-title");
   }}
@@ -145,7 +164,7 @@ window.addEventListener("load",async()=>{{
     status = html.unescape(match.group(1)) if match else "D6 layout test did not finish"
     if status != "PASS":
         raise SystemExit("FAIL D6 paper layout: " + status[:4000])
-    print("PASS: 44 D6 cards: no paragraph collisions, no die-text overlap, no clipping, all face mappings and typography legible")
+    print("PASS: 44 standalone paper cards: title in top band, one die cue, four unboxed results, correct D6 mappings and no collisions")
 
 
 if __name__ == "__main__":
