@@ -32,8 +32,13 @@ def main() -> None:
     # These are precisely the existing tactical effects, repackaged as draw
     # cards, not new or secretly altered physical game mechanics.
     canonical = (ROOT / "web/tokens.html").read_text()
+    lead = {"assault": "After combat, ", "hold": "Before rolling, ",
+            "volley": "", "raid": "Before rolling, "}
     for order in orders:
-        assert order["effect"] in canonical, order["id"]
+        effect = order["effect"]
+        canonical_text = (lead[order["id"]] + effect[0].lower() + effect[1:]
+                          if lead[order["id"]] else effect)
+        assert canonical_text in canonical, order["id"]
 
     markup = (ROOT / "web/orders-prototype.html").read_text()
     js = (ROOT / "web/orders-prototype.js").read_text()
