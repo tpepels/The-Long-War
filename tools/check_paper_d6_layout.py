@@ -158,7 +158,7 @@ window.addEventListener("load",async()=>{{
     with tempfile.TemporaryDirectory(prefix="longwar-paper-d6-") as directory:
         path = Path(directory) / "d6-cards.html"
         path.write_text(page, encoding="utf-8")
-        result = run_browser(browser, path)
+        result = run_browser(browser, path, timeout_seconds=90)
     if result.returncode:
         raise SystemExit("Headless D6 browser error: " + result.stderr[-1600:])
     match = re.search(r'<div id="d6-layout-result">([^<]*)</div>', result.stdout)
