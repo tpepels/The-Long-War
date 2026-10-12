@@ -82,6 +82,9 @@ def _flush_paragraph(lines: list[str], out: list[str]) -> None:
 def markdown_to_typst(source: str, version: str) -> str:
     """Typeset the canonical Markdown as a two-column handbook with full-width aids."""
     lines = source.splitlines()
+    short_rules = len(source.split()) <= 220
+    columns = 1 if short_rules else 2
+    body_size = "11.5" if short_rules else "9.1"
     out: list[str] = []
     paragraph: list[str] = []
     in_code = False
@@ -124,7 +127,7 @@ def markdown_to_typst(source: str, version: str) -> str:
     )
   ],
 )
-#set text(size: 9.1pt, fill: rgb("#242620"))
+#set text(size: {body_size}pt, fill: rgb("#242620"))
 #set par(justify: false, leading: .52em, spacing: .50em)
 #set list(indent: 10pt, body-indent: 5pt, spacing: 2pt)
 #set enum(indent: 10pt, body-indent: 5pt, spacing: 2pt)
@@ -170,7 +173,7 @@ def markdown_to_typst(source: str, version: str) -> str:
     def open_columns() -> None:
         nonlocal columns_open
         if not columns_open:
-            out.append("#columns(2, gutter: 7mm)[")
+            out.append(f"#columns({columns}, gutter: 7mm)[")
             columns_open = True
 
     def close_columns() -> None:
