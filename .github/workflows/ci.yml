@@ -101,6 +101,8 @@ jobs:
         run: python tools/check_paper_d6.py
       - name: Check coordinated D6 ensembles and unchanged outcome odds
         run: python tools/check_paper_d6_synergy.py
+      - name: Validate optional drawable Order deck prototype
+        run: python tools/check_paper_d6_orders_prototype.py
       - name: Validate all 44 printed D6 faces and card geometry
         run: python tools/check_paper_d6_layout.py
       - name: Require one-A4 canonical physical rules
