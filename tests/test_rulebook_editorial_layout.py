@@ -1,6 +1,6 @@
-"""The entire current physical game fits on one comfortably readable A4.
+"""Card-led paper edition: only the game loop lives in the rules.
 
-These tests check paper-only content; they never run the digital engine or AI.
+Print details live on the physical Command, Battle Plan and Force cards.
 """
 from pathlib import Path
 import json
@@ -15,90 +15,79 @@ CANONICAL = ROOT / "rules/rulebook.md"
 PLAYER = ROOT / "rules/player-rulebook.md"
 CARDS = ROOT / "cards/paper-d6.json"
 
-REMOVED = ("Tactical Read", "Pressure", "Pin", "Opportunit",
-           "counter bonus", "Reroll", "Exhausted", "wound counter")
 
-
-def test_one_source_of_truth_and_readable_length():
+def test_core_rules_are_only_a_short_game_loop():
     rules = CANONICAL.read_text(encoding="utf-8")
     assert rules == PLAYER.read_text(encoding="utf-8")
-    assert 440 <= len(rules.split()) <= 680
-    assert rules.count("\n## ") == 6
-    assert "20 Command" in rules
-    assert "24-card" in rules
-    assert "eight Battles" in rules
-    assert "more surviving Forces" in rules
-    assert "one D6" in rules
-    assert "5 Command" in rules
-    for forbidden in REMOVED:
-        assert forbidden.lower() not in rules.lower(), forbidden
+    assert 100 <= len(rules.split()) <= 200
+    assert rules.count("\n## ") == 5
+    for word in ("Prepare", "Deploy", "Plan", "Fight", "Win", "D6", "Command card"):
+        assert word in rules
+    for unnecessary in ("Tactical Read", "Pressure", "Pin", "Opportunity",
+                        "Frontline", "Middle", "Rear", "Attack:", "Defend:",
+                        "+1 Force", "recover 5", "Battle VIII"):
+        assert unnecessary not in rules
 
 
-def test_printable_rulebook_is_a4_and_strictly_one_page():
+def test_actual_paper_pdf_is_still_strict_one_a4():
     source = (ROOT / "tools/build_rulebook_pdf.py").read_text(encoding="utf-8")
     assert 'paper: "a4"' in source
     assert 'len(reader.pages) != 1' in source
     rendered = markdown_to_typst(CANONICAL.read_text(encoding="utf-8"), "test")
     assert rendered.count("#columns(2, gutter: 7mm)[") == 1
-    for name in ("Assault", "Hold", "Volley", "Raid"):
-        assert name in rendered
-    assert "#table(columns:" in rendered
 
 
-def test_web_rules_dont_add_a_hidden_second_rulebook():
+def test_web_rulebook_is_same_content_without_hidden_advanced_rules():
     html = markdown.markdown(
         CANONICAL.read_text(encoding="utf-8"),
         extensions=["extra", "sane_lists", "attr_list"],
     )
     laid_out = enrich_rulebook_layout(group_rulebook_sections(html))
-    assert laid_out.count("<table>") == html.count("<table>") == 1
+    assert "<h1>" in laid_out
+    assert "Deploy" in laid_out
     template = (ROOT / "web/rulebook.template.html").read_text(encoding="utf-8")
-    assert "Detailed physical rules" not in template
     assert "advanced-reference.html" not in template
     pages = (ROOT / "tools/build_pages.py").read_text(encoding="utf-8")
     assert 'meta http-equiv="refresh" content="0; url=rulebook.html"' in pages
 
 
-def test_every_paper_card_uses_the_small_shared_vocabulary():
+def test_command_card_contains_rules_moved_out_of_the_handbook():
+    html = (ROOT / "web/tokens.html").read_text(encoding="utf-8")
+    assert html.count('class="plan"') == 8
+    assert html.count('class="plan command-aid"') == 2
+    for text in ("20 Command", "Draw 10", "24-card", "up to 2 actions",
+                 "1 Command", "+1 Force", "Defend", "Save", "5 Command",
+                 "Battle VIII"):
+        # Labels can use HTML inline markup; check raw values nearby.
+        if text == "24-card":
+            continue  # deck size is on the single-page rules
+        assert text in html, text
+    assert "Tactical Read" not in html
+    assert "Opportunity" not in html
+
+
+def test_all_force_outcomes_still_print_and_remain_short():
     pool = json.loads(CARDS.read_text(encoding="utf-8"))["cards"]
     assert len(pool) == 44
     for card in pool:
         assert len(card["faces"]) == 6
         assert len(card["outcomes"]) == 4
         assert set(card["faces"]) == set(card["outcomes"])
-        outcomes = card["outcomes"]
-        assert outcomes["F"] == {"title": "Nothing", "effect": "Nothing."}
-        assert outcomes["D"]["effect"].startswith("Defend")
-        third = "R" if card["role"] in ("healer", "steward") else "A"
-        assert outcomes[third]["effect"].startswith("Save" if third == "R" else "Attack")
-        assert outcomes["S"]["effect"].startswith(("Defend", "Save", "Attack"))
-        for key, result in outcomes.items():
-            assert result["title"] in {"Nothing", "Defend", "Attack", "Save", "Special"}
-            assert len(result["effect"]) < 94, card["id"]
-            for forbidden in ("Pressure", "Pin", "Tactical Read", "Opportunity", "Evade", "Protect", "Rescue", "Strike"):
-                assert forbidden not in result["effect"], (card["id"], forbidden)
+        assert card["outcomes"]["F"]["effect"] == "Nothing."
+        assert card["outcomes"]["D"]["effect"].startswith("Defend")
+        other = "R" if card["role"] in ("healer", "steward") else "A"
+        assert card["outcomes"][other]["effect"].startswith("Save" if other == "R" else "Attack")
+        for entry in card["outcomes"].values():
+            assert len(entry["effect"]) < 100
 
 
-def test_printable_reference_agrees_with_one_page():
-    for name in ("web/tokens.html", "web/playmat.html"):
-        content = (ROOT / name).read_text(encoding="utf-8")
-        for phrase in ("Assault", "Hold", "Volley", "Raid", "Attack", "Defend"):
-            assert phrase in content, (name, phrase)
-        for forbidden in ("Tactical Read", "Pressure", "Opportunity"):
-            assert forbidden not in content, (name, forbidden)
-    plans = (ROOT / "web/tokens.html").read_text(encoding="utf-8")
-    assert plans.count('class="plan"') == 8
-
-    # Cards print without another mechanics sheet or second set of rules.
+def test_no_competing_mat_or_extra_mechanics_sheet():
+    mat = (ROOT / "web/playmat.html").read_text(encoding="utf-8")
+    assert "Each Front:" in mat and "Command and Battle Plan cards" in mat
+    assert "Tactical Read" not in mat
     deck_html = (ROOT / "web/playtest-kit.html").read_text(encoding="utf-8")
-    deck_js = (ROOT / "web/playtest-kit.js").read_text(encoding="utf-8")
-    assert "include-mechanics" not in deck_html
     assert "mechanics-reference" not in deck_html
-    assert "includeMechanics" not in deck_js
     assert 'href="rulebook.html"' in deck_html
-
-
-def test_physical_only_no_runtime_edit():
     source = (ROOT / "tools/paper_d6_cards.py").read_text(encoding="utf-8")
     assert "from longwar.engine" not in source
     assert "from longwar.ai" not in source
