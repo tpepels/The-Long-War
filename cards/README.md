@@ -1,13 +1,18 @@
-# The Long War — card-led physical edition
+# The Long War — physical D6 edition
 
-The **entire core rulebook** is [rules/rulebook.md](../rules/rulebook.md): a five-step introduction (under 200 words). [rules/player-rulebook.md](../rules/player-rulebook.md) mirrors it solely for PDF publishing. There are no other paper rules or advanced chapters.
+The [one-page rules](../rules/rulebook.md) describe the entire game. The digital engine and AI remain a separate, older ruleset.
 
-To play, print:
-- [Battle Plan and Command cards](../web/tokens.html) — **four secret Plans and one visible Command card per player**. Command cards contain turn actions, combat arithmetic, hand management, Command recovery and victory. Plan cards define all plan-specific targeting and movement.
-- [44 Force/Hero cards](paper-d6.json) — printed Force, Command price, permitted positions, six D6 faces and card-specific combat results. Every Force describes its own effects.
-- [Three 24-card sample decks](paper-d6-decks.json).
-- [Battlefield mat](../web/playmat.html) — rank positions and Front opening schedule only, not another rules document.
+## Two decks per player
 
-The physical vocabulary remains **Attack, Defend, Save, Nothing**, plus brief printed Specials. The printed Command card explains these three operations. There are no Pressure, Pin, Tactical Read or Opportunity rules and no status tracking.
+- A **24-card Force deck** with unit and Hero cards. Use the [44 printable identities](paper-d6.json) to construct it, or print either of the three [24-card starter decks](paper-d6-decks.json). Every Force has a Command cost, permitted battlefield positions and D6 effects.
+- A separate **12-card Order deck**, with three copies each of Assault, Hold, Volley and Raid. Use [cards/paper-d6-orders.json](paper-d6-orders.json), or [print both players' Order decks](../web/orders.html).
 
-The original [cards.json](cards.json), old print overrides and runtime decks remain unchanged for the **separate digital engine** and historical metadata. The paper print adapter reuses art and placement data but neither changes the engine nor AI.
+Shuffle the decks separately. Begin with ten Forces, three Orders and twenty Command.
+
+During deployment, draw Forces and take ordinary actions (Play, Move, or Pass). Before each Battle, secretly choose one Order from your hand, reveal simultaneously, and apply that Order army-wide. Discard the played Order and draw a new Order after combat. The original **reusable Battle Plan menu and printed Command reference card are no longer part of this edition**.
+
+**Command is a resource, not a card.** Its cost, loss, recovery and victory conditions are in the short rulebook.
+
+The [battlefield mat](../web/playmat.html) provides four Fronts with three ranks per player. There are no Pressure, Pin, Tactical Read, Opportunity or status-marker systems.
+
+The older [cards.json](cards.json), historical print overrides and executable game remain unchanged; only the experimental paper D6 edition uses these new Order rules.

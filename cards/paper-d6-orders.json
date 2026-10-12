@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
-  "status": "design-prototype-not-canonical",
-  "note": "A candidate replacement for reusable Battle Plans and the reference-only Command card. Do not use with the current one-page rulebook until the order-draw economy is approved.",
+  "status": "canonical-paper-only",
+  "note": "Separate drawable Order deck for the current physical game. Each player draws three and commits one per Battle. Basic moves and Command are not playable cards.",
   "deck_size_per_player": 12,
   "copies_per_order": 3,
   "starting_order_hand": 3,
   "orders_played_per_battle": 1,
   "replenish_orders_after_battle": 1,
   "discard_after_battle": true,
-  "used_for": "One hidden, army-wide tactical choice revealed before rolling the D6.",
+  "used_for": "One hidden, drawn, army-wide Order revealed before rolling D6. Cards are played and discarded once per Battle.",
   "orders": [
     {
       "id": "assault",
@@ -38,9 +38,10 @@
       "id": "raid",
       "title": "Raid",
       "timing": "Before rolling and during combat",
-      "effect": "Move one Raider, Rider or Skirmisher per Front sideways into an empty space in an adjacent open Front, staying in its rank. They may Attack enemy Middle or Rear.",
+      "effect": "Move one Raider, Rider or Skirmisher per Front to an empty same-rank space in an adjacent open Front. They may Attack enemy Middle or Rear.",
       "theme": "Exploit the flank",
       "symbol": "horse"
     }
-  ]
+  ],
+  "prototype": false
 }

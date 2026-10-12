@@ -4,14 +4,14 @@
 .site-header a{color:inherit;text-decoration:none}.site-links{display:flex;flex-wrap:wrap;gap:14px}.site-links a{white-space:nowrap}
 button{font:600 12px/1.2 system-ui,sans-serif;background:#e2d4ae;color:#202720;border:1px solid #aa9973;padding:11px 14px;border-radius:4px;cursor:pointer}
 button:disabled{opacity:.48;cursor:default}button:not(:disabled):hover{background:#f4e9cb}
-.prototype{max-width:1230px;margin:auto;padding:28px 24px 64px}
+.orders-page{max-width:1230px;margin:auto;padding:28px 24px 64px}
 .eyebrow{font:700 11px/1.2 system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#716950;margin:0 0 12px}
 h1{font:500 clamp(36px,5vw,64px)/1.04 Georgia,serif;letter-spacing:-.045em;margin:0 0 18px;max-width:900px}
 h2{font:500 31px/1.12 Georgia,serif;margin:0}
 .lead{font:17px/1.5 Georgia,serif;max-width:850px;margin:0 0 27px}
-.prototype-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#b8b9a9;border:1px solid #b8b9a9}
-.prototype-steps>div{background:#f4f0e7;padding:17px 21px;display:grid;gap:9px}
-.prototype-steps strong{font:700 13px/1.2 system-ui,sans-serif}.prototype-steps span{font:15px/1.45 Georgia,serif}
+.order-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#b8b9a9;border:1px solid #b8b9a9}
+.order-steps>div{background:#f4f0e7;padding:17px 21px;display:grid;gap:9px}
+.order-steps strong{font:700 13px/1.2 system-ui,sans-serif}.order-steps span{font:15px/1.45 Georgia,serif}
 .try-section,.whole-deck{margin-top:42px}
 .section-head{display:flex;justify-content:space-between;align-items:end;gap:18px;border-bottom:1px solid #9d988a;padding-bottom:15px;margin-bottom:16px}
 .controls{display:flex;gap:10px;flex-wrap:wrap}
@@ -39,13 +39,18 @@ h2{font:500 31px/1.12 Georgia,serif;margin:0}
 .hand .order-card{cursor:pointer;transition:transform .12s,border-color .12s}
 .hand .order-card:hover{transform:translateY(-3px)}
 .hand .order-card[aria-pressed="true"]{outline:3px solid #334e3c;outline-offset:3px;transform:translateY(-5px)}
-.prototype-note{margin-top:35px;padding:18px 0 0;border-top:1px solid #b5b1a2;color:#676355;font:14px/1.55 system-ui,sans-serif}
+.print-note{margin-top:35px;padding:18px 0 0;border-top:1px solid #b5b1a2;color:#676355;font:14px/1.55 system-ui,sans-serif}
 .print-pages{display:none}
-@media(max-width:780px){.prototype{padding:24px 14px}.prototype-steps{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.site-header{flex-wrap:wrap}}
+.print-version{display:none}
+@media(max-width:780px){.orders-page{padding:24px 14px}.order-steps{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.site-header{flex-wrap:wrap}}
 @page{size:A4 landscape;margin:6mm 7mm}
 @media print{
-  body{background:white;margin:0}.site-header,.prototype{display:none!important}.print-pages{display:block!important}
+  body{background:white;margin:0}.site-header,.orders-page{display:none!important}.print-pages{display:block!important}
   .print-sheet{height:194mm;width:278mm;margin:0 auto;display:grid;grid-template-columns:repeat(4,68mm);grid-template-rows:repeat(2,96mm);gap:2mm;break-after:page;page-break-after:always;overflow:hidden}
   .print-sheet:last-child{break-after:auto;page-break-after:auto}
   .order-card{box-shadow:none;border-radius:1mm;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* The site builder stamps a revision number on printable pages. Keep it
+     outside card faces without allowing an extra fourth sheet to appear. */
+  .print-version{display:block;position:fixed;right:0;bottom:0;
+    font:7px/1 system-ui,sans-serif;color:#827e74;white-space:nowrap}
 }

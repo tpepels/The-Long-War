@@ -54,7 +54,7 @@ def load_paper_d6_cards(base=None, combat=None) -> dict:
         card["command_cost"] = entry["command_cost"]
         card["effects"] = []
         card["rule_blocks"] = []
-        card["text"] = "Use the D6 combat strip and Battle Plans."
+        card["text"] = "Use the D6 results and your drawn Order."
         card.pop("modes", None)
         card.pop("hero_name_strength", None)
         card.pop("name_strength_modifier", None)
@@ -68,7 +68,7 @@ def load_paper_d6_cards(base=None, combat=None) -> dict:
         "schema_version": legacy["schema_version"],
         "status": "experimental-paper-d6",
         "print_only": True,
-        "rules_model": "force-only-d6-army-wide-battle-plans",
+        "rules_model": "force-only-d6-drawable-orders",
         "cards": cards,
     }
 

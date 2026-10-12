@@ -192,7 +192,7 @@ window.addEventListener("load", async () => {{
 </html>"""
 
 
-def run_browser(browser: str, path: Path, pdf: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run_browser(browser: str, path: Path, pdf: Path | None = None, *, timeout_seconds: int = 30) -> subprocess.CompletedProcess[str]:
     command = [
         browser,
         "--headless=new",
@@ -206,10 +206,10 @@ def run_browser(browser: str, path: Path, pdf: Path | None = None) -> subprocess
     if pdf is not None:
         command.extend([f"--print-to-pdf={pdf}", "--no-pdf-header-footer"])
     command.append(path.as_uri())
-    result = subprocess.run(command, capture_output=True, text=True, timeout=30, check=False)
+    result = subprocess.run(command, capture_output=True, text=True, timeout=timeout_seconds, check=False)
     if result.returncode != 0:
         command[1] = "--headless"
-        result = subprocess.run(command, capture_output=True, text=True, timeout=30, check=False)
+        result = subprocess.run(command, capture_output=True, text=True, timeout=timeout_seconds, check=False)
     return result
 
 

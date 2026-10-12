@@ -1,5 +1,5 @@
 "use strict";
-// Preview-only card deck. This never changes the canonical paper rules.
+// Canonical printable Order deck plus a separate interactive hand rehearsal.
 const ART={
   blade:'<path d="M13 58L51 18l9-5-5 9-38 40zM15 59l-7 8m0-23 20 20M8 44l10 10"/><path d="M24 46l15 15"/>',
   shield:'<path d="M35 11L58 19v19c0 19-11 30-23 37C23 68 12 57 12 38V19z"/><path d="M35 19v45M20 39h30"/>',
@@ -8,7 +8,7 @@ const ART={
 };
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 const byId=id=>document.getElementById(id);
-const state={cards:[],pile:[],hand:[],used:[],selected:null,battles:0};
+const state={cards:[],copies:3,pile:[],hand:[],used:[],selected:null,battles:0};
 function cardHTML(card,{choice=false}={}){
   const n=choice?' role="button" tabindex="0" aria-pressed="'+(state.selected===card.uid)+'"':"";
   return '<article class="order-card" data-order="'+esc(card.id)+'" data-instance="'+esc(card.uid)+'"'+n+'>'+
@@ -18,7 +18,7 @@ function cardHTML(card,{choice=false}={}){
     '<footer class="order-footer"><span>The Long War</span></footer></article>';
 }
 function pool(){
-  return state.cards.flatMap(card=>Array.from({length:3},(_,n)=>({...card,uid:card.id+"-"+n})));
+  return state.cards.flatMap(card=>Array.from({length:state.copies},(_,n)=>({...card,uid:card.id+"-"+n})));
 }
 function shuffled(items){
   const a=[...items];
@@ -39,7 +39,7 @@ function renderHand(){
   byId("order-hand").innerHTML=state.hand.map(c=>cardHTML(c,{choice:true})).join("");
   byId("hand-status").textContent=state.battles===0
     ?"Choose one of three Orders. It will be revealed to your opponent before the D6 rolls."
-    :"Battle "+state.battles+" resolved in this sample. "+state.hand.length+" Orders in hand; "+state.pile.length+" undrawn.";
+    :"Battle "+state.battles+" completed in this hand rehearsal. "+state.hand.length+" Orders in hand; "+state.pile.length+" undrawn.";
   byId("play-order").disabled=!state.selected;
 }
 function choose(uid){
@@ -68,17 +68,18 @@ function printDeck(){
 }
 async function init(){
   try{
-    const response=await fetch("data/orders-prototype.json");
+    const response=await fetch("data/orders.json");
     if(!response.ok)throw new Error("Card data was not published");
     const data=await response.json();
-    if(data.status!=="design-prototype-not-canonical"||data.orders.length!==4)
-      throw new Error("Unexpected prototype card data");
+    if(data.status!=="canonical-paper-only"||data.orders.length!==4)
+      throw new Error("Unexpected Order deck data");
     state.cards=data.orders;
+    state.copies=data.copies_per_order;
     byId("order-gallery").innerHTML=data.orders.map((card,i)=>cardHTML({...card,uid:"gallery-"+i})).join("");
     printDeck();drawNewHand();
     byId("print-orders").disabled=false;byId("reset-hand").disabled=false;
   }catch(e){
-    byId("hand-status").textContent="Order prototype could not load: "+e.message;
+    byId("hand-status").textContent="Order deck could not load: "+e.message;
   }
 }
 byId("order-hand").addEventListener("click",e=>{const item=e.target.closest(".order-card");if(item)choose(item.dataset.instance)});
