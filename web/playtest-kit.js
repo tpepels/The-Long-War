@@ -77,7 +77,7 @@ async function main(){
     ],
     [
         "SAVE & SPECIAL",
-        "Save prevents one Force's whole defeat. Specials do exactly what is printed. All casualties are removed together and never return. No Pressure, Pin, Tactical Read, Opportunity or wound tracking."
+        "Save prevents one Force's whole defeat. Specials do exactly what is printed. All casualties are removed together and never return. No wounds or status tracking."
     ],
     [
         "TERRITORY",
