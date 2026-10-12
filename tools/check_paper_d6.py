@@ -42,7 +42,7 @@ def main() -> None:
                for c in printed["cards"])
     assert all(not c.get("hero_name_command_cost") for c in printed["cards"])
 
-    # The example in rules/rulebook.md must match the actual, printed die faces.
+    # Preserve representative original die-face mappings through the simplification.
     cards = {c["id"]: c["paper_d6"]["faces"] for c in printed["cards"]}
     expected = [
         ("the-red-shields", "S", 2),
