@@ -12,11 +12,10 @@ from PIL import Image
 from check_card_layout import ROOT, browser_path, run_browser
 
 CHECK = r"""
-window.addEventListener("load",async()=>{
-  await document.fonts.ready;
-  await Promise.all([...document.querySelectorAll(".order-illustration")].map(
-    element=>element.decode().catch(()=>{})
-  ));
+// Chromium --dump-dom snapshots immediately after load. Do not await
+// image.decode() here: asynchronous continuations may never reach the dump.
+window.addEventListener("load",()=>{
+  // All Order images use eager loading and must be complete by load.
   const issues=[];
   const sheets=[...document.querySelectorAll("#order-print-pages .print-sheet")];
   const cards=[...document.querySelectorAll("#order-print-pages .order-card")];
