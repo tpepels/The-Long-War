@@ -48,6 +48,26 @@ def main() -> None:
     for order in data["orders"]:
         assert (order["timing"], order["effect"]) == EXPECTED[order["id"]]
 
+    expected_art = {
+        "assault": "all-banners-forward",
+        "hold": "no-step-back",
+        "volley": "a-volley-before-dawn",
+        "raid": "the-line-wheeled",
+    }
+    assert {order["id"]: order["art_id"] for order in data["orders"]} == expected_art
+    assert len({order["art_id"] for order in data["orders"]}) == 4
+    historical = json.loads((ROOT / "cards/cards.json").read_text(encoding="utf-8"))["cards"]
+    historical_art = {card.get("art_id", card["id"]) for card in historical}
+    physical_force_ids = {
+        card["id"] for card in json.loads(
+            (ROOT / "cards/paper-d6.json").read_text(encoding="utf-8")
+        )["cards"]
+    }
+    for art_id in expected_art.values():
+        assert art_id in historical_art, art_id
+        assert art_id not in physical_force_ids, art_id
+        assert (ROOT / "web/art/cards" / (art_id + ".png")).is_file(), art_id
+
     rulebook = (ROOT / "rules/rulebook.md").read_text(encoding="utf-8")
     assert "12-card Order deck" in rulebook
     assert "3 Orders" in rulebook
@@ -62,6 +82,11 @@ def main() -> None:
     assert "not yet the published rules" not in html
     assert "orders.css" in html and "orders.js" in html
     assert "data/orders.json" in script
+    assert "art/cards-print/" in script
+    assert "order-illustration" in script
+    assert "<img " in script
+    assert "order-illustration" in css and "object-fit:cover" in css
+    assert "order-art" in css and "42.5mm" in css
     assert "orders-prototype.json" not in script
     assert "function playSelected()" in script and "function drawNewHand()" in script
     assert "state.copies=data.copies_per_order" in script

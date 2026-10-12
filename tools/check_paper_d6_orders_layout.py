@@ -7,12 +7,15 @@ import re
 import tempfile
 from pathlib import Path
 
+from PIL import Image
+
 from check_card_layout import ROOT, browser_path, run_browser
 
 CHECK = r"""
-window.addEventListener("load",async()=>{
-  await document.fonts.ready;
-  await Promise.resolve();
+// Chromium --dump-dom snapshots immediately after load. Do not await
+// image.decode() here: asynchronous continuations may never reach the dump.
+window.addEventListener("load",()=>{
+  // All Order images use eager loading and must be complete by load.
   const issues=[];
   const sheets=[...document.querySelectorAll("#order-print-pages .print-sheet")];
   const cards=[...document.querySelectorAll("#order-print-pages .order-card")];
@@ -31,6 +34,11 @@ window.addEventListener("load",async()=>{
     const rect=card.getBoundingClientRect();
     const sheet=card.closest(".print-sheet")?.getBoundingClientRect();
     const art=card.querySelector(".order-art")?.getBoundingClientRect();
+    const artImage=card.querySelector(".order-illustration");
+    if(!artImage||!artImage.complete||!artImage.naturalWidth||!artImage.naturalHeight)
+      issues.push(name+":illustration-not-loaded");
+    if(artImage&&!artImage.getAttribute("src")?.startsWith("art/cards-print/"))
+      issues.push(name+":wrong-art-source");
     const effect=card.querySelector(".order-effect");
     const effectRect=effect?.getBoundingClientRect();
     const copy=card.querySelector(".order-text");
@@ -38,7 +46,9 @@ window.addEventListener("load",async()=>{
     if(Math.abs(rect.width-68*mm)>2||Math.abs(rect.height-96*mm)>2)
       issues.push(name+":incorrect-card-dimensions");
     if(sheet&&!inside(sheet,rect,1.1))issues.push(name+":outside-sheet");
-    if(!art||art.height<35*mm)issues.push(name+":missing-large-artwork");
+    if(!art||art.height<40*mm)issues.push(name+":missing-large-artwork");
+    if(artImage&&art&&(!inside(art,artImage.getBoundingClientRect(),1)))
+      issues.push(name+":artwork-cropping-outside-frame");
     if(!copy||!effect||!footer)issues.push(name+":missing-effect");
     else {
       if(effectRect.bottom>footer.top+1)issues.push(name+":effect-overlaps-footer");
@@ -88,6 +98,20 @@ def main() -> None:
     authored = authored.replace('<script src="orders.js"></script>', scripts)
     with tempfile.TemporaryDirectory(prefix="longwar-orders-") as folder:
         path = Path(folder) / "orders.html"
+        # The published site uses optimised WebP illustrations, not PNG
+        # originals. Make the exact same art paths available to headless
+        # Chromium so the test fails if images are missing or undecodable.
+        art_dir = path.parent / "art/cards-print"
+        art_dir.mkdir(parents=True)
+        for order in data["orders"]:
+            art_id = order["art_id"]
+            source = ROOT / "web/art/cards" / (art_id + ".png")
+            if not source.is_file():
+                raise SystemExit("Missing Order illustration source: " + str(source))
+            with Image.open(source) as image:
+                image = image.convert("RGB")
+                image.thumbnail((960, 960), Image.Resampling.LANCZOS)
+                image.save(art_dir / (art_id + ".webp"), "WEBP", quality=86)
         path.write_text(authored, encoding="utf-8")
         result = run_browser(browser, path, timeout_seconds=60)
     if result.returncode:
@@ -96,7 +120,7 @@ def main() -> None:
     status = html.unescape(match.group(1)) if match else "Order browser test did not finish"
     if status != "PASS":
         raise SystemExit("FAIL Order layout: " + status[:4500])
-    print("PASS: two canonical 12-card Order decks fit three A4 sheets, with readable art and unclipped effects")
+    print("PASS: two canonical 12-card Order decks fit three A4 sheets, with decoded illustrated art and unclipped effects")
 
 
 if __name__ == "__main__":
