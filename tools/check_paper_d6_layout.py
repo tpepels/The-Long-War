@@ -52,6 +52,13 @@ window.addEventListener("load",async()=>{{
     const artwork=card.querySelector(".motif-field");
     const faces=[...card.querySelectorAll(".d6-number")];
     const rows=[...card.querySelectorAll(".d6-stanza")];
+    const legend=card.querySelector(".d6-roll-key");
+    if(!legend||!legend.textContent.includes("D6 ROLL")||
+       !legend.textContent.includes("EFFECT"))
+      issues.push(id+":missing-explicit-dice-roll-key");
+    if(legend&&rows.length&&
+       legend.getBoundingClientRect().bottom>rows[0].getBoundingClientRect().top+.5)
+      issues.push(id+":dice-roll-key-overlaps-result");
     if(!artwork||artwork.getBoundingClientRect().height<22*(96/25.4))
       issues.push(id+":artwork-too-short");
     if(faces.length!==6||rows.length!==4)
@@ -69,6 +76,13 @@ window.addEventListener("load",async()=>{{
       const action=row.querySelector(".d6-action-word");
       const detail=row.querySelector(".d6-detail");
       const numerals=row.querySelector(".d6-rolls");
+      const symbol=row.querySelector(".d6-die-icon");
+      const values=row.querySelector(".d6-roll-values");
+      if(!symbol||!values)
+        issues.push(id+":missing-die-glyph-"+key);
+      if(symbol&&values&&symbol.getBoundingClientRect().right>
+          values.getBoundingClientRect().left+.5)
+        issues.push(id+":die-glyph-overlaps-numbers-"+key);
       const rowBox=row.getBoundingClientRect();
       const copyBox=copy?.getBoundingClientRect();
       const rollBox=numerals?.getBoundingClientRect();
