@@ -117,15 +117,17 @@ The numbers below are **one shared roll for friendly Forces in the same Front**.
 
 | D6 | Formation | Combination |
 | --- | --- | --- |
-| 2 | Red Shields / Crow Archers / White Hands of Elara | Shields can Defend an attacking ally for +1 Force; Crow Archers' ordinary Attack can target Middle when an ally Defends; White Hands can Save |
+| 2 | Red Shields / Crow Archers / White Hands of Elara | Shields can Defend and strengthen an attacking Crow Archer; White Hands can Save and withdraw a threatened ally |
 | 6 | Red Shields / Crow Archers / White Hands of Elara | Two Attacks can focus one enemy while White Hands can Save |
 | 4 | Fifty Men / Thirty Spears / First Spear | Two Attacks and First Spear's Defend an attacker (+1 Force) |
-| 2 | Grey Riders / Dust Riders / Aradai | Grey Riders' attack and two ordinary Attacks, with Dust Riders boosted by allied Frontline pressure |
+| 2 | Grey Riders / Dust Riders / Aradai | Grey Riders can attack and relocate after a defeat; Dust Riders and Aradai provide coordinated ordinary Attacks |
 | 5 | Grey Riders / Dust Riders / Aradai | Grey Riders and Aradai Attack the foremost enemy; Aradai may ignore all Defends; Dust Riders strike Middle |
 | 4 | Fifty Men / First Spear / Relief Column | An Attack supported by First Spear and a potential Save from the Relief Column |
+
+Ordinary outcomes are now short, dependable actions; individual conditional tricks live in the signature row. Reordering the four printed outcome passages does not alter these shared die-number combinations.
 
 The lineup exists only where the physical spaces, Orders and legal targets permit it. Saves require a threatened ally; movement requires an empty permitted destination. Protecting a target and denying a killing blow remain valid counterplay. These interactions are **unverified in live playtests**; strength and Command balance must be assessed against real opponents.
 
 ## Regression checks
 
-Run `python tools/check_paper_d6.py`, `python tools/check_paper_d6_synergy.py`, `python tools/check_paper_d6_identity.py`, and `python tools/check_paper_d6_layout.py` before printing.
+Run `python tools/check_paper_d6.py`, `python tools/check_paper_d6_synergy.py`, `python tools/check_paper_d6_identity.py`, `python tools/check_paper_d6_costs.py`, and `python tools/check_paper_d6_layout.py` before printing.
