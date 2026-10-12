@@ -1,21 +1,24 @@
 "use strict";
-// Canonical printable Order deck plus a separate interactive hand rehearsal.
-const ART={
-  blade:'<path d="M13 58L51 18l9-5-5 9-38 40zM15 59l-7 8m0-23 20 20M8 44l10 10"/><path d="M24 46l15 15"/>',
-  shield:'<path d="M35 11L58 19v19c0 19-11 30-23 37C23 68 12 57 12 38V19z"/><path d="M35 19v45M20 39h30"/>',
-  arrows:'<path d="M7 59L62 13m-16-1 16 1-1 16M11 68l56-46m-16-1 16 1-1 16"/><path d="M13 52l16 16m-15-30 16 16"/>',
-  horse:'<path d="M17 65c4-9 5-20 6-31l-8-9 15-14 13 8-3 10 17 5-5 11-16-1c2 10 7 15 15 22"/><path d="M21 48l17 3M30 20l4 4M10 69h51"/>'
+// Canonical drawable Order cards, shared by the live print sheets and on-page hand.
+// Illustrations are from retired paper card identities. The print site
+// publishes optimized versions through build_print_art().
+const artPath=artId=>{
+  if(!/^[a-z0-9-]+$/.test(artId))throw new Error("Invalid Order artwork identifier");
+  return "art/cards-print/"+artId+".webp";
 };
+
 const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 const byId=id=>document.getElementById(id);
 const state={cards:[],copies:3,pile:[],hand:[],used:[],selected:null,battles:0};
 function cardHTML(card,{choice=false}={}){
   const n=choice?' role="button" tabindex="0" aria-pressed="'+(state.selected===card.uid)+'"':"";
   return '<article class="order-card" data-order="'+esc(card.id)+'" data-instance="'+esc(card.uid)+'"'+n+'>'+
-    '<header class="order-header"><span class="order-family">ORDER</span><h3>'+esc(card.title)+'</h3><span class="order-crest" aria-hidden="true">✧</span></header>'+
-    '<div class="order-art" aria-hidden="true"><svg viewBox="0 0 76 80">'+ART[card.symbol]+'</svg></div>'+
-    '<section class="order-effect"><p class="order-timing">'+esc(card.timing)+'</p><p class="order-text">'+esc(card.effect)+'</p></section>'+
-    '<footer class="order-footer"><span>The Long War</span></footer></article>';
+    '<header class="order-header"><span class="order-family">ORDER</span><h3>'+esc(card.title)+'</h3></header>'+
+    '<div class="order-art" aria-hidden="true"><img class="order-illustration" src="'+
+      esc(artPath(card.art_id))+'" alt="" loading="eager" decoding="async"></div>'+
+    '<section class="order-effect"><p class="order-timing">'+esc(card.timing)+'</p>'+
+    '<p class="order-text">'+esc(card.effect)+'</p></section>'+
+    '<footer class="order-footer"><span>The Long War</span><span aria-hidden="true">✦</span></footer></article>';
 }
 function pool(){
   return state.cards.flatMap(card=>Array.from({length:state.copies},(_,n)=>({...card,uid:card.id+"-"+n})));
@@ -39,7 +42,7 @@ function renderHand(){
   byId("order-hand").innerHTML=state.hand.map(c=>cardHTML(c,{choice:true})).join("");
   byId("hand-status").textContent=state.battles===0
     ?"Choose one of three Orders. It will be revealed to your opponent before the D6 rolls."
-    :"Battle "+state.battles+" completed in this hand rehearsal. "+state.hand.length+" Orders in hand; "+state.pile.length+" undrawn.";
+    :"Battle "+state.battles+" completed. "+state.hand.length+" Orders in hand; "+state.pile.length+" undrawn.";
   byId("play-order").disabled=!state.selected;
 }
 function choose(uid){
@@ -71,7 +74,8 @@ async function init(){
     const response=await fetch("data/orders.json");
     if(!response.ok)throw new Error("Card data was not published");
     const data=await response.json();
-    if(data.status!=="canonical-paper-only"||data.orders.length!==4)
+    if(data.status!=="canonical-paper-only"||data.orders.length!==4||
+       !data.orders.every(card=>card.art_id && /^[a-z0-9-]+$/.test(card.art_id)))
       throw new Error("Unexpected Order deck data");
     state.cards=data.orders;
     state.copies=data.copies_per_order;
