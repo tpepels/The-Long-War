@@ -38,7 +38,7 @@ Each line identifies a desired formation incentive and a plausible opponent resp
 | Force | Special result on its card | Formation incentive | Natural counterplay |
 | --- | --- | --- | --- |
 | The White Hands Of Elara | Save an ally. If saved, move it back one empty rank after combat. | Saved allies retreat to safety | Target the healer, occupy Rear |
-| The Relief Column | Save an ally. If saved, move it sideways to an empty adjacent open Front. | Rescuing moves an ally to another Front | Attack rescuer, occupy lateral space |
+| The Relief Column | Save an ally. If saved, move it sideways to an open Front after combat. | Rescuing moves an ally to another Front | Attack rescuer, occupy lateral space |
 
 ### Guard (8)
 
@@ -46,9 +46,9 @@ Each line identifies a desired formation incentive and a plausible opponent resp
 | --- | --- | --- | --- |
 | The Red Shields | Defend an ally. If it Attacks, it gains +1 Force. | Protection strengthens the attacker | Attack elsewhere, bypass a Defend |
 | The First Spear | Defend an attacking ally. It gains +1 Force. | Guarding strengthens an attacking ally | Attack the Guard, break attacking pair |
-| The Old Guard | Defend an ally behind against all Attacks. It may withdraw one empty rank. | Shelters the unit behind and withdraws it | Attack another rank |
+| The Old Guard | Defend an ally behind against all Attacks. It may withdraw after combat. | Shelters the unit behind and withdraws it | Attack another rank |
 | A Hundred Shields | Defend each ally here once. Defend Frontline ally again. | Double protection of the Frontline | Bypass Frontline, target support |
-| The Serekh | Save Frontline ally. If saved, move this Force forward one empty rank. | Saving the Frontline lets the Guard advance | Target Guard, bypass Frontline |
+| The Serekh | Save Frontline ally. If saved, advance this Force one empty rank after combat. | Saving the Frontline lets the Guard advance | Target Guard, bypass Frontline |
 | Alda Keeper Of The Ford | Defend an ally against all Attacks. If it Attacks, +1 Force. | Complete protection plus attack support | Attack other targets, target Guard |
 | Veyra Keeper Of Oaths | Save foremost ally. If it Attacks, it gains +1 Force. | Saving an attacker makes its attack stronger | Target the oathkeeper, deny Save |
 | The Kings Spears | Defend two allies. If both Attack, each gains +1 Force. | Two defenders enable a double attack | Split Front, stop both attacking allies |
