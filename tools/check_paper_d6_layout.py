@@ -148,8 +148,9 @@ window.addEventListener("load",async()=>{{
       issues.push(id+":rules-overlap-footer");
     if(title&&title.getBoundingClientRect().bottom>artwork.getBoundingClientRect().top+0.5)
       issues.push(id+":name-extends-over-artwork");
-    if(artwork&&title&&artwork.getBoundingClientRect().bottom>title.getBoundingClientRect().top+0.5)
-      issues.push(id+":artwork-overlap-title");
+    // Standalone D6 title is intentionally ABOVE the artwork.
+    if(artwork&&title&&title.getBoundingClientRect().bottom>artwork.getBoundingClientRect().top+0.5)
+      issues.push(id+":top-title-overlaps-artwork");
   }}
   document.getElementById("d6-layout-result").textContent=issues.length?issues.join(";"):"PASS";
 }});
