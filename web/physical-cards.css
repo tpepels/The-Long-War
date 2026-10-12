@@ -2024,21 +2024,22 @@ EXPOSED TOP ROW - TUNING PANEL
   }
 }
 
-/* Printed D6 cards — illuminated marginalia, not a four-row HTML table.
-   The illustration occupies a large chapter; the effects read as four small
-   typographic passages on the parchment under the title. */
+/* PRINTED D6 — letterpress marginalia, deliberately unlike an HTML table.
+   Every outcome is one *paragraph*: the rolled number in the margin and a
+   distinct small-cap verb on the same baseline as its serif instruction.
+   No flex-column header and prose pair competing vertically for row height. */
 .paper-d6-layout {
-  --art-height: 25.7mm;
+  --art-height: 22.8mm;
   --identity-height: 8.6mm;
   --title-height: 7.3mm;
 }
 .paper-d6-layout .card-identity {
-  flex-basis: 8.6mm;
+  flex: 0 0 8.6mm;
   height: 8.6mm;
   min-height: 8.6mm;
 }
 .paper-d6-layout .rules {
-  margin: .18mm -.1mm .16mm;
+  margin: .15mm -.1mm .15mm;
   padding: 0;
   overflow: hidden;
 }
@@ -2053,127 +2054,95 @@ EXPOSED TOP ROW - TUNING PANEL
   border-radius: 1mm;
 }
 .d6-combat {
-  display: block;
   height: 100%;
-  width: 100%;
-  padding: .2mm .45mm .18mm;
-  background: transparent;
-  border: none;
-  border-radius: 0;
+  padding: .35mm .3mm;
+  color: #242820;
 }
 .d6-stanzas {
-  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  padding-left: 1.75mm;
-}
-.d6-stanzas::before {
-  content: "";
-  position: absolute;
-  left: .55mm;
-  top: 1.1mm;
-  bottom: 1.2mm;
-  width: .27mm;
-  background: linear-gradient(to bottom, transparent, #8e764d 9%, #8e764d 91%, transparent);
-  opacity: .65;
+  padding: 0 .2mm;
 }
 .d6-stanza {
   position: relative;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: var(--stanza-weight, 1) 1 0;
+  align-items: center;
+  flex: var(--stanza-weight,1) 1 0;
   min-height: 0;
-  padding: .35mm .35mm .35mm 1mm;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  color: #272822;
+  padding: .55mm 1.5mm .55mm 12.3mm;
+  border: 0;
+  background: none;
 }
-.d6-stanza:not(:last-child)::after {
+.d6-stanza:not(:first-child)::before {
   content: "";
   position: absolute;
-  bottom: 0;
-  left: 1mm;
-  right: 11mm;
-  height: .14mm;
-  background: linear-gradient(to right, rgba(111,89,57,.55), rgba(111,89,57,0));
+  top: 0;
+  left: 12mm;
+  width: 11mm;
+  height: .19mm;
+  background: linear-gradient(90deg, rgba(120,89,47,.65),rgba(120,89,47,0));
 }
-.d6-stanza[data-outcome-key="S"]::before {
-  content: "";
-  position: absolute;
-  left: -1.22mm;
-  top: 1.5mm;
-  width: .95mm;
-  height: .95mm;
-  border: .19mm solid #8b6a37;
-  background: #f0dfb9;
-  transform: rotate(45deg);
-}
-.d6-stanza-heading {
-  display: flex;
-  align-items: baseline;
-  gap: 1.5mm;
-  min-height: 3.9mm;
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
+/* Die numerals are editorial marginalia, not a separate boxed column. */
 .d6-rolls {
-  display: inline-flex;
-  gap: .15mm;
-  align-items: baseline;
+  position: absolute;
+  left: .4mm;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10.85mm;
   white-space: nowrap;
-  font: 600 4.2mm/.9 var(--display);
-  color: #372a1c;
+  text-align: right;
+  color: #5a3e27;
+  font: 600 4.6mm/1 var(--display);
   font-variant-numeric: lining-nums;
 }
-.d6-number { display: inline-block; }
+.d6-stanza[data-face-count="3"] .d6-rolls { font-size: 4mm; }
+.d6-number { display: inline; }
 .d6-number:not(:last-child)::after {
   content: "·";
-  display: inline-block;
-  padding: 0 .28mm;
-  font: 400 3.25mm/1 var(--text);
-  color: #947f5a;
-  vertical-align: .15mm;
+  color: #987e55;
+  font: 400 .82em/1 var(--text);
+  padding: 0 .09mm;
+}
+.d6-copy {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-width: 0;
+  font: 400 2.99mm/1.11 var(--text);
+  letter-spacing: 0;
+  color: #26271f;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 .d6-action-word {
-  font: 700 2.35mm/1 var(--utility);
-  letter-spacing: .075em;
+  font: 700 2.6mm/1 var(--utility);
+  letter-spacing: .065em;
   text-transform: uppercase;
-  color: #5b4e3e;
+  color: #433e30;
+  white-space: nowrap;
+  margin-right: .55mm;
 }
-.d6-stanza[data-action="attack"] .d6-action-word { color: #703e30; }
-.d6-stanza[data-action="save"] .d6-action-word { color: #355648; }
-.d6-stanza[data-action="nothing"] .d6-action-word { color: #716e63; }
+.d6-detail { font: inherit; }
+.d6-stanza[data-action="attack"] .d6-action-word { color: #783d2d; }
+.d6-stanza[data-action="save"] .d6-action-word { color: #3c594b; }
+.d6-stanza[data-action="nothing"] .d6-copy { color: #69675c; }
+.d6-stanza[data-action="nothing"] .d6-action-word { color: #69675c; }
 .d6-stanza[data-outcome-key="S"] .d6-action-word {
-  color: #624c25;
+  color: #6d5227;
   font-weight: 800;
 }
 .d6-signature {
-  margin-left: auto;
-  padding-right: .5mm;
-  font: 600 3.2mm/1 var(--display);
-  color: #8a6b34;
+  position: absolute;
+  left: -.75mm;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a48240;
+  font: 700 2.9mm/1 var(--display);
 }
-.d6-verse {
-  display: block;
-  margin: .12mm 0 0;
-  padding: 0;
-  min-width: 0;
-  font: 400 3.05mm/1.08 var(--text);
-  color: #252622;
-  letter-spacing: 0;
-  hyphens: none;
-  overflow-wrap: normal;
-  word-break: normal;
-}
-.d6-stanza[data-action="nothing"] .d6-verse {
-  color: #6e6b60;
-  font-style: italic;
-}
-.paper-d6-layout.card-hero .rules { padding: 0; margin-top: .18mm; }
+.paper-d6-layout.card-hero .rules { margin-top: .15mm; padding: 0; }
 .paper-d6-layout[data-card-id="the-white-hands-of-elara"] .card-title,
 .paper-d6-layout[data-card-id="the-watchtowers-of-eren"] .card-title {
   font-size: 3.9mm;
