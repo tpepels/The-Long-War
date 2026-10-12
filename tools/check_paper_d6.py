@@ -21,7 +21,7 @@ def main() -> None:
     decks = load_paper_d6_decks(printed)
     assert len(raw["cards"]) == len(printed["cards"]) == 44
     assert len({entry["id"] for entry in raw["cards"]}) == 44
-    assert printed["print_only"] is True and printed["rules_model"] == "force-only-d6-army-wide-battle-plans"
+    assert printed["print_only"] is True and printed["rules_model"] == "force-only-d6-drawable-orders"
     assert {c["type"] for c in printed["cards"]} == {"force", "hero"}
     assert sum(c["type"] == "force" for c in printed["cards"]) == 33
     assert sum(c["type"] == "hero" for c in printed["cards"]) == 11
@@ -60,13 +60,15 @@ def main() -> None:
     assert CANONICAL.read_bytes() == executable_before, "Engine card pool changed"
 
     physical = (ROOT / "rules" / "player-rulebook.md").read_text(encoding="utf-8")
-    aid = (ROOT / "web" / "tokens.html").read_text(encoding="utf-8")
-    assert "D6" in physical and "Command card" in physical
-    for plan in ("Assault", "Hold", "Volley", "Raid"):
-        assert plan in aid
-    for core in ("Defend", "Save", "Attack", "20 Command", "5 Command"):
-        assert core in aid
-    print("Card-led paper D6: 44 Forces/Heroes, 4 Plans and Command aid per player, 3 legal decks.")
+    orders = json.loads((ROOT / "cards/paper-d6-orders.json").read_text(encoding="utf-8"))
+    assert "D6" in physical and "Order" in physical and "Command card" not in physical
+    assert orders["status"] == "canonical-paper-only"
+    assert orders["starting_order_hand"] == 3
+    assert orders["deck_size_per_player"] == 12
+    assert len(orders["orders"]) == 4
+    assert {o["id"] for o in orders["orders"]} == {"assault", "hold", "volley", "raid"}
+    print("Paper D6: 44 Forces/Heroes, 3 legal Force decks, separate 12-card drawable Order deck; no engine edits.")
+
 
 
 if __name__ == "__main__":
