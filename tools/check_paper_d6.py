@@ -57,9 +57,9 @@ def main() -> None:
     assert CANONICAL.read_bytes() == executable_before, "Engine card pool changed"
 
     physical = (ROOT / "rules" / "player-rulebook.md").read_text(encoding="utf-8")
-    for required in ("D6", "Assault", "Hold", "Volley", "Raid", "Command", "Rescue"):
+    for required in ("D6", "Assault", "Hold", "Volley", "Raid", "Command", "Save", "Defend", "Attack"):
         assert required in physical
-    print("Paper D6: 44 Forces/Heroes, four outcomes per Force, three legal 24-card decks, no engine mutations.")
+    print("One-page paper D6: 44 Forces/Heroes, four simple outcomes, three 24-card decks, no engine mutations.")
 
 
 if __name__ == "__main__":
