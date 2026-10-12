@@ -97,6 +97,7 @@ def print_build_version() -> str:
         ROOT / "cards" / "print-overrides.json",
         ROOT / "cards" / "paper-d6.json",
         ROOT / "cards" / "paper-d6-decks.json",
+        ROOT / "cards" / "paper-d6-orders-prototype.json",
         ROOT / "tools" / "paper_d6_cards.py",
         PLAYTEST_DECKS,
         ROOT / "src" / "longwar" / "rules.py",
@@ -491,6 +492,8 @@ def main() -> None:
     data_dir = DIST / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(CARDS, data_dir / "cards.json")
+    # Experimental drawable Orders prototype; not part of current paper rules.
+    shutil.copy2(ROOT / "cards/paper-d6-orders-prototype.json", data_dir / "orders-prototype.json")
     (data_dir / "print-cards.json").write_text(
         json.dumps(load_paper_d6_cards(card_data), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
