@@ -72,10 +72,20 @@ window.addEventListener("load",async()=>{{
         .flatMap((letter,index)=>letter===key?[index+1]:[]);
       if(represented.join(",")!==expected.join(","))
         issues.push(id+":incorrect-roll-mapping-"+key);
-      for(const part of [row,row.querySelector(".d6-verse"),row.querySelector(".d6-rolls"),row.querySelector(".d6-stanza-heading")]){{
+      const effect=row.querySelector(".d6-verse");
+      const heading=row.querySelector(".d6-stanza-heading");
+      const rect=row.getBoundingClientRect();
+      for(const [name,part] of [["row",row],["effect",effect]]){{
         if(part&&(part.scrollHeight>part.clientHeight+2||part.scrollWidth>part.clientWidth+2))
-          issues.push(id+":outcome-content-clipped-"+key);
+          issues.push(id+":clipped-"+name+"-"+key+"-"+(part.scrollHeight-part.clientHeight));
       }}
+      // SVG/large serif numerals can legitimately extend beyond their inline
+      // line boxes. Measure the prose's actual bounds rather than treating
+      // intrinsic scrollHeight on these un-clipped spans as content clipping.
+      if(heading&&heading.getBoundingClientRect().top<rect.top-1)
+        issues.push(id+":heading-overlaps-previous-"+key);
+      if(effect&&effect.getBoundingClientRect().bottom>rect.bottom+1)
+        issues.push(id+":effect-overlaps-next-"+key);
     }}
     if(rules.scrollHeight>rules.clientHeight+2)issues.push(id+":outcomes-clipped");
     for(const row of rows){{
