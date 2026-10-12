@@ -30,7 +30,7 @@
       "id": "volley",
       "title": "Volley",
       "timing": "During combat",
-      "effect": "Your Archers may Attack any enemy in their Front, including Middle or Rear.",
+      "effect": "Your Archers may Attack any enemy in their Front, including Middle and Rear.",
       "theme": "Strike their reserves",
       "symbol": "arrows"
     },
@@ -38,7 +38,7 @@
       "id": "raid",
       "title": "Raid",
       "timing": "Before rolling and during combat",
-      "effect": "Before rolling, move one Raider, Rider or Skirmisher per Front sideways into an empty space in an adjacent open Front, staying in its rank. They may Attack enemy Middle or Rear.",
+      "effect": "Move one Raider, Rider or Skirmisher per Front sideways into an empty space in an adjacent open Front, staying in its rank. They may Attack enemy Middle or Rear.",
       "theme": "Exploit the flank",
       "symbol": "horse"
     }
