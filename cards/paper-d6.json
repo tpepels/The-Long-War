@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "experimental-paper-only",
-  "description": "Phase 1 paper-only D6: choose eligible targets under a hidden army-wide Battle Plan; coordinated Strikes add +1 per extra uncancelled damaging Strike, while Pressure and Pin can disrupt support or movement. Four individually distributed outcomes per Force. Not executable engine data.",
+  "description": "The one-page paper game. Only Attack, Defend, Save, Nothing and printed one-line Specials; four individual outcomes on six D6 faces per Force. The engine/AI use separate unchanged card data.",
   "cards": [
     {
       "id": "the-fifty-men",
@@ -11,20 +11,20 @@
       "faces": "AAFSDA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; may defeat an equal-Force target."
+          "effect": "Attack; equal Force defeats."
         }
       }
     },
@@ -36,20 +36,20 @@
       "faces": "ADSFFA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear; if empty, Middle; if empty, Frontline."
+          "effect": "Attack enemy Rear; otherwise Middle; otherwise Frontline."
         }
       }
     },
@@ -61,20 +61,20 @@
       "faces": "FSDDRS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "R": {
-          "title": "Rescue",
-          "effect": "Rescue foremost friendly Force."
+          "title": "Save",
+          "effect": "Save foremost ally."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue one friendly Force here."
+          "effect": "Save one ally in this Front."
         }
       }
     },
@@ -86,20 +86,20 @@
       "faces": "DSDDFA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect any friendly Force here."
+          "title": "Defend",
+          "effect": "Defend any ally in this Front."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect two different friendly Forces here."
+          "effect": "Defend two different allies in this Front."
         }
       }
     },
@@ -111,20 +111,20 @@
       "faces": "SAAFDA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle."
+          "effect": "Attack enemy Middle."
         }
       }
     },
@@ -136,20 +136,20 @@
       "faces": "DDSADF",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect all friendly Forces here against one Strike each."
+          "effect": "Defend all allies in this Front against one Attack each."
         }
       }
     },
@@ -161,20 +161,20 @@
       "faces": "DSFAFA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; if its target is discarded, advance this Force one empty rank forward after combat."
+          "effect": "Attack; if target is discarded, advance one empty rank."
         }
       }
     },
@@ -186,20 +186,20 @@
       "faces": "ADFSFA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle."
+          "effect": "Attack enemy Middle."
         }
       }
     },
@@ -211,20 +211,20 @@
       "faces": "FASSAD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; ignore one Protect assigned to its target."
+          "effect": "Attack; ignore one Defend on target."
         }
       }
     },
@@ -236,20 +236,20 @@
       "faces": "FAASSD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; may defeat an equal-Force target."
+          "effect": "Attack; equal Force defeats."
         }
       }
     },
@@ -261,20 +261,20 @@
       "faces": "FAAADS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -286,20 +286,20 @@
       "faces": "AFDAFS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; may defeat an equal-Force target."
+          "effect": "Attack; equal Force defeats."
         }
       }
     },
@@ -311,20 +311,20 @@
       "faces": "DSFADD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect one friendly Force here against every Strike."
+          "effect": "Defend one ally in this Front against all Attacks."
         }
       }
     },
@@ -336,20 +336,20 @@
       "faces": "ADDSDF",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect nearest friendly Force behind."
+          "title": "Defend",
+          "effect": "Defend nearest ally behind."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect two different friendly Forces here."
+          "effect": "Defend two different allies in this Front."
         }
       }
     },
@@ -361,20 +361,20 @@
       "faces": "AFSDFA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -386,20 +386,20 @@
       "faces": "FADDAS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue one friendly Force here."
+          "effect": "Save one ally in this Front."
         }
       }
     },
@@ -411,20 +411,20 @@
       "faces": "DDFASA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect nearest friendly Force ahead."
+          "title": "Defend",
+          "effect": "Defend nearest ally ahead."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect two different friendly Forces here."
+          "effect": "Defend two different allies in this Front."
         }
       }
     },
@@ -436,20 +436,20 @@
       "faces": "AFDSAA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; may defeat an equal-Force target."
+          "effect": "Attack; equal Force defeats."
         }
       }
     },
@@ -461,20 +461,20 @@
       "faces": "DADSFD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect any friendly Force here."
+          "title": "Defend",
+          "effect": "Defend any ally in this Front."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect all friendly Forces here against one Strike each."
+          "effect": "Defend all allies in this Front against one Attack each."
         }
       }
     },
@@ -486,20 +486,20 @@
       "faces": "FASADF",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -511,20 +511,20 @@
       "faces": "SFFDAA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; ignore one Protect assigned to its target."
+          "effect": "Attack; ignore one Defend on target."
         }
       }
     },
@@ -536,20 +536,20 @@
       "faces": "DASASF",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle."
+          "effect": "Attack enemy Middle."
         }
       }
     },
@@ -561,20 +561,20 @@
       "faces": "DSAFAA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; if its target is discarded, advance this Force one empty rank forward after combat."
+          "effect": "Attack; if target is discarded, advance one empty rank."
         }
       }
     },
@@ -586,20 +586,20 @@
       "faces": "FDDADS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect nearest friendly Force behind."
+          "title": "Defend",
+          "effect": "Defend nearest ally behind."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue foremost friendly Force here."
+          "effect": "Save foremost ally in this Front."
         }
       }
     },
@@ -611,20 +611,20 @@
       "faces": "SDSRFD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "R": {
-          "title": "Rescue",
-          "effect": "Rescue foremost friendly Force."
+          "title": "Save",
+          "effect": "Save foremost ally."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue one friendly Force here."
+          "effect": "Save one ally in this Front."
         }
       }
     },
@@ -636,20 +636,20 @@
       "faces": "FDDRRS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "R": {
-          "title": "Rescue",
-          "effect": "Rescue foremost friendly Force."
+          "title": "Save",
+          "effect": "Save foremost ally."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue two different friendly Forces here."
+          "effect": "Save two different allies in this Front."
         }
       }
     },
@@ -661,20 +661,20 @@
       "faces": "DASSAF",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle."
+          "effect": "Attack enemy Middle."
         }
       }
     },
@@ -686,20 +686,20 @@
       "faces": "ADASFD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue a friendly Force here or in an adjacent active Front."
+          "effect": "Save a ally in this Front or in an adjacent open Front."
         }
       }
     },
@@ -711,20 +711,20 @@
       "faces": "ADFSSA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -736,20 +736,20 @@
       "faces": "SDFFAA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; ignore one Protect assigned to its target."
+          "effect": "Attack; ignore one Defend on target."
         }
       }
     },
@@ -761,20 +761,20 @@
       "faces": "FDDADS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect any friendly Force here."
+          "title": "Defend",
+          "effect": "Defend any ally in this Front."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect one friendly Force here against every Strike."
+          "effect": "Defend one ally in this Front against all Attacks."
         }
       }
     },
@@ -786,20 +786,20 @@
       "faces": "DRSFRD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "R": {
-          "title": "Rescue",
-          "effect": "Rescue foremost friendly Force."
+          "title": "Save",
+          "effect": "Save foremost ally."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue one friendly Force here."
+          "effect": "Save one ally in this Front."
         }
       }
     },
@@ -811,20 +811,20 @@
       "faces": "DFDSDA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect all friendly Forces here against one Strike each."
+          "effect": "Defend all allies in this Front against one Attack each."
         }
       }
     },
@@ -836,20 +836,20 @@
       "faces": "FFASAD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -861,20 +861,20 @@
       "faces": "DDAFSD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue foremost friendly Force here."
+          "effect": "Save foremost ally in this Front."
         }
       }
     },
@@ -886,20 +886,20 @@
       "faces": "ASFDSA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Rescue one friendly Force here."
+          "effect": "Save one ally in this Front."
         }
       }
     },
@@ -911,20 +911,20 @@
       "faces": "ASDAFS",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Middle."
+          "effect": "Attack enemy Middle."
         }
       }
     },
@@ -936,20 +936,20 @@
       "faces": "DFASSA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -961,20 +961,20 @@
       "faces": "ADFSFA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear; if empty, Middle; if empty, Frontline."
+          "effect": "Attack enemy Rear; otherwise Middle; otherwise Frontline."
         }
       }
     },
@@ -986,20 +986,20 @@
       "faces": "DDFSAD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Protect two different friendly Forces here."
+          "effect": "Defend two different allies in this Front."
         }
       }
     },
@@ -1011,20 +1011,20 @@
       "faces": "FAASDF",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Evade",
-          "effect": "Evade."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -1036,20 +1036,20 @@
       "faces": "DAFSDD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -1061,20 +1061,20 @@
       "faces": "AAFDSA",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect friendly Frontline."
+          "title": "Defend",
+          "effect": "Defend Frontline ally."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike enemy Rear."
+          "effect": "Attack enemy Rear."
         }
       }
     },
@@ -1086,20 +1086,20 @@
       "faces": "FASAAD",
       "outcomes": {
         "F": {
-          "title": "Falter",
-          "effect": "No combat effect."
+          "title": "Nothing",
+          "effect": "Nothing."
         },
         "D": {
-          "title": "Protect",
-          "effect": "Protect self."
+          "title": "Defend",
+          "effect": "Defend self."
         },
         "A": {
-          "title": "Strike",
-          "effect": "Strike."
+          "title": "Attack",
+          "effect": "Attack."
         },
         "S": {
           "title": "Special",
-          "effect": "Strike; may defeat an equal-Force target."
+          "effect": "Attack; equal Force defeats."
         }
       }
     }
