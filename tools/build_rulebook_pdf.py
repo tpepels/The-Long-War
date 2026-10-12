@@ -28,7 +28,7 @@ TYPST_SOURCE = DIST / "rulebook.typ"
 OUTPUT = DIST / "rulebook.pdf"
 
 MIN_PAGE_TEXT = 80
-MAX_PAGES_WARNING = 8
+MAX_PAGES_WARNING = 1
 
 
 
@@ -107,7 +107,7 @@ def markdown_to_typst(source: str, version: str) -> str:
       [#text(size: 7pt, weight: "bold", fill: rgb("#53636a"))[THE LONG WAR / FIELD MANUAL]],
       align(right)[
         #text(size: 7pt)[
-          #link("https://tpepels.github.io/The-Long-War/advanced-reference.html")[Full rules ↗]
+          #link("https://tpepels.github.io/The-Long-War/advanced-reference.html")[One-page rules ↗]
         ]
       ],
     )
@@ -457,15 +457,13 @@ def markdown_to_typst(source: str, version: str) -> str:
 
 def verify_pdf(path: Path, version: str) -> None:
     reader = PdfReader(str(path))
-    if len(reader.pages) < 2:
+    if len(reader.pages) != 1:
         raise RuntimeError(
-            f"Rulebook PDF output looks incomplete: {len(reader.pages)} page(s)"
+            f"The Long War must fit on exactly one A4 page; got {len(reader.pages)}"
         )
-    if len(reader.pages) > MAX_PAGES_WARNING:
-        print(
-            f"Warning: rulebook is {len(reader.pages)} pages "
-            f"(design target is at most {MAX_PAGES_WARNING}); continuing build."
-        )
+    page_box = reader.pages[0].mediabox
+    if abs(float(page_box.width) - 595.28) > 2 or abs(float(page_box.height) - 841.89) > 2:
+        raise RuntimeError("The one-page rulebook must be A4 portrait.")
 
     stamp = f"TLW print v{version}"
     for page_number, page in enumerate(reader.pages, 1):
