@@ -73,13 +73,39 @@ const rowGlyph=name=>H()?.row(name)||"";
 const effectTimingGlyph=name=>["front","middle","rear"].includes(name)?rowGlyph(name):["tireless","mobile"].includes(name)?utilityGlyph("move"):name==="exhausted"?utilityGlyph("marker"):timingGlyph(name);
 const isFormationCard=card=>["force","bond","name","hero"].includes(card.type);
 const isPaperD6=card=>Boolean(card.paper_d6);
+// The player should never have to decode a die face into a letter first.
+// Group the six die numbers under their actual printed outcome, in roll order.
+const D6_PICTOGRAMS={
+  attack:'<path d="M6 3l7 7m-9-4 4-4 9 9-4 4M18 3l-7 7m9-4-4-4-9 9 4 4M5 19l3-3m11 3-3-3"/>',
+  defend:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  save:'<path d="M12 21s-8-5.2-9-11a5.2 5.2 0 0 1 9-3.7A5.2 5.2 0 0 1 21 10c-1 5.8-9 11-9 11z"/><path d="M12 8v7m-3.5-3.5h7"/>',
+  nothing:'<path d="M5 12h14"/>'
+};
+function d6Action(effect){
+  const word=/^(Attack|Defend|Save|Nothing)\b/i.exec(effect)?.[1]?.toLowerCase();
+  return word||"nothing";
+}
 function combatStrip(card){
   const p=card.paper_d6;
-  const faces=[...p.faces].map((key,i)=>'<div class="d6-face" title="'+esc(p.outcomes[key].title)+'"><b>'+String(i+1)+'</b><span>'+esc(key)+'</span></div>').join("");
-  const operations=Object.entries(p.outcomes).map(([key,outcome])=>
-    '<div class="d6-outcome"><strong>'+esc(key)+'</strong><div><b>'+esc(outcome.title)+'</b><span>'+esc(outcome.effect)+'</span></div></div>'
-  ).join("");
-  return '<section class="d6-combat"><div class="d6-face-row" aria-label="Die results 1 through 6">'+faces+'</div><div class="d6-outcomes">'+operations+'</div></section>';
+  const outcomes=Object.entries(p.outcomes).map(([key,outcome])=>({
+    key,
+    effect:outcome.effect,
+    dice:[...p.faces].flatMap((face,index)=>face===key?[index+1]:[]),
+    action:d6Action(outcome.effect)
+  })).sort((a,b)=>a.dice[0]-b.dice[0]);
+  const rows=outcomes.map(outcome=>{
+    const dice=outcome.dice.map(face=>'<span class="d6-number" data-die-face="'+face+'">'+face+'</span>').join("");
+    const pictogram='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+      (D6_PICTOGRAMS[outcome.action]||D6_PICTOGRAMS.nothing)+'</svg>';
+    return '<div class="d6-result-row" data-outcome-key="'+esc(outcome.key)+'" data-action="'+esc(outcome.action)+'" aria-label="Roll '+
+      outcome.dice.join(" or ")+': '+esc(outcome.effect)+'">'+
+      '<div class="d6-numbers" aria-hidden="true">'+dice+'</div>'+
+      '<div class="d6-action-icon">'+pictogram+(outcome.key==="S"?'<span class="d6-special-mark" title="Distinctive card effect" aria-hidden="true">✦</span>':"")+'</div>'+
+      '<div class="d6-effect-text">'+esc(outcome.effect)+'</div></div>';
+  }).join("");
+  return '<section class="d6-combat" aria-label="Die results and card effects">'+
+    '<div class="d6-guide"><span>D6 ROLL</span><span>CARD EFFECT</span></div>'+
+    '<div class="d6-outcomes">'+rows+'</div></section>';
 }
 
 function statGroup(card){
