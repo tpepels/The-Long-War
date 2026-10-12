@@ -41,6 +41,12 @@ def main() -> None:
                0 <= c["command_cost"] <= 20
                for c in printed["cards"])
     assert all(not c.get("hero_name_command_cost") for c in printed["cards"])
+    assert all("Nothing" not in outcome["effect"]
+               for card in printed["cards"]
+               for outcome in card["paper_d6"]["outcomes"].values())
+    assert all(card["paper_d6"]["outcomes"]["F"]["effect"].startswith(
+               ("Defend", "Save", "Draw"))
+               for card in printed["cards"])
 
     # Spot-check representative intentional shared-roll combinations; full
     # probability and deck-coverage checks run in check_paper_d6_synergy.py.
