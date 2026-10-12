@@ -82,14 +82,15 @@ def test_drawable_orders_replace_the_reference_cards():
     assert not (ROOT / "cards/paper-d6-orders-prototype.json").exists()
 
 
-def test_force_cards_are_unchanged_and_short():
+def test_force_cards_never_roll_a_blank_and_stay_concise():
     pool = json.loads(CARDS.read_text(encoding="utf-8"))["cards"]
     assert len(pool) == 44
     for card in pool:
         assert len(card["faces"]) == 6
         assert len(card["outcomes"]) == 4
         assert set(card["faces"]) == set(card["outcomes"])
-        assert card["outcomes"]["F"]["effect"] == "Nothing."
+        assert card["outcomes"]["F"]["effect"].startswith(("Defend", "Save", "Draw"))
+        assert "Nothing" not in " ".join(x["effect"] for x in card["outcomes"].values())
         assert card["outcomes"]["D"]["effect"].startswith("Defend")
         third = "R" if card["role"] in ("healer", "steward") else "A"
         assert card["outcomes"][third]["effect"].startswith("Save" if third == "R" else "Attack")
