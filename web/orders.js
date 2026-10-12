@@ -39,7 +39,7 @@ function renderHand(){
   byId("order-hand").innerHTML=state.hand.map(c=>cardHTML(c,{choice:true})).join("");
   byId("hand-status").textContent=state.battles===0
     ?"Choose one of three Orders. It will be revealed to your opponent before the D6 rolls."
-    :"Battle "+state.battles+" resolved in this sample. "+state.hand.length+" Orders in hand; "+state.pile.length+" undrawn.";
+    :"Battle "+state.battles+" completed in this hand rehearsal. "+state.hand.length+" Orders in hand; "+state.pile.length+" undrawn.";
   byId("play-order").disabled=!state.selected;
 }
 function choose(uid){
@@ -72,7 +72,7 @@ async function init(){
     if(!response.ok)throw new Error("Card data was not published");
     const data=await response.json();
     if(data.status!=="canonical-paper-only"||data.orders.length!==4)
-      throw new Error("Unexpected prototype card data");
+      throw new Error("Unexpected Order deck data");
     state.cards=data.orders;
     state.copies=data.copies_per_order;
     byId("order-gallery").innerHTML=data.orders.map((card,i)=>cardHTML({...card,uid:"gallery-"+i})).join("");
