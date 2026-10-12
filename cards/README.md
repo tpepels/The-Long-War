@@ -1,19 +1,10 @@
-# Physical cards — D6 Force-only paper experiment
+# Physical game — one-page D6 edition
 
-**Active physical rules:** [player-rulebook.md](../rules/player-rulebook.md) (short guide) and [rulebook.md](../rules/rulebook.md) (complete D6 reference). These are *paper-only* and deliberately differ from the runtime.
+**There is only one paper rulebook:** [rules/rulebook.md](../rules/rulebook.md).
+The published [PDF](../web/rulebook.template.html) is verified as **exactly one A4 page**; [rules/player-rulebook.md](../rules/player-rulebook.md) is the same text for compatibility with existing print tools.
 
-- [paper-d6.json](paper-d6.json) — all **44 Force / Hero identities**, their one Force statistic, role, printed Command cost, six die-face mappings and four combat outcomes.
-- [paper-d6-decks.json](paper-d6-decks.json) — three **24-card** decks for first tabletop tests.
-- [paper_d6_cards.py](../tools/paper_d6_cards.py) — projects existing card identities/artwork into the **experimental printable dataset**, without changing executable cards.json.
-- [check_paper_d6.py](../tools/check_paper_d6.py) — schema, membership and paper-only isolation checks.
-- [playmat.html](../web/playmat.html) and [tokens.html](../web/tokens.html) — battlefield reference and reusable hidden Battle Plan cards.
+The current printable cards are in [paper-d6.json](paper-d6.json): 44 Force/Hero identities, their Force statistics, costs, roles, six D6 faces, and four simple results (Attack, Defend, Save, Nothing or a brief printed Special). Use the three [24-card paper decks](paper-d6-decks.json).
 
-**All old Bonds, Names, Tactics, Orders, Stratagems, Narratives, printed special abilities, conditions and Opening Orders are suspended in this prototype.** The printable cards display only the D6 behaviour. Every Force can participate once per Battle without a normal Attack action. Players roll independently, one D6 per occupied Front.
+The only army-wide Battle Plans are **Assault, Hold, Volley, Raid**. Their behavior is printed on the [Battle Plan cards](../web/tokens.html). No separate counters, Tactical Read, Pressure, Pin, Opportunities, rank bonuses or status markers exist. There are no hidden advanced paper rules.
 
-## Legacy material retained
-
-`cards.json` remains canonical **for the separate engine/Webgame only**. `print-overrides.json`, `playtest-decks.json`, `playtest-decks.md`, `mechanic-coverage-decks.json`, former cost reviews and old audits document the previous 131-card Bond/Name physical experiment and **are not the current physical rules**. The D6 assembler reads these older sources solely to reuse art metadata, IDs, validated row restrictions and experimental card prices.
-
-Original PNG art remains in `web/art/cards`; `tools/build_pages.py` now publishes the 44-card D6 catalogue, three 24-card decks and revised physical rulebook. The executable `dist/data/cards.json` remains the unchanged 131-card runtime export and is not a source for paper gameplay.
-
-This prototype has not yet been physically playtested or balanced. Do not report historical engine results as D6 evidence.
+The older [cards.json](cards.json), [print-overrides.json](print-overrides.json), old audits, and runtime deck definitions are retained strictly for the **unchanged digital engine** and historical metadata. The paper-only builder [tools/paper_d6_cards.py](../tools/paper_d6_cards.py) reuses art and rank restrictions. Engine and AI are not synchronized to this paper edition.
