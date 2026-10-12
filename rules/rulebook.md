@@ -1,23 +1,23 @@
 # The Long War
 
-*Deploy an army, predict your opponent and fight for territory. Survivors stay. Defeated Forces never return.*
+*Deploy an army, outguess your opponent and fight for territory. Surviving Forces stay. Defeated Forces are gone forever.*
 
-## Set up
+## Prepare
 
-Take a **24-card Force deck**, a **Command card**, four **Battle Plan cards** and one D6 per player. Use the four Fronts on the battlefield mat, each with **Frontline, Middle and Rear** on both sides. Only open Fronts may be used. Follow your Command card to prepare.
+Each player takes a **24-card Force deck**, four **Battle Plans**, a **Command card** and a D6. Use the four-Front battlefield mat. Follow the setup on your Command card.
 
 ## Deploy
 
-Players alternate turns. **Draw, play or move Forces** as explained on your Command card. Only one Force fits in each space, and each card shows where it can be placed. One player may **Pass** to end deployment; the opponent gets one final turn.
+Take turns drawing cards and playing or moving Forces. Each Force shows its cost and permitted positions; the Command card shows your actions. When one player **Passes**, the opponent takes one final turn.
 
-## Make a plan
+## Plan
 
-Each player secretly chooses **one Battle Plan for the entire army**. Reveal both before rolling and follow what the Plan cards say.
+Both players secretly choose **one Battle Plan for their whole army**. Reveal together before rolling. Do what the Plan cards say.
 
 ## Fight
 
-Each player rolls **one D6 for each Front containing their Forces**. Every Force in that Front follows **its own card's result** for that number. Both armies act simultaneously, even Forces that will be defeated. Declare targets together; follow the cards' Attack, Defend, Save and Special instructions. Remove defeated Forces permanently. Survivors hold their positions.
+Each player rolls **one D6 per Front containing their Forces**. Every Force there uses the matching result on **its own card**. Declare targets together; resolve all effects simultaneously, even for Forces that will be defeated. Remove defeated Forces permanently. Survivors stay.
 
 ## Win
 
-Whichever player has **more surviving Forces** in a Front controls it. Use the Command card to adjust Command and check victory. Then start the next Battle.
+Whoever has **more surviving Forces** in a Front controls it. Adjust Command and check victory using the Command card. Then continue the war.
