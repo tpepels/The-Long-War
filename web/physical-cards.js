@@ -112,7 +112,7 @@ function combatStrip(card){
       '" data-face-count="'+outcome.dice.length+
       '" style="--stanza-weight:'+weight+'" aria-label="On D6 roll '+
       outcome.dice.join(" or ")+': '+esc(outcome.effect)+'">'+
-      '<span class="d6-rolls" aria-hidden="true">'+PAPER_DIE_ICON+
+      '<span class="d6-rolls" aria-hidden="true">'+
       '<span class="d6-roll-values">'+rolls+'</span></span>'+
       '<p class="d6-copy"><strong class="d6-action-word">'+esc(outcome.action)+
       '</strong>'+(outcome.detail?' <span class="d6-detail">'+esc(outcome.detail)+'</span>':'')+
@@ -121,7 +121,7 @@ function combatStrip(card){
       '</section>';
   }).join("");
   return '<section class="d6-combat" aria-label="D6 roll outcomes">'+
-    '<div class="d6-roll-key" aria-hidden="true">D6 ROLL <span class="d6-key-arrow">→</span> EFFECT</div>'+
+    '<span class="d6-gutter-die" aria-hidden="true">'+PAPER_DIE_ICON+'</span>'+
     '<div class="d6-stanzas">'+stanzas+'</div></section>';
 }
 
@@ -197,10 +197,12 @@ function placementRuleBlock(card){
   return '<section class="placement-rule"><div class="effect-head"><span class="placement-rule-label">PLACEMENT</span></div><div class="placement-rule-text">'+formatRuleText(text,{icons:false})+'</div></section>';
 }
 function stackEdge(card){
-  if(isPaperD6(card))return '<header class="stack-edge" data-edge-layout="three-zone">'+
-    '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
-    '<div class="edge-zone edge-zone-middle edge-identity">'+classificationIcons(card)+placementMarkup(card)+'</div>'+
-    '<div class="edge-zone edge-zone-right d6-role">'+esc(card.paper_d6.role.toUpperCase())+'</div></header>';
+  // D6 Forces are standalone cards, not layered formations. The old exposed
+  // class/effect zones are unnecessary: give their top band to the card name.
+  if(isPaperD6(card))return '<header class="stack-edge paper-card-head" aria-label="'+esc(card.title)+'">'+
+    '<div class="paper-head-force">'+statGroup(card)+'</div>'+
+    '<h3 class="card-title paper-head-title">'+esc(card.title)+'</h3>'+
+    '<div class="paper-head-positions">'+placementMarkup(card)+'</div></header>';
   const reminders=liveEffects(card);
   return '<header class="stack-edge" data-edge-layout="three-zone">'+
     '<div class="edge-zone edge-zone-left">'+statGroup(card)+'</div>'+
@@ -317,7 +319,7 @@ function artStyle(card,options={}){
 function cardArticle(card,extra="",options={}){
   const density=densityClass(card),titleDensity=card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":"",heroMode=options.heroMode==="name"?"name":"force";
   const footerMark=typeGlyph(card.type);
-  return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="motif-field" aria-hidden="true"></div><div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3></div><div class="rules">'+rules(card)+'</div></div><footer class="card-footer">'+(card.unique?'<span class="footer-unique">Unique</span>':"")+classificationLine(card)+'<span class="footer-mark">'+footerMark+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
+  return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="motif-field" aria-hidden="true"></div>'+(isPaperD6(card)?'':'<div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3></div>')+'<div class="rules">'+rules(card)+'</div></div><footer class="card-footer">'+(card.unique?'<span class="footer-unique">Unique</span>':"")+classificationLine(card)+'<span class="footer-mark">'+footerMark+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
@@ -334,7 +336,7 @@ function inspect(root=document){
   const box=card.getBoundingClientRect();if(!box.width||!box.height)return;
   const problems=[],edge=card.querySelector(".stack-edge");
   for(const node of card.querySelectorAll(".stack-edge,.edge-identity,.edge-live-group,.card-title,.motif-field,.rules,.card-footer"))if(node.scrollWidth>node.clientWidth+1||node.scrollHeight>node.clientHeight+1)problems.push((node.classList[0]||"node")+"-overflow");
-  if(edge)for(const node of edge.querySelectorAll(".edge-stats,.hero-stats,.edge-identity,.edge-live-group"))if(node.getBoundingClientRect().bottom>box.top+10.5*mm+.5)problems.push("covered-edge");
+  if(edge&&!card.classList.contains("paper-d6-layout"))for(const node of edge.querySelectorAll(".edge-stats,.hero-stats,.edge-identity,.edge-live-group"))if(node.getBoundingClientRect().bottom>box.top+10.5*mm+.5)problems.push("covered-edge");
   const art=card.querySelector(".motif-field"),rules=card.querySelector(".rules"),footer=card.querySelector(".card-footer");
   if(art&&rules&&rules.getBoundingClientRect().top<art.getBoundingClientRect().bottom-.5)problems.push("art-rules-overlap");
   if(rules&&footer&&rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+.5)problems.push("rules-footer-overlap");
