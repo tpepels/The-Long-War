@@ -134,7 +134,13 @@ def build_print_art() -> None:
     target_dir.mkdir(parents=True, exist_ok=True)
 
     cards = load_card_file(CARDS)["cards"]
-    art_ids = sorted({card.get("art_id", card["id"]) for card in cards})
+    # Orders reuse paintings from retired card identities. Publish them even
+    # if those old cards are later removed from the historical executable pool.
+    order_data = json.loads((ROOT / "cards/paper-d6-orders.json").read_text(encoding="utf-8"))
+    art_ids = sorted(
+        {card.get("art_id", card["id"]) for card in cards}
+        | {order["art_id"] for order in order_data["orders"]}
+    )
     for art_id in art_ids:
         source = source_dir / (art_id + ".png")
         if not source.is_file():
