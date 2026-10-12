@@ -112,6 +112,9 @@ def print_build_version() -> str:
         WEB / "site-nav.template.html",
         WEB / "playmat.html",
         WEB / "tokens.html",
+        WEB / "orders.html",
+        WEB / "orders.css",
+        WEB / "orders.js",
         *(WEB / "art" / "card-frame" / (name + ".png") for name in CARD_FRAME_MAX_PX),
         *REFERENCE_DECKS,
     ]
