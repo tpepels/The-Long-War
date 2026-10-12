@@ -64,19 +64,32 @@ doros-the-last-spear FASAAD""".splitlines())
 
 def action(card: dict, die: int) -> str:
     effect = card["outcomes"][card["faces"][die - 1]]["effect"]
-    for prefix in ("Attack", "Defend", "Save"):
+    for prefix in ("Attack", "Defend", "Save", "Draw"):
         if effect.startswith(prefix):
             return prefix
-    return "Nothing"
+    raise AssertionError("Unsupported or blank combat result: " + card["id"] + " - " + effect)
 
 
-def test_same_effect_probabilities_for_every_force():
+def test_original_dice_face_probabilities_for_every_force():
     assert len(CARDS) == len(ORIGINAL) == 44
     for card_id, original in ORIGINAL.items():
         card = CARDS[card_id]
         assert Counter(card["faces"]) == Counter(original), card_id
         assert len(card["faces"]) == 6
         assert len(card["outcomes"]) == 4
+
+
+def test_all_44_forces_have_no_empty_results_and_no_extra_basic_attacks():
+    assert len(CARDS) == 44
+    support = [card["outcomes"]["F"]["effect"] for card in CARDS.values()]
+    assert all(text.startswith(("Defend", "Save", "Draw")) for text in support)
+    assert all("Nothing" not in text for text in support)
+    assert len(set(support)) >= 18
+    # Every original F face is still in the same place and provides support,
+    # not a surprise unconditional Attack that raises the baseline kill rate.
+    for cid, card in CARDS.items():
+        assert card["faces"].count("F") == ORIGINAL[cid].count("F")
+        assert all(action(card, die) != "Nothing" for die in range(1, 7))
 
 
 def test_intentional_three_force_combinations_on_same_roll():
@@ -130,7 +143,7 @@ def test_all_six_faces_offer_distinct_deckwide_ensembles():
             profile = tuple(
                 sum(item["copies"] for item in deck["cards"]
                     if action(CARDS[item["id"]], die) == word)
-                for word in ("Attack", "Defend", "Save", "Nothing")
+                for word in ("Attack", "Defend", "Save", "Draw")
             )
             assert sum(profile) == 24
             profiles.append(profile)
@@ -138,11 +151,12 @@ def test_all_six_faces_offer_distinct_deckwide_ensembles():
 
 
 def main() -> None:
-    test_same_effect_probabilities_for_every_force()
+    test_original_dice_face_probabilities_for_every_force()
+    test_all_44_forces_have_no_empty_results_and_no_extra_basic_attacks()
     test_intentional_three_force_combinations_on_same_roll()
     test_no_starter_deck_has_empty_or_universal_attack_rolls()
     test_all_six_faces_offer_distinct_deckwide_ensembles()
-    print("PASS: preserved all 44 D6 probability distributions, 6 intentional lineups and balanced face activity across three starter decks.")
+    print("PASS: all 44 six-face distributions preserved, zero blank outcomes, 6 intentional lineups and balanced activity.")
 
 
 if __name__ == "__main__":
