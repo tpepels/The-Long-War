@@ -1,52 +1,52 @@
-# The Long War — One-page rules
+# The Long War — The rules
 
-*Two players. Four Fronts. Surviving Forces stay; casualties are gone for good.*
+*Deploy an army, predict your opponent, and fight for territory. Surviving Forces stay. Defeated Forces are gone forever.*
 
-## 1. Prepare
+## 1. Set up
 
-Each player takes a **24-card Force deck**, **20 Command**, four reusable **Battle Plans**, and one D6. Shuffle and draw **10 cards**. Choose a first player.
+Each player takes a **24-card deck**, **20 Command**, four reusable **Battle Plans**, and one D6. Shuffle and draw **10 cards**. Choose who starts.
 
-The battlefield has **four Fronts**. Each player has **Frontline, Middle and Rear** in every Front, with room for **one Force per position**. Start with **Fronts 2 and 3** open; open Front 1 before Battle II and Front 4 before Battle III. Closed Fronts cannot be used.
+There are **four Fronts**. Each player has three positions in each Front: **Frontline, Middle, Rear** (one Force per position). Open Fronts **2 and 3** first, Front **1** before Battle II, and Front **4** before Battle III.
 
-## 2. Deploy your army
+## 2. Deploy
 
-Take turns. **Draw one card** (discard to 10 if needed), then take **up to two actions**:
+On your turn, **draw one** (hand limit 10), then take up to **two actions**:
 
-- **Play** a Force into an empty, permitted position, paying its Command cost.
-- **Move** one Force one rank forward/back in its Front or sideways to the same rank in an adjacent open Front, paying **1 Command**. The destination must be empty.
+- **Play** a Force (including a Hero) in an empty, permitted position, paying its Command cost.
+- **Move** a Force to an empty adjacent position: forward/back one rank, or sideways to the same rank in an adjacent open Front. Pay **1 Command**.
 
-You may finish early. Instead of taking a turn, you may **Pass**. Your opponent gets **one final turn**, then the Battle begins. The player who did not Pass starts the next Battle. You cannot spend Command below zero.
+You may end early. Or **Pass** instead of taking a turn: your opponent gets one final turn, then the Battle begins. The non-passer starts the next Battle. You cannot spend Command below zero.
 
-## 3. Choose a secret Battle Plan
+## 3. Pick a secret Battle Plan
 
-Both players secretly choose **one Plan for their entire army**. Reveal together **before rolling**.
+Each player secretly picks **one Plan for their entire army**. Reveal both **before rolling**.
 
-| Plan | What it does |
+| Plan | Effect |
 | --- | --- |
-| **Assault** | After fighting, move **one surviving Force per Front** one empty rank forward. |
-| **Hold** | Before rolling, withdraw **one Force per Front** one empty rank. Your Defends may protect any ally in that Front. |
-| **Volley** | Your **Archers** may Attack any enemy in their Front, including Middle or Rear. |
-| **Raid** | Before rolling, move **one Raider, Rider or Skirmisher per Front** sideways to an empty position in an adjacent open Front. These Forces may Attack Middle or Rear enemies. |
+| **Assault** | After fighting, advance one surviving Force one empty rank forward per Front. |
+| **Hold** | Before rolling, withdraw one Force one empty rank per Front. Defend may protect any ally in that Front. |
+| **Volley** | Your Archers may Attack any enemy in their Front, including Middle or Rear. |
+| **Raid** | Before rolling, move one Raider/Rider/Skirmisher per Front sideways to an empty same-rank position in an adjacent open Front. They may Attack enemy Middle or Rear. |
 
-Otherwise, Attacks target the **foremost enemy** (Frontline, otherwise Middle, otherwise Rear). A card's explicitly named target takes precedence. Plans offer natural counters: **Hold vs Assault; Raid vs Hold; Volley vs Raid; Assault vs Volley**. There are **no counter bonuses**.
+Other Attacks target the **foremost enemy** (Frontline, otherwise Middle, otherwise Rear). A card's named target overrides this. Plans have different strengths and natural counters, but **no extra counter rules**.
 
 ## 4. Fight
 
-**Each player rolls one D6 for every Front containing their Forces.** All their Forces in that Front use that roll, but each reads the matching result on **its own card**.
+Each player rolls **one D6 per Front containing their Forces**. All their Forces there use that roll, but each follows the matching result **on its own card**.
 
-1. **Declare Attacks** and their legal targets simultaneously. Multiple Forces may Attack the same enemy.
-2. **Defend:** each Defend cancels **one incoming Attack** against an eligible Force (unless a card says otherwise).
-3. **Defeat:** an uncancelled Attack defeats its target if the attacker's **Force is higher**. Each *additional uncancelled Attack on the same target* gives **+1 effective Force** to every Attack against it. Equal Force does not defeat unless a card says otherwise.
-4. **Save:** a Save result prevents **one eligible Force's entire defeat**, even from several Attacks. Apply all results simultaneously, then discard defeated Forces permanently. Other Specials do exactly what their card says.
+1. **Attack:** both players declare legal targets simultaneously.
+2. **Defend:** cancel one incoming Attack against an eligible ally, unless the card says otherwise.
+3. **Defeat:** an uncancelled Attack wins if its **Force exceeds the target's**. Each additional uncancelled Attack against that target adds **+1 Force to every Attack there**. Equal Force does not defeat unless a card says otherwise.
+4. **Save:** prevent one eligible Force's **entire defeat**. Other Specials do exactly what is printed.
 
-All Forces act, even if defeated in the same exchange. Effects only reach their **own Front** unless a card explicitly says otherwise. No wounds or status markers.
+**All Forces act**, even if defeated in the same exchange. Remove all defeated Forces together. Effects apply only within their Front unless a card explicitly says otherwise. No wounds or status markers.
 
-## 5. Hold territory and continue
+## 5. Control and continue
 
-The player with **more surviving Forces** in a Front controls it; equal numbers mean contested. **Ranks do not add points.** For every Front your opponent controls, **lose 1 Command**. If Command reaches **0**, you lose **before recovery**.
+Whoever has **more surviving Forces** in a Front controls it; ties are contested. **Ranks score no extra points.** Lose **1 Command for every Front your opponent controls**. At **0 Command**, you lose immediately.
 
-Otherwise, both players **recover 5 Command** (maximum 20) and draw back up to **10 cards**. Survivors remain in place; start the next Battle. When the deck is empty, reshuffle ordinary discards; **casualties never return**.
+Otherwise, each player recovers **5 Command** (maximum 20) and draws back to **10 cards**. Surviving Forces remain. When your deck runs out, reshuffle ordinary discards; **never reshuffle casualties**.
 
-## 6. Win the war
+## 6. Win
 
-Reduce your opponent to **0 Command**. If neither player falls after **eight Battles**, whoever controls more Fronts wins; if tied, more Command wins; if still tied, it is a draw.
+Make your opponent reach **0 Command**. If neither collapses after **eight Battles**, more controlled Fronts wins; ties go to higher Command, then a draw. If both reach 0 together, the game is a draw.
