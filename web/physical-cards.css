@@ -2054,9 +2054,26 @@ EXPOSED TOP ROW - TUNING PANEL
   border-radius: 1mm;
 }
 .d6-combat {
+  position: relative;
   height: 100%;
-  padding: .35mm .3mm;
+  padding: 2.55mm .3mm .3mm;
   color: #242820;
+}
+/* One typographic key explains the meaning of all six roll numerals. */
+.d6-roll-key {
+  position: absolute;
+  left: .7mm;
+  top: .2mm;
+  color: #655138;
+  font: 750 1.95mm/1 var(--utility);
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+.d6-key-arrow {
+  margin: 0 .7mm;
+  color: #96794c;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 .d6-stanzas {
   display: flex;
@@ -2087,17 +2104,32 @@ EXPOSED TOP ROW - TUNING PANEL
 /* Die numerals are editorial marginalia, not a separate boxed column. */
 .d6-rolls {
   position: absolute;
-  left: .4mm;
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 10.85mm;
+  width: 11.4mm;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .32mm;
   white-space: nowrap;
-  text-align: right;
   color: #5a3e27;
-  font: 600 4.6mm/1 var(--display);
+  font: 600 4.4mm/1 var(--display);
   font-variant-numeric: lining-nums;
 }
-.d6-stanza[data-face-count="3"] .d6-rolls { font-size: 4mm; }
+.d6-die-icon {
+  display: block;
+  width: 2.5mm;
+  height: 2.5mm;
+  flex: 0 0 2.5mm;
+  color: #8b6b3e;
+}
+.d6-roll-values {
+  display: inline-block;
+  white-space: nowrap;
+  line-height: 1;
+}
+.d6-stanza[data-face-count="3"] .d6-rolls { font-size: 3.32mm; }
 .d6-number { display: inline; }
 .d6-number:not(:last-child)::after {
   content: "·";
