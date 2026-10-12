@@ -44,9 +44,29 @@ window.addEventListener("load",async()=>{{
   for(const card of document.querySelectorAll(".paper-d6-layout")){{
     const id=card.dataset.cardId;
     const rules=card.querySelector(".rules");
-    const faces=card.querySelectorAll(".d6-face");
-    const effects=card.querySelectorAll(".d6-outcome");
-    if(faces.length!==6||effects.length!==4)issues.push(id+":missing-die-faces");
+    const faces=[...card.querySelectorAll(".d6-number")];
+    const rows=[...card.querySelectorAll(".d6-result-row")];
+    const header=card.querySelector(".d6-guide");
+    if(faces.length!==6||rows.length!==4||!header)issues.push(id+":missing-direct-roll-table");
+    const printed=faces.map(face=>Number(face.textContent));
+    if(printed.join(",")!=="1,2,3,4,5,6" &&
+       [...printed].sort((a,b)=>a-b).join(",")!=="1,2,3,4,5,6")
+      issues.push(id+":die-values-missing-or-repeated");
+    if(card.querySelectorAll(".d6-face-row,.d6-outcome,.d6-face").length)
+      issues.push(id+":legacy-two-step-die-lookup");
+    for(const row of rows){{
+      const key=row.dataset.outcomeKey;
+      const represented=faces.filter(face=>face.parentElement?.parentElement===row)
+        .map(face=>Number(face.textContent));
+      const expected=[...cards.find(c=>c.id===id).paper_d6.faces]
+        .flatMap((letter,index)=>letter===key?[index+1]:[]);
+      if(represented.join(",")!==expected.join(","))
+        issues.push(id+":incorrect-roll-mapping-"+key);
+      for(const part of [row,row.querySelector(".d6-effect-text"),row.querySelector(".d6-numbers")]){{
+        if(part&&(part.scrollHeight>part.clientHeight+2||part.scrollWidth>part.clientWidth+2))
+          issues.push(id+":outcome-content-clipped-"+key);
+      }}
+    }}
     if(rules.scrollHeight>rules.clientHeight+2)issues.push(id+":outcomes-clipped");
     const footer=card.querySelector(".card-footer");
     if(rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+1)
@@ -65,7 +85,7 @@ window.addEventListener("load",async()=>{{
     status = html.unescape(match.group(1)) if match else "D6 layout test did not finish"
     if status != "PASS":
         raise SystemExit("FAIL D6 paper layout: " + status[:4000])
-    print("PASS: 44 D6 cards fit without clipped outcomes or footer overlaps")
+    print("PASS: all 44 printed D6 cards have direct six-face lookup, four fully visible effects and no footer overlap")
 
 
 if __name__ == "__main__":
