@@ -1,10 +1,13 @@
-# Physical game — one-page D6 edition
+# The Long War — card-led physical edition
 
-**There is only one paper rulebook:** [rules/rulebook.md](../rules/rulebook.md).
-The published PDF at https://tpepels.github.io/The-Long-War/rulebook.pdf is verified as **exactly one A4 page**; [rules/player-rulebook.md](../rules/player-rulebook.md) is the same text for compatibility with existing print tools.
+The **entire core rulebook** is [rules/rulebook.md](../rules/rulebook.md): a five-step introduction (under 200 words). [rules/player-rulebook.md](../rules/player-rulebook.md) mirrors it solely for PDF publishing. There are no other paper rules or advanced chapters.
 
-The current printable cards are in [paper-d6.json](paper-d6.json): 44 Force/Hero identities, their Force statistics, costs, roles, six D6 faces, and four simple results (Attack, Defend, Save, Nothing or a brief printed Special). Use the three [24-card paper decks](paper-d6-decks.json).
+To play, print:
+- [Battle Plan and Command cards](../web/tokens.html) — **four secret Plans and one visible Command card per player**. Command cards contain turn actions, combat arithmetic, hand management, Command recovery and victory. Plan cards define all plan-specific targeting and movement.
+- [44 Force/Hero cards](paper-d6.json) — printed Force, Command price, permitted positions, six D6 faces and card-specific combat results. Every Force describes its own effects.
+- [Three 24-card sample decks](paper-d6-decks.json).
+- [Battlefield mat](../web/playmat.html) — rank positions and Front opening schedule only, not another rules document.
 
-The only army-wide Battle Plans are **Assault, Hold, Volley, Raid**. Their behavior is printed on the [Battle Plan cards](../web/tokens.html). The plans have different effects but no separate counter bonuses, additional phases, or persistent markers. There are no hidden advanced paper rules.
+The physical vocabulary remains **Attack, Defend, Save, Nothing**, plus brief printed Specials. The printed Command card explains these three operations. There are no Pressure, Pin, Tactical Read or Opportunity rules and no status tracking.
 
-The older [cards.json](cards.json), [print-overrides.json](print-overrides.json), old audits, and runtime deck definitions are retained strictly for the **unchanged digital engine** and historical metadata. The paper-only builder [tools/paper_d6_cards.py](../tools/paper_d6_cards.py) reuses art and rank restrictions. Engine and AI are not synchronized to this paper edition.
+The original [cards.json](cards.json), old print overrides and runtime decks remain unchanged for the **separate digital engine** and historical metadata. The paper print adapter reuses art and placement data but neither changes the engine nor AI.
