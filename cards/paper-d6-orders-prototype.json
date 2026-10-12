@@ -22,7 +22,7 @@
       "id": "hold",
       "title": "Hold",
       "timing": "Before rolling",
-      "effect": "Withdraw one Force one empty rank per Front. Your Defend results can protect any ally in that Front.",
+      "effect": "Withdraw one Force one empty rank per Front. Your Defend results can protect any ally in their Front.",
       "theme": "Preserve the line",
       "symbol": "shield"
     },
