@@ -26,9 +26,9 @@ EXPECTED = {
     ),
     "raid": (
         "Before rolling and during combat",
-        "Move one Raider, Rider or Skirmisher per Front sideways into an empty "
-        "space in an adjacent open Front, staying in its rank. "
-        "They may Attack enemy Middle or Rear.",
+        "Move one Raider, Rider or Skirmisher per Front to an empty "
+        "same-rank space in an adjacent open Front. They may Attack enemy "
+        "Middle or Rear."
     ),
 }
 
