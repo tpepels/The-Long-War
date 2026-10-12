@@ -37,21 +37,20 @@ def main() -> None:
     assert all(c["effects"] == [] and c["rule_blocks"] == [] for c in printed["cards"])
     assert all(not any(word in str(c["paper_d6"]).lower() for word in
                    ("bond", "named", "stratagem", "narrative", "exhausted"))
-               for c in printed["cards"])
+               for c in forces)
     assert all(len(c["paper_d6"]["faces"]) == 6 and
                len(c["paper_d6"]["outcomes"]) == 4 and
                set(c["paper_d6"]["faces"]) == set(c["paper_d6"]["outcomes"])
-               for c in printed["cards"])
+               for c in forces)
     assert all(1 <= c["paper_d6"]["force"] <= 6 and
-               2 <= c["command_cost"] <= 5
-               for c in printed["cards"])
-    assert all(not c.get("hero_name_command_cost") for c in printed["cards"])
+               2 <= c["command_cost"] <= 5 for c in forces)
+    assert all(not c.get("hero_name_command_cost") for c in forces)
     assert all("Nothing" not in outcome["effect"]
                for card in forces
                for outcome in card["paper_d6"]["outcomes"].values())
     assert all(card["paper_d6"]["outcomes"]["F"]["effect"].startswith(
                ("Defend", "Save", "Draw", "Recover", "Move", "Advance"))
-               for card in printed["cards"])
+               for card in forces)
 
     # Spot-check representative intentional shared-roll combinations; full
     # probability and deck-coverage checks run in check_paper_d6_synergy.py.
