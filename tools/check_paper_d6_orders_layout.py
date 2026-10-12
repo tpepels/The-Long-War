@@ -79,8 +79,8 @@ def main() -> None:
     )
     data_literal = json.dumps(data).replace("<", "\\u003c")
     scripts = (
-        '<script>window.fetch=async()=>({ok:true,json:async()=>'
-        + data_literal + '});</script>'
+        '<script>window.fetch=async()=>({ok:true,json:async()=>('
+        + data_literal + ')});</script>'
         + '<script>' + js + '</script>'
         + '<div id="order-layout-result"></div>'
         + '<script>' + CHECK + '</script>'
