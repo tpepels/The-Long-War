@@ -2024,136 +2024,156 @@ EXPOSED TOP ROW - TUNING PANEL
   }
 }
 
-/* Card-led D6 typography. Printed outcomes are the primary reading surface.
-   Artwork and title remain a separate, quieter upper chapter of the card. */
+/* Printed D6 cards — illuminated marginalia, not a four-row HTML table.
+   The illustration occupies a large chapter; the effects read as four small
+   typographic passages on the parchment under the title. */
 .paper-d6-layout {
-  --art-height: 19.2mm;
-  --identity-height: 12mm;
-  --title-height: 7.2mm;
+  --art-height: 25.7mm;
+  --identity-height: 8.6mm;
+  --title-height: 7.3mm;
 }
 .paper-d6-layout .card-identity {
-  flex-basis: 9mm;
-  height: 9mm;
-  min-height: 9mm;
+  flex-basis: 8.6mm;
+  height: 8.6mm;
+  min-height: 8.6mm;
 }
 .paper-d6-layout .rules {
-  margin: 0.36mm -0.32mm 0.15mm -0.32mm;
+  margin: .18mm -.1mm .16mm;
   padding: 0;
   overflow: hidden;
 }
 .paper-d6-layout .d6-role {
   justify-content: flex-end;
-  font: 700 2.35mm/1.15 var(--utility);
-  letter-spacing: .02em;
+  font: 700 2.35mm/1.1 var(--utility);
+  letter-spacing: .025em;
   text-transform: uppercase;
-  text-align: right;
+}
+.paper-d6-layout .motif-field::before {
+  inset: .65mm .75mm .38mm;
+  border-radius: 1mm;
 }
 .d6-combat {
+  display: block;
+  height: 100%;
+  width: 100%;
+  padding: .2mm .45mm .18mm;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+.d6-stanzas {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: .2mm solid rgba(59,55,43,.40);
-  border-radius: .95mm;
-  background: rgba(255,251,241,.92);
-  overflow: hidden;
+  min-height: 0;
+  padding-left: 1.75mm;
 }
-.d6-guide {
-  display: grid;
-  grid-template-columns: 19.9mm minmax(0,1fr);
-  flex: 0 0 3mm;
-  align-items: center;
-  padding: 0 1.05mm;
-  border-bottom: .19mm solid rgba(60,53,37,.42);
-  background: rgba(64,58,46,.095);
-  color: #463e30;
-  font: 700 2.05mm/1 var(--utility);
-  letter-spacing: .075em;
+.d6-stanzas::before {
+  content: "";
+  position: absolute;
+  left: .55mm;
+  top: 1.1mm;
+  bottom: 1.2mm;
+  width: .27mm;
+  background: linear-gradient(to bottom, transparent, #8e764d 9%, #8e764d 91%, transparent);
+  opacity: .65;
 }
-.d6-outcomes {
+.d6-stanza {
+  position: relative;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-.d6-result-row {
-  display: grid;
-  grid-template-columns: 15.3mm 4mm minmax(0,1fr);
-  gap: .5mm;
-  align-items: center;
-  flex: 1 1 auto;
-  min-height: 6.35mm;
-  padding: .36mm .52mm;
-  border-bottom: .18mm solid rgba(60,54,44,.23);
-}
-.d6-result-row:nth-child(even) { background: rgba(92,74,41,.035); }
-.d6-result-row:last-child { border-bottom: 0; }
-.d6-result-row[data-outcome-key="S"] {
-  background: rgba(159,130,70,.105);
-  box-shadow: inset .65mm 0 rgba(138,105,46,.65);
-}
-.d6-result-row[data-action="nothing"] { color: #5a554a; }
-.d6-numbers {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .39mm;
-  min-width: 0;
-}
-.d6-number {
-  width: 4.15mm;
-  height: 4.35mm;
-  flex: 0 0 4.15mm;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  border: .25mm solid #4d4538;
-  border-radius: .63mm;
-  background: #fbf8f0;
-  color: #26251f;
-  font: 800 3.1mm/1 var(--utility);
-  font-variant-numeric: tabular-nums;
+  flex: var(--stanza-weight, 1) 1 0;
+  min-height: 0;
+  padding: .35mm .35mm .35mm 1mm;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: #272822;
 }
-.d6-result-row[data-outcome-key="S"] .d6-number {
-  background: #4b4435;
-  color: #faf0d8;
-}
-.d6-action-icon {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 3.9mm;
-  height: 4mm;
-  color: #32372e;
-}
-.d6-action-icon svg {
-  display: block;
-  width: 3.65mm;
-  height: 3.65mm;
-}
-.d6-result-row[data-action="save"] .d6-action-icon { color: #405548; }
-.d6-special-mark {
+.d6-stanza:not(:last-child)::after {
+  content: "";
   position: absolute;
-  right: -.22mm;
-  top: -.45mm;
-  color: #705529;
-  font: 800 2.15mm/1 var(--utility);
+  bottom: 0;
+  left: 1mm;
+  right: 11mm;
+  height: .14mm;
+  background: linear-gradient(to right, rgba(111,89,57,.55), rgba(111,89,57,0));
 }
-.d6-effect-text {
+.d6-stanza[data-outcome-key="S"]::before {
+  content: "";
+  position: absolute;
+  left: -1.22mm;
+  top: 1.5mm;
+  width: .95mm;
+  height: .95mm;
+  border: .19mm solid #8b6a37;
+  background: #f0dfb9;
+  transform: rotate(45deg);
+}
+.d6-stanza-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5mm;
+  min-height: 3.9mm;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.d6-rolls {
+  display: inline-flex;
+  gap: .15mm;
+  align-items: baseline;
+  white-space: nowrap;
+  font: 600 4.2mm/.9 var(--display);
+  color: #372a1c;
+  font-variant-numeric: lining-nums;
+}
+.d6-number { display: inline-block; }
+.d6-number:not(:last-child)::after {
+  content: "·";
+  display: inline-block;
+  padding: 0 .28mm;
+  font: 400 3.25mm/1 var(--text);
+  color: #947f5a;
+  vertical-align: .15mm;
+}
+.d6-action-word {
+  font: 700 2.35mm/1 var(--utility);
+  letter-spacing: .075em;
+  text-transform: uppercase;
+  color: #5b4e3e;
+}
+.d6-stanza[data-action="attack"] .d6-action-word { color: #703e30; }
+.d6-stanza[data-action="save"] .d6-action-word { color: #355648; }
+.d6-stanza[data-action="nothing"] .d6-action-word { color: #716e63; }
+.d6-stanza[data-outcome-key="S"] .d6-action-word {
+  color: #624c25;
+  font-weight: 800;
+}
+.d6-signature {
+  margin-left: auto;
+  padding-right: .5mm;
+  font: 600 3.2mm/1 var(--display);
+  color: #8a6b34;
+}
+.d6-verse {
+  display: block;
+  margin: .12mm 0 0;
+  padding: 0;
   min-width: 0;
-  font: 400 2.92mm/1.14 var(--text);
-  color: #23251f;
-  overflow-wrap: break-word;
+  font: 400 3.05mm/1.08 var(--text);
+  color: #252622;
+  letter-spacing: 0;
   hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
 }
-.d6-result-row[data-outcome-key="S"] .d6-effect-text {
-  font-weight: 700;
-  font-size: 2.76mm;
-  line-height: 1.16;
+.d6-stanza[data-action="nothing"] .d6-verse {
+  color: #6e6b60;
+  font-style: italic;
 }
-.d6-result-row[data-action="nothing"] .d6-effect-text {
-  color: #625c4f;
-}
-.paper-d6-layout.card-hero .rules { padding: 0; margin-top: .25mm; }
+.paper-d6-layout.card-hero .rules { padding: 0; margin-top: .18mm; }
 .paper-d6-layout[data-card-id="the-white-hands-of-elara"] .card-title,
 .paper-d6-layout[data-card-id="the-watchtowers-of-eren"] .card-title {
   font-size: 3.9mm;
