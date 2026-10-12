@@ -34,7 +34,8 @@ def test_actual_paper_pdf_is_still_strict_one_a4():
     assert 'paper: "a4"' in source
     assert 'len(reader.pages) != 1' in source
     rendered = markdown_to_typst(CANONICAL.read_text(encoding="utf-8"), "test")
-    assert rendered.count("#columns(2, gutter: 7mm)[") == 1
+    assert rendered.count("#columns(1, gutter: 7mm)[") == 1
+    assert "#set text(size: 11.5pt" in rendered
 
 
 def test_web_rulebook_is_same_content_without_hidden_advanced_rules():
