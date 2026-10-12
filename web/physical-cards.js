@@ -76,55 +76,54 @@ const isPaperD6=card=>Boolean(card.paper_d6);
 // Editorial paper D6 design: four typographic stanzas, NOT a UI table.
 // Keep each die face attached to its own effect, but let the illustration and
 // prose carry the visual weight instead of chip boxes and a column header.
+// Four fixed reading positions: support, core action, distinctive Special,
+// defence. Dice values themselves are unchanged and may appear out of sequence.
+const PAPER_RESULT_ORDER=["F","A","R","S","D"];
 function paperOutcomeParts(effect){
   const text=String(effect||"").trim();
-  const match=/^(Attack|Defend|Save|Draw)\b/i.exec(text);
+  const match=/^(Attack|Defend|Save|Draw|Recover|Move|Advance)\b/i.exec(text);
   if(!match)throw new Error("Unknown physical D6 effect: "+text);
   const action=match[1];
   const remainder=text.slice(action.length).replace(/^\s*[;:.]\s*/,"").trim();
-  // Keep the main action plainly readable. A conditional sentence is
-  // secondary typography, not a new boxed row or another game keyword.
-  const conditional=/(^|[.!?]\s+)(If\b.*)$/i.exec(remainder);
+  const where=remainder.search(/\bif\b/i);
   let detail=remainder,condition="";
-  if(conditional){
-    detail=remainder.slice(0,conditional.index).trim();
-    if(detail&&/[.!?]/.test(conditional[1]))detail+=conditional[1].trim();
-    condition=conditional[2];
+  if(where>=0){
+    detail=remainder.slice(0,where).replace(/[;,. ]+$/,"").trim();
+    condition=remainder.slice(where).trim().replace(/^if\b/i,"If");
   }
   return {action,detail,condition};
 }
-// A miniature die next to each roll group and one explicit key make these
-// numerals unmistakably *D6 results*, not Force/cost/card identifiers.
+// One die cue per card, not repeated per result.
 const PAPER_DIE_ICON='<svg class="d6-die-icon" viewBox="0 0 12 12" fill="none" '+
   'stroke="currentColor" stroke-width="1.1" aria-hidden="true">'+
   '<rect x="1" y="1" width="10" height="10" rx="1.8"/>'+
   '<circle cx="3.7" cy="3.7" r=".75" fill="currentColor" stroke="none"/>'+
   '<circle cx="8.3" cy="3.7" r=".75" fill="currentColor" stroke="none"/>'+
-  '<circle cx="3.7" cy="8.3" r=".75" fill="currentColor" stroke="none"/>'+
-  '<circle cx="8.3" cy="8.3" r=".75" fill="currentColor" stroke="none"/></svg>';
+  '<circle cx="3.7" cy="8.3" r=".75" fill="currentColor" stroke="none"/></svg>';
 function combatStrip(card){
   const p=card.paper_d6;
-  const outcomes=Object.entries(p.outcomes).map(([key,outcome])=>{
+  const outcomes=PAPER_RESULT_ORDER.filter(key=>p.outcomes[key]).map(key=>{
+    const outcome=p.outcomes[key];
     const dice=[...p.faces].flatMap((face,index)=>face===key?[index+1]:[]);
     return {key,effect:outcome.effect,dice,...paperOutcomeParts(outcome.effect)};
-  }).sort((a,b)=>a.dice[0]-b.dice[0]);
+  });
   const stanzas=outcomes.map(outcome=>{
     const rolls=outcome.dice.map(face=>
       '<span class="d6-number" data-die-face="'+face+'">'+face+'</span>'
     ).join("");
     const proseLength=outcome.detail.length+outcome.condition.length;
-    const weight=Math.min(2.3,Math.max(.88,1+Math.max(0,proseLength-22)/32)).toFixed(2);
+    const weight=Math.min(2.2,Math.max(.78,.85+proseLength/43)).toFixed(2);
     return '<section class="d6-stanza" data-outcome-key="'+esc(outcome.key)+
       '" data-action="'+esc(outcome.action.toLowerCase())+
       '" data-face-count="'+outcome.dice.length+
       '" style="--stanza-weight:'+weight+'" aria-label="On D6 roll '+
       outcome.dice.join(" or ")+': '+esc(outcome.effect)+'">'+
-      '<span class="d6-rolls" aria-hidden="true">'+
-      '<span class="d6-roll-values">'+rolls+'</span></span>'+
-      '<p class="d6-copy"><strong class="d6-action-word">'+esc(outcome.action)+
-      '</strong>'+(outcome.detail?' <span class="d6-detail">'+esc(outcome.detail)+'</span>':'')+
-      (outcome.condition?' <span class="d6-condition">'+esc(outcome.condition)+'</span>':'')+
-      '</p>'+
+      '<span class="d6-rolls" aria-hidden="true"><span class="d6-roll-values">'+rolls+'</span></span>'+
+      '<div class="d6-copy">'+
+        '<p class="d6-main"><strong class="d6-action-word">'+esc(outcome.action)+
+        '</strong>'+(outcome.detail?' <span class="d6-detail">'+esc(outcome.detail)+'</span>':'')+'</p>'+
+        (outcome.condition?'<p class="d6-sub">'+esc(outcome.condition)+'</p>':'')+
+      '</div>'+
       (outcome.key==="S"?'<span class="d6-signature" aria-hidden="true">✦</span>':"")+
       '</section>';
   }).join("");

@@ -64,7 +64,7 @@ doros-the-last-spear FASAAD""".splitlines())
 
 def action(card: dict, die: int) -> str:
     effect = card["outcomes"][card["faces"][die - 1]]["effect"]
-    for prefix in ("Attack", "Defend", "Save", "Draw"):
+    for prefix in ("Attack", "Defend", "Save", "Draw", "Recover", "Move", "Advance"):
         if effect.startswith(prefix):
             return prefix
     raise AssertionError("Unsupported or blank combat result: " + card["id"] + " - " + effect)
@@ -82,9 +82,9 @@ def test_original_dice_face_probabilities_for_every_force():
 def test_all_44_forces_have_no_empty_results_and_no_extra_basic_attacks():
     assert len(CARDS) == 44
     support = [card["outcomes"]["F"]["effect"] for card in CARDS.values()]
-    assert all(text.startswith(("Defend", "Save", "Draw")) for text in support)
+    assert all(text.startswith(("Defend", "Save", "Draw", "Recover", "Move", "Advance")) for text in support)
     assert all("Nothing" not in text for text in support)
-    assert len(set(support)) >= 18
+    assert len(set(support)) >= 12
     # Every original F face is still in the same place and provides support,
     # not a surprise unconditional Attack that raises the baseline kill rate.
     for cid, card in CARDS.items():
@@ -143,7 +143,7 @@ def test_all_six_faces_offer_distinct_deckwide_ensembles():
             profile = tuple(
                 sum(item["copies"] for item in deck["cards"]
                     if action(CARDS[item["id"]], die) == word)
-                for word in ("Attack", "Defend", "Save", "Draw")
+                for word in ("Attack", "Defend", "Save", "Draw", "Recover", "Move", "Advance")
             )
             assert sum(profile) == 24
             profiles.append(profile)

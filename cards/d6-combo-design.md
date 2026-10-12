@@ -1,10 +1,10 @@
 # Physical D6 cards — print and dice coordination
 
-This is **not** an extra rules document. The [short paper rulebook](../rules/rulebook.md) and four [drawable Orders](paper-d6-orders.json) define the current game. Every Force's wording is in [paper-d6.json](paper-d6.json). The old `Nothing` slot has become playable support on all 44 Forces; the six dice assignments remain unchanged.
+This is **not** an extra rules document. The [short paper rulebook](../rules/rulebook.md) and four [drawable Orders](paper-d6-orders.json) define the current game. Every Force's wording is in [paper-d6.json](paper-d6.json). See the [44-card cost audit](paper-d6-cost-audit.md) for the 2–5 Command deployment prices. The old `Nothing` slot has become playable support on all 44 Forces; the six dice assignments remain unchanged.
 
 ## Printed card hierarchy
 
-Each Force has its name in the top band, with Force and permitted ranks; artwork takes the next large section. Four D6-result passages follow in the lower portion, with one die cue, short bold action verbs, lighter conditional clauses and generous spacing instead of four table rows. Command cost and classification are visible without the old layering/exposure zones. The physical template and headless 44-card layout check, not an old fixed artwork measurement, determine fit.
+Each Force has its name in the top band, with Force and permitted ranks; artwork takes the next large section. The four D6-result passages have a fixed reading sequence: useful fallback, ordinary Attack/Save, unique signature, and basic Defend. A single die cue, bold action verbs and separate quieter italic conditional lines replace table styling. Only the signature has an ornament. Command cost and classification are visible without the old layering/exposure zones. The physical template and headless 44-card layout check, not an old fixed artwork measurement, determine fit.
 
 ## Tactical cohesion
 

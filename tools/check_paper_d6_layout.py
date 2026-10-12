@@ -55,6 +55,12 @@ window.addEventListener("load",async()=>{{
     const artwork=card.querySelector(".motif-field");
     const faces=[...card.querySelectorAll(".d6-number")];
     const rows=[...card.querySelectorAll(".d6-stanza")];
+    const expectedKeys=cards.find(c=>c.id===id).paper_d6.outcomes.R
+      ?["F","R","S","D"]:["F","A","S","D"];
+    if(rows.map(r=>r.dataset.outcomeKey).join(",")!==expectedKeys.join(","))
+      issues.push(id+":inconsistent-reading-order");
+    if(rows.filter(r=>r.dataset.outcomeKey==="S").length!==1)
+      issues.push(id+":missing-single-signature");
     const dice=card.querySelectorAll(".d6-die-icon");
     if(!header||!title||!stat||!positions)
       issues.push(id+":missing-standalone-title-header");
@@ -107,11 +113,15 @@ window.addEventListener("load",async()=>{{
         issues.push(id+":blank-printed-result-"+key);
       if(copy?.textContent.includes("Nothing")||!action?.textContent?.trim())
         issues.push(id+":unreadable-result-"+key);
-      if(key==="F"&&!["defend","save","draw"].includes(row.dataset.action))
+      if(key==="F"&&!["defend","save","draw","recover","move","advance"].includes(row.dataset.action))
         issues.push(id+":missing-fallback-support-"+key);
-      const condition=row.querySelector(".d6-condition");
-      if(/(?:^|[.!?]\s+)If\b/i.test(expectedEffect) && !condition)
-        issues.push(id+":missing-conditional-hierarchy-"+key);
+      const condition=row.querySelector(".d6-sub");
+      if(/\bif\b/i.test(expectedEffect) && !condition)
+        issues.push(id+":missing-conditional-subline-"+key);
+      if(key!=="S" && condition)
+        issues.push(id+":ordinary-result-is-special-"+key);
+      if(key==="S" && getComputedStyle(row).backgroundColor!=="rgba(0, 0, 0, 0)")
+        issues.push(id+":signature-unnecessary-box-"+key);
       const rowBox=row.getBoundingClientRect();
       const copyBox=copy?.getBoundingClientRect();
       const rollBox=numerals?.getBoundingClientRect();
@@ -143,7 +153,7 @@ window.addEventListener("load",async()=>{{
       lastCopy=copyBox;
       // Verify actual text glyph line rectangles, not merely containing
       // DIVs. Long Specials can collide despite scrollHeight looking fine.
-      for(const textSpan of [action,detail].filter(Boolean)){{
+      for(const textSpan of [action,detail,condition].filter(Boolean)){{
         const range=document.createRange();
         range.selectNodeContents(textSpan);
         for(const box of range.getClientRects()){{
@@ -175,7 +185,7 @@ window.addEventListener("load",async()=>{{
     status = html.unescape(match.group(1)) if match else "D6 layout test did not finish"
     if status != "PASS":
         raise SystemExit("FAIL D6 paper layout: " + status[:4000])
-    print("PASS: 44 standalone paper cards: title in top band, one die cue, four unboxed results, correct D6 mappings and no collisions")
+    print("PASS: 44 paper cards: consistent action hierarchy, signature sublines, 2–5 costs, six mapped faces, no overlap")
 
 
 if __name__ == "__main__":

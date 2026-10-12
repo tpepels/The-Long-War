@@ -38,14 +38,14 @@ def main() -> None:
                set(c["paper_d6"]["faces"]) == set(c["paper_d6"]["outcomes"])
                for c in printed["cards"])
     assert all(1 <= c["paper_d6"]["force"] <= 6 and
-               0 <= c["command_cost"] <= 20
+               2 <= c["command_cost"] <= 5
                for c in printed["cards"])
     assert all(not c.get("hero_name_command_cost") for c in printed["cards"])
     assert all("Nothing" not in outcome["effect"]
                for card in printed["cards"]
                for outcome in card["paper_d6"]["outcomes"].values())
     assert all(card["paper_d6"]["outcomes"]["F"]["effect"].startswith(
-               ("Defend", "Save", "Draw"))
+               ("Defend", "Save", "Draw", "Recover", "Move", "Advance"))
                for card in printed["cards"])
 
     # Spot-check representative intentional shared-roll combinations; full

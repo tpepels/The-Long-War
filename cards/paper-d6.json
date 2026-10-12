@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "experimental-paper-only",
-  "description": "44 paper-only Force/Hero cards: individually authored four-effect, six-face D6 maps. Their outcome counts are unchanged; face arrangements form intentional Guard-Archer-Healer, Infantry-Guard and Raider-Rider combinations without mandatory lucky faces.",
+  "description": "44 paper Force/Hero cards. Four distinct result roles: useful support, reliable combat action, signature ability, and basic defence. Every roll has an action. Cost bands 2-5 are manually curated from Force, reliability, reach and utility, while printed dice faces and universal rules remain unchanged.",
   "cards": [
     {
       "id": "the-fifty-men",
@@ -37,7 +37,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Recover 1 Command."
+          "effect": "Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -45,7 +45,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Middle, may target Rear."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -112,7 +112,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Draw one Force (hand limit 10)."
+          "effect": "Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -120,7 +120,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Defends, may target Middle."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -137,7 +137,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the Frontline ally."
+          "effect": "Defend self and Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -162,7 +162,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Move to an empty adjacent open Front after combat."
+          "effect": "Move to an empty adjacent open Front after combat."
         },
         "D": {
           "title": "Defend",
@@ -170,7 +170,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -187,7 +187,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the Frontline ally."
+          "effect": "Defend self and Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -195,7 +195,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Frontline, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -232,12 +232,12 @@
       "id": "the-red-duelists",
       "role": "skirmisher",
       "force": 3,
-      "command_cost": 4,
+      "command_cost": 3,
       "faces": "AFSADS",
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. If alone here, recover 1 Command."
+          "effect": "Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -245,7 +245,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If no ally Attacks, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -262,7 +262,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Draw one Force (hand limit 10)."
+          "effect": "Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -270,7 +270,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Middle, may target Rear."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -287,7 +287,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the foremost ally."
+          "effect": "Defend self and foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -307,7 +307,7 @@
       "id": "the-first-spear",
       "role": "guard",
       "force": 4,
-      "command_cost": 4,
+      "command_cost": 3,
       "faces": "DDDSFA",
       "outcomes": {
         "F": {
@@ -332,7 +332,7 @@
       "id": "the-old-guard",
       "role": "guard",
       "force": 3,
-      "command_cost": 3,
+      "command_cost": 2,
       "faces": "DDASFD",
       "outcomes": {
         "F": {
@@ -357,12 +357,12 @@
       "id": "the-unnamed-host",
       "role": "raider",
       "force": 5,
-      "command_cost": 5,
+      "command_cost": 4,
       "faces": "DAFFSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. If your Order is Raid, recover 1 Command."
+          "effect": "Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -370,7 +370,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If your Order is Raid, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -387,7 +387,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the foremost ally."
+          "effect": "Defend self and foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -412,7 +412,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Give an attacking ally +1 Force."
+          "effect": "Defend self and an attacking ally."
         },
         "D": {
           "title": "Defend",
@@ -420,7 +420,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -462,7 +462,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the Frontline ally."
+          "effect": "Defend self and Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -482,12 +482,12 @@
       "id": "the-vardai",
       "role": "rider",
       "force": 3,
-      "command_cost": 3,
+      "command_cost": 2,
       "faces": "DAFFSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. If an ally Saves, recover 1 Command."
+          "effect": "Defend self."
         },
         "D": {
           "title": "Defend",
@@ -495,7 +495,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Rear, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -507,7 +507,7 @@
       "id": "the-aradai",
       "role": "raider",
       "force": 3,
-      "command_cost": 3,
+      "command_cost": 4,
       "faces": "AAFFSD",
       "outcomes": {
         "F": {
@@ -532,7 +532,7 @@
       "id": "the-ilyri",
       "role": "skirmisher",
       "force": 2,
-      "command_cost": 3,
+      "command_cost": 2,
       "faces": "FDSASA",
       "outcomes": {
         "F": {
@@ -545,7 +545,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Middle, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -562,7 +562,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Recover 1 Command."
+          "effect": "Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -582,7 +582,7 @@
       "id": "the-serekh",
       "role": "guard",
       "force": 3,
-      "command_cost": 3,
+      "command_cost": 2,
       "faces": "DSDDFA",
       "outcomes": {
         "F": {
@@ -612,7 +612,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Save self or an ally. Recover 1 Command if an ally is saved."
+          "effect": "Save self or an ally."
         },
         "D": {
           "title": "Defend",
@@ -632,12 +632,12 @@
       "id": "the-field-train",
       "role": "steward",
       "force": 2,
-      "command_cost": 3,
+      "command_cost": 2,
       "faces": "DFDSRR",
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10). Defend self."
+          "effect": "Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -662,7 +662,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Draw one Force (hand limit 10)."
+          "effect": "Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -687,7 +687,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Recover 1 Command."
+          "effect": "Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -695,7 +695,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Defends, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -712,7 +712,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Move to an empty adjacent open Front after combat."
+          "effect": "Move to an empty adjacent open Front after combat."
         },
         "D": {
           "title": "Defend",
@@ -737,7 +737,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the foremost ally."
+          "effect": "Defend self and foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -745,7 +745,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -782,7 +782,7 @@
       "id": "tovan-the-quartermaster",
       "role": "steward",
       "force": 2,
-      "command_cost": 3,
+      "command_cost": 2,
       "faces": "DRSDFR",
       "outcomes": {
         "F": {
@@ -812,7 +812,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and an ally. If using Hold, recover 1 Command."
+          "effect": "Defend self and an ally."
         },
         "D": {
           "title": "Defend",
@@ -837,7 +837,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Advance one empty rank after combat."
+          "effect": "Advance one empty rank after combat."
         },
         "D": {
           "title": "Defend",
@@ -845,7 +845,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Rear, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -862,7 +862,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the foremost ally."
+          "effect": "Defend self and foremost ally."
         },
         "D": {
           "title": "Defend",
@@ -882,12 +882,12 @@
       "id": "yara-the-chronicler",
       "role": "scout",
       "force": 3,
-      "command_cost": 4,
+      "command_cost": 3,
       "faces": "FDASSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10). Defend self."
+          "effect": "Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -895,7 +895,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Saves, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -920,7 +920,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Middle, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -937,7 +937,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Draw one Force (hand limit 10)."
+          "effect": "Draw one Force (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -945,7 +945,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Defends, may target Rear."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -962,7 +962,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Recover 1 Command."
+          "effect": "Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -982,7 +982,7 @@
       "id": "the-kings-spears",
       "role": "guard",
       "force": 3,
-      "command_cost": 3,
+      "command_cost": 2,
       "faces": "DDFDSA",
       "outcomes": {
         "F": {
@@ -1012,7 +1012,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the Middle ally."
+          "effect": "Defend self and ally in Middle."
         },
         "D": {
           "title": "Defend",
@@ -1020,7 +1020,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks Rear, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -1037,7 +1037,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self and the Frontline ally."
+          "effect": "Defend self and Frontline ally."
         },
         "D": {
           "title": "Defend",
@@ -1045,7 +1045,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If your Order is Hold, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -1062,7 +1062,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. Give an attacking ally +1 Force."
+          "effect": "Defend self and an attacking ally."
         },
         "D": {
           "title": "Defend",
@@ -1070,7 +1070,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If an ally Attacks, may target Rear."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
@@ -1087,7 +1087,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Defend self. If alone here, recover 1 Command."
+          "effect": "Recover 1 Command."
         },
         "D": {
           "title": "Defend",
@@ -1095,7 +1095,7 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost. If alone in this Front, +1 Force."
+          "effect": "Attack foremost enemy."
         },
         "S": {
           "title": "Special",
