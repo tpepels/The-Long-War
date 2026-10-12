@@ -45,18 +45,19 @@ window.addEventListener("load",async()=>{{
     const id=card.dataset.cardId;
     const rules=card.querySelector(".rules");
     const faces=[...card.querySelectorAll(".d6-number")];
-    const rows=[...card.querySelectorAll(".d6-result-row")];
-    const header=card.querySelector(".d6-guide");
+    const rows=[...card.querySelectorAll(".d6-stanza")];
     const artwork=card.querySelector(".motif-field");
-    if(!artwork||artwork.getBoundingClientRect().height<19*(96/25.4))
+    if(!artwork||artwork.getBoundingClientRect().height<25*(96/25.4))
       issues.push(id+":artwork-shrunk-for-rules");
-    for(const effect of card.querySelectorAll(".d6-effect-text")){{
+    for(const effect of card.querySelectorAll(".d6-verse")){{
       const size=parseFloat(getComputedStyle(effect).fontSize);
-      if(size<10.3)issues.push(id+":text-too-small-"+size.toFixed(2));
-      if(effect.getBoundingClientRect().width<20*(96/25.4))
+      if(size<11.35)issues.push(id+":text-too-small-"+size.toFixed(2));
+      if(effect.getBoundingClientRect().width<39*(96/25.4))
         issues.push(id+":text-column-too-narrow");
     }}
-    if(faces.length!==6||rows.length!==4||!header)issues.push(id+":missing-direct-roll-table");
+    if(faces.length!==6||rows.length!==4)issues.push(id+":missing-editorial-stanzas");
+    if(card.querySelector(".d6-guide,.d6-outcomes,.d6-result-row,.d6-number[data-chip]"))
+      issues.push(id+":legacy-table-layout");
     const printed=faces.map(face=>Number(face.textContent));
     if(printed.join(",")!=="1,2,3,4,5,6" &&
        [...printed].sort((a,b)=>a-b).join(",")!=="1,2,3,4,5,6")
@@ -65,18 +66,33 @@ window.addEventListener("load",async()=>{{
       issues.push(id+":legacy-two-step-die-lookup");
     for(const row of rows){{
       const key=row.dataset.outcomeKey;
-      const represented=faces.filter(face=>face.parentElement?.parentElement===row)
+      const represented=faces.filter(face=>face.closest(".d6-stanza")===row)
         .map(face=>Number(face.textContent));
       const expected=[...cards.find(c=>c.id===id).paper_d6.faces]
         .flatMap((letter,index)=>letter===key?[index+1]:[]);
       if(represented.join(",")!==expected.join(","))
         issues.push(id+":incorrect-roll-mapping-"+key);
-      for(const part of [row,row.querySelector(".d6-effect-text"),row.querySelector(".d6-numbers")]){{
+      const effect=row.querySelector(".d6-verse");
+      const heading=row.querySelector(".d6-stanza-heading");
+      const rect=row.getBoundingClientRect();
+      for(const [name,part] of [["row",row],["effect",effect]]){{
         if(part&&(part.scrollHeight>part.clientHeight+2||part.scrollWidth>part.clientWidth+2))
-          issues.push(id+":outcome-content-clipped-"+key);
+          issues.push(id+":clipped-"+name+"-"+key+"-"+(part.scrollHeight-part.clientHeight));
       }}
+      // SVG/large serif numerals can legitimately extend beyond their inline
+      // line boxes. Measure the prose's actual bounds rather than treating
+      // intrinsic scrollHeight on these un-clipped spans as content clipping.
+      if(heading&&heading.getBoundingClientRect().top<rect.top-1)
+        issues.push(id+":heading-overlaps-previous-"+key);
+      if(effect&&effect.getBoundingClientRect().bottom>rect.bottom+1)
+        issues.push(id+":effect-overlaps-next-"+key);
     }}
     if(rules.scrollHeight>rules.clientHeight+2)issues.push(id+":outcomes-clipped");
+    for(const row of rows){{
+      const design=getComputedStyle(row);
+      if(design.display==="grid"||parseFloat(design.borderTopWidth)>0.5)
+        issues.push(id+":still-looks-like-a-table");
+    }}
     const footer=card.querySelector(".card-footer");
     if(rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+1)
       issues.push(id+":rules-overlap-footer");
@@ -94,7 +110,7 @@ window.addEventListener("load",async()=>{{
     status = html.unescape(match.group(1)) if match else "D6 layout test did not finish"
     if status != "PASS":
         raise SystemExit("FAIL D6 paper layout: " + status[:4000])
-    print("PASS: all 44 printed D6 cards have direct six-face lookup, four fully visible effects and no footer overlap")
+    print("PASS: 44 D6 cards: editorial stanzas, full art window, accessible text, six correct faces, no clipping")
 
 
 if __name__ == "__main__":
