@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drawable Orders — The Long War (design prototype)</title>
+<link rel="stylesheet" href="orders-prototype.css">
+</head>
+<body>
+<header class="site-header">
+  <a href="index.html">The Long War</a>
+  <nav class="site-links" aria-label="Site"><!-- SITE_NAV --></nav>
+  <button type="button" id="print-orders" disabled>Print 2 Order decks</button>
+</header>
+<main class="prototype">
+  <p class="eyebrow">Paper edition / experimental design</p>
+  <h1>Orders you draw, not rules you consult.</h1>
+  <p class="lead">The Command card disappears: deploying Forces, moving and passing are ordinary player decisions. A separate <strong>Order deck</strong> gives each player a changing hand of hidden tactical choices. This is a proposed variant, <strong>not yet the published rules</strong>.</p>
+  <section class="prototype-steps" aria-label="Proposed Order loop">
+    <div><strong>1. Draw three</strong><span>At setup, each player takes three Orders from their own 12-card deck.</span></div>
+    <div><strong>2. Commit one</strong><span>Before each Battle, secretly select an Order from your hand. Reveal both before rolling.</span></div>
+    <div><strong>3. Replenish</strong><span>Discard the played Order after combat. Draw one new Order; keep the others.</span></div>
+  </section>
+  <section class="try-section" aria-labelledby="try-title">
+    <div class="section-head">
+      <div><p class="eyebrow">Try the decision</p><h2 id="try-title">Your Order hand</h2></div>
+      <div class="controls"><button type="button" id="reset-hand" disabled>Shuffle new hand</button><button type="button" id="play-order" disabled>Commit selected Order</button></div>
+    </div>
+    <p id="hand-status" aria-live="polite">Preparing your Orders…</p>
+    <div class="hand" id="order-hand" aria-label="Selectable three-card tactical hand"></div>
+  </section>
+  <section class="whole-deck" aria-labelledby="full-title">
+    <div class="section-head"><div><p class="eyebrow">Four identities, twelve cards</p><h2 id="full-title">The four Order families</h2></div></div>
+    <p>For this first test, each player has three copies of each Order. Effects are unchanged from the current Battle Plans. They are now deliberately scarce, drawn choices rather than a permanent four-option menu.</p>
+    <div class="gallery" id="order-gallery"></div>
+  </section>
+  <p class="prototype-note">Prototype design only. The Force decks, one-page rulebook, executable game and current Battle Plan cards are unchanged. Print on A4 landscape at 100%, using identical opaque sleeves so the face of a secret Order cannot be identified.</p>
+</main>
+<div class="print-pages" id="order-print-pages" aria-label="Printable Orders for both players"></div>
+<script src="orders-prototype.js"></script>
+</body>
+</html>
