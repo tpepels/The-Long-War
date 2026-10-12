@@ -47,6 +47,15 @@ window.addEventListener("load",async()=>{{
     const faces=[...card.querySelectorAll(".d6-number")];
     const rows=[...card.querySelectorAll(".d6-result-row")];
     const header=card.querySelector(".d6-guide");
+    const artwork=card.querySelector(".motif-field");
+    if(!artwork||artwork.getBoundingClientRect().height<19*(96/25.4))
+      issues.push(id+":artwork-shrunk-for-rules");
+    for(const effect of card.querySelectorAll(".d6-effect-text")){{
+      const size=parseFloat(getComputedStyle(effect).fontSize);
+      if(size<10.3)issues.push(id+":text-too-small-"+size.toFixed(2));
+      if(effect.getBoundingClientRect().width<20*(96/25.4))
+        issues.push(id+":text-column-too-narrow");
+    }}
     if(faces.length!==6||rows.length!==4||!header)issues.push(id+":missing-direct-roll-table");
     const printed=faces.map(face=>Number(face.textContent));
     if(printed.join(",")!=="1,2,3,4,5,6" &&
