@@ -323,7 +323,36 @@ function artStyle(card,options={}){
   const artURL=cardArtURL(card.art_id||card.id,Boolean(options.printArt));
   return ' style="--card-art:url('+artURL+');--art-x:'+esc(x)+';--art-y:'+esc(y)+'"';
 }
+
+/* The paper War deck contains two non-Force types. They use the same 68×96
+   physical shell, painted art frame, title row and Command seal as Forces. */
+function supportArticle(card,extra="",options={}){
+  const type=card.paper_support.type;
+  if(type!=="holding"&&type!=="tactic")throw new Error("Unknown War card type");
+  const word=type==="holding"?"HOLDING":"TACTIC";
+  return '<article class="physical-card card-'+type+' paper-support-layout'+(extra?" "+esc(extra):"")+
+    '" data-card-id="'+esc(card.id)+'" data-support-type="'+type+'"'+artStyle(card,options)+'>'+
+    '<header class="stack-edge paper-card-head support-head">'+
+      '<span class="support-head-icon" aria-hidden="true">'+(type==="holding"?"◆":"✦")+'</span>'+
+      '<h3 class="card-title paper-head-title">'+esc(card.title)+'</h3>'+
+      '<span class="support-head-type">'+word+'</span>'+
+    '</header>'+
+    '<div class="card-body">'+
+      '<div class="motif-field" aria-hidden="true"></div>'+
+      '<section class="rules support-rules">'+
+        '<p class="support-timing">'+(type==="holding"?"STAYS IN PLAY":"PLAY & DISCARD")+'</p>'+
+        '<p class="support-effect">'+esc(card.paper_support.effect)+'</p>'+
+      '</section>'+
+    '</div>'+
+    '<footer class="card-footer support-footer">'+
+      '<span class="support-footer-type">'+word+'</span>'+
+      '<span class="footer-version">v'+esc(PRINT_VERSION)+'</span>'+
+      costSeal(card)+
+    '</footer>'+
+    '</article>';
+}
 function cardArticle(card,extra="",options={}){
+  if(card.paper_support)return supportArticle(card,extra,options);
   const density=densityClass(card),titleDensity=card.title.length>=32?" title-very-long":card.title.length>=25?" title-long":"",heroMode=options.heroMode==="name"?"name":"force";
   const footerMark=typeGlyph(card.type);
   return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="motif-field" aria-hidden="true"></div>'+(isPaperD6(card)?'':'<div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3></div>')+'<div class="rules">'+rules(card)+'</div></div><footer class="card-footer">'+(card.unique?'<span class="footer-unique">Unique</span>':"")+classificationLine(card)+'<span class="footer-mark">'+footerMark+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
@@ -410,5 +439,5 @@ function inspect(root=document){
   card.classList.toggle("layout-overflow",problems.length>0);if(problems.length)failures.push({id:card.dataset.cardId,problems:[...new Set(problems)]});
  });return failures;
 }
-window.PhysicalCards={cardArticle,orderArticle,stackMarkup,inspect,cardArtURL};
+window.PhysicalCards={cardArticle,orderArticle,supportArticle,stackMarkup,inspect,cardArtURL};
 })();

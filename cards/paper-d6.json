@@ -112,7 +112,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10)."
+          "effect": "Draw one War card (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -262,7 +262,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10)."
+          "effect": "Draw one War card (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -637,7 +637,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10)."
+          "effect": "Draw one War card (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -662,7 +662,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10)."
+          "effect": "Draw one War card (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -887,7 +887,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10)."
+          "effect": "Draw one War card (hand limit 10)."
         },
         "D": {
           "title": "Defend",
@@ -937,7 +937,7 @@
       "outcomes": {
         "F": {
           "title": "Nothing",
-          "effect": "Draw one Force (hand limit 10)."
+          "effect": "Draw one War card (hand limit 10)."
         },
         "D": {
           "title": "Defend",

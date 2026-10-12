@@ -17,11 +17,12 @@ ORDERS = ROOT / "cards/paper-d6-orders.json"
 def test_rules_are_one_short_self_contained_game_loop():
     rules = CANONICAL.read_text(encoding="utf-8")
     assert rules == PLAYER.read_text(encoding="utf-8")
-    assert 180 <= len(rules.split()) <= 290
+    assert 180 <= len(rules.split()) <= 340
     assert rules.count("\n## ") == 5
     for term in ("Prepare", "Deploy", "Order", "Fight", "Continue", "D6",
-                 "24-card Force deck", "12-card Order deck", "3 Orders",
-                 "Pass", "one Order from their hand", "5 Command", "Battle VIII"):
+                 "24-card War deck", "12-card Order deck", "3 Orders",
+                 "Pass", "one Order from their hand", "5 Command", "Battle VIII",
+                 "Holding", "Tactic", "maximum one of yours per Front"):
         assert term in rules, term
     for forbidden in ("Command card", "Battle Plan", "Tactical Read",
                       "Pressure", "Pin", "Opportunity"):

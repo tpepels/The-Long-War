@@ -19,9 +19,9 @@ else:
     from longwar.reference_decks import REFERENCE_DECK_PATHS
 from longwar.cards import load_card_file
 if __package__:
-    from .paper_d6_cards import load_paper_d6_cards, load_paper_d6_decks
+    from .paper_d6_cards import load_paper_d6_cards, load_paper_d6_decks, load_paper_d6_war_cards
 else:
-    from paper_d6_cards import load_paper_d6_cards, load_paper_d6_decks
+    from paper_d6_cards import load_paper_d6_cards, load_paper_d6_decks, load_paper_d6_war_cards
 from longwar.decks import (
     MINIMUM_DECK_SIZE,
     MINIMUM_FORCE_COUNT,
@@ -97,6 +97,7 @@ def print_build_version() -> str:
         ROOT / "cards" / "print-overrides.json",
         ROOT / "cards" / "paper-d6.json",
         ROOT / "cards" / "paper-d6-decks.json",
+        ROOT / "cards" / "paper-d6-support.json",
         ROOT / "cards" / "paper-d6-orders.json",
         ROOT / "tools" / "paper_d6_cards.py",
         PLAYTEST_DECKS,
@@ -140,6 +141,7 @@ def build_print_art() -> None:
     art_ids = sorted(
         {card.get("art_id", card["id"]) for card in cards}
         | {order["art_id"] for order in order_data["orders"]}
+        | {card["art_id"] for card in json.loads((ROOT / "cards/paper-d6-support.json").read_text(encoding="utf-8"))["cards"]}
     )
     for art_id in art_ids:
         source = source_dir / (art_id + ".png")
@@ -504,11 +506,11 @@ def main() -> None:
     # Canonical drawable Orders, independent of Force card selection.
     shutil.copy2(ROOT / "cards/paper-d6-orders.json", data_dir / "orders.json")
     (data_dir / "print-cards.json").write_text(
-        json.dumps(load_paper_d6_cards(card_data), indent=2, ensure_ascii=False) + "\n",
+        json.dumps(load_paper_d6_war_cards(card_data), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     (data_dir / "playtest-decks.json").write_text(
-        json.dumps(load_paper_d6_decks(load_paper_d6_cards(card_data)), indent=2) + "\n",
+        json.dumps(load_paper_d6_decks(load_paper_d6_war_cards(card_data)), indent=2) + "\n",
         encoding="utf-8",
     )
 
