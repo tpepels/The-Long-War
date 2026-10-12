@@ -89,8 +89,10 @@ def test_force_cards_never_roll_a_blank_and_stay_concise():
         assert len(card["faces"]) == 6
         assert len(card["outcomes"]) == 4
         assert set(card["faces"]) == set(card["outcomes"])
-        assert card["outcomes"]["F"]["effect"].startswith(("Defend", "Save", "Draw"))
+        assert card["outcomes"]["F"]["effect"].startswith(("Defend", "Save", "Draw", "Recover", "Move", "Advance"))
         assert "Nothing" not in " ".join(x["effect"] for x in card["outcomes"].values())
+        assert 2 <= card["command_cost"] <= 5
+        assert all("If " not in v["effect"] for k,v in card["outcomes"].items() if k!="S")
         assert card["outcomes"]["D"]["effect"].startswith("Defend")
         third = "R" if card["role"] in ("healer", "steward") else "A"
         assert card["outcomes"][third]["effect"].startswith("Save" if third == "R" else "Attack")
