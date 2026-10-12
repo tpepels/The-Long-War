@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "status": "canonical-paper-only",
+  "description": "Non-Force cards shuffled into the 24-card War deck. Holdings stay attached to a Front; Tactics resolve when played and are discarded.",
+  "deck_size": 24,
+  "min_forces_per_deck": 16,
+  "types": {
+    "holding": {
+      "play": "Play beside one open Front; at most one of your Holdings in each Front.",
+      "duration": "Stays in play until another card discards it.",
+      "counts_as_force": false
+    },
+    "tactic": {
+      "play": "Resolve its printed effect immediately during deployment.",
+      "duration": "Discard after resolving.",
+      "counts_as_force": false
+    }
+  },
+  "cards": [
+    {
+      "id": "holding-supply-camp",
+      "title": "Supply Camp",
+      "type": "holding",
+      "command_cost": 3,
+      "art_id": "the-long-march",
+      "effect": "Forces played into this Front cost 1 less Command (minimum 0)."
+    },
+    {
+      "id": "holding-signal-tower",
+      "title": "Signal Tower",
+      "type": "holding",
+      "command_cost": 3,
+      "art_id": "the-scouts-had-warned-them",
+      "effect": "Your Archers in this Front may Attack Rear."
+    },
+    {
+      "id": "holding-shieldworks",
+      "title": "Shieldworks",
+      "type": "holding",
+      "command_cost": 3,
+      "art_id": "the-wall-did-not-break",
+      "effect": "Enemy Attacks against your Forces here have -1 Force."
+    },
+    {
+      "id": "holding-war-banner",
+      "title": "War Banner",
+      "type": "holding",
+      "command_cost": 4,
+      "art_id": "the-king-had-given-the-order",
+      "effect": "Your attacking Forces in this Front gain +1 Force."
+    },
+    {
+      "id": "holding-forward-outpost",
+      "title": "Forward Outpost",
+      "type": "holding",
+      "command_cost": 2,
+      "art_id": "they-knew-the-ground",
+      "effect": "Move actions from this Front cost 0 Command."
+    },
+    {
+      "id": "holding-field-hospital",
+      "title": "Field Hospital",
+      "type": "holding",
+      "command_cost": 2,
+      "art_id": "they-lived-to-tell-it",
+      "effect": "When you play a Healer here, recover 1 Command."
+    },
+    {
+      "id": "tactic-forced-march",
+      "title": "Forced March",
+      "type": "tactic",
+      "command_cost": 2,
+      "art_id": "the-line-had-begun-to-move",
+      "effect": "Move one of your Forces to any empty permitted position in an open Front."
+    },
+    {
+      "id": "tactic-reinforcements",
+      "title": "Reinforcements",
+      "type": "tactic",
+      "command_cost": 1,
+      "art_id": "all-reserves-forward",
+      "effect": "Play a Force from your hand for 2 less Command (minimum 0)."
+    },
+    {
+      "id": "tactic-reconnaissance",
+      "title": "Reconnaissance",
+      "type": "tactic",
+      "command_cost": 1,
+      "art_id": "the-scouts-found-the-gap",
+      "effect": "Look at your top 3 War cards. Keep one; put the others on the bottom."
+    },
+    {
+      "id": "tactic-resupply",
+      "title": "Resupply",
+      "type": "tactic",
+      "command_cost": 1,
+      "art_id": "the-stores-were-taken",
+      "effect": "Recover 3 Command (maximum 20)."
+    },
+    {
+      "id": "tactic-sabotage",
+      "title": "Sabotage",
+      "type": "tactic",
+      "command_cost": 2,
+      "art_id": "the-baggage-was-abandoned",
+      "effect": "Discard one enemy Holding in an open Front."
+    },
+    {
+      "id": "tactic-feint",
+      "title": "Feint",
+      "type": "tactic",
+      "command_cost": 1,
+      "art_id": "the-muster-was-false",
+      "effect": "Swap two of your Forces in the same Front."
+    }
+  ]
+}
