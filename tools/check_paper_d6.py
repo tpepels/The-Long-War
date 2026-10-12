@@ -42,7 +42,7 @@ def main() -> None:
                for c in printed["cards"])
     assert all(not c.get("hero_name_command_cost") for c in printed["cards"])
 
-    # The example in rules/rulebook.md must match the actual, printed die faces.
+    # Preserve representative original die-face mappings through the simplification.
     cards = {c["id"]: c["paper_d6"]["faces"] for c in printed["cards"]}
     expected = [
         ("the-red-shields", "S", 2),
@@ -57,9 +57,9 @@ def main() -> None:
     assert CANONICAL.read_bytes() == executable_before, "Engine card pool changed"
 
     physical = (ROOT / "rules" / "player-rulebook.md").read_text(encoding="utf-8")
-    for required in ("D6", "Assault", "Hold", "Volley", "Raid", "Command", "Rescue"):
+    for required in ("D6", "Assault", "Hold", "Volley", "Raid", "Command", "Save", "Defend", "Attack"):
         assert required in physical
-    print("Paper D6: 44 Forces/Heroes, four outcomes per Force, three legal 24-card decks, no engine mutations.")
+    print("One-page paper D6: 44 Forces/Heroes, four simple outcomes, three 24-card decks, no engine mutations.")
 
 
 if __name__ == "__main__":

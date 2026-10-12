@@ -10,7 +10,7 @@ Primary sources:
 
 - `cards/paper-d6.json` - current **physical** Force/Hero D6 outcome pool
 - `cards/paper-d6-decks.json` - current 24-card physical playtest decks
-- `rules/player-rulebook.md` and `rules/rulebook.md` - current experimental tabletop rules
+- `rules/rulebook.md` - entire physical rules, one A4; `rules/player-rulebook.md` mirrors it for the PDF pipeline
 - `cards/cards.json`, `cards/playtest-decks.json`, and `decks/*.json` - retained legacy/runtime card and deck inputs; NOT current paper rules
 - `web/art/cards/` - canonical card artwork
 

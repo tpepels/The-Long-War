@@ -31,17 +31,26 @@ small{color:#555} .foot{margin-top:14px;font-size:11px}
 <section class="front"><h3>FRONT 1 · opens II</h3><div class="rowset rival"><div class="slot">Enemy Rear</div><div class="slot">Enemy Middle</div><div class="slot">Enemy Frontline</div></div><div class="gap">BATTLE LINE</div><div class="rowset ours"><div class="slot">Your Frontline</div><div class="slot">Your Middle</div><div class="slot">Your Rear</div></div></section><section class="front"><h3>FRONT 2 · opens I</h3><div class="rowset rival"><div class="slot">Enemy Rear</div><div class="slot">Enemy Middle</div><div class="slot">Enemy Frontline</div></div><div class="gap">BATTLE LINE</div><div class="rowset ours"><div class="slot">Your Frontline</div><div class="slot">Your Middle</div><div class="slot">Your Rear</div></div></section><section class="front"><h3>FRONT 3 · opens I</h3><div class="rowset rival"><div class="slot">Enemy Rear</div><div class="slot">Enemy Middle</div><div class="slot">Enemy Frontline</div></div><div class="gap">BATTLE LINE</div><div class="rowset ours"><div class="slot">Your Frontline</div><div class="slot">Your Middle</div><div class="slot">Your Rear</div></div></section><section class="front"><h3>FRONT 4 · opens III</h3><div class="rowset rival"><div class="slot">Enemy Rear</div><div class="slot">Enemy Middle</div><div class="slot">Enemy Frontline</div></div><div class="gap">BATTLE LINE</div><div class="rowset ours"><div class="slot">Your Frontline</div><div class="slot">Your Middle</div><div class="slot">Your Rear</div></div></section>
 </div>
 <div class="grid2">
-<section class="panel"><h2>Your turn</h2><ol><li>Before drawing, <b>Pass</b> (no draw/actions), or draw one and take up to <b>2 Actions</b>.</li><li><b>Deploy</b> a Force (printed Command price); <b>Maneuver</b> one step or friendly swap (1 Command); <b>Cycle</b> two cards to draw one.</li><li>After first Pass, opponent takes a full turn, then passer a full turn. Reveal secret army-wide Battle Plans.</li></ol>
-<h2>Plan reference</h2><p><b>Strong counters:</b> Hold &gt; Assault &gt; Volley &gt; Raid &gt; Hold. A countering Plan earns <b>one Tactical Read per occupied Front</b> after dice: one Strike targets any rank and bypasses 1 Protect, <em>or</em> one Protect cancels 1 extra Strike against an eligible friend. Neutral: Assault/Raid and Hold/Volley; mirrors get no Read.</p><table><tr><th>Plan</th><th>Effect</th></tr><tr><td>Assault</td><td>Target foremost; one post-combat forward step per Front without Opportunity.</td></tr><tr><td>Hold</td><td>Withdraw one; Protect any ally in its Front; advance after Opportunity.</td></tr><tr><td>Volley</td><td>Middle/Rear Archer may target any enemy rank; advance after Opportunity.</td></tr><tr><td>Raid</td><td>Mobile sideways before combat; Frontline/Middle mobile attacks Middle/Rear; advance after Opportunity.</td></tr></table><p><b>Role and rank:</b> a Frontline Guard rolling Protect can protect any ally in its Front; a Rear Healer/Steward can Rescue any ally there. Rank never adds control points.</p></section>
-<section class="panel"><h2>Resolve all Fronts simultaneously</h2><ol>
-<li>Reveal Plans and move for Hold/Raid. Roll <b>one D6 per player per occupied Front</b>; all friendly Forces there use their own printed face.</li>
-<li>Declare legal Strikes and Pressure simultaneously. Targets depend on Plan and role/rank. The countering Plan may nominate <b>one Read Strike or Read Protect per Front</b>.</li>
-<li>Resolve <b>Evade → Pressure → Protect</b>. Read Strike bypasses one Protect; Read Protect cancels one extra damaging Strike for an eligible target. Pressure suppresses Protect/Rescue or Pins.</li>
-<li>Each uncancelled damaging Strike gets <b>+1 effective Force per other Strike at the same target</b>. Greater Force defeats; equality survives unless printed Special says otherwise. Failed attacks Pin.</li>
-<li><b>Rescue</b> saves one Force's entire defeat. Discard other casualties. <b>Opportunity</b> if your Strike discarded an enemy, Protect/Evade cancelled damage, or Rescue saved a Force.</li>
-<li>Printed advance first; then one optional forward step with Opportunity (Assault needs none). <b>One post-combat move per player per Front</b>; Pinned or already moved Forces cannot move. Majority controls.</li>
+<section class="panel"><h2>Deploy</h2>
+<p>Draw 1 (hand limit 10). Take up to <b>2 actions</b>: play one Force in a legal empty square for its Command cost, or move one Force to an adjacent empty rank/Front for <b>1 Command</b>.</p>
+<p>Pass instead of a turn to end deployment; your opponent takes one final turn.</p>
+<h2>Secret Battle Plans</h2>
+<table><tr><th>Plan</th><th>What happens</th></tr>
+<tr><td>Assault</td><td>After combat, advance one surviving Force one empty rank per Front.</td></tr>
+<tr><td>Hold</td><td>Withdraw one Force per Front before rolling; Defend may cover any ally in that Front.</td></tr>
+<tr><td>Volley</td><td>Archers Attack any enemy in their Front.</td></tr>
+<tr><td>Raid</td><td>Move one mobile Force per Front sideways to an empty adjacent open Front before rolling; mobile Forces Attack Middle/Rear.</td></tr></table>
+<p>Other Attacks target the nearest enemy rank. Choose only <b>one plan for your entire army</b>.</p></section>
+<section class="panel"><h2>Resolve combat</h2>
+<ol>
+<li>Reveal plans simultaneously <b>before dice</b>; make Hold/Raid movements.</li>
+<li>Each player rolls <b>one D6 per occupied Front</b>. Every friendly Force there uses its own outcome for that number.</li>
+<li>Declare Attacks and targets at the same time. <b>Defend</b> cancels one eligible Attack.</li>
+<li>A remaining Attack defeats if its Force is <b>higher</b> than the target's. Each additional uncancelled Attack at the same target adds <b>+1 effective Force</b> to those Attacks.</li>
+<li><b>Save</b> prevents one Force's whole defeat. Do printed Specials; remove defeated Forces permanently. Surviving Forces stay.</li>
+<li>More surviving Forces <b>controls a Front</b>. Lose 1 Command per enemy-controlled Front. At <b>0</b> you lose; otherwise recover 5 (cap 20) and refill to 10 cards.</li>
 </ol>
-<h2>Command after scoring</h2><p>Lose <b>1 Command per enemy-controlled Front</b>; check Collapse (0). Recover <b>8 if behind</b> in controlled Fronts, <b>6 if ahead</b>, <b>7 each if tied</b> (cap 20). Draw up to ten; casualties never return.</p></section>
+<p>No wounds or markers. <b>Battle VIII:</b> more controlled Fronts wins; ties use Command.</p></section>
 </div>
-<p class="foot"><b>Prototype restrictions:</b> No Bonds, Names, Tactics, Orders, Stratagems, Narratives, legacy attacks, health, condition markers or old Opening Orders. Four reusable Battle Plans per player. Full rules: <a href="rulebook.html">rulebook.html</a>. TLW experimental paper D6</p>
+<p class="foot">Four Fronts, three ranks each; rank does not affect scoring. Print the <a href="rulebook.html">single-page rules</a> for full setup and victory details. Paper D6 edition; engine and AI unchanged.</p>
 </main></body></html>
