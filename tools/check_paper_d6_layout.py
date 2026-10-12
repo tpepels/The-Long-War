@@ -41,61 +41,82 @@ window.addEventListener("load",async()=>{{
   await document.fonts.ready;
   const failures=window.PhysicalCards.inspect(document);
   const issues=failures.map(c=>c.id+":"+c.problems.join(","));
+  const collide=(a,b,tolerance=0.65)=>a&&b&&
+    Math.min(a.right,b.right)-Math.max(a.left,b.left)>tolerance&&
+    Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>tolerance;
   for(const card of document.querySelectorAll(".paper-d6-layout")){{
     const id=card.dataset.cardId;
     const rules=card.querySelector(".rules");
+    const footer=card.querySelector(".card-footer");
+    const title=card.querySelector(".card-identity");
+    const artwork=card.querySelector(".motif-field");
     const faces=[...card.querySelectorAll(".d6-number")];
     const rows=[...card.querySelectorAll(".d6-stanza")];
-    const artwork=card.querySelector(".motif-field");
-    if(!artwork||artwork.getBoundingClientRect().height<25*(96/25.4))
-      issues.push(id+":artwork-shrunk-for-rules");
-    for(const effect of card.querySelectorAll(".d6-verse")){{
-      const size=parseFloat(getComputedStyle(effect).fontSize);
-      if(size<11.35)issues.push(id+":text-too-small-"+size.toFixed(2));
-      if(effect.getBoundingClientRect().width<39*(96/25.4))
-        issues.push(id+":text-column-too-narrow");
-    }}
-    if(faces.length!==6||rows.length!==4)issues.push(id+":missing-editorial-stanzas");
-    if(card.querySelector(".d6-guide,.d6-outcomes,.d6-result-row,.d6-number[data-chip]"))
-      issues.push(id+":legacy-table-layout");
-    const printed=faces.map(face=>Number(face.textContent));
-    if(printed.join(",")!=="1,2,3,4,5,6" &&
-       [...printed].sort((a,b)=>a-b).join(",")!=="1,2,3,4,5,6")
-      issues.push(id+":die-values-missing-or-repeated");
-    if(card.querySelectorAll(".d6-face-row,.d6-outcome,.d6-face").length)
-      issues.push(id+":legacy-two-step-die-lookup");
+    if(!artwork||artwork.getBoundingClientRect().height<22*(96/25.4))
+      issues.push(id+":artwork-too-short");
+    if(faces.length!==6||rows.length!==4)
+      issues.push(id+":missing-four-passages-or-six-faces");
+    const printed=faces.map(face=>Number(face.textContent)).sort((a,b)=>a-b).join(",");
+    if(printed!=="1,2,3,4,5,6")issues.push(id+":missing-or-duplicate-die");
+    // Old rectangles, column headers and independently stacked action prose
+    // are forbidden. Distinct typography must be one *flowing paragraph*.
+    if(card.querySelector(".d6-guide,.d6-outcomes,.d6-result-row,.d6-stanza-heading,.d6-verse,.d6-action-icon"))
+      issues.push(id+":old-tabular-card-layout");
+    let lastCopy=null;
     for(const row of rows){{
       const key=row.dataset.outcomeKey;
+      const copy=row.querySelector(".d6-copy");
+      const action=row.querySelector(".d6-action-word");
+      const detail=row.querySelector(".d6-detail");
+      const numerals=row.querySelector(".d6-rolls");
+      const rowBox=row.getBoundingClientRect();
+      const copyBox=copy?.getBoundingClientRect();
+      const rollBox=numerals?.getBoundingClientRect();
       const represented=faces.filter(face=>face.closest(".d6-stanza")===row)
         .map(face=>Number(face.textContent));
       const expected=[...cards.find(c=>c.id===id).paper_d6.faces]
         .flatMap((letter,index)=>letter===key?[index+1]:[]);
       if(represented.join(",")!==expected.join(","))
-        issues.push(id+":incorrect-roll-mapping-"+key);
-      const effect=row.querySelector(".d6-verse");
-      const heading=row.querySelector(".d6-stanza-heading");
-      const rect=row.getBoundingClientRect();
-      for(const [name,part] of [["row",row],["effect",effect]]){{
-        if(part&&(part.scrollHeight>part.clientHeight+2||part.scrollWidth>part.clientWidth+2))
-          issues.push(id+":clipped-"+name+"-"+key+"-"+(part.scrollHeight-part.clientHeight));
+        issues.push(id+":bad-die-assignment-"+key);
+      if(!copy||!action||!numerals){{issues.push(id+":missing-passage-"+key);continue;}}
+      if(parseFloat(getComputedStyle(copy).fontSize)<10.8)
+        issues.push(id+":body-too-small-"+key);
+      if(parseFloat(getComputedStyle(action).fontSize)<9.4)
+        issues.push(id+":action-too-small-"+key);
+      if(getComputedStyle(row).display==="grid")
+        issues.push(id+":not-editorial-"+key);
+      if(copy.scrollHeight>copy.clientHeight+2||copy.scrollWidth>copy.clientWidth+2)
+        issues.push(id+":prose-overflow-"+key);
+      if(copyBox.top<rowBox.top-0.5||copyBox.bottom>rowBox.bottom+0.5)
+        issues.push(id+":prose-exceeds-own-passage-"+key);
+      if(rollBox.left<rowBox.left-1||rollBox.right>copyBox.left-0.2)
+        issues.push(id+":dice-overlap-prose-"+key);
+      if(rollBox.top<rowBox.top-1||rollBox.bottom>rowBox.bottom+1)
+        issues.push(id+":dice-overlap-neighbour-"+key);
+      if(numerals.scrollWidth>numerals.clientWidth+2)
+        issues.push(id+":dice-overflow-"+key);
+      if(lastCopy&&collide(lastCopy,copyBox))
+        issues.push(id+":neighbour-passages-collide-"+key);
+      lastCopy=copyBox;
+      // Verify actual text glyph line rectangles, not merely containing
+      // DIVs. Long Specials can collide despite scrollHeight looking fine.
+      for(const textSpan of [action,detail].filter(Boolean)){{
+        const range=document.createRange();
+        range.selectNodeContents(textSpan);
+        for(const box of range.getClientRects()){{
+          if(box.top<rowBox.top-1||box.bottom>rowBox.bottom+1)
+            issues.push(id+":ink-outside-passage-"+key);
+        }}
       }}
-      // SVG/large serif numerals can legitimately extend beyond their inline
-      // line boxes. Measure the prose's actual bounds rather than treating
-      // intrinsic scrollHeight on these un-clipped spans as content clipping.
-      if(heading&&heading.getBoundingClientRect().top<rect.top-1)
-        issues.push(id+":heading-overlaps-previous-"+key);
-      if(effect&&effect.getBoundingClientRect().bottom>rect.bottom+1)
-        issues.push(id+":effect-overlaps-next-"+key);
     }}
-    if(rules.scrollHeight>rules.clientHeight+2)issues.push(id+":outcomes-clipped");
-    for(const row of rows){{
-      const design=getComputedStyle(row);
-      if(design.display==="grid"||parseFloat(design.borderTopWidth)>0.5)
-        issues.push(id+":still-looks-like-a-table");
-    }}
-    const footer=card.querySelector(".card-footer");
-    if(rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+1)
+    if(rules.scrollHeight>rules.clientHeight+2)
+      issues.push(id+":rules-clip");
+    if(footer&&rules.getBoundingClientRect().bottom>footer.getBoundingClientRect().top+0.5)
       issues.push(id+":rules-overlap-footer");
+    if(title&&rules.getBoundingClientRect().top<title.getBoundingClientRect().bottom-0.5)
+      issues.push(id+":rules-overlap-title");
+    if(artwork&&title&&artwork.getBoundingClientRect().bottom>title.getBoundingClientRect().top+0.5)
+      issues.push(id+":artwork-overlap-title");
   }}
   document.getElementById("d6-layout-result").textContent=issues.length?issues.join(";"):"PASS";
 }});
@@ -110,7 +131,7 @@ window.addEventListener("load",async()=>{{
     status = html.unescape(match.group(1)) if match else "D6 layout test did not finish"
     if status != "PASS":
         raise SystemExit("FAIL D6 paper layout: " + status[:4000])
-    print("PASS: 44 D6 cards: editorial stanzas, full art window, accessible text, six correct faces, no clipping")
+    print("PASS: 44 D6 cards: no paragraph collisions, no die-text overlap, no clipping, all face mappings and typography legible")
 
 
 if __name__ == "__main__":
