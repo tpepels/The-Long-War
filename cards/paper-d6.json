@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "status": "experimental-paper-only",
-  "description": "The one-page paper game. Only Attack, Defend, Save, Nothing and printed one-line Specials; four individual outcomes on six D6 faces per Force. The engine/AI use separate unchanged card data.",
+  "description": "44 paper-only Force/Hero cards: individually authored four-effect, six-face D6 maps. Their outcome counts are unchanged; face arrangements form intentional Guard-Archer-Healer, Infantry-Guard and Raider-Rider combinations without mandatory lucky faces.",
   "cards": [
     {
       "id": "the-fifty-men",
       "role": "infantry",
       "force": 5,
       "command_cost": 4,
-      "faces": "AAFSDA",
+      "faces": "FASADA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -33,7 +33,7 @@
       "role": "raider",
       "force": 4,
       "command_cost": 4,
-      "faces": "ADSFFA",
+      "faces": "AFSAFD",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -58,7 +58,7 @@
       "role": "healer",
       "force": 3,
       "command_cost": 3,
-      "faces": "FSDDRS",
+      "faces": "FSSDDR",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -83,7 +83,7 @@
       "role": "guard",
       "force": 4,
       "command_cost": 4,
-      "faces": "DSDDFA",
+      "faces": "DSDFDA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -108,7 +108,7 @@
       "role": "archer",
       "force": 3,
       "command_cost": 4,
-      "faces": "SAAFDA",
+      "faces": "AAFSDA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -158,7 +158,7 @@
       "role": "rider",
       "force": 3,
       "command_cost": 4,
-      "faces": "DSFAFA",
+      "faces": "DSFAAF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -183,7 +183,7 @@
       "role": "rider",
       "force": 3,
       "command_cost": 3,
-      "faces": "ADFSFA",
+      "faces": "AAFDSF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -208,7 +208,7 @@
       "role": "skirmisher",
       "force": 4,
       "command_cost": 4,
-      "faces": "FASSAD",
+      "faces": "FADSSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -233,7 +233,7 @@
       "role": "skirmisher",
       "force": 3,
       "command_cost": 4,
-      "faces": "FAASSD",
+      "faces": "AFSADS",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -258,7 +258,7 @@
       "role": "archer",
       "force": 3,
       "command_cost": 4,
-      "faces": "FAAADS",
+      "faces": "FAASAD",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -283,7 +283,7 @@
       "role": "raider",
       "force": 5,
       "command_cost": 5,
-      "faces": "AFDAFS",
+      "faces": "AFDASF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -308,7 +308,7 @@
       "role": "guard",
       "force": 4,
       "command_cost": 4,
-      "faces": "DSFADD",
+      "faces": "DDDSFA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -333,7 +333,7 @@
       "role": "guard",
       "force": 3,
       "command_cost": 3,
-      "faces": "ADDSDF",
+      "faces": "DDASFD",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -358,7 +358,7 @@
       "role": "raider",
       "force": 5,
       "command_cost": 5,
-      "faces": "AFSDFA",
+      "faces": "DAFFSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -383,7 +383,7 @@
       "role": "captain",
       "force": 3,
       "command_cost": 3,
-      "faces": "FADDAS",
+      "faces": "DADSFA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -408,7 +408,7 @@
       "role": "captain",
       "force": 3,
       "command_cost": 3,
-      "faces": "DDFASA",
+      "faces": "ADASFD",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -433,7 +433,7 @@
       "role": "infantry",
       "force": 3,
       "command_cost": 3,
-      "faces": "AFDSAA",
+      "faces": "AADASF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -458,7 +458,7 @@
       "role": "guard",
       "force": 6,
       "command_cost": 5,
-      "faces": "DADSFD",
+      "faces": "DDFDSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -483,7 +483,7 @@
       "role": "rider",
       "force": 3,
       "command_cost": 3,
-      "faces": "FASADF",
+      "faces": "DAFFSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -508,7 +508,7 @@
       "role": "raider",
       "force": 3,
       "command_cost": 3,
-      "faces": "SFFDAA",
+      "faces": "AAFFSD",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -533,7 +533,7 @@
       "role": "skirmisher",
       "force": 2,
       "command_cost": 3,
-      "faces": "DASASF",
+      "faces": "FDSASA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -558,7 +558,7 @@
       "role": "infantry",
       "force": 3,
       "command_cost": 4,
-      "faces": "DSAFAA",
+      "faces": "AADSAF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -583,7 +583,7 @@
       "role": "guard",
       "force": 3,
       "command_cost": 3,
-      "faces": "FDDADS",
+      "faces": "DSDDFA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -608,7 +608,7 @@
       "role": "healer",
       "force": 3,
       "command_cost": 3,
-      "faces": "SDSRFD",
+      "faces": "SDFRSD",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -633,7 +633,7 @@
       "role": "steward",
       "force": 2,
       "command_cost": 3,
-      "faces": "FDDRRS",
+      "faces": "DFDSRR",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -658,7 +658,7 @@
       "role": "scout",
       "force": 2,
       "command_cost": 3,
-      "faces": "DASSAF",
+      "faces": "SADFSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -683,7 +683,7 @@
       "role": "captain",
       "force": 5,
       "command_cost": 5,
-      "faces": "ADASFD",
+      "faces": "DFASDA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -708,7 +708,7 @@
       "role": "scout",
       "force": 3,
       "command_cost": 3,
-      "faces": "ADFSSA",
+      "faces": "DAFSSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -733,7 +733,7 @@
       "role": "raider",
       "force": 5,
       "command_cost": 5,
-      "faces": "SDFFAA",
+      "faces": "AFDASF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -758,7 +758,7 @@
       "role": "guard",
       "force": 3,
       "command_cost": 4,
-      "faces": "FDDADS",
+      "faces": "DDSDFA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -783,7 +783,7 @@
       "role": "steward",
       "force": 2,
       "command_cost": 3,
-      "faces": "DRSFRD",
+      "faces": "DRSDFR",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -808,7 +808,7 @@
       "role": "stronghold",
       "force": 3,
       "command_cost": 4,
-      "faces": "DFDSDA",
+      "faces": "DADSDF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -833,7 +833,7 @@
       "role": "rider",
       "force": 4,
       "command_cost": 4,
-      "faces": "FFASAD",
+      "faces": "FSDFAA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -858,7 +858,7 @@
       "role": "guard",
       "force": 4,
       "command_cost": 4,
-      "faces": "DDAFSD",
+      "faces": "DDDSFA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -883,7 +883,7 @@
       "role": "scout",
       "force": 3,
       "command_cost": 4,
-      "faces": "ASFDSA",
+      "faces": "FDASSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -908,7 +908,7 @@
       "role": "skirmisher",
       "force": 4,
       "command_cost": 4,
-      "faces": "ASDAFS",
+      "faces": "FADSSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -933,7 +933,7 @@
       "role": "scout",
       "force": 3,
       "command_cost": 3,
-      "faces": "DFASSA",
+      "faces": "FADSSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -958,7 +958,7 @@
       "role": "raider",
       "force": 4,
       "command_cost": 4,
-      "faces": "ADFSFA",
+      "faces": "DASFFA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -983,7 +983,7 @@
       "role": "guard",
       "force": 3,
       "command_cost": 3,
-      "faces": "DDFSAD",
+      "faces": "DDFDSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -1008,7 +1008,7 @@
       "role": "raider",
       "force": 3,
       "command_cost": 3,
-      "faces": "FAASDF",
+      "faces": "FADFSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -1033,7 +1033,7 @@
       "role": "stronghold",
       "force": 3,
       "command_cost": 3,
-      "faces": "DAFSDD",
+      "faces": "DDSADF",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -1058,7 +1058,7 @@
       "role": "archer",
       "force": 4,
       "command_cost": 4,
-      "faces": "AAFDSA",
+      "faces": "AADFSA",
       "outcomes": {
         "F": {
           "title": "Nothing",
@@ -1083,7 +1083,7 @@
       "role": "infantry",
       "force": 5,
       "command_cost": 5,
-      "faces": "FASAAD",
+      "faces": "DAFASA",
       "outcomes": {
         "F": {
           "title": "Nothing",
