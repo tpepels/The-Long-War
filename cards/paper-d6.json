@@ -49,7 +49,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack Rear; if empty, Middle; if empty, Frontline."
+          "effect": "Attack Rear; else Middle; else Frontline."
         }
       }
     },
@@ -149,7 +149,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend all allies in this Front against one Attack each."
+          "effect": "Defend each ally in this Front once."
         }
       }
     },
@@ -174,7 +174,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; if target is discarded, advance one empty rank."
+          "effect": "Attack; if target falls, advance one empty rank."
         }
       }
     },
@@ -474,7 +474,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend all allies in this Front against one Attack each."
+          "effect": "Defend each ally in this Front once."
         }
       }
     },
@@ -574,7 +574,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; if target is discarded, advance one empty rank."
+          "effect": "Attack; if target falls, advance one empty rank."
         }
       }
     },
@@ -824,7 +824,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend all allies in this Front against one Attack each."
+          "effect": "Defend each ally in this Front once."
         }
       }
     },
@@ -974,7 +974,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack Rear; if empty, Middle; if empty, Frontline."
+          "effect": "Attack Rear; else Middle; else Frontline."
         }
       }
     },
