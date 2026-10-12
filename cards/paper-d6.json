@@ -49,7 +49,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear; otherwise Middle; otherwise Frontline."
+          "effect": "Attack Rear; if empty, Middle; if empty, Frontline."
         }
       }
     },
@@ -974,7 +974,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear; otherwise Middle; otherwise Frontline."
+          "effect": "Attack Rear; if empty, Middle; if empty, Frontline."
         }
       }
     },
