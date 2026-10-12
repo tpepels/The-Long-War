@@ -8,7 +8,7 @@ Each player takes a **24-card Force deck**, a separate **12-card Order deck**, *
 
 ## Deploy
 
-Take turns: draw one Force (hand limit 10), then take **up to two actions**. Play a Force in an empty permitted position for its Command cost, or move a Force one rank forward/back or sideways to the next open Front for **1 Command**. The destination must be empty. Never spend below zero. You may **Pass** instead of taking a turn; your opponent gets one final turn.
+Take turns: draw one Force (hand limit 10), then take **up to two actions**. Play a Force in an empty permitted position for its Command cost, or move a Force one rank forward/back or sideways to the next open Front in the same rank for **1 Command**. The destination must be empty. Never spend below zero. You may **Pass** instead of taking a turn; your opponent gets one final turn.
 
 ## Order
 
@@ -20,4 +20,4 @@ Roll **one D6 per occupied Front**. Every friendly Force there uses its own resu
 
 ## Continue
 
-More surviving Forces controls a Front. Lose **1 Command per enemy-controlled Front**; at zero, lose (both zero: draw). Otherwise recover **5 Command** (maximum 20), refill to 10 Forces, discard your played Order and draw one replacement. The non-passer starts the next Battle. After Battle VIII, more controlled Fronts wins, then more Command.
+More surviving Forces controls a Front. Lose **1 Command per enemy-controlled Front**; at zero, lose (both zero: draw). Otherwise recover **5 Command** (maximum 20), refill to 10 Forces (reshuffle ordinary discards, not casualties, if needed), discard your played Order and draw one replacement. The non-passer starts the next Battle. After Battle VIII, more controlled Fronts wins; ties go to more Command, then draw.
