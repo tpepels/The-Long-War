@@ -103,6 +103,7 @@ def main() -> None:
         return
     data = json.loads((ROOT / "cards/paper-d6-orders.json").read_text())
     authored = (ROOT / "web/orders.html").read_text()
+    js = (ROOT / "web/orders.js").read_text()
     css = (ROOT / "web/orders.css").read_text()
     shared_css = (ROOT / "web/physical-cards.css").read_text()
     # Layout uses the same shared artwork frame, font and renderer modules
