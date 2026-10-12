@@ -2,23 +2,15 @@
 // Canonical drawable Order cards, shared by the live print sheets and on-page hand.
 // Illustrations are from retired paper card identities. The print site
 // publishes optimized versions through build_print_art().
-const artPath=artId=>{
-  if(!/^[a-z0-9-]+$/.test(artId))throw new Error("Invalid Order artwork identifier");
-  return "art/cards-print/"+artId+".webp";
-};
-
-const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+// The Force catalogue and Order print sheets use one physical-card renderer.
 const byId=id=>document.getElementById(id);
 const state={cards:[],copies:3,pile:[],hand:[],used:[],selected:null,battles:0};
 function cardHTML(card,{choice=false}={}){
-  const n=choice?' role="button" tabindex="0" aria-pressed="'+(state.selected===card.uid)+'"':"";
-  return '<article class="order-card" data-order="'+esc(card.id)+'" data-instance="'+esc(card.uid)+'"'+n+'>'+
-    '<header class="order-header"><span class="order-family">ORDER</span><h3>'+esc(card.title)+'</h3></header>'+
-    '<div class="order-art" aria-hidden="true"><img class="order-illustration" src="'+
-      esc(artPath(card.art_id))+'" alt="" loading="eager" decoding="async"></div>'+
-    '<section class="order-effect"><p class="order-timing">'+esc(card.timing)+'</p>'+
-    '<p class="order-text">'+esc(card.effect)+'</p></section>'+
-    '<footer class="order-footer"><span>The Long War</span><span aria-hidden="true">✦</span></footer></article>';
+  return window.PhysicalCards.orderArticle(card,{
+    selectable:choice,
+    selected:choice&&state.selected===card.uid,
+    uid:card.uid
+  });
 }
 function pool(){
   return state.cards.flatMap(card=>Array.from({length:state.copies},(_,n)=>({...card,uid:card.id+"-"+n})));

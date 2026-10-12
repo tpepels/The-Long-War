@@ -82,11 +82,16 @@ def main() -> None:
     assert "not yet the published rules" not in html
     assert "orders.css" in html and "orders.js" in html
     assert "data/orders.json" in script
-    assert "art/cards-print/" in script
-    assert "order-illustration" in script
-    assert "<img " in script
-    assert "order-illustration" in css and "object-fit:cover" in css
-    assert "order-art" in css and "42.5mm" in css
+    # One renderer and one physical card stylesheet for Forces and Orders.
+    assert "PhysicalCards.orderArticle" in script
+    assert "function cardHTML" in script
+    assert "orderArticle" in (ROOT / "web/physical-cards.js").read_text(encoding="utf-8")
+    assert "paper-order-layout" in (ROOT / "web/physical-cards.css").read_text(encoding="utf-8")
+    assert 'href="physical-cards.css"' in html
+    assert 'src="physical-cards.js"' in html
+    assert 'src="card-symbols.js"' in html
+    assert ".order-art{" not in css
+    assert ".order-card{--accent" not in css
     assert "orders-prototype.json" not in script
     assert "function playSelected()" in script and "function drawNewHand()" in script
     assert "state.copies=data.copies_per_order" in script

@@ -321,6 +321,39 @@ function cardArticle(card,extra="",options={}){
   const footerMark=typeGlyph(card.type);
   return '<article class="physical-card card-'+esc(card.type)+density+titleDensity+(extra?" "+esc(extra):"")+'" data-card-id="'+esc(card.id)+'"'+(card.type==="hero"?' data-hero-mode="'+heroMode+'"':"")+artStyle(card,options)+'>'+(isFormationCard(card)?stackEdge(card):eventCrown(card))+'<div class="card-body"><div class="motif-field" aria-hidden="true"></div>'+(isPaperD6(card)?'':'<div class="card-identity"><h3 class="card-title">'+esc(card.title)+'</h3></div>')+'<div class="rules">'+rules(card)+'</div></div><footer class="card-footer">'+(card.unique?'<span class="footer-unique">Unique</span>':"")+classificationLine(card)+'<span class="footer-mark">'+footerMark+'</span><span class="footer-version">v'+esc(PRINT_VERSION)+'</span><span class="footer-id">'+esc(card.id)+'</span>'+costSeal(card)+'</footer></article>';
 }
+/* Orders are another physical-card variant, not a second card renderer.
+   They reuse the Force card's shell, top-row hierarchy, framed illustration,
+   body, text fonts and footer. Only the rules region differs. */
+function orderArticle(card,{selected=false,selectable=false,uid=""}={}){
+  if(!card||!/^[a-z0-9-]+$/.test(card.art_id||""))
+    throw new Error("Missing canonical Order illustration");
+  const id=uid||card.id;
+  const click=selectable?' role="button" tabindex="0" aria-pressed="'+Boolean(selected)+'"':"";
+  const timing=String(card.timing||"");
+  return '<article class="physical-card card-order paper-order-layout order-card"'+
+    ' data-order="'+esc(card.id)+'" data-instance="'+esc(id)+'" data-card-id="order-'+esc(card.id)+'"'+
+    click+artStyle(card,{printArt:true})+'>'+
+    '<header class="stack-edge paper-card-head order-card-head">'+
+      '<span class="order-head-symbol" aria-hidden="true">'+typeGlyph("order")+'</span>'+
+      '<h3 class="card-title paper-head-title">'+esc(card.title)+'</h3>'+
+      '<span class="order-head-family">ORDER</span>'+
+    '</header>'+
+    '<div class="card-body">'+
+      '<div class="motif-field" aria-hidden="true"></div>'+
+      '<div class="rules order-rules">'+
+        '<section class="order-effect">'+
+          '<p class="order-timing">'+esc(timing)+'</p>'+
+          '<p class="order-text">'+esc(card.effect)+'</p>'+
+        '</section>'+
+      '</div>'+
+    '</div>'+
+    '<footer class="card-footer order-footer">'+
+      '<span class="order-footer-label">THE LONG WAR</span>'+
+      '<span class="footer-version">v'+esc(PRINT_VERSION)+'</span>'+
+      '<span class="order-footer-ornament" aria-hidden="true">✦</span>'+
+    '</footer>'+
+  '</article>';
+}
 const STACK_CASES={
  "force-alone":{title:"Force alone",state:"Formation · Unbonded",ids:["the-crow-archers"]},
  "force-bond":{title:"Force + Bond",state:"Bonded",ids:["the-crow-archers","had-been-ordered-forward"]},
@@ -370,5 +403,5 @@ function inspect(root=document){
   card.classList.toggle("layout-overflow",problems.length>0);if(problems.length)failures.push({id:card.dataset.cardId,problems:[...new Set(problems)]});
  });return failures;
 }
-window.PhysicalCards={cardArticle,stackMarkup,inspect,cardArtURL};
+window.PhysicalCards={cardArticle,orderArticle,stackMarkup,inspect,cardArtURL};
 })();

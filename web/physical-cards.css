@@ -2032,7 +2032,7 @@ EXPOSED TOP ROW - TUNING PANEL
   --identity-height: 0mm;
   --title-height: 9.5mm;
 }
-.paper-d6-layout .stack-edge.paper-card-head {
+:is(.paper-d6-layout,.paper-order-layout) .stack-edge.paper-card-head {
   --edge-type-icon-size: 4.25mm;
   --edge-row-icon-size: 4.8mm;
   height: 13mm;
@@ -2063,7 +2063,7 @@ EXPOSED TOP ROW - TUNING PANEL
 .paper-d6-layout .paper-head-force .strength-mark {
   font: 800 2.9mm/1 var(--display);
 }
-.paper-d6-layout .paper-head-title {
+:is(.paper-d6-layout,.paper-order-layout) .paper-head-title {
   min-width: 0;
   width: 100%;
   height: auto;
@@ -2092,12 +2092,12 @@ EXPOSED TOP ROW - TUNING PANEL
   width: 5mm;
   height: 5mm;
 }
-.paper-d6-layout .card-body {
+:is(.paper-d6-layout,.paper-order-layout) .card-body {
   /* The card title no longer consumes any room below the illustration. */
   padding: 0 4.1mm;
 }
-.paper-d6-layout .card-identity { display: none; }
-.paper-d6-layout .motif-field::before {
+:is(.paper-d6-layout,.paper-order-layout) .card-identity { display: none; }
+:is(.paper-d6-layout,.paper-order-layout) .motif-field::before {
   inset: .65mm .75mm .38mm;
   border-radius: 1mm;
 }
@@ -2218,3 +2218,129 @@ EXPOSED TOP ROW - TUNING PANEL
   font: 700 2.9mm/1 var(--display);
 }
 .paper-d6-layout.card-hero .rules { margin-top: .15mm; padding: 0; }
+
+/*
+===============================================================================
+CANONICAL PAPER ORDER CARD — SAME PHYSICAL DESIGN AS THE FORCE CARDS
+===============================================================================
+Only colour, art height and the one-effect rules region differ. The shared
+physical-card, stack-edge, motif-field, card-body and card-footer components,
+EB Garamond/Gentium typography, card-shell, art-window and print size are
+identical to Force cards. No independent painted-card template exists.
+*/
+.paper-order-layout{
+  --art-height:30mm;
+  --identity-height:0mm;
+  --footer-height:15mm;
+  --card-shell-sepia:.38;
+  --card-shell-saturate:1.5;
+  --card-shell-grayscale:.18;
+  --card-shell-hue:310deg;
+  --card-shell-brightness:.96;
+  --card-shell-contrast:1.05;
+  --order-ink:#76513f;
+}
+.paper-order-layout[data-order="hold"]{
+  --card-shell-hue:85deg;
+  --order-ink:#4f6548;
+}
+.paper-order-layout[data-order="volley"]{
+  --card-shell-hue:185deg;
+  --order-ink:#425e77;
+}
+.paper-order-layout[data-order="raid"]{
+  --card-shell-hue:30deg;
+  --order-ink:#735d3b;
+}
+.paper-order-layout .stack-edge.paper-card-head{
+  grid-template-columns:9.2mm minmax(0,1fr) 7.4mm;
+}
+.paper-order-layout .order-head-symbol{
+  width:5mm;
+  height:5mm;
+  display:grid;
+  place-items:center;
+  justify-self:center;
+  color:var(--order-ink);
+}
+.paper-order-layout .order-head-symbol svg,
+.paper-order-layout .order-head-symbol .glyph-png{
+  display:block;
+  width:5mm;
+  height:5mm;
+  object-fit:contain;
+}
+.paper-order-layout .order-head-family{
+  display:block;
+  justify-self:center;
+  color:var(--order-ink);
+  font:800 2.1mm/1.1 var(--utility);
+  letter-spacing:.025em;
+}
+.paper-order-layout .paper-head-title{
+  font-size:4.35mm;
+}
+.paper-order-layout .card-body{padding:0 4.1mm}
+.paper-order-layout .rules.order-rules{
+  display:flex;
+  align-items:flex-start;
+  margin:.2mm .15mm 0;
+  padding:3.4mm 1.5mm 0;
+  min-width:0;
+  overflow:hidden;
+}
+.paper-order-layout .order-effect{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:2.1mm;
+  width:100%;
+  min-width:0;
+  padding:.5mm .1mm 0;
+  border:0;
+}
+.paper-order-layout .order-effect::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:-1.7mm;
+  width:12mm;
+  height:.16mm;
+  background:linear-gradient(90deg,var(--order-ink),transparent);
+  opacity:.65;
+}
+.paper-order-layout .order-timing{
+  margin:0;
+  color:var(--order-ink);
+  font:800 2.45mm/1.15 var(--utility);
+  text-transform:uppercase;
+  letter-spacing:.07em;
+}
+.paper-order-layout .order-text{
+  margin:0;
+  color:var(--deep);
+  font:400 3.55mm/1.2 var(--card-rule-font-family);
+  overflow-wrap:normal;
+  word-break:normal;
+  hyphens:none;
+}
+.paper-order-layout .card-footer.order-footer{
+  padding:2mm 17mm .5mm 5mm;
+  align-content:end;
+}
+.paper-order-layout .order-footer-label{
+  grid-column:1/3;
+  grid-row:1;
+  color:#635a48;
+  font:700 2.25mm/1 var(--card-footer-font-family);
+  font-variant:small-caps;
+  white-space:nowrap;
+}
+.paper-order-layout .order-footer-ornament{
+  position:absolute;
+  right:5mm;
+  bottom:3mm;
+  color:var(--order-ink);
+  font:600 5.5mm/1 var(--card-title-font-family);
+}
+.paper-order-layout .footer-version{grid-column:1/3;grid-row:2}
