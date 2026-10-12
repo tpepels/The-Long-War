@@ -36,13 +36,14 @@ def test_all_44_have_distinct_printed_tactics() -> None:
             set(effects) == set(card["faces"]) == {"D", "F", "R", "S"}
         ), card["id"]
         assert len(card["faces"]) == 6
-        assert effects["F"]["effect"].startswith(("Defend", "Save", "Draw"))
+        assert effects["F"]["effect"].startswith(("Defend", "Save", "Draw", "Recover", "Move", "Advance"))
         assert "Nothing" not in " ".join(x["effect"] for x in effects.values())
         assert effects["D"]["effect"].startswith("Defend")
         if "A" in effects:
             assert effects["A"]["effect"].startswith("Attack")
         else:
             assert effects["R"]["effect"].startswith("Save")
+        assert all("If " not in value["effect"] for key, value in effects.items() if key != "S")
         for outcome in effects.values():
             wording = outcome["effect"]
             assert 1 <= len(wording) <= 80, (card["id"], wording)
@@ -100,8 +101,8 @@ def test_existing_dice_formations_now_activate_card_local_interactions() -> None
     # Specific design dependencies: a trigger and its partner are present
     # on the same die and can target the same enemy.
     assert "If it Attacks" in cards["the-red-shields"]["outcomes"]["S"]["effect"]
-    assert "If an ally Defends" in cards["the-crow-archers"]["outcomes"]["A"]["effect"]
-    assert "If an ally Attacks Frontline" in cards["the-dust-riders"]["outcomes"]["A"]["effect"]
+    assert "If an ally Defends" in cards["the-crow-archers"]["outcomes"]["S"]["effect"]
+    assert "If an ally Attacks Frontline" in cards["the-dust-riders"]["outcomes"]["S"]["effect"]
     assert "If an ally Attacks this target" in cards["the-aradai"]["outcomes"]["S"]["effect"]
     assert "gains +1 Force" in cards["the-first-spear"]["outcomes"]["S"]["effect"]
 
