@@ -2028,7 +2028,7 @@ EXPOSED TOP ROW - TUNING PANEL
    Force + name + legal rank now share one top title band.
    Roll-to-effect passages rely on rhythm and white space, not four rules. */
 .paper-d6-layout {
-  --art-height: 26mm;
+  --art-height: 25.3mm;
   --identity-height: 0mm;
   --title-height: 9.5mm;
 }
@@ -2109,7 +2109,7 @@ EXPOSED TOP ROW - TUNING PANEL
 .d6-combat {
   height: 100%;
   position: relative;
-  padding: 2.25mm .3mm .26mm;
+  padding: 1.9mm .3mm .22mm;
   color: #242820;
 }
 .d6-gutter-die {
@@ -2138,7 +2138,7 @@ EXPOSED TOP ROW - TUNING PANEL
   align-items: center;
   flex: var(--stanza-weight,1) 1 0;
   min-height: 0;
-  padding: .56mm 1.5mm .56mm 12.3mm;
+  padding: .3mm 1.5mm .3mm 12.3mm;
   border: 0;
   background: none;
 }
@@ -2186,14 +2186,14 @@ EXPOSED TOP ROW - TUNING PANEL
   padding: 0;
   width: 100%;
   min-width: 0;
-  font: 400 3.05mm/1.13 var(--text);
+  font: 400 3.05mm/1.18 var(--text);
   color: #26271f;
   overflow-wrap: normal;
   word-break: normal;
   hyphens: none;
 }
 .d6-action-word {
-  font: 700 2.64mm/1 var(--utility);
+  font: 800 2.7mm/1 var(--utility);
   letter-spacing: .055em;
   text-transform: uppercase;
   color: #433e30;
@@ -2201,10 +2201,11 @@ EXPOSED TOP ROW - TUNING PANEL
   margin-right: .55mm;
 }
 .d6-detail { font: inherit; }
+.d6-condition { font: italic 400 2.94mm/1.18 var(--text); color: #5a5549; }
 .d6-stanza[data-action="attack"] .d6-action-word { color: #783d2d; }
 .d6-stanza[data-action="save"] .d6-action-word { color: #3c594b; }
-.d6-stanza[data-action="nothing"] .d6-copy,
-.d6-stanza[data-action="nothing"] .d6-action-word { color: #69675c; }
+.d6-stanza[data-action="draw"] .d6-action-word { color: #46645c; }
+.d6-stanza[data-outcome-key="F"] .d6-roll-values { color: #4c5d52; }
 .d6-stanza[data-outcome-key="S"] .d6-action-word {
   color: #6d5227;
   font-weight: 800;

@@ -19,7 +19,7 @@ FORBIDDEN = re.compile(
     r"Bond|Named|marker|token|reroll|re-roll|reaction|interrupt|stun|"
     r"wound|charge counter)\b", re.I
 )
-ACTION = re.compile(r"^(?:Attack|Defend|Save|Nothing)\b")
+ACTION = re.compile(r"^(?:Attack|Defend|Save|Draw)\b")
 
 # Explicit zero-rule-change boundaries: no statuses, new phases, markers,
 # counters, permanent abilities, or mandatory keywords in printed effects.
@@ -36,7 +36,8 @@ def test_all_44_have_distinct_printed_tactics() -> None:
             set(effects) == set(card["faces"]) == {"D", "F", "R", "S"}
         ), card["id"]
         assert len(card["faces"]) == 6
-        assert effects["F"]["effect"] == "Nothing."
+        assert effects["F"]["effect"].startswith(("Defend", "Save", "Draw"))
+        assert "Nothing" not in " ".join(x["effect"] for x in effects.values())
         assert effects["D"]["effect"].startswith("Defend")
         if "A" in effects:
             assert effects["A"]["effect"].startswith("Attack")

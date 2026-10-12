@@ -102,6 +102,16 @@ window.addEventListener("load",async()=>{{
       if(getComputedStyle(row,"::before").content!=="none" &&
          key!=="S")
         issues.push(id+":gratuitous-result-divider-"+key);
+      const expectedEffect=cards.find(c=>c.id===id).paper_d6.outcomes[key].effect;
+      if(!expectedEffect||expectedEffect.includes("Nothing"))
+        issues.push(id+":blank-printed-result-"+key);
+      if(copy?.textContent.includes("Nothing")||!action?.textContent?.trim())
+        issues.push(id+":unreadable-result-"+key);
+      if(key==="F"&&!["defend","save","draw"].includes(row.dataset.action))
+        issues.push(id+":missing-fallback-support-"+key);
+      const condition=row.querySelector(".d6-condition");
+      if(/(?:^|[.!?]\s+)If\b/i.test(expectedEffect) && !condition)
+        issues.push(id+":missing-conditional-hierarchy-"+key);
       const rowBox=row.getBoundingClientRect();
       const copyBox=copy?.getBoundingClientRect();
       const rollBox=numerals?.getBoundingClientRect();

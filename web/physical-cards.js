@@ -78,13 +78,20 @@ const isPaperD6=card=>Boolean(card.paper_d6);
 // prose carry the visual weight instead of chip boxes and a column header.
 function paperOutcomeParts(effect){
   const text=String(effect||"").trim();
-  const match=/^(Attack|Defend|Save|Nothing)\b/i.exec(text);
-  if(!match)return {action:"Special",detail:text};
+  const match=/^(Attack|Defend|Save|Draw)\b/i.exec(text);
+  if(!match)throw new Error("Unknown physical D6 effect: "+text);
   const action=match[1];
-  const detail=text.slice(action.length).replace(/^\s*[;:.]\s*/,"").trim();
-  // The command is the heading: do not add "No effect" or "Apply this
-  // result" to fill space, and do not duplicate the same first word.
-  return {action,detail:detail?detail[0].toUpperCase()+detail.slice(1):""};
+  const remainder=text.slice(action.length).replace(/^\s*[;:.]\s*/,"").trim();
+  // Keep the main action plainly readable. A conditional sentence is
+  // secondary typography, not a new boxed row or another game keyword.
+  const conditional=/(^|[.!?]\s+)(If\b.*)$/i.exec(remainder);
+  let detail=remainder,condition="";
+  if(conditional){
+    detail=remainder.slice(0,conditional.index).trim();
+    if(detail&&/[.!?]/.test(conditional[1]))detail+=conditional[1].trim();
+    condition=conditional[2];
+  }
+  return {action,detail,condition};
 }
 // A miniature die next to each roll group and one explicit key make these
 // numerals unmistakably *D6 results*, not Force/cost/card identifiers.
@@ -105,8 +112,8 @@ function combatStrip(card){
     const rolls=outcome.dice.map(face=>
       '<span class="d6-number" data-die-face="'+face+'">'+face+'</span>'
     ).join("");
-    const weight=(outcome.detail.length===0?0.64:
-      Math.min(2.05,1+Math.max(0,outcome.detail.length-22)/38)).toFixed(2);
+    const proseLength=outcome.detail.length+outcome.condition.length;
+    const weight=Math.min(2.3,Math.max(.88,1+Math.max(0,proseLength-22)/32)).toFixed(2);
     return '<section class="d6-stanza" data-outcome-key="'+esc(outcome.key)+
       '" data-action="'+esc(outcome.action.toLowerCase())+
       '" data-face-count="'+outcome.dice.length+
@@ -116,6 +123,7 @@ function combatStrip(card){
       '<span class="d6-roll-values">'+rolls+'</span></span>'+
       '<p class="d6-copy"><strong class="d6-action-word">'+esc(outcome.action)+
       '</strong>'+(outcome.detail?' <span class="d6-detail">'+esc(outcome.detail)+'</span>':'')+
+      (outcome.condition?' <span class="d6-condition">'+esc(outcome.condition)+'</span>':'')+
       '</p>'+
       (outcome.key==="S"?'<span class="d6-signature" aria-hidden="true">✦</span>':"")+
       '</section>';
