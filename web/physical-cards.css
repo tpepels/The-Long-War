@@ -2067,22 +2067,22 @@ EXPOSED TOP ROW - TUNING PANEL
   min-width: 0;
   width: 100%;
   height: auto;
-  max-height: 9.2mm;
+  max-height: 10.2mm;
   flex: 0 1 auto;
   margin: 0;
   padding: 0 .1mm;
   display: block;
   text-align: center;
   align-self: center;
-  font: 650 4.5mm/1.06 var(--card-title-font-family);
+  font: 650 4.1mm/1.2 var(--card-title-font-family);
   letter-spacing: -.025em;
   font-variant: small-caps;
   text-wrap: balance;
   overflow-wrap: normal;
   hyphens: none;
 }
-.paper-d6-layout.title-long .paper-head-title { font-size: 3.8mm; line-height: 1.07; }
-.paper-d6-layout.title-very-long .paper-head-title { font-size: 3.4mm; line-height: 1.06; }
+.paper-d6-layout.title-long .paper-head-title { font-size: 3.65mm; line-height: 1.2; }
+.paper-d6-layout.title-very-long .paper-head-title { font-size: 3.2mm; line-height: 1.2; }
 .paper-d6-layout .paper-head-positions .edge-placement {
   display: flex;
   align-items: center;
