@@ -80,7 +80,7 @@ def test_every_paper_card_uses_the_small_shared_vocabulary():
 
 
 def test_printable_reference_agrees_with_one_page():
-    for name in ("web/tokens.html", "web/playmat.html", "web/playtest-kit.js"):
+    for name in ("web/tokens.html", "web/playmat.html"):
         content = (ROOT / name).read_text(encoding="utf-8")
         for phrase in ("Assault", "Hold", "Volley", "Raid", "Attack", "Defend"):
             assert phrase in content, (name, phrase)
@@ -88,6 +88,14 @@ def test_printable_reference_agrees_with_one_page():
             assert forbidden not in content, (name, forbidden)
     plans = (ROOT / "web/tokens.html").read_text(encoding="utf-8")
     assert plans.count('class="plan"') == 8
+
+    # Cards print without another mechanics sheet or second set of rules.
+    deck_html = (ROOT / "web/playtest-kit.html").read_text(encoding="utf-8")
+    deck_js = (ROOT / "web/playtest-kit.js").read_text(encoding="utf-8")
+    assert "include-mechanics" not in deck_html
+    assert "mechanics-reference" not in deck_html
+    assert "includeMechanics" not in deck_js
+    assert 'href="rulebook.html"' in deck_html
 
 
 def test_physical_only_no_runtime_edit():
