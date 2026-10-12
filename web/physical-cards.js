@@ -86,6 +86,15 @@ function paperOutcomeParts(effect){
   // result" to fill space, and do not duplicate the same first word.
   return {action,detail:detail?detail[0].toUpperCase()+detail.slice(1):""};
 }
+// A miniature die next to each roll group and one explicit key make these
+// numerals unmistakably *D6 results*, not Force/cost/card identifiers.
+const PAPER_DIE_ICON='<svg class="d6-die-icon" viewBox="0 0 12 12" fill="none" '+
+  'stroke="currentColor" stroke-width="1.1" aria-hidden="true">'+
+  '<rect x="1" y="1" width="10" height="10" rx="1.8"/>'+
+  '<circle cx="3.7" cy="3.7" r=".75" fill="currentColor" stroke="none"/>'+
+  '<circle cx="8.3" cy="3.7" r=".75" fill="currentColor" stroke="none"/>'+
+  '<circle cx="3.7" cy="8.3" r=".75" fill="currentColor" stroke="none"/>'+
+  '<circle cx="8.3" cy="8.3" r=".75" fill="currentColor" stroke="none"/></svg>';
 function combatStrip(card){
   const p=card.paper_d6;
   const outcomes=Object.entries(p.outcomes).map(([key,outcome])=>{
@@ -96,16 +105,15 @@ function combatStrip(card){
     const rolls=outcome.dice.map(face=>
       '<span class="d6-number" data-die-face="'+face+'">'+face+'</span>'
     ).join("");
-    // Reserve the least space for Nothing and more for longer printed effects.
-    // These weights distribute whitespace; content is measured in the browser.
     const weight=(outcome.detail.length===0?0.64:
       Math.min(2.05,1+Math.max(0,outcome.detail.length-22)/38)).toFixed(2);
     return '<section class="d6-stanza" data-outcome-key="'+esc(outcome.key)+
       '" data-action="'+esc(outcome.action.toLowerCase())+
       '" data-face-count="'+outcome.dice.length+
-      '" style="--stanza-weight:'+weight+'" aria-label="Roll '+
+      '" style="--stanza-weight:'+weight+'" aria-label="On D6 roll '+
       outcome.dice.join(" or ")+': '+esc(outcome.effect)+'">'+
-      '<span class="d6-rolls" aria-hidden="true">'+rolls+'</span>'+
+      '<span class="d6-rolls" aria-hidden="true">'+PAPER_DIE_ICON+
+      '<span class="d6-roll-values">'+rolls+'</span></span>'+
       '<p class="d6-copy"><strong class="d6-action-word">'+esc(outcome.action)+
       '</strong>'+(outcome.detail?' <span class="d6-detail">'+esc(outcome.detail)+'</span>':'')+
       '</p>'+
@@ -113,6 +121,7 @@ function combatStrip(card){
       '</section>';
   }).join("");
   return '<section class="d6-combat" aria-label="D6 roll outcomes">'+
+    '<div class="d6-roll-key" aria-hidden="true">D6 ROLL <span class="d6-key-arrow">→</span> EFFECT</div>'+
     '<div class="d6-stanzas">'+stanzas+'</div></section>';
 }
 
