@@ -82,7 +82,7 @@ def _flush_paragraph(lines: list[str], out: list[str]) -> None:
 def markdown_to_typst(source: str, version: str) -> str:
     """Typeset the canonical Markdown as a two-column handbook with full-width aids."""
     lines = source.splitlines()
-    short_rules = len(source.split()) <= 220
+    short_rules = len(source.split()) <= 340
     columns = 1 if short_rules else 2
     body_size = "11.5" if short_rules else "9.1"
     out: list[str] = []
