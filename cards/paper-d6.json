@@ -24,7 +24,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; equal Force defeats."
+          "effect": "Attack. If an ally Attacks the same target, +1 Force."
         }
       }
     },
@@ -45,11 +45,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Middle, may target Rear."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack Rear; else Middle; else Frontline."
+          "effect": "Attack foremost. If an ally Attacks Frontline, may target Rear."
         }
       }
     },
@@ -74,7 +74,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save one ally in this Front."
+          "effect": "Save an ally. If saved, move it back one empty rank after combat."
         }
       }
     },
@@ -99,7 +99,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend two different allies in this Front."
+          "effect": "Defend an ally. If it Attacks, it gains +1 Force."
         }
       }
     },
@@ -120,11 +120,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Defends, may target Middle."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Middle."
+          "effect": "Attack Middle. If an ally Defends, +1 Force."
         }
       }
     },
@@ -141,7 +141,7 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend any ally here."
         },
         "A": {
           "title": "Attack",
@@ -149,7 +149,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend each ally in this Front once."
+          "effect": "Defend each ally here once. If another ally Saves, Defend it again."
         }
       }
     },
@@ -170,11 +170,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; if target falls, advance one empty rank."
+          "effect": "Attack. If target falls, move sideways to an empty adjacent open Front."
         }
       }
     },
@@ -195,11 +195,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Frontline, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Middle."
+          "effect": "Attack Middle. If an ally Attacks Frontline, +1 Force."
         }
       }
     },
@@ -216,7 +216,7 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend Frontline ally."
         },
         "A": {
           "title": "Attack",
@@ -224,7 +224,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; ignore one Defend on target."
+          "effect": "Attack. If an ally Attacks the same target, ignore one Defend."
         }
       }
     },
@@ -245,11 +245,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If no ally Attacks, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; equal Force defeats."
+          "effect": "Attack. If no ally Attacks this target, equal Force defeats."
         }
       }
     },
@@ -266,15 +266,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend Frontline ally."
+          "effect": "Defend an ally behind."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Middle, may target Rear."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If an ally Attacks Frontline, +1 Force."
         }
       }
     },
@@ -291,7 +291,7 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend foremost ally."
         },
         "A": {
           "title": "Attack",
@@ -299,7 +299,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; equal Force defeats."
+          "effect": "Attack. If an ally Attacks the same target, +2 Force."
         }
       }
     },
@@ -324,7 +324,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend one ally in this Front against all Attacks."
+          "effect": "Defend an attacking ally. It gains +1 Force."
         }
       }
     },
@@ -349,7 +349,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend two different allies in this Front."
+          "effect": "Defend an ally behind against all Attacks. It may withdraw one empty rank."
         }
       }
     },
@@ -366,15 +366,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend nearest ally ahead."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If your Order is Raid, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If another ally Attacks Middle, +1 Force."
         }
       }
     },
@@ -399,7 +399,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save one ally in this Front."
+          "effect": "Save an ally. If saved, it may advance one empty rank after combat."
         }
       }
     },
@@ -416,15 +416,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend nearest ally ahead."
+          "effect": "Defend attacking ally."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Defend two different allies in this Front."
+          "effect": "Defend self. Each attacking ally here gains +1 Force."
         }
       }
     },
@@ -449,7 +449,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; equal Force defeats."
+          "effect": "Attack. If an ally Attacks this target, equal Force defeats."
         }
       }
     },
@@ -474,7 +474,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend each ally in this Front once."
+          "effect": "Defend each ally here once. Defend Frontline ally again."
         }
       }
     },
@@ -491,15 +491,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend ally in Middle."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Rear, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If an ally Saves, +1 Force."
         }
       }
     },
@@ -516,7 +516,7 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend an ally ahead."
         },
         "A": {
           "title": "Attack",
@@ -524,7 +524,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; ignore one Defend on target."
+          "effect": "Attack. If two allies Attack this target, ignore all Defends."
         }
       }
     },
@@ -541,15 +541,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend ally behind."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Middle, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Middle."
+          "effect": "Attack Middle. If an ally Attacks Frontline, ignore one Defend."
         }
       }
     },
@@ -574,7 +574,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; if target falls, advance one empty rank."
+          "effect": "Attack. If target falls, advance one empty rank after combat."
         }
       }
     },
@@ -599,7 +599,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save foremost ally in this Front."
+          "effect": "Save Frontline ally. If saved, move this Force forward one empty rank."
         }
       }
     },
@@ -624,7 +624,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save one ally in this Front."
+          "effect": "Save an ally. If saved, move it sideways to an empty adjacent open Front."
         }
       }
     },
@@ -649,7 +649,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save two different allies in this Front."
+          "effect": "Save two different allies. If both saved, recover 1 Command."
         }
       }
     },
@@ -666,7 +666,7 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend an ally behind."
         },
         "A": {
           "title": "Attack",
@@ -674,7 +674,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Middle."
+          "effect": "Attack Middle. If an ally Defends, ignore one Defend."
         }
       }
     },
@@ -695,11 +695,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Defends, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Save an ally in this Front or in an adjacent open Front."
+          "effect": "Save an ally here or in an adjacent open Front. If saved, recover 1 Command."
         }
       }
     },
@@ -724,7 +724,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If target falls, move sideways to an empty adjacent open Front."
         }
       }
     },
@@ -741,15 +741,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend Frontline ally."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; ignore one Defend on target."
+          "effect": "Attack. Ignore one Defend; if an ally Attacks same target, +1 Force."
         }
       }
     },
@@ -774,7 +774,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend one ally in this Front against all Attacks."
+          "effect": "Defend an ally against all Attacks. If it Attacks, +1 Force."
         }
       }
     },
@@ -799,7 +799,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save one ally in this Front."
+          "effect": "Save an ally. If saved, recover 1 Command."
         }
       }
     },
@@ -824,7 +824,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend each ally in this Front once."
+          "effect": "Defend each ally here once. If your Order is Hold, also Save one ally."
         }
       }
     },
@@ -841,15 +841,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend ally in Rear."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Rear, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If target falls, move one empty rank forward after combat."
         }
       }
     },
@@ -874,7 +874,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Save foremost ally in this Front."
+          "effect": "Save foremost ally. If it Attacks, it gains +1 Force."
         }
       }
     },
@@ -891,15 +891,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend an ally ahead."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Saves, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Save one ally in this Front."
+          "effect": "Save an ally. If saved, draw one Force (hand limit 10)."
         }
       }
     },
@@ -916,15 +916,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend nearest ally ahead."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Middle, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Middle."
+          "effect": "Attack Middle. If an ally Attacks Rear, +1 Force."
         }
       }
     },
@@ -941,15 +941,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend ally behind."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Defends, may target Rear."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If target falls, draw one Force (hand limit 10)."
         }
       }
     },
@@ -974,7 +974,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Attack Rear; else Middle; else Frontline."
+          "effect": "Attack Rear, else Middle, else Frontline. If target falls, recover 1 Command."
         }
       }
     },
@@ -999,7 +999,7 @@
         },
         "S": {
           "title": "Special",
-          "effect": "Defend two different allies in this Front."
+          "effect": "Defend two allies. If both Attack, each gains +1 Force."
         }
       }
     },
@@ -1016,15 +1016,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend an ally in Middle."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks Rear, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If an ally Attacks Middle, ignore one Defend."
         }
       }
     },
@@ -1041,15 +1041,15 @@
         },
         "D": {
           "title": "Defend",
-          "effect": "Defend self."
+          "effect": "Defend any ally here."
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If your Order is Hold, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Defend each ally here once. If your Order is Hold, Defend Frontline ally twice."
         }
       }
     },
@@ -1070,11 +1070,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If an ally Attacks, may target Rear."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack enemy Rear."
+          "effect": "Attack Rear. If two allies Attack, +2 Force."
         }
       }
     },
@@ -1095,11 +1095,11 @@
         },
         "A": {
           "title": "Attack",
-          "effect": "Attack foremost enemy."
+          "effect": "Attack foremost. If alone in this Front, +1 Force."
         },
         "S": {
           "title": "Special",
-          "effect": "Attack; equal Force defeats."
+          "effect": "Attack. If this is your only Force in this Front, +2 Force."
         }
       }
     }
