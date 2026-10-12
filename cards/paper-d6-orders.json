@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "canonical-paper-only",
-  "note": "Separate drawable Order deck for the current physical game. Each player draws three and commits one per Battle. Basic moves and Command are not playable cards.",
+  "note": "Canonical illustrated Order deck, separate from the 24-card Force deck. Three Orders in hand, one secret Order committed per Battle. Existing Order effects are unchanged.",
   "deck_size_per_player": 12,
   "copies_per_order": 3,
   "starting_order_hand": 3,
@@ -15,32 +15,28 @@
       "title": "Assault",
       "timing": "After combat",
       "effect": "Advance one surviving Force one empty rank forward in each Front.",
-      "theme": "Press the line",
-      "symbol": "blade"
+      "art_id": "all-banners-forward"
     },
     {
       "id": "hold",
       "title": "Hold",
       "timing": "Before rolling",
       "effect": "Withdraw one Force one empty rank per Front. Your Defend results can protect any ally in their Front.",
-      "theme": "Preserve the line",
-      "symbol": "shield"
+      "art_id": "no-step-back"
     },
     {
       "id": "volley",
       "title": "Volley",
       "timing": "During combat",
       "effect": "Your Archers may Attack any enemy in their Front, including Middle and Rear.",
-      "theme": "Strike their reserves",
-      "symbol": "arrows"
+      "art_id": "a-volley-before-dawn"
     },
     {
       "id": "raid",
       "title": "Raid",
       "timing": "Before rolling and during combat",
       "effect": "Move one Raider, Rider or Skirmisher per Front to an empty same-rank space in an adjacent open Front. They may Attack enemy Middle or Rear.",
-      "theme": "Exploit the flank",
-      "symbol": "horse"
+      "art_id": "the-line-wheeled"
     }
   ],
   "prototype": false
