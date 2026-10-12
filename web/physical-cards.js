@@ -81,10 +81,10 @@ function paperOutcomeParts(effect){
   const match=/^(Attack|Defend|Save|Nothing)\b/i.exec(text);
   if(!match)return {action:"Special",detail:text};
   const action=match[1];
-  let detail=text.slice(action.length).replace(/^\s*[;:.]\s*/,"").trim();
-  if(!detail)detail=action==="Nothing"?"No effect.":"Apply this result.";
-  else detail=detail[0].toUpperCase()+detail.slice(1);
-  return {action,detail};
+  const detail=text.slice(action.length).replace(/^\s*[;:.]\s*/,"").trim();
+  // The command is the heading: do not add "No effect" or "Apply this
+  // result" to fill space, and do not duplicate the same first word.
+  return {action,detail:detail?detail[0].toUpperCase()+detail.slice(1):""};
 }
 function combatStrip(card){
   const p=card.paper_d6;
@@ -96,16 +96,21 @@ function combatStrip(card){
     const rolls=outcome.dice.map(face=>
       '<span class="d6-number" data-die-face="'+face+'">'+face+'</span>'
     ).join("");
-    const weight=Math.min(1.7,1+Math.max(0,outcome.detail.length-23)/65).toFixed(2);
-    return '<section class="d6-stanza" data-outcome-key="'+esc(outcome.key)+'" data-action="'+
-      esc(outcome.action.toLowerCase())+'" style="--stanza-weight:'+weight+'" aria-label="Roll '+
+    // Reserve the least space for Nothing and more for longer printed effects.
+    // These weights distribute whitespace; content is measured in the browser.
+    const weight=(outcome.detail.length===0?0.64:
+      Math.min(2.05,1+Math.max(0,outcome.detail.length-22)/38)).toFixed(2);
+    return '<section class="d6-stanza" data-outcome-key="'+esc(outcome.key)+
+      '" data-action="'+esc(outcome.action.toLowerCase())+
+      '" data-face-count="'+outcome.dice.length+
+      '" style="--stanza-weight:'+weight+'" aria-label="Roll '+
       outcome.dice.join(" or ")+': '+esc(outcome.effect)+'">'+
-      '<div class="d6-stanza-heading">'+
       '<span class="d6-rolls" aria-hidden="true">'+rolls+'</span>'+
-      '<span class="d6-action-word">'+esc(outcome.action)+'</span>'+
-      (outcome.key==="S"?'<span class="d6-signature" aria-hidden="true">✧</span>':"")+
-      '</div>'+
-      '<p class="d6-verse">'+esc(outcome.detail)+'</p></section>';
+      '<p class="d6-copy"><strong class="d6-action-word">'+esc(outcome.action)+
+      '</strong>'+(outcome.detail?' <span class="d6-detail">'+esc(outcome.detail)+'</span>':'')+
+      '</p>'+
+      (outcome.key==="S"?'<span class="d6-signature" aria-hidden="true">✦</span>':"")+
+      '</section>';
   }).join("");
   return '<section class="d6-combat" aria-label="D6 roll outcomes">'+
     '<div class="d6-stanzas">'+stanzas+'</div></section>';
