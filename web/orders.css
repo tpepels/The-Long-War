@@ -41,6 +41,7 @@ h2{font:500 31px/1.12 Georgia,serif;margin:0}
 .hand .order-card[aria-pressed="true"]{outline:3px solid #334e3c;outline-offset:3px;transform:translateY(-5px)}
 .print-note{margin-top:35px;padding:18px 0 0;border-top:1px solid #b5b1a2;color:#676355;font:14px/1.55 system-ui,sans-serif}
 .print-pages{display:none}
+.print-version{display:none}
 @media(max-width:780px){.orders-page{padding:24px 14px}.order-steps{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.site-header{flex-wrap:wrap}}
 @page{size:A4 landscape;margin:6mm 7mm}
 @media print{
@@ -48,4 +49,8 @@ h2{font:500 31px/1.12 Georgia,serif;margin:0}
   .print-sheet{height:194mm;width:278mm;margin:0 auto;display:grid;grid-template-columns:repeat(4,68mm);grid-template-rows:repeat(2,96mm);gap:2mm;break-after:page;page-break-after:always;overflow:hidden}
   .print-sheet:last-child{break-after:auto;page-break-after:auto}
   .order-card{box-shadow:none;border-radius:1mm;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* The site builder stamps a revision number on printable pages. Keep it
+     outside card faces without allowing an extra fourth sheet to appear. */
+  .print-version{display:block;position:fixed;right:0;bottom:0;
+    font:7px/1 system-ui,sans-serif;color:#827e74;white-space:nowrap}
 }
