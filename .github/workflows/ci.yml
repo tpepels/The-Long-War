@@ -101,6 +101,8 @@ jobs:
         run: python tools/check_paper_d6.py
       - name: Check coordinated D6 ensembles and unchanged outcome odds
         run: python tools/check_paper_d6_synergy.py
+      - name: Verify all Force identities and card-local interactions
+        run: python tools/check_paper_d6_identity.py
       - name: Validate canonical drawable Order deck
         run: python tools/check_paper_d6_orders.py
       - name: Check Order card print sizes and effects

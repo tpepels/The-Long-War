@@ -1,10 +1,10 @@
 # The Long War — physical D6 edition
 
-The [one-page rules](../rules/rulebook.md) describe the entire game. The digital engine and AI remain a separate, older ruleset.
+The [one-page rules](../rules/rulebook.md) describe the entire game. The [44-card identity matrix](paper-d6-identity-matrix.md) records why each Force's new Special exists, what allies enable it, and how opponents may counter it. The digital engine and AI remain a separate, older ruleset.
 
 ## Two decks per player
 
-- A **24-card Force deck** with unit and Hero cards. Use the [44 printable identities](paper-d6.json) to construct it, or print either of the three [24-card starter decks](paper-d6-decks.json). Every Force has a Command cost, permitted battlefield positions and D6 effects.
+- A **24-card Force deck** with unit and Hero cards. Use the [44 printable identities](paper-d6.json) to construct it, or print either of the three [24-card starter decks](paper-d6-decks.json). Every Force has a Command cost, permitted battlefield positions and four D6 outcomes. All 44 now have a different Special; 20 ordinary Attacks and 17 Defends also differ by role and formation.
 - A separate **12-card Order deck**, with three copies each of Assault, Hold, Volley and Raid. Use [cards/paper-d6-orders.json](paper-d6-orders.json), or [print both players' Order decks](../web/orders.html).
 
 Shuffle the decks separately. Begin with ten Forces, three Orders and twenty Command.
