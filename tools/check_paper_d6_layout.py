@@ -110,7 +110,7 @@ window.addEventListener("load",async()=>{{
       if(key==="F"&&!["defend","save","draw"].includes(row.dataset.action))
         issues.push(id+":missing-fallback-support-"+key);
       const condition=row.querySelector(".d6-condition");
-      if(/(?:^|[.!?]\\s+)If\\b/i.test(expectedEffect) && !condition)
+      if(/(?:^|[.!?]\s+)If\b/i.test(expectedEffect) && !condition)
         issues.push(id+":missing-conditional-hierarchy-"+key);
       const rowBox=row.getBoundingClientRect();
       const copyBox=copy?.getBoundingClientRect();
