@@ -33,65 +33,13 @@ async function main(){
   if(!decks.length)throw new Error("No playtest decks were published");
 
   const index=new Map(cards.map(card=>[card.id,card]));
-  const vocabulary=cardData.position_vocabulary||{};
-  const timing=cardData.timing_vocabulary||{};
-  const reference=document.getElementById("mechanics-reference");
   const picker=document.getElementById("deck-picker");
   const root=document.getElementById("playtest-decks");
-  const includeMechanics=document.getElementById("include-mechanics");
   const printButton=document.getElementById("print-selected");
   const summary=document.getElementById("print-summary");
   const selected=new Set(decks.slice(0,2).map(deck=>deck.id));
   let renderGeneration=0;
   let readyPromise=Promise.resolve();
-
-  if(reference){
-    const rows=[
-    [
-        "START",
-        "Two 24-card decks. Start with 20 Command and 10 cards each. Four Fronts with Frontline, Middle, Rear positions. Open 2+3 first, Front 1 for Battle II, Front 4 for Battle III."
-    ],
-    [
-        "TURN",
-        "Draw 1 (discard down to 10), then up to two actions: Play one Force into a legal empty space paying its cost, or Move one Force one space to an empty adjacent position for 1 Command."
-    ],
-    [
-        "PASS",
-        "Instead of taking a turn, Pass. Your opponent takes one final turn; then fight. The player who did not Pass starts the next Battle."
-    ],
-    [
-        "PLANS",
-        "Choose one secret army-wide Plan; reveal before rolling. Assault: after fighting move one survivor one empty rank forward per Front. Hold: withdraw one per Front before rolling; Defend may cover any ally."
-    ],
-    [
-        "PLANS, CONTINUED",
-        "Volley: Archers may Attack any enemy in their Front. Raid: before rolling move one Raider/Rider/Skirmisher sideways per Front to an empty adjacent open Front; they may Attack Middle/Rear. Other Attacks target foremost."
-    ],
-    [
-        "FIGHT",
-        "Each player rolls one D6 per occupied Front. Each Force there uses its own matching result. Declare Attack targets simultaneously. Every Force acts once, even if defeated."
-    ],
-    [
-        "ATTACK & DEFEND",
-        "Defend cancels one legal incoming Attack. An uncancelled Attack defeats when the attacker's Force is higher. Each extra uncancelled Attack on one target grants +1 effective Force to all Attacks there."
-    ],
-    [
-        "SAVE & SPECIAL",
-        "Save prevents one Force's whole defeat. Specials do exactly what is printed. All casualties are removed together and never return. No wounds or status tracking."
-    ],
-    [
-        "TERRITORY",
-        "Most surviving Forces controls a Front; tied headcounts contest it. Rank adds no control points. Lose 1 Command for each Front controlled by your opponent; at 0 you lose."
-    ],
-    [
-        "NEXT BATTLE / VICTORY",
-        "Otherwise recover 5 Command (cap 20) and draw up to 10; surviving Forces remain. After Battle VIII, most controlled Fronts wins; tie-breaker is Command. Print the one-A4 rules for setup details."
-    ]
-].filter(([,value])=>value);
-    reference.innerHTML='<h1>Card mechanics quick reference</h1><div class="mechanics-grid">'+
-      rows.map(([term,value])=>'<div><dt>'+esc(term)+'</dt><dd>'+esc(value)+'</dd></div>').join("")+
-      '</div>';
-  }
 
   const expandedByDeck=new Map();
   for(const deck of decks){
@@ -141,9 +89,8 @@ async function main(){
     if(!chosenDecks.length)return "Select at least one deck to print.";
     const cardsToPrint=chosenDecks.reduce((sum,deck)=>sum+expandedByDeck.get(deck.id).length,0);
     const sheets=chosenDecks.reduce((sum,deck)=>sum+Math.ceil(expandedByDeck.get(deck.id).length/8),0);
-    const extra=includeMechanics.checked?1:0;
     return chosenDecks.length+" deck"+(chosenDecks.length===1?"":"s")+" selected · "+cardsToPrint+" cards · "+sheets+" card sheets"+
-      (extra?" + 1 mechanics sheet":"")+(loading?" · loading print artwork…":" · ready to print");
+      (loading?" · loading print artwork…":" · ready to print");
   }
 
   function updatePicker(){
@@ -159,7 +106,6 @@ async function main(){
     const generation=++renderGeneration;
     const chosenDecks=selectedDecks();
     updatePicker();
-    if(reference)reference.classList.toggle("print-excluded",!includeMechanics.checked);
 
     document.getElementById("kit-count").textContent=chosenDecks.length
       ? chosenDecks.length+" of "+decks.length+" decks selected"
@@ -194,10 +140,6 @@ async function main(){
     if(!input)return;
     if(input.checked)selected.add(input.value);else selected.delete(input.value);
     applySelection();
-  });
-  includeMechanics.addEventListener("change",()=>{
-    if(reference)reference.classList.toggle("print-excluded",!includeMechanics.checked);
-    summary.textContent=selectionSummary(selectedDecks(),printButton.disabled);
   });
   document.getElementById("select-first-two").addEventListener("click",()=>{
     selected.clear();
