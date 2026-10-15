@@ -371,7 +371,10 @@ def test_python_state_key_tracks_every_game_state_field() -> None:
     stale = set(exempt) - all_field_names
     assert not stale, f"Exemption set references fields GameState no longer has: {stale}"
 
-    source = inspect.getsource(AlphaBetaSearch.state_key)
+    # Game-specific state identity now belongs to the adapter rather than the
+    # generic algorithm facade.
+    from longwar.search_adapters import LongWarSearchGame
+    source = inspect.getsource(LongWarSearchGame.state_key)
     missing = [
         f.name
         for f in dataclasses.fields(GameState)
